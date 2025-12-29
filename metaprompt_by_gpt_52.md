@@ -6,7 +6,7 @@ Your job is NOT to summarize. Your job is to extract **repeatable cognitive move
 ### Inputs (I will paste these)
 - **TRANSCRIPT EXCERPT(S)**: selected sections of Sydney Brenner transcripts (with headings / section numbers if present).
 - (Optional) **QUOTE BANK**: a pre-extracted set of verbatim quotes (still treat as evidence; do not quote outside what I paste).
-- (Optional) **FOCUS THEME**: e.g., “problem selection”, “decision experiments”, “working out of phase”, “HAL biology”, “inversion”, “digital readouts”, “Don’t Worry hypotheses”, “phase problems / ambiguity breaking”, “mutational spectra”, “conversation as thinking technology”, “open the box / grammar of the system”, “tooling economics”.
+- (Optional) **FOCUS THEME**: e.g., “problem selection”, “decision experiments”, “working out of phase”, “HAL biology”, “inversion”, “digital readouts”, “Don’t Worry hypotheses”, “phase problems / ambiguity breaking”, “mutational spectra”, “conversation as thinking technology”, “open the box / grammar of the system”, “tooling economics”, “quickies / pilot experiments (de-risking)”, “dominant-variable rescues (physics saves)”, “democratizing tools”.
 - (Optional) **TARGET RESEARCH DOMAIN**: e.g., biology, ML, materials, climate, robotics.
 - (Optional) **CURRENT RESEARCH QUESTION**: a real question we want to make progress on using the Brenner approach.
 
@@ -41,7 +41,7 @@ Create a table:
 
 Tags are drawn from:
 `problem-choice`, `representation-change`, `inversion`, `HAL`, `digital-handle`, `exclusion`, `paradox`, `assumption-ledger`, `ruthless-kill`, `out-of-phase`, `organism-selection`, `cheap-loop`, `topology/algebra`, `bayesian-ish`,
-`dont-worry`, `conversation`, `open-the-box`, `grammar`, `phase-problem`, `phase-breaking`, `spectra`, `tacit-knowledge`, `tooling`, `initiation-vs-continuation`, `genetic-dissection`, `self-assembly`, `special-exemplar`, `construction-vs-function`, `anti-analogy`, `plausibility-filter`,
+`dont-worry`, `conversation`, `open-the-box`, `grammar`, `phase-problem`, `phase-breaking`, `spectra`, `tacit-knowledge`, `tooling`, `democratize`, `quickie`, `dominant-variable`, `initiation-vs-continuation`, `genetic-dissection`, `self-assembly`, `special-exemplar`, `construction-vs-function`, `anti-analogy`, `plausibility-filter`,
 `lineage-vs-gradients`, `reconstruction`, `heroic-vs-classical`, `normal-science`, `genetic-surgery`, `inside-out-genetics`, `discount-genome`, `integrative`.
 
 ### 2) Brenner Moves (8–12 items, each evidence-backed)
@@ -58,6 +58,8 @@ For each move, produce this exact structure:
 Moves must be specific (e.g., “Hunt paradoxes as beacons”, “Turn the problem into a decision procedure”, “Pick the experimental object”, “Prefer digital handles”, “Inversion as a generator”, “Occam’s broom as a warning sign”, “Work out of phase”, “Ruthless theory-killing”, etc.).
 
 Also include Brenner-style moves like: “Don’t Worry hypothesis (defer missing mechanisms)”, “Conversation to break deductive loops”, “Open the box / find the grammar of the system”, “Compute the organism (reconstruction as explanation)”, “Gradients vs lineage (analogue vs digital development)”, “Break ambiguity by solving the missing variable (phase)”, “Type mechanisms via spectra / equivalence classes”, “Find the control point (initiation vs continuation)”, “Genetic surgery (mutation-first proof of function)”, “Inside-out genetics (tooling changes feasible experiments)”, “Discount genome / organism choice as technology”, “Heroic → classical periods (routine work generates new problems; what can/can’t be solved by normal science)”, “Tooling economics (build/democratize the kit)”, “Reject ‘logical but non-natural’ theories and easy analogies.”
+
+Prefer to include moves like: “Run a quickie (pilot experiment) to de-risk the flagship”, “Find the dominant physical variable and push it hard”, and “Turn elite techniques into routine kit (democratize tooling).”
 
 ### 3) The “Brenner Loop” (a runnable protocol)
 Define an explicit loop a research group can run in 30–90 minutes:

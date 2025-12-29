@@ -194,7 +194,19 @@ When your target dominates the signal, you don't need purification:
 
 > "As long as everything else is spread over hundreds of species, if yours is a half or even a third you only see yours as the intense thing, because everything else is background" (§138)
 
-If what you're looking for constitutes 50-70% of synthesis, the experiment becomes trivially easy. **Choose systems where your signal is naturally amplified.**
+And sometimes it’s even more extreme:
+
+> "The amazing thing is that when one studied what happened after infection with this bacteriophage, this single protein accounted for 70% of all the protein synthesis of the cell." (§94)
+
+If what you're looking for constitutes 50-70% of synthesis, the experiment becomes trivially easy. **Choose systems where your signal is naturally amplified.** (§94)
+
+## Quickies (Pilot Experiments)
+
+When a “real” experiment is hard, Brenner often looked for a **cheap pilot** that would kill the key alternative first:
+
+> "So what I said, 'Well, I'll do a quickie'." (§99)
+
+The point is not speed for its own sake; it’s using fast discriminative probes to avoid a year of “normal science” exploratory grind.
 
 ## HAL Biology: Have A Look
 
@@ -206,7 +218,7 @@ Every link in an inferential chain has error probability; direct observation col
 
 This connects to his deep aesthetic preference for visibility:
 
-> "I love pigments... **because you can see them.**" (§)
+> "I love pigments... **because you can see them.**" (§28)
 
 This isn't whimsy—it's the preference for observables that make truth visible. Pigments, fluorescence, staining, survival/death: high-contrast, robust, qualitative signals.
 
@@ -219,6 +231,10 @@ This isn't whimsy—it's the preference for observables that make truth visible.
 This "imprisonment" is actually liberation—it prevents theorizing that can't possibly work physically. Brenner visualizes the cell as it really is: ribosomes so packed that messengers must thread through them "like hysterical snakes."
 
 **Before theorizing, calculate.** Get the numbers right. Know the scale. Stay within what physics permits.
+
+Even in technically messy systems, he looked for the dominant physical variable and pushed it hard:
+
+> "it is magnesium that stabilises this, and the caesium will compete with the magnesium... therefore the thing to do is to raise the magnesium." (§100)
 
 ---
 

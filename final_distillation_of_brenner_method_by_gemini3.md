@@ -139,10 +139,23 @@ He optimized for **Discovery Rate ($dR/dt$)**, not Knowledge Accumulation.
 
 ---
 
-## 6.3. Restored Verbatim Primitives (Anchors)
+## 6.3. Verbatim Primitives (Anchors)
 
-These primitives became clearer after restoring full verbatim transcript text; anchors refer to `complete_brenner_transcript.md`:
+These primitives are grounded in verbatim transcript text (some became clearer after restoring previously truncated sections); anchors refer to `complete_brenner_transcript.md`:
 
+- **Risk management / failure-mode coverage** (protect against catastrophic bottlenecks): `§77`
+- **“Isolate chunks first”** (anatomical dissection before columns): `§85`
+- **Democratize tools** (negative staining takes EM out of the elite): `§86`
+- **Assemblies as the explanatory target** (“bunches of molecules get together and interact”): `§87`
+- **Abundance trick** (one protein dominates synthesis → signal overwhelms background): `§94`
+- **Paradox as constraint** (“no new ribosomes” / prodigious synthesis): `§95`
+- **Decisive experiment** (new RNA on old ribosomes): `§98, §103`
+- **“Quickie” pilot** (de-risk the flagship experiment fast): `§99`
+- **Dominant-variable rescue** (magnesium vs caesium; change the order-of-magnitude variable): `§100`
+- **Third alternative guard** (“Both could be wrong”): `§103`
+- **Occam’s broom** (minimize swept-under-the-carpet facts): `§106`
+- **Frame-shift / topology-level inference** (triplet code from +/− patterns): `§109`
+- **Exception quarantine** (appendix + later special explanations): `§110`
 - **Phase problem / phase-breaking trick** (combinatorial explosion; solve the missing variable): `§88–§89`
 - **Mutational spectra** (induction/reversion as mechanism typing): `§90`
 - **Open the box / grammar of the system** (anti I/O; intermediate construction rules): `§117`
@@ -176,6 +189,7 @@ To run the "Brenner Bot," execute the following:
 2.  **Invert:** Don't study the organism you have; design the organism you need.
 3.  **Encapsulate:** Modularize the unknown ("Don't Worry") to debug the known.
 4.  **Compress:** Prefer "House of Cards" theories that explain maximum data with minimum parameters.
-5.  **Sweep:** Aggressively ignore non-clustering anomalies (Occam's Broom).
-6.  **Build:** Don't wait for tools; build the crude version that tests the core logic.
-7.  **Exit:** Abandon success to optimize for novelty.
+5.  **Quarantine:** Isolate anomalies explicitly (appendix) and monitor what you’re sweeping (Occam’s Broom).
+6.  **Pilot:** Run a cheap “quickie” to de-risk the hard experiment.
+7.  **Build:** Don’t wait for tools; build the crude version that tests the core logic (and change dominant physical variables by orders of magnitude when stuck).
+8.  **Exit:** Abandon success to optimize for novelty.

@@ -4,7 +4,7 @@ _GPT‑5.2 (extra‑high reasoning) — 2025‑12‑29_
 This is a working synthesis of “the Brenner approach” as it appears across:
 
 - Primary source: `complete_brenner_transcript.md` (references like `§62` refer to its numbered sections)
-- Restored-quote seed bank: `quote_bank_restored_primitives.md` (high-signal snippets keyed by `§`, extracted from restored verbatim sections)
+- Verbatim quote bank: `quote_bank_restored_primitives.md` (high-signal snippets keyed by `§`; initially seeded from restored verbatim sections, and extended in later passes)
 - Repo framing + intended artifacts: `README.md`
 - Prompt intent / operationalization templates: `initial_metaprompt.md`, `metaprompt_by_gpt_52.md`
 - Model syntheses (triangulation lenses, not truth):  
@@ -93,7 +93,7 @@ This is the move that collapses “infinite experiment space” into a few feasi
 Favor:
 
 - digital/Boolean outcomes (yes/no) ( §62 )
-- amplification and dominance (selection, regime switches, replication)
+- amplification and dominance (selection, regime switches, replication, single-protein dominance) ( §62, §94 )
 - visibility / direct observability (HAL) ( §198 )
 
 ### Step 6 — Add the “chastity vs impotence” control (potency / validity check)
@@ -109,6 +109,8 @@ The canonical Brenner phrasing is “chastity vs impotence” (won’t vs can’
 ### Step 7 — Run the *quickest decisive* experiment, then update brutally
 
 The implicit rule is: **prefer experiments that kill models** (large likelihood ratios), not experiments that merely “add interesting data.”
+
+If the flagship experiment is hard, **de-risk with a cheap pilot (“quickie”)** that would strongly discriminate the key alternative before you commit months of work. (§99)
 
 ### Step 8 — Handle anomalies without self‑deception
 
@@ -186,9 +188,10 @@ Anchors:
 
 Anchors:
 
-- “Phase/frame” behaves like arithmetic; topology‑level inference. (§1347)
+- “Phase/frame” behaves like arithmetic; topology‑level inference. (§109)
 - The “phase problem” as missing information causing combinatorial explosion (2^400): solve the missing variable, not the search. (§88–§89)
 - Scale constraints: “get the scale of everything right… stay imprisoned within the physical context.” (§66)
+- Dominant-variable rescue: magnesium vs caesium competition; change the order-of-magnitude variable, not the 3rd decimal place. (§100)
 - Feasibility units (the “Av” move): quantify what’s physically screenable before you start. (§178)
 - Combinatorial constraints as invariants (e.g., the “Beilstein paradox” as a forcing function toward combinatorial/probabilistic schemes rather than literal lookup tables). (§163)
 - Mutational spectra as a mechanism‑typing instrument (equivalence classes by induction/reversion). (§90)
