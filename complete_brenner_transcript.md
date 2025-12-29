@@ -1970,25 +1970,33 @@
 
 ## 161. Lineage and special computation: European plan vs American plan
 
-> In Europe... the most important thing is who were your ancestors... a computation which depended on **lineage**. In contrast, there's **the American plan, which is you don't give a damn who your ancestors are, what's most important is who are your neighbours**. These two contrasting developmental systems - lineage-based versus position-based - offered different approaches to understanding how cells differentiate.
+> I used to call the European plan versus the American plan. And I said that in Europe was the most... you don't give a damn who your neighbours are and where you live, the most important thing is who were your ancestors. And so that was a thing in which you had a computation which depended on **lineage**. You are what you are because this is the way you got there.
+>
+> As opposed to what I call **the American plan, which is you don't give a damn who your ancestors are, what's most important is who are your neighbours**. This I called the spatial computation. That is, if you wish to know what you are, you investigated who your neighbours were.
 
 ---
 
 ## 162. Genes make proteins, but what for?
 
-> There were lots of arguments and discussions in the literature as to how we would ever get an explanation of development... We discussed retinal wiring and nervous system specification, exploring the question of **what genes actually do beyond making proteins**.
+> There were lots of arguments and discussions in the literature as to how we would ever get an explanation of development and there were lots of schools of thought about this. And one of the problems was relating all of this at that level, to what we felt had to be molecular information... I mean, in the end **genes make proteins and proteins have to do something, so what is it they are doing?**
+>
+> Well, of course they could be synthesising and destroying morphogenetic chemicals. So there was a great search for these morphogenetic chemicals. And some... in some organisms things that behaved as though they were morphogenetic chemicals were to be... were found. And many people didn't believe these, that there would be gradients of diffusible compounds, largely on the grounds that if they existed the biochemists would have already found them. Since the biochemists hadn't found them they can't exist. And I think that there was a lot of confusion about... that diffusion would be consistent with the results of the experiment, but it's not necessary that things should travel necessarily by diffusion, and need not necessarily be small molecules like this.
+>
+> During this time we got very interested in a series of experiments that had been done on... which seemed to... to give the most challenging problem in all of this, which was **the wiring up of the retina**, to, in lower organisms, the tectum. Everybody knew that the eye was projected onto the tectum in a very careful manner, so that each part got projected onto a certain region, and so the geometry was perfectly represented. But what was amazing was that there were experiments in frogs that if you cut these projections and let them regenerate, they could regenerate right to the... to the correct place and rewire the nervous system appropriately. Now, when you think about that... that said there had to be some kind of code of specification. And one of the questions at the time was: **was there a code of recognition in the nervous system?** If we have to make so many synaptic connections, how was this encoded?
 
 ---
 
 ## 163. Molecular recognition using the Beilstein paradox
 
-> Sperry proposed "chemoaffinity" - that recipient and donor molecules must match for nerve wiring. This requires numerous specific molecules.
+> Sperry had put forward what was called the chemoaffinity. What he proposed is that each recipient had a molecule and each donor had a molecule, and only when they matched could... would the nerves wire up, so that you had these matching sets which had to meet. And of course if you were to think of... of how that... that would work, you would have to have a very large number of specific molecules.
 >
-> The immunological system offers comparison. Scientists noted **the "Beilstein paradox"**: antibodies can be made to any chemical in Beilstein's organic chemistry reference. With 122 volumes existing and potentially 10^22 volumes future, how do antibodies know what's published or unpublished?
+> Now, of course at the time many people thought that there is another thing where we seem to have a lot of specific molecules; it's in the immunological system. You know, everybody said something we called **the Beilstein paradox**. Beilstein is a big, is a big book of organic chemistry and describes all the organic chemicals that have been found. And people have said well, we're sure that if you take a chemical out of Beilstein you can make an antibody to it. And of course we have to think not only there... are there a 122 volumes of Beilstein now, but there's going to be, you know, 10^22 volumes of Beilstein written over the next 20 years, and of course this statement will be equally true. So how does the antibody first of all know what's been published in Beilstein and secondly, a more, a deeper question: how's it going... how does it know what is not yet published in Beilstein but will be in the future?
 >
-> This reveals molecular recognition's complexity: **it's pluralistic**. One antigen recognizes multiple antibodies; one antibody recognizes multiple antigens, forming codes.
+> So what is in fact the landscape of this area of chemical... of molecular recognition? And it becomes very clear that it has to be a rather more complicated thing than, you know, one antigen, one antibody, and it means that **everything must be pluralistic** in a sense. That is, one antigen can be recognised by more than one antibody, and perhaps one antibody can recognise more than one antigen, and then we can, we can think of how that will become a code.
 >
-> Szilárd modeled nervous system wiring through chemical recognition, using immunization as learning paradigm. Antibodies learn molecular configurations through exposure, but not through interpretation or computation - rather through total ignorance: **"if it works do it, if it doesn't work forget about it."**
+> Szilárd, in fact, wrote a paper about how the nervous system would be wired up by this form of chemical recognition, and what is more, he used the paradigm of immunisation as a model of learning. In other words, if you wanted to do new things you kind of formed a molecule, an antibody, if you like, that... that learnt what this new thing in, and therefore that would allow you to have learnt it. In that sense the antibody system does show a kind of molecular learning thing; once exposed to a chemical configuration it learns what that is and produces an antibody.
+>
+> Now of course it doesn't learn it in the sense of doing some big interpretation of the structure then computing what it has to do. Because that would be one way of learning, and of course it learns by being totally ignorant, which is the cheapest way. Which it says, **if it works do it, if it doesn't work forget about it**. And so I mean, it is learning under the regime of total ignorance that distinguishes the antibody system from what we might speculate as learning. This is quite important because many people now can't make the clear distinction between selection and acquisition in this sense.
 
 ---
 
