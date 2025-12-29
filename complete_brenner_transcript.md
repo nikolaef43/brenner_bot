@@ -76,3 +76,9 @@
 
 ---
 
+## 6. Accelerated early schooling
+
+> My father had a customer – a lady called Mrs McCartney – and they came into the shop – I must have been about four and a half – and she found me reading, and she said to my father that I should be sent to kindergarten and my father said that he couldn't afford it, but she said she would take me into this kindergarten. This kindergarten was run as part of the Presbyterian Church, in Germiston, and so I started going to kindergarten when I was five years old, and I did the first three years of... I was... very rapidly started... moved into the standard school curriculum, and so I did the first three years of what would be grade school in one year. So I did grade I, grade II and standard I, as they were called in South Africa, in one year, and then I went to the state school, the **Germiston Junior School**, and so I started at the age of six in standard II. So I was very far in advance of my age.
+
+---
+
