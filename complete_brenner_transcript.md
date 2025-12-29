@@ -2420,9 +2420,13 @@
 
 ## 210. Scientific progress: The heroic and classical periods
 
-> The question is whether in the '60s we were right in thinking that all the problems of molecular biology had been... had been solved in outline.
+> The question is whether in the '60s we were right in thinking that all the problems of molecular biology had been... had been solved in outline. They were solved in outline because that is essentially what we... we saw the solution on, and we thought then the rest is... the rest is just, you know, routine work. Now, one of the remarkable things about science is that **routine work itself generates its important problems which you don't see**, and of course as you stand on the brink or on the edge... or on the transition point as science goes from the heroic... its **heroic period into its classical period** as Gunther Stent used to say, which of course by about 1961 that is exactly where molecular biology stood; there were no longer great heroes that would do all of this work, that were evangelists in some way that was bringing, that were bringing new message to... to everybody, because now the church was admitting everybody and everybody was becoming converted.
 >
-> [Brenner discusses how routine scientific work generates important unforeseen problems, and references Gunther Stent's concept of science transitioning from its "**heroic period into its classical period**." He argues it's crucial to understand what can versus cannot be addressed through "normal science."]
+> So it's not... it's not useful to be, if you like... I mean, **being an early Christian must have been exciting, but to be one later is boring, because everybody's converted**. The only thing of being an old Jesuit in the church is you know what's wrong with the church basically, which the new converts don't. It's important to keep quiet about this in the early stages of building up the church. So I think the... and I think we were quite right, if arrogant, to say that for us that wasn't the sort of thing we wanted to do.
+>
+> Now of course in biology, **problems have a remarkable way of not being solved, of never being solved**. Take DNA replication. It has been thought to have been solved, I think, at least 10 times in the past, it's thought to be solved today. But I guarantee you people will be working on DNA replication for the next 20 years, for the simple reason that at each level is solved you, first want to know whether... what are the components that do it, then you see that it's not enough just to stick bases in and propagate the chain, you've got to have an editing step so there's going to be some more stuff that comes into that. And so I think these things accrete problems. It may well be that that will be the interest of an extremely small group that will continue with this and will become refined specialists and this just may be a niche of molecular biology which will have been exploited by one particular set of molecular biologists.
+>
+> I think it's important that that should go on, but people feel it can't... it's no longer a mystery. And because it's no longer a mystery people feel it can be solved by normal science. And **it's very important, I think, to grasp what can or can't be solved by normal science**, you can just go back to it there.
 
 ---
 
@@ -2476,9 +2480,15 @@
 
 ## 215. Molecular genetics and gene cloning
 
-> Well, the early molecular biology, the early molecular genetics, was really the science for a young man, because... and I really enjoyed it. And *C. elegans* (*Caenorhabditis elegans*) was... was a science that fitted by mature middle years, because it had a huge strategic component...
+> Well, the early molecular biology, the early molecular genetics, was really the science for a young man, because... and I really enjoyed it. And *C. elegans* (*Caenorhabditis elegans*) was... was a science that fitted by mature middle years, because it had a huge strategic component. That is, it wasn't something that you could go into the lab and do an experiment and get the answer the next day, but really needed the development of a... a lot of... techniques and a whole range of what I would call normal science. I mean, bringing the science of observation back to biology and getting the system into a form where in fact it could reap the benefits of the gene cloning that had been discovered about half way through its... its course. And so for twenty years, until the '80s, that is what I worked in, and I had spent...
 >
-> [Brenner discusses how the work required developing techniques over twenty years, and how gene cloning became central to their approach. He explains classical genetics methodology:] **You cannot assert the existence of a wild-type gene... until you have a mutation**... **You are doing surgery at the genetic level.**
+> Well, I think the... in... during the course of the work on *C. elegans*, we had tackled the molecular questions. Starting at the begin... at the beginning of the '70s. And of course the thing that came along and made it the subject was of course gene cloning. And that is what we turned our attention to, and that of course has been the answer to all of developmental biology, that you find out how the gene works by cloning it and looking up its sequence in a database and seeing if anybody's got anything like this before. And then you can take comfort in each other's ignorance, if you like.
+>
+> However, once that had gone forward and once it became clear that other people could do this probably better than I could, that is, I felt very much that my role in this had... had been completed. And therefore it could be safely left in the hands of the children, so to speak, and I could go off and do other things. And the... I was very heavily involved in being the director of the lab and spending my time doing the accounts and trying to sort out budgets — really a total waste of time in my opinion — and I think it was the biggest mistake I ever made.
+>
+> However, what I came to realise now is that we had a new way of doing genetics. And that therefore instead of... of denying it, as many people thought... wanted to do, this was just going to be a whole new science, and if it was going to be a whole new science I want to be in it at the beginning. Now one of these was... there was this new way of doing genetics. The idea which was simply stated at the time when all of this came, is, let's go and get the whole sequence of a genome. Molecular genetics, if you like, classical molecular genetics was an extremely difficult way of reading the sequence of DNA. Now that we could do it directly, let's go and do it. And in principle we just have access to the total DNA. And that is what cloning DNA and sequencing it could give you.
+>
+> Therefore the classic approach to genetics could now take on a different... a different guise and what I thought immediately was it needs to be conducted with the same logic. And if you ask what does a geneticist want to know? He wants to know what are the genes? What do they do? How many do we have? How do they map onto phenotypic function? And how does he do this? Well, in classical genetics he collects mutants, because it is a paradigm of... it is the case of classical genetics that **you cannot assert the existence of a wild-type gene, that is a gene performing a normal function, until you have a mutation**, a deviant of it. Once you have the deviant, that proves there must be something. In other words, you cannot say there is a gene for... that makes plants tall until you find dwarf mutants, that is, until you find something that suffers from lack of tallness. And indeed that is the whole of genetics, that is, you must find something that suffers from the lack of the function you are doing. **You are doing surgery at the genetic level.**
 
 ---
 
@@ -2488,9 +2498,7 @@
 >
 > And so you can conduct this exercise and come out and just say well, for movement I think we've got to have at least 10 genes that specify movement because I have 10 genes of paralysed mutants that show lack of movement. And these genes then, it's now up to you to show how they work. That of course was the difficulty with developmental biology... is one didn't know how to get into the system until we could clone the genes. Right.
 >
-> Now, what we could now do was effectively clone genes, sequence them, therefore we... we didn't have to do the mutant hunt. We could actually find the wild-type genes, they were there. And then we could ask — it's been called reverse genetics, but it's wrong — then we could ask what happens if I make a defect in this gene? Right, now. And then I'll see what the effect is on the organism. **Basically what it is, it's not reverse genetics but it's inside-out**, because the whole history of biology we pursue functions from the outside, from the phenotype...
->
-> [He describes the sickle cell mutation discovery taking decades from phenotype to gene, then continues:]
+> Now, what we could now do was effectively clone genes, sequence them, therefore we... we didn't have to do the mutant hunt. We could actually find the wild-type genes, they were there. And then we could ask — it's been called reverse genetics, but it's wrong — then we could ask what happens if I make a defect in this gene? Right, now. And then I'll see what the effect is on the organism. **Basically what it is, it's not reverse genetics but it's inside-out**, because the whole history of biology we pursue functions from the outside, from the phenotype, from say, finding people that suffer, that have... that are bad at high altitude, to discover by going through that they have abnormal red blood cells, to show they have a protein that has an abnormal way of aggregating, to finally showing that there's the protein with one amino acid change, and that's the sickle cell mutation. And that took... decades to do.
 >
 > Now we can start at the other end, which is to find the wild-type gene, since we know the genetic codes we can just write down the protein. And since, as information collects about proteins and what they do, we may be able to... to get much faster to map this in terms of phenotypic function, right. So here's the new approach to genetics. **What does it do? It liberates us from the life-cycles of organisms.** We had been bound to always do crosses, always our experiments depended on taking genotypes apart, seeing what happens and putting them together and seeing what happens. One generation at all times. And of course when we got experimental organisms, they had to have easy life-cycles, they had to have rapid ones so we could do a lot of experiments... didn't have to wait a year or two years for the answer. In that case we might well have forgotten what the question was by the time we got the answer.
 >
@@ -2508,11 +2516,15 @@
 
 ## 218. Sequencing the human genome in a bingo hall
 
-> Now, at that time I'd actually gone back to work with bacteria, to see if I could map a whole bacterium with the new techniques. That is, to get overlapping clones of cosmids and John Sulston joined me and we worked at that point — he'd also got a bit fed up with the nematode at that point — and we worked then developing techniques for an organism called *Rhodopseudomonas blastica*...
+> Now, at that time I'd actually gone back to work with bacteria, to see if I could map a whole bacterium with the new techniques. That is, to get overlapping clones of cosmids and John Sulston joined me and we worked at that point — he'd also got a bit fed up with the nematode at that point — and we worked then developing techniques for an organism called *Rhodopseudomonas blastica*. It was just some small bacterium. And having developed various fingerprinting techniques so that we could do this, John then thought that what he would do is just take this straight off into *C. elegans* (*Caenorhabditis elegans*), which is what he did. And we continued a little with technology for bacteria and with... we worked with *Rhizobium* and I have to say I'm still interested in that and I'm still doing experiments to find good ways of getting maps of bacteria very quickly... ordered DNA clones.
 >
-> [Brenner explains his creative approach to the Human Genome Project:]
+> However, when all of this got moving at the more public level, and it had all started when Sinsheimer called a meeting of people to which I didn't go, because I couldn't go, this was in 1986. And John Sulston and Bart Barrell who was a sequencer and who had done the whole of EBV — Epstein-Barr Virus — which was the largest genome done at that time, they went. And the idea was, which Wally Gilbert appeared as the... the leading inspirer, the chief optimist, if you like... was that we should... the Holy Grail was to just sequence the whole of the human genome.
 >
-> I thought we could actually do this by having something that was like **a bingo hall**. That is we could have these machines and we could put up the sequence of the day, people would actually pay to come and operate these machines...
+> Now, I think that that was... I mean, there was no technology and there still is today no technology that would allow us to do this in some reasonable time. And I got very heavily involved into the... the human genome programs, I got onto the American committee on this to decide where it is, and that history has been written over and over again. But the important thing to realise is that there was first of all gigantic antagonism of... of the scientists to this project. The... there's antagonism in that the way it was pictured was there'd be a factory somewhere that would generate sequences, right. And such factories are not... they are viable, but not in the context of science. That is, I... I still have to convince scientists that there are people in the world who would do this work, it's a job. They wouldn't be interested in the result. Because what they'd be interested in is the money, so that on Friday afternoon they can take that money and then go and pursue their interests, like have boats or gardens or so on. Scientists don't imagine that there are people like this. They think everybody is a student with a kind of right... inalienable right to be a genius, and that this would actually clamp him, and it's just not true, there are lots of people happy at their work.
+>
+> In fact, I thought we could actually do this by having something that was like **a bingo hall**. That is we could have these machines and we could put up the sequence of the day, people would actually pay to come and operate these machines and we'd have a prize. So it would cost you £10 to operate the machine, but if you happened to get the sequence of the day there'd be a prize of a £1000. And I think we'd be deluged with people wanting to come and play the machines, and we could put these up in shopping malls and supermarkets, we'd just get the sequence done very easily. And indeed, you know, although there are three billion base pairs, you realise in principle it could be done in an afternoon, let us say, by the population of China. Of course there's a bit of a problem organising the population to do it, but each would only have to do three of them, you see, of course.
+>
+> But so, I thought we needed... that showed very clearly that the perception of people as to what was understood by scientific work was... did seem to me to be very different. And everybody complained that this is going to be... bring in big science. You know, and everybody would be enslaved in some way. And of course... and... and then of course the real motives occurred, it would divert money from them. So the real issue about whether this could be funded or not — the project, the human genome project — is that it had to satisfy some kind of threshold of new money, so that it wouldn't be taking it away from the people, otherwise there would be screams and shouts, and that's really what all the politics was about. Where can you get new money?
 
 ---
 
@@ -2574,9 +2586,13 @@
 
 ## 222. Benefitting from less junk in Fugu DNA
 
-> Well, the fish… fish gene is about 1/8 the size of the human gene. We have sequenced many of these and compared them with the human gene, and in all cases find the same number of introns, but **the introns are tiny in the fish**, and whereas they can be enormous in… in the human or mammalian gene.
+> Well, the fish… fish gene is about 1/8 the size of the human gene. We have sequenced many of these and compared them with the human gene, and in all cases find the same number of introns, but **the introns are tiny in the fish**, and whereas they can be enormous in… in the human or mammalian gene. And one of the things that of course would be important is exactly how — what's called in the trade synteny, but synteny is on a much larger scale, that means on the same chromosome, on the same chunk of DNA; I like to call this contiguity, because it's going to be on a small scale — to what extent this has been conserved. And we have growing evidence that this is conserved over reasonable distances.
 >
-> [Brenner explains that conserved sequences span approximately "a million base pairs of human DNA, and… which would be equivalent to a 100,000 base pairs of fugu DNA." He notes the dystrophin gene spans "2.8 mega bases, that is 2… nearly 3 million base pairs," while the fish equivalent is "**reduced by a factor of 20 in size**." He concludes: "we could characterise genes very quickly."]
+> A rough calculation showed us that it might be conserved over about **a million base pairs of human DNA**, and… which would be equivalent to a **100,000 base pairs of fugu DNA**, and it may be of that order or even better. So this enables you to go and find human genes simply by using the fish, and it also enables you to actually go and characterise human genes, which are enormous.
+>
+> For example, the gene that's affected in Duchenne muscular dystrophy, dystrophin, is **2.8 mega bases, that is 2… nearly 3 million base pairs**. Whereas the parts… the part that we have already sequenced has been **reduced by a factor of 20 in size**, and so that if the whole thing were to follow the rest of it — which we're still doing — were to follow this, then the fish gene would be of the order of about 150,000 base pairs, which means we could characterise it.
+>
+> Which means that **we could characterise genes very quickly**. Now, I think a large number of people will come to use this, and in fact I do not want to set up a big institute to do this, but in fact I think it should be dispersed. I think the technology does not exist yet to… to tackle sequences as large as 400… genomes as large as 400 million base pairs, and until that develops we want a lot of people to come and get the benefit from this. It will also help us — following the Talleyrand principle which is: never do for yourself that which you can get other people to do for you — it will also help us to get a lot more information on this. And you might want to be interested in what is the information we are looking for.
 
 ---
 
@@ -2594,13 +2610,13 @@
 
 ## 224. Putting fish genes into humans and mice
 
-> And of course, if I did this no one would give me an absolute penny. But you see, it's already being done for us...
+> And of course, if I did this no one would give me an absolute penny. But you see, it's already being done for us. Those experiments have been done, we've got the mutants, we've got the human mutants and we still have some representative of the original stock, the fish. Therefore, why don't we just do genetics on these? So why don't I just do the following, I'll take a gene out of the fish and put it into a man. Well, can't do that, so I'll do it in a mouse, which is the experimental animal.
 >
-> Those experiments have been done, we've got the mutants, we've got the human mutants and we still have some representative of the original stock, the fish.
+> And now I'll ask for that gene, do you work in the mouse? Now, the mouse, of course, could be argued from point of view of physiology and anatomy to have a fishy part and to have something that got added on. There still is a fishy part to the mouse. The immunology will still be fishy; no, but the lungs certainly won't be, because they just aren't present in this. So if I find this gene, let us say, that expresses in the lungs of a human and I find the same gene in a fish, I can ask whether that fish gene will express in the lungs. Now, if it doesn't — so this only will express in the fishy part of the mouse — I have to say that that gene just retains that information, all right, and therefore I should look at the mouse gene there to see what has happened here. Has other things been added on? Has it moved to another place, perhaps, where it has a different regulation? That's probably what would have happened.
 >
-> [Brenner explains his approach to genetics:] I'll take a gene out of the fish and put it into a man. Well, can't do that, so I'll do it in a mouse, which is the experimental animal.
+> Then in the other case, **if the fishy gene expresses all over the mouse**, that is you couldn't tell the difference between the two mice, one with a mouse gene and one with a fish gene, **then I have the right to say that evolution went at a higher level** in the program and this remained the same. So what we can find throughout these is those invariant parts of the genome that just stayed the same and which we expect will be… will be invariant in the sense that as we all know, in development, when you want a new muscle you don't start from the beginning again and reinvent all the proteins, you just have a way of saying: do what you know, but do it here and not there.
 >
-> [He further states:] **If the fishy gene expresses all over the mouse**, that is you couldn't tell the difference between the two mice, one with a mouse gene and one with a fish gene, **then I have the right to say that evolution went at a higher level**.
+> So I think that this is the way really to do the genetics of complex regulation. And I think the present idea of doing it by cutting out a piece and seeing what happens, this is… this is going to be just too tedious and too boring to do.
 
 ---
 
@@ -2650,13 +2666,13 @@
 
 ## 228. Thoughts on creativity
 
-> [The questioner asks Sydney about insights into his own creativity.]
+> Well… well, you ask about insights into creativity. Now, this is a subject that preoccupies a lot of people because of course everybody would like to be creative and everybody wants to know where can they get it from. I mean, you know, if you could get a packet of creativity and buy it somewhere, that would be the ideal thing.
 >
-> Creativity requires **not being afraid to say wrong things**, as people are often taught everything should be rational. **Daydreaming is terribly important, but the essence of science is to bring it… to realise it, to implement it.**
+> I don't… I think one of the things about creativity is **not to be afraid of saying the wrong thing**. I think that's terribly important. Too many people are brought up, especially in our culture, that everything should be rational, should be worked out, and that daring ideas, you know, shouldn't be uttered simply because they are most likely to be wrong the first… the first time around. And I think the other answer to creativity is that, I mean… **daydreaming is terribly important, but the essence of science is to bring it… to realise it, to implement it**.
 >
-> [Sydney discusses Popper's approach to disproving theories, but observes that scientists must work hard to prove results because experiments often fail initially — not due to wrong theory, but due to entropy and nature's unpredictability.]
+> And I think one of the things about creativity is to absolutely know where and how one could actually prove this. Now, I know there's a lot spoken about Popper's approach to this, in which one should actually work out ways of… of disproving one's theory. Of course Popper I don't think is too… too cognisant of the psychology of scientists. He may know something about the philosophy of science, but you find me a scientist who's actually going to sit down and work a way out of disproving his results. Because most of us, realising the pernicketiness of nature and the unreliability of nature, have to work hard to prove our results. Because the first time an experiment is done it's likely not to work. Not because the theory is wrong, but just because the whole entropic universe is reaching us instantly we start to dabble in it.
 >
-> **Part of creativity is actually something which is a bit irrational, which is a feel that this is the right thing.** And that one will go to some lengths, actually, to realise it.
+> So I think it takes quite a lot of… **part of creativity is actually something which is a bit irrational, which is a feel that this is the right thing.** And that one will go to some lengths, actually, to realise it.
 
 ---
 
@@ -2676,13 +2692,17 @@
 
 ## 230. The balance between ignorance and knowledge
 
-> It's good to be **ignorant about a new field and know a lot about the old ones, as you transit from the old to the new**.
+> Well, you ask about the balance between ignorance and knowledge. Of course, I've said it's good to be ignorant and I've also said it's good to know, in fact, I do know a lot. I think **it is good to be ignorant about a new field and know a lot about the old ones, as you transit from the old to the new**. And maybe… so those things are not as contradictory as they may seem.
 >
-> [Brenner provides an extended example about a paper titled "Encoded Combinatorial Chemistry" where he explains how genetic principles could apply to chemistry through DNA tags and PCR amplification to enable Darwinian selection in chemical systems.]
+> Let me give you one example. I mean, two years ago I wrote a paper called *Encoded Combinatorial Chemistry*. This was a rather bizarre, and I think very important conceptually, and possibly a technological… technological invention, in which we apply genetic arguments and the… and actually give a mechanism of using it in… for inanimate material. And the question that is proposed there is how would you take just ordinary chemistry and be able to do natural selection on it? And of course you can't, if you say, natural selection depends on replication — I mean, glucose can't replicate itself. So that means that's out. So what you have to do is basically to have a lot of glucose and be able to extract more from it than you start with. And that's possible.
 >
-> I think they knew too much organic chemistry, and the fact that we persisted and do it depended on me **being completely, well, not completely ignorant, but ignorant enough about the field**.
+> Since the only thing you can replicate is DNA, then what you have to do is to have a gene for glucose. But of course we don't want to invent a gene that makes glucose, but now with technology we can actually synthesise a gene and we can say this gene stands for glucose. Right? So that means we simply have a table and we simply attach this gene to glucose, which is the way we put glucose into the same area, into the same physical environment as this gene — the way we link phenotype to genotype. But if you look at this... this is very… this is completely different to the standard genetic system, in which we actually define the genotype from the phenotype.
 >
-> I've always been in this **permanent transition between knowledge and ignorance**. So maybe I just find it a very natural way to proceed.
+> Now, this means that with this genetic tag and with PCR [polymerase chain reaction] we can always amplify the tag. But if you think about it, the tag — because DNA is double-stranded — every time we amplify a tag we get both chains. Therefore one chain is always a specific way to enrich for glucose. Therefore formally in such systems you can realise Darwinian selection for systems that are purely chemical simply by reversing the information transfer, if you like, by the intervention of human discipline.
+>
+> Now, it's very lucky that I knew very little about chemistry, because when this proposition, which is theoretically correct, was shown to chemists it was turned down by people saying, you'll never be able to make these. That is, you know, you just argue out of ignorance, well, I'm sure there must be the various protecting groups that you can do. No, many people looked at this and said it's impossible to do. Now, I think they knew too much organic chemistry, and the fact that we persisted and do it depended on me **being completely, well, not completely ignorant, but ignorant enough about the field** to say, well, it is not beyond the wit of chemists to find this if they look hard enough. But of course, the original thinking there was nothing to do with organic chemistry, and it had to do with the… the logic of knowing a lot about genetics and knowing a lot about what the things really meant there.
+>
+> So that is what I think it's important, why I say it's important to be ignorant, because had I listened to the organic chemists that would never be a practical thing. So, since I've spent a lot of time in my life in going from one field to another I've always… always been in this **permanent transition between knowledge and ignorance**. So maybe I just find it a very natural way to proceed.
 
 ---
 
@@ -2690,11 +2710,11 @@
 
 > Well, I think the… I mean, the thing that I think is the most… well, I've had many different kinds of achievement. I think the ***C. elegans* is a monumental achievement**. I think it generated, you know, a kind of industry of science.
 >
-> But if I think what is the intellectual achievement, then I think it would be in the classical genetics of *r*II, and the two things are **the triplet nature of the genetic code**, and of course the whole of decoding suppression triplets.
+> But if I think what is the intellectual achievement, then I think it would be in the classical genetics of *r*II, and the two things are **the triplet nature of the genetic code**, and of course the whole of decoding suppression triplets. So, I think that is what I would like myself to say that had some intellectual content and was in fact, if I were to… to use words like brilliant — was brilliant in that it shone in that sense.
 >
-> [He continues discussing his contributions to messenger RNA experiments and reflects on his role as a scientific rebel:] **Being a rebel has always appealed to me**, largely because I'm convinced that the… that the standard parts of any activity are already petrified at the core.
+> I think the messenger RNA experiments is something I will be remembered for, for the simple reason that, I think, historically it came at an important time and bridged something that at least in the minds of most people was proving a complete block to further advancement. Without that concept… and, of course, what drove in came from many sources, and my contribution was just one little thing on that, but in fact I think my great contribution to that was to find a way of doing a decisive experiment.
 >
-> [The discussion concludes with Brenner reflecting on his strategy of changing fields frequently to maintain intellectual challenge and avoid becoming conventionally entrenched in any single area of study.]
+> **Being a rebel has always appealed to me**, largely because I'm convinced that the… that the standard parts of any activity are already petrified at the core.
 
 ---
 
@@ -2722,13 +2742,15 @@
 
 ## 233. The exciting future of biology
 
-> [The questioner asks Brenner to describe his field 30-50 years in the future.]
+> Well, you asked to see how the subject will be in 30 years' time. I think that the two things that will happen is… the **three things that will happen** will be the following. I think **evolution will become an experimental subject** which will be wonderful. I think with that sort of knowledge we will even start to make new animals, perhaps… I once gave a lecture on how to make a centaur by means other than transplantation surgery — which is the way the Greeks made centaurs — and what you would have to know in terms of developmental biology to create a six-limbed vertebrate, because that's what centaurs are.
 >
-> **Three things that will happen** include: evolution becoming experimental, synthetic biology development, and the reinvention of physiology to connect molecular events to organism function.
+> But I think we will move on towards, I think, **synthetic biology**. I think also that in terms of… so I think evolution is going to be the subject over the next 25 years. I think there are going to be amazing discoveries that are going to tell us quite a lot about the past, and I think we're actually going to recapitulate the past. And that, I think, will be the most exciting thing, and I think it will bring a new kind of synthetic approach to the subject, which is now just being carved into smaller and smaller pieces.
 >
-> **The physiology of the brain** will prove most interesting, and neurobiology discussions will transform. [He describes himself as believing:] **The brain is a gland which excretes thoughts.**
+> I think that in terms of the understanding of… I think the big subject that will develop, the subject that will have to be reinvented, is **physiology**. So that is, nobody knows how to connect up all these molecular events to the actual functioning of an organism, or an organ system, so I think physiology will have to be reinvented so that we can grasp how all this molecular stuff is embedded in the function of an organism.
 >
-> Biology will enable **understanding of ourselves as organisms** for the first time, allowing humans to **attack the fundamental biology of man**. [He suggests future science will:] recreate history from genomic evidence and integrate it with human understanding of evolution, history, and culture as unified biological phenomena.
+> And, of course, **the physiology that'll be the most interesting will be the physiology of the brain**. There's a tremendous discussion now on neurobiology and its theory and what is consciousness and so on, and I think a lot of this discussion will just… all the… way people are talking about it will vanish, you see. I'm one of the people who believes **the brain is a gland which excretes thoughts** and, roughly speaking, we have to, you know, find out how this excretion is carried out and I think we'll… we'll get this and…
+>
+> So I think that's going to be a… but that's trite. But the subject I think that's going to be very interesting, which the new biology will open up, is in fact the **understanding of ourselves as organisms**. I think for the first time we can **attack the fundamental biology of man** and I see even now the beginnings of trying to understand our evolution and our history and our culture and in terms of our biology as one thing, so I think the great dream of the human sciences will be realised in the near future because we can just… and if it is correct that the genome still retains evidence of past history, we should be able to recreate history beyond the written word and integrate it with this, so I think there will be more of that science.
 
 ---
 
@@ -2750,11 +2772,15 @@
 
 ## 235. Personal interests outside of science
 
-> Well, I'm not… I wouldn't consider myself to be a great follower of the arts, in the sense that I… I did paint when I was younger.
+> Well, I'm not… I wouldn't consider myself to be a great follower of the arts, in the sense that I… I did paint when I was younger. My wife is the owner of several original Sydney Brenner paintings, but I… and I can appreciate them and so on. I do listen to music; as I grow older I like the ensembles to have less and less members. I had reached the stage a few years ago where I found that anything above a quintet was too noisy. I'm at the trio stage now.
 >
-> [The transcript continues with Brenner discussing his interests in music, philosophy, biography, history, and autobiography. He mentions specific works, including Richard Goldschmidt's life writings and Max Born's autobiography about pre-war Germany and Jewish experiences.]
+> I do have interests in philosophy and reading and biography and history and autobiography. And the past does live on, does live in individuals and it's very interesting to be able to read about it.
 >
-> [Brenner's appreciation for biographical and historical works that **recreate** and preserve past worlds and social environments.]
+> I have a great… one of my hobbies is to actually try and collect what scientists have written about their own lives. A lot of scientists have written their autobiographies. And some of them are very revealing. And the thing that I think is very good about them is that they **recreate** worlds that are no longer there.
+>
+> I think the first volume of Richard Goldschmidt's life is wonderful simply for the fact that it recreates what it was like to be a student in Germany in the 1890s. Max Born wrote about his own life for his family, essentially, and it describes what it was like in pre-war Germany, and of course what it was like to be a Jew in Germany at that time.
+>
+> And of course, these worlds are lost except through this and I suppose **as one gets older one wants to try and preserve something**.
 
 ---
 
