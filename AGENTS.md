@@ -43,6 +43,35 @@ If that audit trail is missing, then you must act as if the operation never happ
 - Target **latest Node.js**. No need to support old Node versions.
 - **Note:** `bun install -g <pkg>` is valid syntax (alias for `bun add -g`). Do not "fix" it.
 
+### Bun Standalone Executables
+
+Bun can compile TypeScript/JavaScript into **standalone portable executables** that bundle:
+- The application source code
+- All imported dependencies
+- A copy of the Bun runtime itself
+
+The resulting binary requires **no installation** to run—it's completely self-contained.
+
+```bash
+# Basic compilation
+bun build --compile ./brenner.ts --outfile brenner
+
+# Cross-compile for different platforms
+bun build --compile --target=bun-linux-x64 ./brenner.ts --outfile brenner-linux
+bun build --compile --target=bun-darwin-arm64 ./brenner.ts --outfile brenner-mac
+bun build --compile --target=bun-windows-x64 ./brenner.ts --outfile brenner.exe
+
+# Embed assets into the binary
+bun build --compile ./brenner.ts --outfile brenner --assets ./prompts --assets ./templates
+```
+
+Key points:
+- Executables are ~50MB+ (includes Bun runtime)
+- All Bun and Node.js APIs are supported
+- Can embed files/assets directly into the binary
+- Cross-compilation supported (Linux, macOS, Windows × x64/arm64)
+- **This is NOT about having a single source file**—it's about producing a single distributable binary
+
 ---
 
 ## Project Architecture

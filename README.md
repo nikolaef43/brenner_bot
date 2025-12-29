@@ -16,7 +16,7 @@ The endgame is to marry this repository with **Agent Mail** (coordination + memo
 
 **Update (2025‑12‑29):** early scaffolding now exists for:
 - a Next.js web app in `apps/web/`
-- a single-file Bun CLI in `brenner.ts`
+- a Bun CLI (`brenner.ts`) that compiles to a standalone portable executable
 
 These are intentionally minimal starting points (not a finished “bot” yet).
 
@@ -223,7 +223,12 @@ Each distillation preserves the unique framing of its source model while incorpo
 ### CLI (early scaffolding)
 
 - **`brenner.ts`**
-  - Single-file Bun CLI for prompt composition and Agent Mail messaging/orchestration.
+  - Bun CLI for prompt composition and Agent Mail messaging/orchestration.
+  - Compiles to a **standalone portable executable** via `bun build --compile`:
+    ```bash
+    bun build --compile ./brenner.ts --outfile brenner
+    ```
+  - The resulting binary bundles the Bun runtime, all dependencies, and the source code into a single ~50MB executable that runs without any installation.
 
 ---
 
