@@ -47,121 +47,66 @@ If that audit trail is missing, then you must act as if the operation never happ
 
 ## Project Architecture
 
-ACFS is a **multi-component project** consisting of:
+Brenner Bot is a **documents-first research project** that will grow into a web-based multi-agent “research lab”
+coordinated via Agent Mail.
 
-### A) Website Wizard (`apps/web/`)
-- **Framework:** Next.js 16 App Router
-- **Runtime:** Bun
-- **Hosting:** Vercel + Cloudflare for cost optimization
-- **Purpose:** Step-by-step wizard guiding beginners from "I have a laptop" to "fully configured VPS"
-- **No backend required:** All state via URL params + localStorage
+### A) Corpus + syntheses (current)
+- **Purpose:** Canonical primary source + model writeups for extracting and operationalizing the “Brenner approach”.
+- **Key artifacts:** `complete_brenner_transcript.md`, metaprompts, and the model response folders.
 
-### B) Installer (`install.sh` + `scripts/`)
-- **Language:** Bash (POSIX-compatible where possible)
-- **Target:** Ubuntu 25.10 (auto-upgrades from 22.04+ via sequential do-release-upgrade)
-- **Auto-Upgrade:** Older Ubuntu versions are automatically upgraded to 25.10 before ACFS install
-  - Upgrade path: 22.04 → 24.04 → 25.04 → 25.10 (EOL interim releases like 24.10 may be skipped)
-  - Takes 30-60 minutes per version hop; multiple reboots handled via systemd resume service
-  - Skip with `--skip-ubuntu-upgrade` flag
-- **One-liner:** `curl -fsSL ... | bash -s -- --yes --mode vibe`
-- **Idempotent:** Safe to re-run
-- **Checkpointed:** Phases resume on failure
+### B) Web app (`apps/web/`) (planned)
+- **Framework:** Next.js **16.10** (App Router) + React **19**
+- **AI:** Vercel **AI SDK** (streaming UI + route handlers)
+- **Runtime/Tooling:** Bun
+- **Hosting:** Vercel
+- **Purpose:** A UI to:
+  - browse/search the corpus and curated quote banks
+  - run structured “Brenner Loop” research sessions
+  - orchestrate multi-model collaboration (Claude/Codex/Gemini)
+  - produce durable artifacts (hypothesis slates, discriminative tests, assumption ledgers, memos)
 
-### C) Onboarding TUI (`packages/onboard/`)
-- **Command:** `onboard`
-- **Purpose:** Interactive tutorial teaching Linux basics + agent workflow
-- **Tech:** Shell script or simple Rust/Go binary (TBD)
+### C) Prompt templates + protocols (planned; keep file sprawl minimal)
+- **Purpose:** Versioned prompt templates and rubrics that implement Brenner-style workflows.
 
-### D) Module Manifest (`acfs.manifest.yaml`)
-- **Purpose:** Single source of truth for all tools installed
-- **Contains:** Tool definitions, install commands, verify commands
-- **Generates:** Website content, installer modules, doctor checks
-
-### E) ACFS Configs (`acfs/`)
-- **Shell config:** `acfs/zsh/acfs.zshrc`
-- **Tmux config:** `acfs/tmux/tmux.conf`
-- **Onboard lessons:** `acfs/onboard/lessons/`
-- **Installed to:** `~/.acfs/` on target VPS
+### D) Agent Mail integration (external)
+- **Purpose:** Coordination substrate (threads, inbox/outbox, acknowledgements, file reservations).
+- **Repo:** `https://github.com/Dicklesworthstone/mcp_agent_mail`
 
 ---
 
 ## Repo Layout
 
 ```
-agentic_coding_flywheel_setup/
+brenner_bot/
 ├── README.md
-├── install.sh                    # One-liner entrypoint
-├── VERSION
-├── acfs.manifest.yaml            # Canonical tool manifest
-│
-├── apps/
-│   └── web/                      # Next.js 16 wizard website
-│       ├── app/                  # App Router pages
-│       ├── components/           # Shared UI components
-│       ├── lib/                  # Utilities + manifest types
-│       └── package.json
-│
-├── packages/
-│   ├── manifest/                 # Manifest YAML parser + generators
-│   ├── installer/                # Installer helper scripts
-│   └── onboard/                  # Onboard TUI source
-│
-├── acfs/                         # Files copied to ~/.acfs on VPS
-│   ├── zsh/
-│   │   └── acfs.zshrc
-│   ├── tmux/
-│   │   └── tmux.conf
-│   └── onboard/
-│       └── lessons/
-│
-├── scripts/
-│   ├── lib/                      # Installer library functions
-│   └── providers/                # VPS provider guides
-│
-└── tests/
-    └── vm/
-        └── test_install_ubuntu.sh
+├── AGENTS.md
+├── initial_metaprompt.md
+├── metaprompt_by_gpt_52.md
+├── complete_brenner_transcript.md
+├── gpt_pro_extended_reasoning_responses/
+├── gemini_3_deep_think_responses/
+└── opus_45_responses/
+
+# Planned (not necessarily present yet):
+#
+# apps/
+#   web/                           # Next.js 16.10 (App Router) + React 19 + Vercel AI SDK
+#     app/
+#     components/
+#     lib/
+#     package.json
 ```
 
 ---
 
 ## Generated Files — NEVER Edit Manually
 
-The following files are **auto-generated** from the manifest. Edits to these files will be **overwritten** on the next regeneration.
+**Current state:** There are **no checked-in generated source files** in this repo.
 
-### Generated Locations
+If/when we add generated artifacts (e.g., corpus indexes, derived quote banks, compiled prompt catalogs):
 
-```
-scripts/generated/          # ALL files in this directory
-├── install_*.sh           # Category installer scripts
-├── doctor_checks.sh       # Doctor verification checks
-└── manifest_index.sh      # Bash arrays with module metadata
-```
-
-### How to Modify Generated Code
-
-1. **Identify the generator source**: `packages/manifest/src/generate.ts`
-2. **Modify the generator**, not the output files
-3. **Regenerate**: `cd packages/manifest && bun run generate`
-4. **Verify**: `shellcheck scripts/generated/*.sh`
-
-### Key Generator Components
-
-| File | Purpose |
-|------|---------|
-| `packages/manifest/src/generate.ts` | Main generator logic |
-| `packages/manifest/src/schema.ts` | Zod schema for manifest validation |
-| `packages/manifest/src/types.ts` | TypeScript interfaces |
-| `acfs.manifest.yaml` | Source manifest (this IS hand-edited) |
-
-### Why This Matters
-
-If you manually edit a generated file:
-- Your changes **will be lost** on next `bun run generate`
-- Other developers won't know about your fix
-- CI/CD may regenerate and overwrite your work
-
-Always fix the generator, then regenerate.
+- **Rule:** Never hand-edit generated outputs.
+- **Convention:** Put generated outputs in a clearly labeled directory (e.g., `generated/`) and document the generator command adjacent to it.
 
 ---
 
@@ -184,30 +129,20 @@ We optimize for a clean architecture now, not backwards compatibility.
 
 ---
 
-## Console Output (for installer scripts)
+## Console Output
 
-The installer uses colored output for progress visibility:
+This repo currently has **no installer scripts**.
 
-```bash
-echo -e "\033[34m[1/8] Step description\033[0m"     # Blue progress steps
-echo -e "\033[90m    Details...\033[0m"             # Gray indented details
-echo -e "\033[33m⚠️  Warning message\033[0m"        # Yellow warnings
-echo -e "\033[31m✖ Error message\033[0m"            # Red errors
-echo -e "\033[32m✔ Success message\033[0m"          # Green success
-```
+If/when we add a Next.js app and/or CLIs:
 
-Rules:
-- Progress/status goes to `stderr` (so stdout remains clean for piping)
-- `--quiet` flag suppresses progress but not errors
-- All output functions should use the logging library (`scripts/lib/logging.sh`)
+- Prefer **structured, minimal logs** (avoid spammy debug output).
+- Treat user-facing UX as UI-first; logs are for operators/debugging.
 
 ---
 
-## Third-Party Tools Installed by ACFS
+## Tooling assumptions (recommended)
 
-These are installed on target VPS (not development machine).
-
-> **OS Requirement:** Ubuntu 25.10 (installer auto-upgrades from 22.04+; see Installer section above)
+This section is a **developer toolbelt** reference (not an installer guarantee).
 
 ### Shell & Terminal UX
 - **zsh** + **oh-my-zsh** + **powerlevel10k**
@@ -302,19 +237,18 @@ bun run type-check    # TypeScript check
 Key patterns:
 - App Router: all pages in `app/` directory
 - UI components: shadcn/ui + Tailwind CSS
-- State: URL query params + localStorage (no backend)
-- Wizard step content: defined in `lib/wizardSteps.ts` or MDX
+- React 19 + Next.js 16.10; prefer Server Components where appropriate.
+- AI flows: use Vercel AI SDK for streaming responses and tool-calling ergonomics.
 
 ---
 
-## Installer Testing
+## Web App Quality Gates (apps/web)
 
 ```bash
-# Local lint
-shellcheck install.sh scripts/lib/*.sh
-
-# Full installer integration test (Docker, same as CI)
-./tests/vm/test_install_ubuntu.sh
+cd apps/web
+bun run build        # production build sanity check
+bun run lint         # lint check (if configured)
+bun run type-check   # type-check (if configured)
 ```
 
 ---
