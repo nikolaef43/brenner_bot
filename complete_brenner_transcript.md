@@ -2315,3 +2315,459 @@
 > So... but I kept everything and... and of course in these days where the literature is so enormous, one just can't do it. But I actually read Chemical Abstracts regularly. Yes, and I'd keep little notes with all of these things. This was before the days of copying, that effectively you had to follow the literature in this way.
 
 ---
+
+## 201. My collection of journal reprints
+
+> I had an incredible reprint collection. And so did Francis actually. In fact, we put ours together and I've still got it, and this is reprints that go back to — at least in my case — to the mid 1940s and in Francis's later, and they were arranged alphabetically, so you had to know the author. And they are... I've still got all these boxes, it's about **100 boxes of reprints**. I did cull them the other... because... just because of space storage... but they are wonderful because they showed... you had to write for all of these, and... and so they show you... they showed me at any rate what I'd read.
+>
+> And in fact I had a... I noticed that in Judson's history he referred to this paper of Kurt Stern with an early speculation on coding. Now I drew his attention to that because I had a reprint of this paper which I had got because I was an avid reader of the Yale Journal of Biology and Medicine, which of course nobody's ever heard of today and I found this article there and I wrote to Kurt Stern from South Africa, and I got a reprint, and I still have that reprint. So this could... so this is a style that I got accustomed to because in South Africa **that's the only way you could get hold of interesting things to read**.
+>
+> So reading I think is important, but I think **knowledge is dangerous** and, to... to research. I really think that **a modicum of ignorance is... is absolutely essential**. Because otherwise you don't try anything. And that's why I think in any line of research people can get saturated very quickly because they just know everything. And when a student comes and says, 'Have you, why don't we try this?' you tend to say 'Oh, don't be silly, you know, that'll never work'.
+>
+> I had a student who did this, was Anand Sarabhai, a very good student, and he came to me one day and suggested an experiment and I said: 'Look, I don't think it'll work, but please go ahead and try it'. So he went down to the cold room and he got two bottles of phage and he crossed them together and **the experiment worked**. Later we calculated what was the probability that those two bottles were at the front of the queue, because he just took the first ones. The probability was about a million, because I think there were 1000 bottles and the chances of getting two there is one over 1000². So it was a million to one. But **he had what we called the luck of the Sarabhais** and so it worked, so after that everybody asked him to choose the bottles, because that was one way of getting your experiments to work.
+
+---
+
+## 202. Teaching yourself through reading
+
+> In these days, **finding a book that will introduce you to a subject is quite difficult**. Most people today only learn by going to courses, they have to have a course of instruction, they have to have a lecture, they have to go to a summer course, **the whole idea of learning by yourself now is absent**.
+>
+> I noticed that when I wanted to learn a new subject like computation — the theory of computation — I got a book and read this book until I found **the way to read it, for me**. That is, the author thinks he's got the right way of telling you about the subject, but in fact I find no, **I have to start with chapter seven, then go back and read the first half of chapter one, then go back, then go and read the second half of chapter 10**. And in that way I create my own path through this. And I think that is very important, because it's the way you construct your own knowledge which is important to you.
+>
+> Francis read a lot; he read all of Hubel and Wiesel's papers. He found it very difficult. He also led... read a lot of the anatomy of the brain. And in fact for the last 30 years, I think, Francis has done very little except read in order to acquire the background to deal with such an immense problem. So perhaps his mind is now rotten.
+
+---
+
+## 203. Working routines: owls and larks
+
+> My routine used to be as follows. When I was young we divided people into **owls and larks**. Owls stayed at the lab till midnight because that's when it seemed young molecular biologists would like to work. And they then went home and came in the next morning at 10 or 11 o'clock. Seymour Benzer was an owl. He always worked till… almost right through the night. But then he slept all day.
+>
+> **I was both an owl and a lark.** That is, I liked to work late at the lab and then come home, and then quite often go in early: 6 o'clock, 5 o'clock. But as I grew older I had to choose, so these days I'm much more a lark, that is, **I like to get up very early in the morning, when the whole world is asleep, 4.30, 5.00am**, and then I can read, I can work on my computer, I can scribble my little pieces of paper, and I can also do quite a lot of daydreaming there.
+>
+> And then I used to do my experiments in the lab at that time as well, because then by the time everything came in and all the secretaries and then the usual mess of one's life started, **I'd already finished my day's work**, so I could just relax then and do all this, the rubbish I had to do. So I think that's important, and nowadays of course one has powerbooks and computers that one can carry around with one, and of course I have this, I have a big database in it, and so I spend quite a lot of time doing research as I travel, and in hotel rooms and at home I have my computer and that's all one needs these days.
+
+---
+
+## 204. My reasons for choosing *Caenorhabditis elegans*
+
+> It's very clear, we were discussing both development and the nervous system as a... as an issue at the time. The nervous system... I had a long interest in, because of... I actually reconstructed a brain of galago when I was a science student in South Africa. We had a good centre of neuroanatomy. I was an extremely good neuroanatomist at the time, because my teachers were neuroanatomists. And so... and with my relationship with Seymour Papert, where I taught him neurophysiology, and I taught neurophysiology in the physiology class, so I was not a novice at this. But **I had no idea at that time how you would connect this up with genes**.
+>
+> However, why I finally chose an animal was because **animals have nervous systems**... and not choose a plant. Although I have to say just in passing, I was also very interested in *Arabidopsis* and had become a foundation member of the *Arabidopsis Newsletter*, had in fact got some of these plants, grown them, but it seemed to me plants, as I used to say then, were not real animals.
+>
+> And the nervous system is attractive, it's attractive as part of an animal because it embodies so many things that you feel are not going to have a simple explanation. That is... one felt you can't do this with... you could not explain nervous systems with simple things that you used to explain beta-galactosidase induction. At least that's how it seemed there.
+>
+> Now, Seymour Benzer was also interested in the nervous system, but he had decided to go from the gene to behaviour. And I know for certain that at a very early stage I did not see that as a feasible issue, just largely on theoretical grounds, but also because I had become very clear that **the units of development were cells, the units of the nervous system were cells**.
+>
+> And I know this because I recall very clearly a student coming up to me and said: 'Doctor Brenner, what is going to be the next breakthrough in the nervous system?' And I said to him, '**you are 50 years too late, it's already happened, it's called the neuron hypothesis**'. Because of course prior to that people thought that nervous systems were continua and the triumph of actually showing that they were built of nerve cells connected to each other, that was the breakthrough.
+
+---
+
+## 205. Why choose *Caenorhabditis elegans* for gene-behaviour link?
+
+> It is fair to say that **I was not interested in development *per se***. That is, I was not going to start a thing which would begin with a fertilised egg and then go through all the steps... **the nervous system is an organ**. It's an organ built out of cells, and you can ask yourself two questions: how does it work?
+
+---
+
+## 206. Are organisms computable by their DNA?
+
+> Question is are... are organisms computable from their DNA? I gave this at a talk which... Heine... Heine Ursprung reminded me of, and in fact it was at a discussion in London of Developmental Society, in which I said that **one day people will be able to compute a mouse from the DNA sequences alone** which I'm told was the most outrageous statement that anybody had ever made at any Developmental Society meeting...
+
+---
+
+## 207. The oldest biological observation
+
+> Richard Feynman once said that the most important thing about matter is that it's built of atoms, and he also then remarked the most important thing about living systems is that they are just parts of matter and that they are built of atoms. But **the most important thing about living system is they've got genes on them**.
+>
+> And therefore, in my view, **all explanations of living systems have to be couched in that form, in the form of genes**, because it surely must be the oldest observation to mankind, that the first sentient organism would look around him at the natural world and he would note that plants give rise to plants that look like them, that men give rise to other men, that fleas produce fleas; so that **like produces like is the oldest biological observation**.
+>
+> And of course what science has accomplished is to tell us that this happens because organisms contain genes in them and what the future organism is... is written in this somehow. And **somehow is what we have to explain. We have to say not somehow, but how.** And I think that ultimately, although we may not have to do it in detail, ultimately that has to be the nature of explanation.
+
+---
+
+## 208. We must use the right language when trying to compute behaviour
+
+> I think organisms have to be computed from their DNA sequences, just as we have to compute proteins from its DNA... a protein from its DNA sequence. Now, when I say compute, I... I mean it in the sense of... of a computation, this need not be a calculation but in fact... and we may not even use a... a digital computer, almost certainly we will, because it's a universal computer, when programmed with the right program we could do this.
+>
+> Now, we have to do it in this way for the simple reason that **this is the only way you can get to the final... the so-called final explanation**. Otherwise we simply have a set of anecdotes, and this is particularly true if we want to go to yet a more complex thing, which is how to account for behaviour, for the operations of the nervous system. If we say what does an animal or a person do in such and such circumstances, we simply make observations of those circumstances, we then try to look at relationships between these and then of course we try to get a predictive theory of behaviour, and in many cases it falls... it... it fails when it becomes a little bit richer because this simple connection is usually too simple... too simple a correlation.
+>
+> Now, rather than providing an anecdote, roughly speaking, to take each case and have a look; that is if you ask what does this animal do if you give it a cigarette to smoke? Well, you have to give it a cigarette to smoke and see what happens, then you can give an answer to that question. But **there is no end to asking such questions**, so we have what I call **a halting problem in the Turing sense**. There is no end to the number of questions and answers that we may pose about any complex system.
+>
+> Now, the only way then we could answer those questions without recourse to the system itself — which of course scientists would say is description — is of course to have a computable theory of it, so that if you can ask me that question I will get the theory to produce the answer. We could then go and check that it's correct.
+>
+> Now, if you have a unique theory that can do this, and I actually don't think that for behaviour this will be attainable in a very general sense, because — that is, from the genes — because I think what we can have is a unique theory about how the nervous system is constructed from the genes, then we have to start from... with nervous systems and then develop theories of how they work. That is why with the *C. elegans* [*Caenorhabditis elegans*] project it became important to specify the wiring diagram and to ask the question **is behaviour computable from the wiring diagram alone** — plus some initial conditions, I should add — because that's a style of answer which is very similar to answering questions about how you build machines, is it computable?
+>
+> And this I think raises the question of what is considered a proper computation in this sense, and that I think that can be answered very quickly. That is, **it should be in the machine language of the thing being simulated**. That is, if you wish to describe nematode behaviour it should not be in terms of sin(θ), cos(θ), which may well be very good to generate the wavy... the serpentine motion that they have, but must be in terms of neurones and their connections. That is **the machine language of that**.
+>
+> Just like **the machine language of development is in terms of cells and the recognition proteins they carry on them**, and all the mechanisms they have to process signals. That's the machine language of development. Machine language of development is not gradients and it's not differential equations. So that is... so I just ruled them out instantly as just boring descriptions of what there is in an incomprehensible language, just like sin(θ), cos(θ) is another boring description in an incomprehensible language. So **the machine language of the object is important** and it is, if you like, the task of experimental biologists to define that.
+
+---
+
+## 209. Biology needs to be an integrative subject
+
+> Many people working in experimental biology simply think that when they've got it all... they've got the long list of components and have it all together, that there will be a blinding insight that will be achieved. And of course one has to disappoint them because **the real task of biology will yet remain to be done, which is the integrative aspect**.
+>
+> Now, it is to me open to question whether we will be able to encompass an explanation of behaviour within our own, within our own heads, as indeed within the head of one... one person. And so it remains to be seen how this explanation will... will actually be reached. It may be true that there's a computer model somewhere which does this, but **will people feel they understand it?**
+>
+> Now, I think to answer that question is... it's very difficult because certainly I'll say that people today would... people today, scientists today will say, I don't believe I understand it, right. Now, in the early days of crystallography I noted that **the only person who understood the structure of a given molecule was the person who actually solved that structure**. That is, he had become so familiar with the detail of it, and he had become so recognising of all the problems that were there in putting it together that he fully understood it. So **Max Perutz was the only person who understood the structure of haemoglobin**. And David Phillips was the only person who understood the structure of lysozyme at one point, right.
+>
+> Now of course we have hundreds of these structures and if you were to ask a molecular biologist, anybody today, what do you think, do we understand the structure of protein molecules? He'll say- sure. Why? He won't say- he'll... he'll agree we don't understand how they fold up, but we understand... but he'll say we understand the structure. Why? Because he's somehow become convinced by this demonstration over and over again that if you get a crystal and stick it into a machine, the machine gives you all these spots, you can take these spots and take them through another machine, then get these beautiful coloured drawings that are published, these models. Then you can go and buy computer programs or you can get access to these models, and some of them are printed, pictures of them are printed, you can look at them in 3-D, and you can have the feeling that is... so what we need, I think, is **confidence in the kind of conceptual structure** that may exist in other people and maybe that's the clue, that there's a kind of **communal, if you like, mental fashion that emerges** to say, yes we understand this protein structure.
+>
+> Although no one there could reproduce, you know, the structure of haemoglobin, for example, and in fact no one would want to unless they were working on it. So I think that this will... this will emerge in the same way. The integrative work will be done in great detail — has to be done in great detail — on very circumscribed problems. And then once those are solved, then this will be the style with which you solve such problems and this will now become to be accepted as the solution and **people will just wonder why they ever asked such questions 50 years ago**.
+
+---
+
+## 210. Scientific progress: The heroic and classical periods
+
+> The question is whether in the '60s we were right in thinking that all the problems of molecular biology had been... had been solved in outline.
+>
+> [Brenner discusses how routine scientific work generates important unforeseen problems, and references Gunther Stent's concept of science transitioning from its "**heroic period into its classical period**." He argues it's crucial to understand what can versus cannot be addressed through "normal science."]
+
+---
+
+## 211. The effect of competition in science
+
+> I'm not... the question is about competition. Well, the... well, there's one thing that I think is very important to say, is **if you're always doing new things there's always very little competition**. And it could be argued that in my career I've got out when the competition got hot, if you like. Or maybe I got out when the science got cool, that's another way of putting it.
+>
+> No, I don't think you can be affected by competition, although I think a lot of people are. And I think I've always had a consciousness of saying that if our lab starts to be driven, as many labs are, by the forces of competition, then we're in for a bad time for the simple reason that a whole lot of very different things will operate in what I think is... is... and ruin what I think is... is our work and which... which has this great meaning for us.
+>
+> And so I've always liked to feel — and even up to now in the work I'm doing now — I've always liked to feel, well **my people should feel that they're out there alone** and they can actually give the problem their big attention and not sit and worry that there are 2500 people sitting in Paducah Tech and are going to, you know, scoop them. And I have to say that **that's the great morale builder in a lab**, and that's what I think you want your young people to feel, because the rest of their lives is going to be spent in... in dealing with that, and in... in dealing with these social forces.
+>
+> So competition isn't... isn't a meaning... isn't meaning, and I know that when other people start to work with this it's okay, because I think we encourage them because all they do is help to build up our reputation. That's what I think is... you know that I'm a great follower of... and a great admirer of **Talleyrand**. Talleyrand was a remarkable person, a survivor of everything. He was of course Napoleon's foreign minister, but he persisted right throughout the most incredible changes of regime in France and survived everything to come out at the other end.
+>
+> But he had one remark which I have always thought is important, and it is, '**never do for yourself that which you can get other people to do for you**'. So we don't want to eat the world, but if we can get other people to help digest it, that becomes a very important part of science.
+
+---
+
+## 212. Fraud and embezzlement in science
+
+> I remember at a meeting someone once stood up and said, 'Let's get crime off the streets and back into the labs where it belongs', you see. No, I think... I think fraud is a product of two things, actually. It's first... it's a product of the work structure, because we now have a managerial structure in many labs where there are generals and captains and corporals, there's a whole hierarchy of people that work, and in general the person, the head of a lab, has no direct connection with a bench. And someone working remotely there, there's no absolute direct connection with the benchwork.
+>
+> Now, that is bad. Because somebody may make an honest mistake, in fact I know things like this have happened, and come and say, I've got this, I've found this. Now the corrector supervisor sends him back again to go and repeat it or preferably do it in another way to support it. But sometimes it happens that this strikes home at the... in... in the man's mind that this is a novel and very extreme finding. And then he says, but that means, that means such and such and such and such. And now if you go and do the following experiment and you get this answer, right, then we... this'll happen. And indeed the person goes and does the experiment, and he doesn't get quite the answer, may need a little bit of massaging, but once you're on this, then **it's not fraud, this is what I call embezzlement**.
+>
+> Because **everybody believes that effectively they'll be able to put... one day it'll come right and everything will be put back and no one will know**. You see, so that's the embezzler who takes £10 out of the cash till every Friday night and lays it on the horses. What he thinks is, one day the horse will win and he'll put all the money back and no one will know. So I think a lot of that goes on, and I think that once... if you're doing experiments yourself, and you learn what all the snags are and you know that if you're working as part of a group so that you do part of the experiment yourself, then I think that it's very hard to... to get this kind of co-operative crime.
+>
+> I think the other things that are now being driven, I... I mean, are the material aspects of science, which is just actually getting enough money for the lab, I think quite a lot of activities there can lead to, if not fraud, certainly exaggeration, if we can put it this way. I think there's a lot of concealment. I think a lot of work is kept secret. That is, there's no free exchange in the sense that people don't tell you what they're doing if they think in fact you'll... you'll get there first. So the competition I think does... does make for kind of... a kind of... now that it's competition not at the individual level in this, but it's at the corporate level, makes then for a kind of struggle that is... that I think has its bad effects.
+
+---
+
+## 213. The rewards of being a scientist
+
+> It also turns out that I think now there are other views about science which I think are wrong. I mean... people... if you ask young people today what it is... what it is... what are the rewards of being a scientist. Well, you know, you could get many people today think the rewards are to win a lot of prizes and get a lot of money, perhaps have a piece of a company, and... and get promotion and have grants and have a big group and have all the material things. But nobody thinks... and have publications and have them all in the proper journals and people will fight and scream in order to get their publication into journals, that you know, have somehow got into the... fashionable accolade, you see.
+>
+> But I think that if you were to say, well, **isn't the great thing about science that you can actually solve a problem? You can actually take something which is confused, a mess, and not only find a solution but prove it's the right one.** Now, I mean, that to me is really what I think drives us, I mean, should drive us.
+>
+> And if there's other things, then I think it ought to be dismissed, you know, and maybe we ought to just put, you know, commercial in front of all the other things; The Journal of Commercial Molecular Biology, or the... The Journal of Commercial Neurobiology, and let people publish there. So I think that... and of course since these institutions are teaching young people... by virtue of the fact that they are working in them, that they are being socially assimilated into them, **that's exactly what I think is the bad face of biology**.
+
+---
+
+## 214. Falling in love with a mistake
+
+> You know, the… the thing is the other… the other difficulty in science and in doing science is **someone who gets hold of an idea which he then falls in love with**, right, and he can't let it go. Usually because this is so… it is so far out that he's certain no one else has thought of it and he really wants to… to bring this new torch of knowledge to mankind. And of course achieve fame and wealth at the same time. And there are many people that do this, often again starting from a mistake. Starting from something that is a phenomenon, but a phenomenon of that particular instance.
+>
+> I mean, I'm not saying these people invent observations, they do make the observations but **they are due to dirty tubes or somebody running their fingers across a petri dish or just leaving the window open** when the most surprising things will grow on your… on your petri dish. But they start from a fluctuation of the world — they're generated by Murphy's Law basically — and you come to believe that this is the ultimate solution and you do experiments which although would… at one point should lead you to question the nature of the observation, nevertheless drive you.
+>
+> And in fact one of the famous things that happened was in a subject that I gave the name — created a new subject for — called **hydro-immunology**. Now, this was a man called Benveniste who actually believed that he had some immune phenomena, some antibody… antigen phenomena, but in fact he had diluted this below, as it was said, **Avogadro's number**, so that the only possibility for making the… for making the observations he had done was that the antibody molecules had left their memory in the structure of the water. They had somehow recorded that they had been there, and the water then retained that memory and did the answer.
+>
+> Now of course that's a great theory. The other possibility to explain these experiments is that the measurements were wrong. Which they almost certainly were, because this is ludicrous. And so when I was asked about this and I had been told that he had diluted it below the value of Avogadro's number, I said **had he tried avocado's number**. And they said, 'What is avocado's number?'. I said, 'It's the number of molecules in a guacamole.' And I actually managed to get this published in *Science*, without referees.
+
+---
+
+## 215. Molecular genetics and gene cloning
+
+> Well, the early molecular biology, the early molecular genetics, was really the science for a young man, because... and I really enjoyed it. And *C. elegans* (*Caenorhabditis elegans*) was... was a science that fitted by mature middle years, because it had a huge strategic component...
+>
+> [Brenner discusses how the work required developing techniques over twenty years, and how gene cloning became central to their approach. He explains classical genetics methodology:] **You cannot assert the existence of a wild-type gene... until you have a mutation**... **You are doing surgery at the genetic level.**
+
+---
+
+## 216. Inside-out genetics gives faster results
+
+> And so our job then... and every classical genetical thing, whether it was in phage or bacteria or *C. elegans* (*Caenorhabditis elegans*), and that is the way I began... began with **a mutant hunt**. You hunt for mutants and then you classify them. The way you classify mutations is you put them into the same organism and you see whether they complement each other. If they fail to complement you can say those mutations are in the same gene. If they complement, you know you've got different genes.
+>
+> And so you can conduct this exercise and come out and just say well, for movement I think we've got to have at least 10 genes that specify movement because I have 10 genes of paralysed mutants that show lack of movement. And these genes then, it's now up to you to show how they work. That of course was the difficulty with developmental biology... is one didn't know how to get into the system until we could clone the genes. Right.
+>
+> Now, what we could now do was effectively clone genes, sequence them, therefore we... we didn't have to do the mutant hunt. We could actually find the wild-type genes, they were there. And then we could ask — it's been called reverse genetics, but it's wrong — then we could ask what happens if I make a defect in this gene? Right, now. And then I'll see what the effect is on the organism. **Basically what it is, it's not reverse genetics but it's inside-out**, because the whole history of biology we pursue functions from the outside, from the phenotype...
+>
+> [He describes the sickle cell mutation discovery taking decades from phenotype to gene, then continues:]
+>
+> Now we can start at the other end, which is to find the wild-type gene, since we know the genetic codes we can just write down the protein. And since, as information collects about proteins and what they do, we may be able to... to get much faster to map this in terms of phenotypic function, right. So here's the new approach to genetics. **What does it do? It liberates us from the life-cycles of organisms.** We had been bound to always do crosses, always our experiments depended on taking genotypes apart, seeing what happens and putting them together and seeing what happens. One generation at all times. And of course when we got experimental organisms, they had to have easy life-cycles, they had to have rapid ones so we could do a lot of experiments... didn't have to wait a year or two years for the answer. In that case we might well have forgotten what the question was by the time we got the answer.
+>
+> And I can remember giving my first lecture on this, in the... in about 1986, '87, in which I said, I've come to... you know, **we have now been liberated from the tyranny of the life-cycles of organisms, from their modes of reproduction. We can do genetics now on everything, anything. Giant redwoods, grapes, and most important, human beings.**
+
+---
+
+## 217. The daring act of sequencing the human genome
+
+> Now of course there were lots of organisms that it would be interesting to know about, but which they were intractable or in some cases illegal to do genetic experiments. And of course that's why the genetics of man had gone so slowly, because we could only rely on certain markers and so on. But being able to approach that from the DNA just seemed to me to unify the whole of biology at one blow.
+>
+> And I think that when Wally Gilbert, or... it was Sinsheimer first suggested we should just sequence the whole of the human genome, just like... genomes of whole organisms have been sequenced, but they were bacteriophages, they were 50,000 base pairs. And of course to jump from 50,000, from 10⁴, to three billion, that is 3 × 10⁹, that's a **10⁵ jump**. **That's, that was some act, I wouldn't call it of imagination, it's certainly a daring act.** And of course a lot of people got together to say, yes, this is something that we would want to do.
+
+---
+
+## 218. Sequencing the human genome in a bingo hall
+
+> Now, at that time I'd actually gone back to work with bacteria, to see if I could map a whole bacterium with the new techniques. That is, to get overlapping clones of cosmids and John Sulston joined me and we worked at that point — he'd also got a bit fed up with the nematode at that point — and we worked then developing techniques for an organism called *Rhodopseudomonas blastica*...
+>
+> [Brenner explains his creative approach to the Human Genome Project:]
+>
+> I thought we could actually do this by having something that was like **a bingo hall**. That is we could have these machines and we could put up the sequence of the day, people would actually pay to come and operate these machines...
+
+---
+
+## 219. Human Genome project generates new funds for science
+
+> Now, I had by this time, by 1986, decided… had left the MRC [Medical Research Council], the... the Laboratory of Molecular Biology although I was still physically housed in it and I had a unit of my own, which I decided I would do the human genome in the UK, for the simple reason that I'd just been given a Jeantet Award which had a research fund of about £300,000 which I could use any way I liked. And so I had this — I've still got some of this money left actually — and so I started to hire people and we began to pursue our approach to it.
+>
+> And our approach was not to attempt to sequence the human genome, but to do it in the old way of looking for the genes. Now, the best way to look at genes was of, course, to look at their copies, cDNA. And the idea was, well, let's go and start to characterise cDNAs and sequence them, because each of those is a gene, and then what we should do is to put them on the map.
+>
+> Now, mapping became the dominant thing and mapping was wrong. Let me just… the reason it was wrong, from the point of view of a pure geneticist like myself, the map is — just happens to be one way to index the mutants — **the map is only required if you wish to operate on that organism in the real world**, if you want to understand human genetic disease or you want to breed better plants, you need genetic maps. But **if you want to understand human biology you need genes**. And we could accomplish both by finding genes and putting them on a map. It seemed to me to be such a straightforward thing, to construct what I said right at the beginning was: let's construct **a gene map**, because that's what geneticists do.
+>
+> No, we had to have enormous discussions as to whether this was going to be a physical map or a genetic map or… or this kind of map, or… or the other. There's only one map that you need, which is where… how… **give us the genes and tell us where they are. That was the task**.
+>
+> Now it took a… I did start this, but without very much funding and spent a lot of time trying to negotiate a special programme in this country, which I managed to do. And in fact did something which I think is totally remarkable for the '80s, which was actually to **generate some new money for medical research**. Because right throughout this period the government had been whittling away at the funds for research, and we actually created new money.
+>
+> And the thing that I'd like to say is the greatest benefit that ever brought is that if you simply today go to some laboratories you will see the number of young people, students and post-docs that this brought into the field. **The human genome research, rather than being a kind of big science factory, boring, has turned out to have attracted the most interesting and I think the brightest of the scientists are coming to this**, because I think they recognise that this is fundamental biology of the highest form and I think genome research is… is what it's going to do, is going to go that way.
+
+---
+
+## 220. Differences between human and fish DNA
+
+> Now, the tale of what happened with the cDNA program and what happened in America, that's been written about. I think the Americans did create it, did turn it into a… did make it banal — that's the only word that I could use — by commercialising it, but the project still remains. But what I thought I would do is go and do something different.
+>
+> And so I had come to the conclusion a long time ago that the human genome was full of junk. And I propagated this widely, making very carefully the distinction between the two kinds of rubbish, namely, **junk which is rubbish that is kept, and garbage that is rubbish that is thrown out**. It turns out that most languages use two distinctive words to… to specify this kind of rubbish. In Japanese it's *Gomi*, which is dust, rubbish you throw out, and *Garacuta* which is junk that you keep. And… and of course you… **if there is rubbish in your genome, it must be junk because if it were garbage it wouldn't be there**.
+>
+> So by trying to press this and by trying to persuade people that this problem has to be done in stages, because I would be asked questions at lectures, how do you know there isn't any… there's nothing important in the junk? And aren't you worried? And I would say, no, I'm not worried at all, because **I believe in leaving problems to the next generation**. So you may be worried, but not me. I'm not worried at all.
+>
+> So I think by trying to get a perspective of what we should do first and not worry about what we were going to do at the end of the day, that is… that is… and I therefore felt that it was… I must try and do something different. So I asked the question, which is a question I've always asked myself: **is there an animal somewhere, that may not have acquired all this junk?** You know, a vertebrate. Not a pervertebrate, but a vertebrate that hasn't acquired this junk. And of course, easy to ask the question if you know the answer. And of course it's easy to ask the question if you know the answer.
+>
+> And I knew the answer, because at Woods Hole in the late '60s I had taught courses which was essentially on the C paradox, it worried me... worried me that there seemed to be organisms that had too much DNA. And as part of this I did a… I rotted my mind by reading in the fantastic library of the Woods Hole… the Woods Hole Ocean… the Woods Hole Marine Bio Lab. And I'd… and I knew of the journal because I'd been a reader of it for many years. It's a journal which I say is not a nudist magazine, it's called *The American Naturalist*, and it's a… and in this there were these… there were these papers by Heingardner. Heingardner had measured the DNA content of many species of fish.
+>
+> And this paper, published in 1968, it's 25 years ago, I knew — I had a copy of it, right — and I knew there were fish. Now, not only did I know that these were fish, but in fact, that fact had been widely… it was published, it's published in a calendar that had been given out by a company selling instruments. It's in many textbooks.
+>
+> *[Q] Sydney, I'm terribly sorry, you haven't told us what is the material.*
+>
+> The fish is that — what they had shown is that amongst all of these fish, there were **fish which had DNA contents about a 10th of that of man**, it's an 8th of that of man, eight times smaller genomes. Now, at the time, if you asked anybody, what do you think about this fish with eight times less DNA than man, the answer was, that's clearly all the fish deserve. And I reckon they are, you know… I reckon I'm eight times more complicated than this fish. So we had no idea of what all this DNA content meant then, we were only at the beginnings of repetitive DNA and so on.
+>
+> And a second paper was published in 1983 which was a cot curve on a similar group, members of fish, that was published there — I knew about that — and that showed also that the cot curves are remarkably like that that John Sulston and I did with *C. elegans* [*Caenorhabditis elegans*] which has very little repetitive DNA — 90% unique. So I thought, **it's possible to do — this fish may be the right thing to do**.
+
+---
+
+## 221. Fugu: the puffer fish genome
+
+> Now, I tried to get these fish for quite some time. They are **puffer fish**. And I then decided that such is the… such is the unreliability of natural sources that we could start to work on this and find that some pollution or some fire or… or something has… has got rid of them in the world, they've become extinct. Actually today we now say that we don't care if they become extinct as long as we've got enough DNA to keep us going, or we've cloned it all.
+>
+> So, I then decided that I would go and get the one specimen of this fish which is actually fished and cultivated for food, in Japan. And it is the **fugu — the Japanese puffer fish**. Now, when I went to Japan and — to try to organise this — and I managed to organise this and people said, why are you interested in this? I said, I'll give you a little talk on junk. Nobody believed this, they said it's… the measurements must be wrong. It can't be that you have something with so little DNA, the measurements must be wrong.
+>
+> Well, to cut the long story short, we got this, I managed to find a group of young people to work with me, and we were able to devise a fairly reasonable way, because of course what you want to try and prove is that **this fish has the same number of genes as we do**, because if it only has 1/8 the number of genes it isn't interesting. And that we were able to do by what I think's a very pretty experiment. What we did is we just did — it's a new technique called **statistical genomics** — we just took 600 pieces of DNA randomly and sequenced them, and asked, how many genes can we find? That is genes that have already been found in other vertebrates and in particular in the mammals, that occupy most of this. And having found the probability of finding these genes we could then go and ask — because we didn't have to do the experiment — because we could then calculate what is the abundance of these genes in the genome. And what we found is it was eight times more enriched in the fugu, therefore, what we could prove is that **we had the same number of genes, more or less**, and everything we've done has borne that out.
+>
+> So I think I like to call the fugu **the discount genome**, because you get 90% discount on sequencing. And since I think I've enhanced the job tenfold, then I've fulfilled the great technical requirement which everybody said we should have, a tenfold step in technology every five years, and so I've done that in a few months **just by choosing the right organism**.
+>
+> Now, I think that this will now become a world-wide use. We have now a lot of people coming to our lab to… to find pieces of DNA that correspond to this, and I'm encouraging as many people to work on this, because… [Question follows regarding explanation of helpfulness]
+>
+> Well, if you… to explain why it's so helpful is the following. Let us just assume that certain groups of genes have stayed together throughout this whole period of about a half a billion years of evolution. Now, many people can map a human gene, let's say a gene for breast cancer, but they can only find it into a piece of DNA, somewhere in a piece of DNA that's a million base pairs. Right. Now, to sequence through the million base pairs and find the gene is enormously tedious and time consuming. Right? And what we are saying is, well, you'll only have to do a 100,000, a 125,000, because what you do is you start with something on this, go and get the piece of the fugu genome and then move along.
+>
+> And let me just say that whereas on the average **a gene in man is 50,000 bases, the gene in fugu is 6,000 bases**, and in fact we have now got pieces of DNA which is 40,000 base — it's called a cosmid — and on this we have as many as eight genes. Seven to eight genes is the popular thing. Therefore, what we find is that all the intervening sequences are there, they're in the same place so these are the same genes, but they are small, very tiny, and also the genes are close together. They're not separated by large amounts of junk DNA.
+
+---
+
+## 222. Benefitting from less junk in Fugu DNA
+
+> Well, the fish… fish gene is about 1/8 the size of the human gene. We have sequenced many of these and compared them with the human gene, and in all cases find the same number of introns, but **the introns are tiny in the fish**, and whereas they can be enormous in… in the human or mammalian gene.
+>
+> [Brenner explains that conserved sequences span approximately "a million base pairs of human DNA, and… which would be equivalent to a 100,000 base pairs of fugu DNA." He notes the dystrophin gene spans "2.8 mega bases, that is 2… nearly 3 million base pairs," while the fish equivalent is "**reduced by a factor of 20 in size**." He concludes: "we could characterise genes very quickly."]
+
+---
+
+## 223. From fish to man in DNA
+
+> Now, I think that what… what we will find immediately is how these pieces of DNA in this fish correspond to pieces in the human genome. So that we will see how perhaps some primordial vertebrate genome got fragmented in different ways as we pass from, let us say, the fish to man.
+>
+> Now, I'm going to make a… a little elision at this point, which is to assume that the — which I think I have the right to assume — that **the fish is much closer to the original than we humans are**. And that is, if we were to compare, without looking at any other evidence, the fish genome and the human genome, we could define what was the common… what was common to those genomes, and hence what presumably the parent of both did, but we wouldn't be able to say whether it was more like a fish or like a man. That is, both have travelled through the same length of time, but clearly we… we want to know who has travelled through more complexity space. And of course we know this, because we find fossils of fish going back half a billion years and don't find human fossils. So we know that this fish looks more like this.
+>
+> And hence although it has… the genome has been exposed in time to the same forces that the human genome, that is to the same forces of mutation and nucleotide substitution and so on, we can say that if we take genes from the fish and compare them with the human, in one sense **we are looking across a half a billion years of the past**. If you like, the fish has preserved in a fossil form the genome of a fossil fish in its present form. It's fossilised the genomes there, right, with what it is. But that tells us also that we can now find out what happened in evolution. Or at least we can make a good approximation to it.
+>
+> Now, let… to try to explain this, let us suppose I were to start a new genetic program and I wrote a grant saying I am now really interested in… in really interesting mutations; so I want to get a fish, I want to put it in the lab, and I want to make mutants and **I want to turn it into a man**. Because that's the only really interesting thing, nobody else is interested in anything else, because that's a… that's all we have to explain, is how fish became men in the course of time. And, of course, you know… you know you're a little fish at some point of your own development, you've got little gills and so on. So we could at least have tried to explain how you went on from being a little fish to being a little man.
+
+---
+
+## 224. Putting fish genes into humans and mice
+
+> And of course, if I did this no one would give me an absolute penny. But you see, it's already being done for us...
+>
+> Those experiments have been done, we've got the mutants, we've got the human mutants and we still have some representative of the original stock, the fish.
+>
+> [Brenner explains his approach to genetics:] I'll take a gene out of the fish and put it into a man. Well, can't do that, so I'll do it in a mouse, which is the experimental animal.
+>
+> [He further states:] **If the fishy gene expresses all over the mouse**, that is you couldn't tell the difference between the two mice, one with a mouse gene and one with a fish gene, **then I have the right to say that evolution went at a higher level**.
+
+---
+
+## 225. The genetics of evolution
+
+> So I called this **genetics by composition rather than genetics by decomposition**. And I think that this is going to be the way in which we will tackle all the complex problems, and what is beautiful is they will be referred to evolution. We will not only provide evolutionary explanations of what there is now, but **we'll explain the evolution of what there is now**. That is, those are two different things, we'll be able to say, this is what happened in this.
+>
+> And since the whole of living matter is accessible to this — the whole of living matter is just DNA, I mean, is accessible to this — we can, I think, ask questions now in a deeply analytical way about problems that you couldn't even begin to frame, by just using this technology. And in essence **a transgenic animal or a transgenic cell is just a cross of a genome with a gene**. So we look at that recombinant and ask whether it's the same.
+>
+> I just want to emphasise one point, because the way we do this is the following, to be rigorous. We simply ask this: if we make two animals, one… they're absolutely identical. One has this section of DNA from the mouse, the other has the analogous section from the fish. Then I'll argue, **if you cannot tell the difference between them, they have the same value**. Therefore you're entitled to say that because they have the same value, it is that they have the same… anything that's common in their sequence is therefore that which works.
+>
+> And you want to go far away, like fish and mouse, because **you want time to have corroded everything that is non-essential**. If you do things like mice to man, there hasn't been enough time. We contain mousy features simply because we came from something that also gave rise to mouse. But fish is so far away that effectively we've put enough noise into the rubbish to be able to say, this is the rubbish, this is junk.
+>
+> So that I think is a rigorous experimental approach to this and that's why I think **we will be actually doing the genetics of evolution** in the next few years. I think that this will be the way to do it.
+
+---
+
+## 226. My strengths and weaknesses
+
+> This is the time when one has to have true confessions.
+>
+> I think **my skills are in getting things started**... it's the opening game.
+>
+> I'm not very good at... the other thing I'm rather good at is talking.
+>
+> I think **keeping up the conversation is one of the important roles one can have in science**.
+>
+> I think I'm rather good also at **brainwashing**, which is to persuade people to do things that their upbringing tells them they ought not to be doing.
+>
+> I'm not a very good administrator, in fact, I'm rather hopeless.
+>
+> One of my weaknesses is... **I'm not as good as a mathematician as I really wanted to be**.
+>
+> **I'm very bad at writing, I really resent writing.**
+
+---
+
+## 227. Evaluation of my character
+
+> Well, I mean, other people have told me what my weaknesses are, but I don't agree with them. Like, you know, I'm insulting, I'm arrogant and so on. I don't think I am, actually. **I think I'm pretty honest basically** and… and I think I know what I'm trying to do and I think that science is so important and what we're trying to do is so important within it, that I sometimes do express impatience with the sort of people that lie in the way.
+>
+> Well, I think one of my great advantages is **I have a good sense of humour, particularly about myself**. And that's one of the great things that, I think, one ought to have. I think once one has a complete… once… what one should always have is a complete sense of how ludicrous… not possibly how ludicrous you are, but **how ludicrous you can be**, and I think that's very important. **Pomposity is one of my great fears**. I think pompousness in an old man is terrible. Of course, pomposity in a young man is… is absolutely beyond the pale.
+>
+> After that I consider, you know, that I've been very lucky to have survived the… this whole path in science and have been able to indulge in what I wanted to do, but as I've always said, **if one can do what one is interested in and be of benefit to mankind, why not?**
+
+---
+
+## 228. Thoughts on creativity
+
+> [The questioner asks Sydney about insights into his own creativity.]
+>
+> Creativity requires **not being afraid to say wrong things**, as people are often taught everything should be rational. **Daydreaming is terribly important, but the essence of science is to bring it… to realise it, to implement it.**
+>
+> [Sydney discusses Popper's approach to disproving theories, but observes that scientists must work hard to prove results because experiments often fail initially — not due to wrong theory, but due to entropy and nature's unpredictability.]
+>
+> **Part of creativity is actually something which is a bit irrational, which is a feel that this is the right thing.** And that one will go to some lengths, actually, to realise it.
+
+---
+
+## 229. Ways to approach science
+
+> Now, I mean, I'm doing something now which is quite interesting because it's… it has involved **turning things upside down**. And I think turning things upside down is something that we are not encouraged to do by our culture. Our culture has now imposed upon us that we should start at point A and proceed by the… by logical steps to B, C and D. But, you know, it sometimes is useful to ask whether in fact the effect is actually the cause, if I can put it that way. And what would it be like if indeed what you think is the outcome is actually the cause of the predecessor, just putting it in a very general way. So I think **inversion is… is sometimes a very useful way of being able to see things from another point of view**.
+>
+> Of course, what people should realise is that this… it takes also some kind of iron censor within oneself, that is, **one should not fall in love with one's theories. They should be treated as mistresses to be discarded once the pleasure is over.** That is what I think is… is a very important thing, and it's one of the characteristics of science that you must be ruthless towards your loved ones. When they go ugly, kill them. Get rid of them. Too much of science is… is dominated by people who fall in… of course, it's a way of falling in love with yourself, basically, and are very reluctant to give it up. Even though everything is strained at… at the… the joint.
+>
+> I mean, I once invented a thing called **'Occam's broom'**, or 'Occam's brush', as we say, and that is **the hypothesis which has the fewest of things you sweep under the carpet to leave it consistent**. And I think that one cannot go on sweeping things up under the carpet, you know, once the carpet has got an altitude of about 10 feet.
+>
+> So I simply… I simply believe that it takes… it takes a kind of mixture of… I've always felt that **science makes completely contradictory demands on the people that work on it**. It asks you to be… to be highly imaginative, yet it asks you to put on blinkers and drive through brick walls if necessary to get to the answer. It asks you to be passionate about invention, but it also asks you to be ruthless and cut off your own hand if it comes to that. And I think there are very few people that can combine this kind of… these opposites into one person. And looking at my students I've often found that all the characteristics of the one half are in one student, and all the characteristics of the other half are in the other student. So there are brilliant people that can never accomplish anything. And there are people that have no ideas but do things. **And if only one could chimerise them — join them into one person — one would have a good scientist.** Perhaps that's why science has to operate as a group, as a social unit.
+>
+> So I think that… and I can only say that to me the way I do my thinking is to **bounce lots of balls in my head, bounce, bounce, bounce**. And if you go on bouncing you begin to notice that sometimes two are bouncing together. **Those I think are the connections we have to make**, and that means that you've just got to go on thinking about things, and if it were like this what would be the outcome, and that I think's a very important thing to do in biology.
+
+---
+
+## 230. The balance between ignorance and knowledge
+
+> It's good to be **ignorant about a new field and know a lot about the old ones, as you transit from the old to the new**.
+>
+> [Brenner provides an extended example about a paper titled "Encoded Combinatorial Chemistry" where he explains how genetic principles could apply to chemistry through DNA tags and PCR amplification to enable Darwinian selection in chemical systems.]
+>
+> I think they knew too much organic chemistry, and the fact that we persisted and do it depended on me **being completely, well, not completely ignorant, but ignorant enough about the field**.
+>
+> I've always been in this **permanent transition between knowledge and ignorance**. So maybe I just find it a very natural way to proceed.
+
+---
+
+## 231. My greatest achievements
+
+> Well, I think the… I mean, the thing that I think is the most… well, I've had many different kinds of achievement. I think the ***C. elegans* is a monumental achievement**. I think it generated, you know, a kind of industry of science.
+>
+> But if I think what is the intellectual achievement, then I think it would be in the classical genetics of *r*II, and the two things are **the triplet nature of the genetic code**, and of course the whole of decoding suppression triplets.
+>
+> [He continues discussing his contributions to messenger RNA experiments and reflects on his role as a scientific rebel:] **Being a rebel has always appealed to me**, largely because I'm convinced that the… that the standard parts of any activity are already petrified at the core.
+>
+> [The discussion concludes with Brenner reflecting on his strategy of changing fields frequently to maintain intellectual challenge and avoid becoming conventionally entrenched in any single area of study.]
+
+---
+
+## 232. My failures
+
+> *[Q] What about failures?*
+>
+> Well, failures...
+>
+> *[Q] Maybe there hasn't been one, but…*
+>
+> Well, I haven't had a scientific failure in the sense that I've laboured for a long time and it hasn't come to, because **I've been pretty ruthless at cutting off things that haven't done**. I'd… I think the… and I think in terms of… of doing the wrong thing for a long time, where one just laboured under this, this is hard to say.
+>
+> I don't think that… so I have to say that what, given some other lack of something else, what would have been a failure? **I think the Nematode Programme wouldn't have been a failure, but it wouldn't have had the success it had were it not for the invention of cloning.** I think that this is really the most dramatic piece of technology that has really, you know, changed our science, and I think that that is a real… will be seen historically as a big inflection point. And I think the… that to… to realise this turned something that might have become just zoology into the centre of molecular biology, but I think that is what happened to all of developmental genetics. So… so I don't think it was a failure not to see. I think the people who would refuse to accept that as something would have failed.
+>
+> **I think I did fail in one respect, and that is something I tried to do administratively.** When I… one of the great things about the Cambridge laboratory was the continuous flow of young people through it. And part of our success is that we were world innovators, and so we attracted the most outstanding group of young people, largely from America in the '60s, who came to the lab and with whom I feel a tremendous rapport. Many of them are now important figures of American science and European science. And I hope that we had generated — Francis and I did this together — that we had generated **a unique atmosphere to do biology**. That is, you would work at the… at the edge of the subject, you could do it your own way, and you could… and you could actually make progress in that.
+>
+> And I realised that — and then during the '60s and more so in the '70s and of course excessively in the '80s, the whole of that kind of science began to solidify — that's the only thing that I can say — and the means of getting money to do science and the attitudes, **we've become much more bureaucratised**. And I think the Medical Research Council underwent those changes, when I compare what it took to get a building in 1960s on a programme, with what it takes now to get funding for a post-doc and how much paper you have to write, it's absolutely ridiculous.
+>
+> And what I tried to do when I became director of the lab… The lab was a federation of three labs — it was a four but I united my group with Francis', and they were Fred Sanger's group and the crystallography group and the group that Francis and I had. And my job was to make it a union. Not a federation. And **I took the view that the only way to survive is to get young people and let them do what they like**. Unfortunately many of my colleagues thought that we should get young people, but they should work for them, and I'm afraid that I did… I made many appointments during my time but I did not succeed in convincing the structure and so whereas I had hoped to leave an entire new generation of many outstanding young scientists, that did not happen.
+>
+> So I don't think I was a lousy director in that sense, but I think I failed in achieving something which I would have thought is the right thing, and it just hasn't been achieved and I think that'll be to the detriment. However, I did go off and start another lab where we have some young people and so, therefore, you know, we'll just continue business under another name.
+
+---
+
+## 233. The exciting future of biology
+
+> [The questioner asks Brenner to describe his field 30-50 years in the future.]
+>
+> **Three things that will happen** include: evolution becoming experimental, synthetic biology development, and the reinvention of physiology to connect molecular events to organism function.
+>
+> **The physiology of the brain** will prove most interesting, and neurobiology discussions will transform. [He describes himself as believing:] **The brain is a gland which excretes thoughts.**
+>
+> Biology will enable **understanding of ourselves as organisms** for the first time, allowing humans to **attack the fundamental biology of man**. [He suggests future science will:] recreate history from genomic evidence and integrate it with human understanding of evolution, history, and culture as unified biological phenomena.
+
+---
+
+## 234. The profession of science will change
+
+> And of course, I… I believe that… I think **the profession of science will change markedly over the next 25 years** because I don't think it can last as it… in its present structure. Now, the present structure wants… the present structure is assumed on infinite growth. In other words, every student expects to be a post-doc, every post-doc expects to be an assistant professor with five students. Every assistant professor expects to be an associate professor with eight post-docs and five students and so on and so forth and **that can't last** and I… and I think the industrial structure will have to change.
+>
+> And what I think will happen in the future is that, I think, **people will do research for only part of their lives** and I think research — with very few exceptions — is really the job for young people, largely because as I've said they contain the required ignorance that is necessary for this, and I think it would be perfectly reasonable for people to do research for 5 years or 8 years of their lives and then go on to do other things, like be doctors or be farmers or something else in society.
+>
+> But I think the profession of the professional scientist with a career structure will change, because I think it may well be that doing biology will become like the old days of doing natural history but with molecular tools, and I think we have to have some solution of that if we are to… if we are to simply maintain the advance, because all of history shows that notwithstanding the great growth and professionalisation of science **the number of important sciences has remained constant, roughly speaking, since the 17th century**.
+>
+> So, the point is… is that as long as those people gravitate to the subject that'll be fine. For the rest of it, as I've always said, we should always decide, I mean, **why is it necessary to solve all problems in this generation?** There are things we should leave to our successors and it seems to me there are lots of problems — I could write them all down — in which it wouldn't matter if they were solved 30 years in the future. I mean there… there are clearly problems that we need to solve now, but lots of them could wait and that's what I think we… we would do.
+>
+> And the last thing, I think, is that I think **DNA will come to occupy the centre of biology** as it has in the past. And I wanted very much to have… because I think man will destroy everything living on this planet, I would like to preserve everything in the form of DNA. And what I wanted was… and I created these words very carefully, because before the recession I thought I could interest the Japanese in funding this but I'm afraid this isn't the case now; which is to have **a DNA treasure house**. I like the word 'treasure house', not 'museum', and the idea would be this: is collect the DNA of every living species and just store it. I mean, ultimately we could certainly sequence it and find out what it is long after it's gone, so why trust to this terrible risk of... of survival of DNA in the form of a fossil when we could deliberately fossilise it, and then who knows, in 20 years' time, 50 years' time **we could have our own Jurassic Park**, except we wouldn't be as stupid as they were the way they do it and we could recreate these organisms.
+>
+> So I think that may well be the sort of thing, and organisms will be characterised on their DNA. I mean it's happening now in the sense that we've now come to realise that **more than 90% of the micro-organisms in nature can't be cultivated, but we could retrieve them by their DNA**. So there's a whole… whole areas of biology that are waiting to be done.
+
+---
+
+## 235. Personal interests outside of science
+
+> Well, I'm not… I wouldn't consider myself to be a great follower of the arts, in the sense that I… I did paint when I was younger.
+>
+> [The transcript continues with Brenner discussing his interests in music, philosophy, biography, history, and autobiography. He mentions specific works, including Richard Goldschmidt's life writings and Max Born's autobiography about pre-war Germany and Jewish experiences.]
+>
+> [Brenner's appreciation for biographical and historical works that **recreate** and preserve past worlds and social environments.]
+
+---
+
+## 236. Scientific heroes
+
+> Well, I… you ask whether I have scientific heroes and the answer is the… there are many people that I admire, both that I've known and that I've… and that I've read about.
+>
+> **Von Neumann is a great scientific hero to me** because it seemed… he seemed to have something. And of course it may be envy rather than admiration, but it's good to envy someone like von Neumann.
+>
+> Of course, I've always admired **Francis Crick** who, I think, has the brain that effectively **always asked the right question**, even though he never got the right answer, but he asked the right questions.
+>
+> I always had a soft spot and did admire **Leó Szilárd**, simply again because he kind of was this representative of a world that I felt I had some kind of connection to. I mean, growing up in South Africa with some connection to Europe makes… gives it a kind of fantastic background that one wants to grasp because one feels sort of in one's genes, so to speak, one is connected there. And of course one isn't really but it's that feeling of continuity and that, you know, that one thing when I met Leó Szilárd I said, God, he looks like one of my uncles, you know, the rich one. And… but nevertheless, **it is the continuity to past worlds that I found fascinating**.
+>
+> What I liked about Leó Szilárd was his **complete obliviousness to the conventions and the criteria** of this and his complete focus on what came out of his head and that I found was… was admirable.
+
+---
+
+*End of Sydney Brenner Transcripts*
