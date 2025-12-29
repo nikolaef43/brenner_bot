@@ -2,6 +2,8 @@
 
 *A collection of 236 video transcripts from Web of Stories*
 
+(Copyright Web Of Stories, 2025, All Rights Reserved)
+
 ---
 
 ## 1. Coming from Eastern European stock
