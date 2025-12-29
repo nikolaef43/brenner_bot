@@ -60,3 +60,13 @@
 
 ---
 
+## 4. Early memories of living in a shop
+
+> We had lived in the back of the shop, and I have this memory of playing on the floor, and still can remember the smell of leather that dominates my entire early life.
+
+*[Q] Were you an only child, Sydney?*
+
+> No, I had a sister who... my... my sister was two years younger than me, so she was born much later, and, of course, I should have mentioned, I was born on **13th January 1927**.
+
+---
+
