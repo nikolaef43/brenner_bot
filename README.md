@@ -14,6 +14,12 @@ The endgame is to marry this repository with **Agent Mail** (coordination + memo
 
 > **Status**: this repo is currently **documents-only** (corpus + notes). The prompt templates/workflows and the Agent Mail integration are the next layer to be built.
 
+**Update (2025‑12‑29):** early scaffolding now exists for:
+- a Next.js web app in `apps/web/`
+- a single-file Bun CLI in `brenner.ts`
+
+These are intentionally minimal starting points (not a finished “bot” yet).
+
 ---
 
 ### Table of contents
@@ -41,7 +47,7 @@ This repository provides the raw material and early syntheses needed to build �
 
 ### What you cannot do yet
 
-- There is currently **no runnable bot**, **no CLI**, **no workflow runner**, and **no Agent Mail wiring** inside this repo.
+- There is currently **no finished runnable bot** or full workflow runner. The `apps/web/` UI and `brenner.ts` CLI are early scaffolding and will evolve.
 
 ---
 
@@ -147,6 +153,16 @@ These are long-form writeups produced from transcript excerpts. They’re useful
 | `opus_45_responses/` | `brenner_bot__opus_45__response_batch_{1,2,3}.md` | When you want coherent “mental architecture” narratives |
 | `gemini_3_deep_think_responses/` | `brenner_bot__gemini3__response_batch_{1,2,3}.md` | When you want alternate clustering and abstractions |
 
+### Web app (early scaffolding)
+
+- **`apps/web/`**
+  - Next.js App Router UI for browsing the corpus and kicking off Agent Mail–coordinated sessions.
+
+### CLI (early scaffolding)
+
+- **`brenner.ts`**
+  - Single-file Bun CLI for prompt composition and Agent Mail messaging/orchestration.
+
 ---
 
 ## Working vocabulary
@@ -204,4 +220,3 @@ This README describes the intended direction, not finished functionality. A real
   - Claude (Opus) as synthesis + critique
   - Codex (GPT‑5.2) as formalizer + implementation planner
   - Gemini as alternative clustering + novelty search
-

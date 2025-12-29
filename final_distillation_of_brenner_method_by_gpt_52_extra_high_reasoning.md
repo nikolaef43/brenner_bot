@@ -29,6 +29,7 @@ Across the transcripts and the syntheses, the invariant is not “collect more f
 
 - Prefer experiments where the signal is so large you don’t need fragile statistics (“seven‑cycle log paper… if you can see a difference it’s significant”). (§62)
 - Prefer domains where outcomes are effectively Boolean (“genetics is digital; it’s all or none… you can do yes/no”). (§62)
+- Prefer representations that *reduce dimensionality* (3D reality → 1D information) because they make search, mapping, and “what must be true next” tractable. (§58)
 - Prefer moves that *reduce inferential distance* (HAL / “Have A Look” biology). (§198)
 - Prefer “opening game” positions where even crude experiments update you massively and competition doesn’t dominate your attention. (§192)
 - Prefer working at the level of *informational order* when the machinery is unknown (“Don’t worry about the energy… the important thing is how do you get everything in the correct order?”). (§59)
@@ -69,13 +70,24 @@ Two canonical anchors:
 - Wordplay as training in alternative parses / alternative interpretations. (§34)
 - “Proper simulation must be done in the machine language of the object.” (§147)
 
-### Step 3 — Choose (or build) the *experimental object* that makes the decisive test easy
+### Step 3 — Materialize the question (theory → test)
+
+This is the “compiler” step: turn an abstract story into a concrete decision procedure.
+
+Anchors:
+
+- “Always try… to materialise the question… if it is like this, how would you go about doing anything about it?” (§66)
+- “Let the imagination go… but… direct it by experiment.” (§42)
+
+Output: a predictions table + the simplest experiment that forces the world to choose.
+
+### Step 4 — Choose (or build) the *experimental object* that makes the decisive test easy
 
 “Once you’ve formulated a question… find experimentally which is the best [system]… the choice of the experimental object remains one of the most important things.” (§91)
 
 This is the move that collapses “infinite experiment space” into a few feasible discriminators.
 
-### Step 4 — Engineer a high‑contrast readout (digital handle + dynamic range)
+### Step 5 — Engineer a high‑contrast readout (digital handle + dynamic range)
 
 Favor:
 
@@ -83,7 +95,7 @@ Favor:
 - amplification and dominance (selection, regime switches, replication)
 - visibility / direct observability (HAL) ( §198 )
 
-### Step 5 — Add the “chastity vs impotence” control (potency / validity check)
+### Step 6 — Add the “chastity vs impotence” control (potency / validity check)
 
 Always separate:
 
@@ -93,18 +105,18 @@ from
 
 The canonical Brenner phrasing is “chastity vs impotence” (won’t vs can’t). (§50)
 
-### Step 6 — Run the *quickest decisive* experiment, then update brutally
+### Step 7 — Run the *quickest decisive* experiment, then update brutally
 
 The implicit rule is: **prefer experiments that kill models** (large likelihood ratios), not experiments that merely “add interesting data.”
 
-### Step 7 — Handle anomalies without self‑deception
+### Step 8 — Handle anomalies without self‑deception
 
 Two complementary tools:
 
 - **“Don’t Worry”** about missing mechanisms *temporarily* (treat them as latent variables), but label them. (§57)
 - **Quarantine exceptions honestly** (appendix, typing) rather than hiding them or letting them collapse a coherent core prematurely. (§110–§111)
 
-### Step 8 — When the field industrializes, move “out of phase”
+### Step 9 — When the field industrializes, move “out of phase”
 
 Avoid crowded priors / ritualized midgames:
 
@@ -125,6 +137,7 @@ Examples / anchors:
 
 - Message vs machine; program vs interpreter; mapping vs stored text (inference, recurring theme).
 - Logic vs machinery: focus on order/information before mechanisms and energetics are filled in. (§59)
+- Von Neumann vs Schrödinger: separate *program/specification* from the *means to execute it* (“the program has to build the machinery to execute the program”). (§45–§46)
 - “Chastity vs impotence”: same outcome, different cause class. (§50)
 - Proper vs improper simulation: descriptive imitation vs generative explanation. (§147)
 
@@ -141,10 +154,24 @@ Anchors:
 - Wordplay as “alternative interpretations of the same thing” → mental training for reframing. (§34)
 - Machine language constraint (“neurones… connections… cells… recognition proteins,” not sin/cos or gradients as final explanation). (§147, §208)
 - Dimensional reduction: “reduction of biology to one dimension… is the absolute crucial step.” (§58)
+- Digital/analogue sanity: don’t confuse “digital program” metaphors with the fact that cells do strong analogue computation with thresholds at their natural scales. (§197)
 - Inversion (“turning things upside down”) as a deliberate reframing tactic. (§229)
 - Category cleanup via definitions (e.g., “junk vs garbage” as a way to dissolve a pseudo‑paradox). (§175)
 
 **Failure mode:** upgrading to “richer data” that is not more discriminative.
+
+---
+
+### ⧉ Materialize (compile story into a test)
+
+**Action:** Convert an explanatory narrative into a concrete decision procedure: what would you *see*, and how would you get hold of the information?
+
+Anchors:
+
+- “Materialise the question… if it is like this, how would you go about doing anything about it?” (§66)
+- “Let the imagination go… but… direct it by experiment.” (§42)
+
+**Failure mode:** staying in rhetorical questions (“is X involved?”) without specifying a discriminative observation and the shortest path to it.
 
 ---
 
@@ -245,6 +272,31 @@ Anchors:
 
 ---
 
+### ⊙ Unentrain (productive ignorance + anti‑overpreparation)
+
+**Action:** Keep your priors broad and your search “hot” by resisting expert entrainment, selective reading, and premature equipping.
+
+Anchors:
+
+- “Spreading ignorance rather than knowledge.” (§63)
+- “Strong believer in the value of ignorance.” (§192)
+- “You can’t… equip yourself with a theoretical apparatus for the future… The best thing… is just start. Don’t… don’t equip yourself.” (§65)
+- Paper triage to protect bandwidth (“papers… that remove information from my head”). (§200)
+
+**Failure mode:** confusing “ignorance” with “lack of taste/rigor”; the point is not to know nothing, but to avoid the expert reflex that collapses hypothesis space before reality has had a chance to answer.
+
+---
+
+### Operator compositions (what makes it fast)
+
+Brenner’s speed comes from **compositions** more than any single operator:
+
+- **(⊘ → 𝓛 → ≡ → ✂)** Level‑split, recode (often 3D→1D), extract invariants, then turn them into forbidden patterns that delete whole model families.
+- **(𝓛 → ⧉)** Recode into a language where the question becomes *materializable*, then compile it into a shortest‑path experiment instead of an essay.
+- **(⟂ → ↑)** Change the object/system until the decisive signal is naturally amplified and cheap.
+- **(⇓ × everything)** Tool‑democratization is multiplicative: it raises the “iteration rate” of the whole loop.
+- **(⊙ ↔ ∿)** Productive ignorance keeps priors wide; being out of phase keeps competition noise low. Together they preserve exploratory freedom.
+
 ## 4) A practical next‑experiment rubric (usable immediately)
 
 When stuck on “what next?”, force a small decision procedure instead of brainstorming endlessly.
@@ -336,8 +388,10 @@ These are the recurring anti‑self‑deception moves.
 In a multi‑agent setting, you can assign “operators” as roles:
 
 - One agent forces representation changes and machine‑language grounding (𝓛 / ⊘).
+- One agent “compiles” narratives into decision experiments and potency checks (⧉).
 - One agent hunts invariants and exclusion tests (≡ / ✂).
 - One agent searches for better experimental objects and amplification handles (⟂ / ↑).
+- One agent protects priors/bandwidth and watches for entrainment (⊙).
 - One agent plays adversary and monitors Occam’s broom / exception handling (ΔE + critique).
 
 ---
@@ -348,12 +402,17 @@ In a multi‑agent setting, you can assign “operators” as roles:
 - **Decision experiment:** an observation designed to kill whole families of hypotheses at once.
 - **Digital handle:** a high‑contrast readout that is effectively yes/no. (§62)
 - **Representation change:** rewriting the problem so hypotheses separate (coordinate change).
+- **Dimensional reduction:** compressing a problem into a lower‑dimensional representation (especially 3D → 1D information). (§58)
+- **Materialize:** compile a theory into a concrete test (“how would you go about doing anything about it?”). (§66, §42)
 - **Inversion:** deliberate flipping of viewpoint/causal direction to reveal new constraints. (§229)
 - **Machine language (of the object):** the system’s executable primitives (neurons/cells/genes), not a descriptive fit. (§147, §208)
+- **Information vs implementation (Schrödinger’s error):** the program specifies and describes the means, but does not itself contain the executing machinery; the program must build the machinery. (§45–§46)
 - **Chastity vs impotence:** “won’t” vs “can’t” — outcome‑equivalent but mechanistically different; basis of potency checks. (§50)
 - **Don’t Worry hypothesis:** proceed with a coherent framework while treating missing mechanisms as latent placeholders. (§57)
 - **Occam’s broom:** the hypothesis that sweeps the fewest inconvenient facts under the carpet; monitor the carpet height. (§106, §229)
 - **Exception quarantine:** keep the coherent core, isolate anomalies explicitly, resolve later. (§110–§111)
+- **Imprisoned imagination:** stay inside physical scale/constraints so you don’t build impossible cartoons. (§66)
+- **Productive ignorance:** resisting entrainment so “can’t work” doesn’t become an untested dogma. (§63, §192)
 - **Junk vs garbage:** definitional separation between neutral “rubbish you keep” and deleterious “rubbish you throw out,” used to prioritize what deserves attention. (§175)
 - **System:** a reusable experimental platform/assay that compounds downstream progress (“you had a system”). (§60)
 - **Opening game / out of phase:** strategic positioning for high freedom and high information gain. (§143, §192)
@@ -364,7 +423,7 @@ In a multi‑agent setting, you can assign “operators” as roles:
 
 This doc is a unified *map*, not yet a fully operational playbook. The next layer to build inside this repo would be:
 
-1. A transcript‑grounded **quote bank** keyed to each operator (⊘/𝓛/≡/✂/⟂/↑/⇓/ΔE/∿).
+1. A transcript‑grounded **quote bank** keyed to each operator (⊘/𝓛/⧉/≡/✂/⟂/↑/⇓/ΔE/∿/⊙).
 2. A “Brenner loop” **template** file that outputs the exact lab artifacts listed in §7.
 3. A set of **prompt templates** that implement each operator and enforce the guardrails.
 
