@@ -619,3 +619,99 @@
 > And so... and Dounce of course had already written such coding papers. And in fact later I learnt that Hinshelwood had written a coding paper and there was a ferment of business and so I had actually developed, before I went to Oxford, an idea that in fact nucleic acids and amino acid and proteins were co-synthesised through aminoacyl nucleotide intermediates and I'd had the naive idea that they came in this way and in fact the... the base was joined to make a nucleic acid because we knew all that chemistry; had no idea about base pairing. And at the same time the amino acid was joined to make this and it was very crude... idea, but in fact I had a mechanism – what was very hot at that time was actophosphate bonds, and high energy phosphate bonds, and this seemed to me to fit pretty well and I had these great ideas that this is how you make proteins and specify them.
 
 ---
+
+## 45. John von Neumann and the history of DNA and self-replication
+
+> What influenced me the most was the articles of von Neumann. Now, I had become interested in von Neumann not through the coding issues but through his interest in the nervous system and computers and of course, that's what Seymour was interested in because what we wanted to do is find out how the brain worked; that was what... you know, like a hobby on the side, you know. After... after dinner we'd work on central problems of the brain, you see, but it was trying to find out how this worked.
+>
+> And so I got this symposium, the Hixon Symposium, which I had got to read. I was, at that time, very fascinated by a rather strange complexion of psychology things by a man called Wolfgang Köhler who was a gestalt psychologist and another man called Lewin, who was what was called a topological psychologist and of course they were talking at a very different level, but in this book there is an article by Köhler and of course in that book there's this very famous paper which no one has ever read of von Neumann.
+>
+> Now of course later I discovered that those ideas were much older than the dating of this and that people had taken notes of them and they had circulated. But what is the brilliant part of this paper is in fact his description of what it takes to make a self-reproducing machine. And in fact if you look at what he says and what Schrödinger says, you can see what I have come to call **Schrödinger's fundamental error**, and in fact we can... I can find you the passage in that.
+>
+> But it's an amazing passage, because what von Neumann shows is that you have to have a mechanism not only of copying the machine but of copying the information that specifies the machine, right, so that he then divided the machine – the... the automaton as he called it – into three components: the functional part of the automaton; a... a decoding section of this which is part of that, which actually takes the tape, reads the instructions and builds the automaton; and a device that takes a copy of this tape and inserts it into the new automaton, right, which is the essential... essential, fundamental...
+>
+> And when von Neumann said that is the logical basis of self-reproduction, then you can see where Schrödinger made his mistake and this can be summarised in one sentence. **Schrödinger says the chromosomes contain the information to specify the future organism and the means to execute it and that's not true. The chromosomes contain the information to specify the future organisation and a description of the means to implement, but not the means themselves**, and that logical difference is made so crystal clear by von Neumann and that to me, was in fact...
+>
+> The first time now of course, I wasn't smart enough to really see that this is what DNA is all about, and of course it is one of the ironies of this entire field that were you to write a history of ideas in the whole of DNA, simply from the documented information as it exists in the literature, that is a kind of Hegelian history of ideas, you would certainly say that Watson and Crick depended on von Neumann, because von Neumann essentially tells you how it's done and then you just... DNA is just one of the implementations of this. But of course, none knew anything about the other, and so it's a... it's a great paradox to me that in fact this connection was not seen.
+>
+> Linus Pauling is present at that meeting because he gives this False Theory of Antibodies there. That means he heard von Neumann, must have known von Neumann, but he couldn't put that together with DNA and of course... well, neither could Linus Pauling put his own paper together with his future work because he and Delbrück wrote a paper on self... on self-complementation – two pieces of information – in about 1949 and had forgotten it by the time he did DNA, so that of course leads to a really distrust about what all the historians of science say, especially those of the history of ideas.
+>
+> But I think that that in a way is part of our kind of revolution in thinking, namely the whole of the theory of computation, which I think biologists have yet to assimilate and yet is there and it's a... it's an amazingly paradoxical field. You know, most fields start by struggling through from, from experimental confusion through early theoretical, you know, self-delusion, finally to the great generality and this field starts the other way round. It starts with a total abstract generality, namely it starts with, with Gödel's hypothesis or the Turing machine, and then it takes, you know, 50 years to descend into... into banality, you see. So it's the field that goes the other way and that is again remarkable, you know, and they cross each other at about 1953, you know: von Neumann on the way down, Watson and Crick on the way up. It was never put together.
+
+*[Q] But... but you didn't put it together either?*
+
+> I didn't put it together, but I did put together a little bit later that, because the moment I saw the DNA molecule, then I knew it.
+
+*[Q] And you connected the two at once?*
+
+> I knew this.
+
+---
+
+## 46. Schrödinger wrong, von Neumann right
+
+> I think he made a fundamental error, and the fundamental error can be seen in his idea of what the chromosome contained. He says... in describing what he calls the code script, he says, "The chromosome structures are at the same time instrumental in bringing about the development they foreshadow. They are law code and executive power, or to use another simile, they are the architect's plan and the builder's craft in one." And in our modern parlance, we would say, "They not only contain the program but the means to execute the program". And that is wrong, because they don't contain the means; they only contain a description of the means to execute it.
+>
+> Now the person that got it right and got it right before DNA is von Neumann in developing the logic of self-reproducing automata which was based of course on Turing's previous idea of automaton and he gives this description of this automaton which has one part that is the machine; this machine is built under the instructions of a code script, that is a program and of course there's another part to the machine that actually has to copy the program and insert a copy in the new machine. So he very clearly distinguishes between the things that read the program and the program itself.
+>
+> In other words, **the program has to build the machinery to execute the program** and in fact he says it's... when he tries to talk about the biological significance of this abstract theory, he says: "This automaton E has some further attractive sides, which I shall not go into at this time at any length".
+
+---
+
+## 47. Schrödinger's belief in calculating an organism from chromosomes
+
+> One of the central things in the Schrödinger's little book *What Is Life* is what he has to say about the chromosomes containing the program or the code, and he says here... on page 20, he says: "In calling the structure of the chromosome fibres a code script, we mean that the all penetrating mind once conceived by Laplace, to which every cause or connection lay immediately open, could tell from their structure whether the egg would develop under suitable conditions, into a black cock, or into a speckled hen, into a fly, or a maize plant, a rhododendron, a beetle, a mouse or a woman".
+>
+> Now, apart from the list of organisms he has given, which falls short of a serious classification of the living world, what he is saying here is that if you could look at the chromosomes, you could compute the... you could calculate the organism, but he's saying something more. He's saying that you could actually implement the organism because he goes on to add: "But the term code script is of course too narrow. The chromosome structures are at the same time instrumental in bringing about the development they foreshadow. They are law code and executive power, or to use another simile they are architect's plan and builder's craft in one."
+>
+> What he is saying here is that the chromosomes not only contain a description of the future organism but the means to implement that description or program as we might call it. That's wrong, because they don't contain the means to implement it, they only contain a description of the means to implement it and that distinction was made absolutely crystal clear by this remarkable paper of von Neumann, in which he develops and in fact provides a proof of what a self-reproducing automaton – or machine – would have to... would have to contain in order to satisfy the requirements of self-reproduction.
+>
+> He develops this concept of course from the earlier concept of Turing, who had developed ideas of automata that operated on tapes and which of course gave a mechanical example of how you might implement some computation. And if you like, this is the beginning of the theory of computation and what von Neumann has to say about this is made very clear in this essay.
+>
+> And he says that you've got to have several components, and I'll just summarise them. He said you first start with an automaton A, "which, when furnished this description of any other automaton in terms of the appropriate functions, will construct that entity". It's like a Turing machine, you see. So automaton A has to be given a tape and then it'll make another automaton A, all right.
+>
+> Now what you have, you've got to have... add to this automaton B. "Automaton B can make a copy of any instruction I that is furnished to it", so if you give it a program, it'll copy the program. And then you have... you combine A and B with each other and you give a control mechanism C, that you have to add as well, which does the following. It says, "Let A be furnished with the instruction I". So you give... you give the tape to A, A copies it under the control of C, okay, by every description, so it makes another copy of A, then you... and of course B is part of A. Then you... C then tells B, "copy this tape I", gives B the copying part of it, this copies it and then C will then take the tape I, and put it into the new machine, okay, and turns it loose as he says here, "as an independent entity".
+
+---
+
+## 48. Automata akin to living cells
+
+> Von Neumann noted that "the instruction I is roughly effecting the functions of a gene" and that "the copying mechanism B performs the fundamental act of reproduction, the duplication of the genetic material."
+>
+> Von Neumann proposed these ideas in the late 1940s, published in early 1952. Despite their accuracy, these concepts had minimal impact on the biological community, possibly due to cultural differences between physicists/mathematicians and biologists.
+
+---
+
+## 49. Biology doesn't allow for relaxing baths
+
+> The trouble with theory in biology is it's not like that in physics, there's no way you can use it. You see... I mean, Leó Szilárd used to tell me that the one thing that happened when he went into biology is he couldn't take a nice bath. When he was a physicist, he could go into a bath and he could lie there for three hours and he could think about physics, but he said when he went into biology, no sooner did he get in the bath then he'd have to get out and look up another fact. So he was always unable then to take a... a relaxed bath, and I think that is the nature, because you have to ask yourself, who... you know, what had this all been about, because this is one of those remarkable things in biology that is, you know, absolutely true, yet absolutely vacuous.
+>
+> There's nothing you can do about it. I mean, it tells you how things might work; it doesn't tell you how you can make a mouse. That's in the end... we're always preoccupied with these questions of detail. So that's... but I think, you know, having had this connection with this kind of thinking, having, you know, tried to teach myself enough mathematics at least to be able to deal with a mathematical argument, but I think, you know, the thing that I've always realised I'm much better at is actually, you know, **doing the real thing in a lab**.
+
+---
+
+## 50. Work on phage with Hinshelwood in Oxford
+
+> What happened when I got to Oxford, as I saw Hinshelwood... and I had discovered this book *Viruses*, 1950, a little symposium held at Cal Tech and I'd read about phage. And... bacteriophage. And Hinshelwood was then working on drug resistance in bacteria and so he wrote to me and said he'd like me to work on bacteriophage resistance, to show it's an adaptation. I had read about phage and got very excited by *Viruses*. It's a remarkable book, that *Viruses*, 1950.
+
+*[Q] Who's it by?*
+
+> It was a symposium at Cal Tech; it's by various people and it is the beginnings of the... the phage... phage ideas there, you know, and really what is a virus? I mean... which you know was going to become clear in the next 20 years.
+>
+> And so I started to work on bacteriophage and I started to read about them. Hinshelwood wanted me to work on resistance because he was a great believer in the time that bacteria adapted to certain situations and then what was inherited was in fact the adapted state and he didn't believe in mutation. Strictly speaking, he said that the evidence that people had didn't support the idea that there were mutants. That was his... his thing.
+>
+> Now, I think in modern language we will see that those ideas are pretty common today, like we don't call it inheritance, we can say the persistence of, or the descent of, a certain determined state, which is not because there's been a gene mutation, but because there's a self-perpetuating state. And of course, he came in, he was very... he was very controversial, and so I started to work on bacteriophage resistance in a physical chemistry lab which was totally unequipped to do any biological work.
+>
+> We had to... we were given a pressure cooker and thirty glass petri dishes and some pipettes and you had to make your own petri dishes and all the pipettes were Pasteur pipettes which you had to plug yourself, and sterilise in an oven. And so each experiment became a logistic effort and amongst other experiments that I did – it's all in my DPhil thesis – is I repeated the Luria-Delbrück fluctuation experiments. I think I'm the only person in the world who's repeated them because Hinshelwood didn't believe... didn't believe in them. And I repeated them, and this got me into the whole area of genetics of mutations and so on, and I started to work on the side, on other problems.
+>
+> What I wanted to work on was lysogeny because I thought that would... Hinshelwoodian theories could easily explain lysogeny – that is, the switch between lysogenic and lytic – and what he was doing was trying to explain resistance. And I'll never forget... and I tried to explain it to him at the end, I said to him... I said, 'Professor, in science as in life, it is important to distinguish between chastity and impotence. The outcome is the same, the reasons are fundamentally different.' Okay.
+>
+> So... that I've used... this is a very important... it's a difference between can't and won't basically. So, mutation says you're bacteriophage resistant, because you lose a receptor to bind the bacteriophage; that is impotence, okay? Now the other is you choose to be chaste, you see, so that can be done by a... a thing like this, and so that I think is a very important way of doing it.
+>
+> However, I was the first person in that group who ever argued with him. It was absolutely unheard of, that one would actually challenge the professor, because we were still in those days you know where the Herr Geheimrat was right at the top and actually I got on extremely well with him and in fact, you know, just argued with him. And... but he was someone who, if you could show him an experiment, that was the thing that convinced him, and I think at the end of the day he was willing to think that some things were due to mutation.
+
+*[Q] But you were the only biologist there?*
+
+> I was the only person with a biological background. Other people were kind of chemists that had done this.
+
+---
