@@ -268,3 +268,141 @@
 
 ---
 
+## 21. Realising my lecturers knew nothing
+
+> What had happened was we had lectures on where bile pigments came from. And I had come to the conclusion that the lecturer must be wrong. And they'd given us an idea about the origin of bile pigments, that they were by biosynthesis and so on and of course this is from the degradation of... of haemoglobin and... but they had given us a theory of how these arose, which was archaic, and I had on first principles, come to the conclusion that the lecturer was wrong.
+
+*[Q] What was the first principles?*
+
+> Just the chemistry of the porphyrin nucleus and what had happened was I discovered in this book an article, by a man called Rudolph Lemberg – in this book – who actually worked on how the bile pigments came about. And what amazed me is that "my lecturers had never heard of him, but there he was, very important figure" and this book was in the... the library.
+>
+> Of course, that was that realisation but this book is... was full of the most remarkable set of papers that I had ever read. My textbook of physiology at the time was *Starling's Textbook of [Human] Physiology* and of course I found physiology fascinating and... the whole lot of things there. But in the terms of biochemistry, it is this book that opened my eyes to the great richness that could come from the molecular explanation of living processes.
+>
+> And I think it is then, in about 1943, that I had realised that you've got to do chemistry and biology, and there's got to be a science that studies the function of cells and which... and which... I didn't know what it was at the time, but which brings together life and chemistry in some strong sense.
+>
+> There are interesting articles there. For example, there's a very interesting article by... on... by Scott Moncrieff on the genetics of colour pigmentation in plants, which sort of closed the cycle on my old extracts of the leaves and the petals and so on, and I suddenly realised they knew all about this. But this was the beginnings of these ideas of biochemical genetics. Of course, they had older... but the beginnings of the ideas in my mind and the... and the first beginning realisation about genes, which of course I... I didn't know about at all, because we had no teaching in the subject.
+
+*[Q] Did you discuss any of these ideas with anybody?*
+
+> Well, I tried to discuss it with my teachers but, in fact, this was just impossible; there was no communication there.
+
+---
+
+## 22. What we learnt at medical school
+
+> My colleagues were just a bunch of guys wanting to be doctors. In fact, during my second year anatomy... in those days we actually spent a whole year doing human dissection. There's none of this present style where you look it up in a book or a database; we actually dissected, and we actually had to know everything in the human body, because that is the way you did anatomy in the old days. There's a very remarkable professor of anatomy there, called **Raymond Dart**, who I'll come back to again.
+>
+> And... and also... so, now at the time this was an English language university – the University of Witwatersrand in Johannesburg – there were no Afrikaans speaking universities where people could do medicine or dentistry at that time, and so there were a lot of Afrikaaners came to this... came to do medicine here. And because of the nature of South African politics at the time, people were very careful as to who they put at a... at a dissection table. There were six of us, three on each side of the body when we changed places at this... and so I was assigned to a table with five Afrikaaners, because of my name; they had thought from my name I must be an Afrikaaner.
+>
+> One of the people I did keep up with, he later became a professor of dentistry in South Africa, a man called Dreyer. However, there I was, and they refused to speak English, so I learnt Afrikaans. I became fully bilingual. In fact, it stood me in great stead, because I could always get a booking on a railway train just by asking for it in Afrikaans. I became fully bilingual because we just spoke Afrikaans. Of course, I could speak quite a bit of it because I had played at school with Afrikaans... Afrikaaners and so on, but here I became fully bilingual. And in fact, I do have an accent which is still... and in my English accent, is still rather Afrikaans accent – not the usual kind of Jo'burg accent.
+>
+> So I had... I learnt anatomy, and I'd been to lectures during my course on histology because we had to do the whole of histology. And there was a remarkable man there called Joe Gillman who really believed in science and so on, and so I found this field of being able to look down a microscope, and actually see cells, completely fascinating.
+>
+> Now, when I think back of what we had to do in 40 weeks... because medical students worked hard. We had 40 weeks; it was eight o'clock... 8.00am to 5.00pm every day, many laboratory sessions. We had to learn anthropology, we had to learn palaeontology, a little bit of it, we had to learn the whole of histology, neurology, human embryology and be willing to answer questions on it, plus the whole of physiology. And all to be accomplished within one year.
+
+---
+
+## 23. Doing an additional BSc year
+
+> Now, during the course of this year, it had become realised that if I just went on and did my six years medicine, I would finish medicine under the age of 21 and that I couldn't become registered at that time – you had to be over 21 to become a registered doctor. And so therefore I would have to spend a year doing something else.
+>
+> And one of the things that was available, which fitted in very nicely with everything, was a... a BSc degree. And of course the people who paid my bursary realised that I would have to do this in order... so they gave me an extra year. And I therefore deviated at the end of the second year to do a BSc in physiology and anatomy.
+>
+> And a small group of people did this each year... into this class, and one suddenly realised that now one was entering in... into science, because there were in that – especially in the histology department – a number of people who had not only done a BSc degree, but had done an Honours degree and a Masters degree and that they began to run the BSc class, and in this department people were actually doing research.
+>
+> And one of my teachers there was a remarkable man called Harold Daitz, who died quite young in... later on. Another man was a man called Mike Wright, who was about a year ahead of me, and who had gone on to do neuroanatomy. And so in that year, one really began to do research. That is, we all were put in a room and we were... all had a... I think there were about 11 of us.
+>
+> And two of my colleagues I still keep in touch with from that time; I saw one recently who had just retired as professor of anaesthesiology in University of... at Washington University in Seattle – University of Washington in Seattle. And this was absolutely an amazing experience because on the anatomy side, we had lectures in palaeontology from Robert Broom, and I still have a copy of his... of a book he gave me.
+>
+> We did a whole series of sessions with people in the department and that we were taught about the physics and chemistry of dyes as a basis of staining of tissue. My teacher here was someone who remained a friend for life, who was Joel Mandelstam. He had... he was a chemist who had joined Joe Gillman's department to do research and tried to do biochemistry there.
+>
+> We did projects in embryology, in... involving three-dimensional reconstruction of embryos from serial sections, traced out with a Camera Lucida onto sheets of beeswax and the thing stacked, and this technology I learnt. I also did a project in neuroanatomy and did a reconstruction of part of a galago brain, and it was absolutely the... a tremendous experience.
+>
+> On the physiology part we started to do some more biochemistry. Now one thing we could do was take up some project of our own... and from my reading in various books, I had become tremendously impressed by trying to work on cell physiology... on enzymology. And one of the things that was done in those days, was to measure oxygen uptake – that was the only way you could study oxidation and reduction pathways. You had manometers and you would add these enzymes and the things, and you would shake them, and you would watch to see the changes in pressure.
+>
+> And – there were two kinds – there was a thing called a Warburg manometer, and everybody worked with these, and of course there wasn't such a thing available, so I decided I'd build one, and I sat down and I first had to learn how to blow glass and grind tabs. So I actually did build a Warburg manometer and measure the oxygen uptake of tissues and this led me to say, 'Now I know what I want to do; I want to become a cell physiologist'. And I had become interested then in trying to find out now how cells could work and how... and how this... how one could do... how one could penetrate this.
+
+---
+
+## 24. Joe Gillman's philosophy of science
+
+> From the other side, and the two things led together, as you will see, I became very interested in... in looking at cells under microscopes and what could you learn from this, and so I'd become very excited by the ability to do histochemistry – cytochemistry as it was called – and I thought somehow between the system that you grind up and the system that you can actually look at, you had to have some synthesis.
+>
+> Now of course, in those days, no one knew much about anything and so the questions that one always debated were: can you really find out about a living cell by taking it apart? And this is a great philosophical problem, and of course what one had come to realise, because of other things there, that Joe was a Marxist and so he believed in things...
+
+*[Q] This is Joe Gillman?*
+
+> Joe Gillman. So he believed in things called dialectical synthesis, which I never understood... but anyway, is that you learn nothing from the mechanical disintegration of this. Later I understood where all these ideas came from by actually reading Lenin's book *Materialism and Empirio-Criticism*.
+>
+> Now, you may say that how does one get to read all of this, and now I have to tell you that one of the great things we did is we did a third subject; we had to do, it was compulsory for everybody doing a BSc degree – that you had to do the history and philosophy of science... as a formal subject.
+
+---
+
+## 25. Getting into the philosophy of science
+
+> One of the things that became very important in this course was that everyone had to complete a course of lectures and write an examination in the history and philosophy of science. The lectures were given by Brian Farrell, a logical positivist who later taught at Oxford.
+>
+> This aroused my interest in philosophy. We read works including Crowther's *"The Social Relations of Science"* and books on the history and philosophy of science, which introduced us to logical positivism. I became fascinated by people who had taken science and developed philosophy from it.
+>
+> From that year onwards, I spent considerable time reading philosophy. I read Moritz Schlick's work and physicists' perspectives on philosophy, particularly Max Born's book on causality in physics. This led me to quantum mechanics, and I read Einstein's popular books on the subject.
+>
+> We studied Aristotle and Plato as part of the formal curriculum, but what truly interested me was twentieth-century philosophy emerging from science. The political dimensions became embedded through Marxist influences. Meanwhile, I was becoming increasingly politically active regarding South Africa, all while trying to understand the twentieth century from this remote, provincial location during wartime.
+
+---
+
+## 26. Lab cocktails
+
+> The next year, having deviated to do one year, the question is: do you go back to medicine? Most of my colleagues did, but I decided I was more interested in this, and so I would stay on and do an Honours degree. And so that's exactly what I did. Now of course my bursary was suspended, but I got a job in the department as a technician. That is, I was paid in lieu of fees, and I also was paid a small salary, and what I essentially did was make a whole set of teaching slides of the human body – histology, helping a technician.
+>
+> So I learnt how to embed human tissue, and, for that matter, animal tissue, but any tissue. I learnt how to section these. I learnt how to stain them and mount them, and so I became a... essentially histology technician and I used to go and work there in the department doing all of this.
+>
+> It is there also that I discovered the wonders of **Puccini's fluid**. Now, Puccini's fluid is nothing to do with the opera. Puccini's fluid was a preservative that was consisted of 70%... sorry, one part of 95% alcohol and one part of glycerine, and I had made this up and I was, I think, preserving some tissue in it or clearing it or something... I decided to have a taste of this stuff.
+>
+> And of course glycerine is exactly what you need to cut the taste, the bite of the alcohol and Puccini's fluid, which after having a taste, I... this was a Saturday afternoon – I woke up on the floor of the laboratory Sunday morning, still holding this 100cc measuring cylinder – I'd taken much more than a taste of it.
+>
+> But it actually is the best way to make lab cocktails. And a very good formula is absolute ethanol, and one should not use 100% actually because that has been cleaned by cold distillation with benzene, so it's pretty poisonous. 95% is good enough and one part of that, one part of glycerol and one part of orange juice or something like this, makes something that is so smooth, so tasteless and so effective that it's the best thing you can do, and so Puccini's fluid I think has a lot to recommend it.
+>
+> Actually, this discovery of the cutting edge of glycols was, as you know, used fairly recently when people were adding ethylene glycol to wine to give it that sort of mature taste. Except ethylene glycol is poisonous – it's... it's what you put in your radiators. You know, there was a scandal some time ago that they were poisoning the wine. But glycerine I can tell you is a natural compound and is perfectly safe. However... but that's a little sideline, and... but I learnt to do all of this and there I really started to do some... I really started on doing research.
+
+---
+
+## 27. My first ever research paper
+
+*[Q] You did do a research project in your BSc, with the manometer.*
+
+> Yes, I did that, I built the machine and I also did some other things. I started to do fluorescence microscopy, which we had then; in fact, wrote a paper on this work, together with Joe Gillman and Teddy Gillman.
+
+*[Q] Your first paper?*
+
+> I think it's my first paper.
+
+*[Q] What was the paper about?*
+
+> The paper was on porphyrin fluorescence in the liver of pellagra, and I went on to study... I've got a copy of that somewhere, and...
+
+*[Q] But that must have been quite exciting.*
+
+> It was very exciting, you see, and actually for me to realise... you see the porphyrins were connected with Rudolph Lemberg – that's when I learnt all about porphyrins.
+
+---
+
+## 28. Why I love pigments
+
+*[Q] You always liked pigments.*
+
+> I love pigments, I love colour...
+
+*[Q] Why do you love pigments? I mean, given that...*
+
+> Because you can see them, you see, and that's why I think sugar, sugar biochemistry and all this colourless biochemistry is really colourless. But pigments are amazing, and I've been fascinated by dyes, and in fact the whole idea of interpreting what you can stain, I really thought this was going to be the powerful way to... to study biology. Now of course during the... so sorry.
+
+*[Q] Now, I want to come back... sorry, we need to understand how was it... I mean, here you were in Honours class, you'd never been with a group of people interested in science at all, and suddenly you're publishing a paper with the Gillmans.*
+
+> Well, I started to work with this and now, for the first time, we actually sat around and talked about science and scientific problems during my BSc year and of course... more and more intensively as I stayed on there and they had run... of course, the apprenticeship system is a very different form of teaching, and putting you onto a project, and so, for the first time, actually, there were other people interested in science, other people trying to solve problems and so this was the beginnings of a kind of lab interaction, and the whole sort of concept that you could go... you could discuss how to do things and so on. That started in that BSc degree.
+
+*[Q] And you actually got a pay. But it's unusual also to get a pay.*
+
+> Yes, so I started because I had those interests and there was this paper that was published, and in fact I published very quickly in my Honours year several papers which depended on these.
+
+---
+
