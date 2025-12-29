@@ -206,10 +206,13 @@ Anchors:
 
 ### ⇓ Democratize tools (remove priesthood bottlenecks)
 
-**Action:** Redesign techniques so many people can iterate quickly without scarce specialists.
+**Action:** Redesign techniques (and/or build what you need) so iteration stops depending on scarce specialists, expensive infrastructure, or institutional gatekeeping.
 
 Anchors:
 
+- Build the missing instrument if it’s the bottleneck (Warburg manometer). (§23)
+- Use clever physical encodings instead of waiting for the “proper” machine (heliostat for illumination; cell-as-ultracentrifuge). (§37, §41)
+- “This is something you can always do… it’s open to you. There’s no magic in this.” (DIY intermediates / anti‑priesthood stance). (§51)
 - Negative staining “took electron microscopy out of the hands of the elite and gave it to the people.” (§86)
 
 **Failure mode:** letting a scarce tool define your pace and your hypothesis space.
@@ -290,6 +293,11 @@ The transcripts also show that the “method” is not only logic; it’s **a wa
 - “Somewhere there is the ideal organism… cut years out of this.” (§199)
 - He reads omnivorously, but also refuses papers that “remove information” from his head. (§200)
 
+### Anti‑overpreparation (start before you’re “equipped”)
+
+- “You can’t prepare yourself… equip yourself with a theoretical apparatus for the future… things take you from the back basically and surprise you.” (§65)
+- “The best thing to do a heroic voyage is just start. Don’t… don’t equip yourself.” (§65)
+
 ### Time protection + deep work mode
 
 - Protect the mental mode that generates reframings and hypotheses (daydreaming + implementation). (§228–§229)
@@ -309,6 +317,7 @@ These are the recurring anti‑self‑deception moves.
 7. **Don’t fall in love with theories; kill them when ugly.** (§229)
 8. **Watch your “Occam’s broom” usage.** Sweep a little, but monitor carpet height. (§106, §229)
 9. **Try inversion when stuck.** Ask whether the “effect” could be the cause; flip the direction of explanation. (§229)
+10. **Guard imagination with experiment.** “Let the imagination go… but… direct it by experiment.” (§42)
 
 ---
 
