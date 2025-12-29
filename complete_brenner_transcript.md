@@ -406,3 +406,113 @@
 
 ---
 
+## 29. Archaeology and palaeontology
+
+> Now, also at that time, another interest had emerged, which threatened effectively to become an alternative profession, but I stopped it. But I'll just tell you a little about it. Raymond Dart had been made famous throughout the world for the discovery of Australopithecus. This was a skull... a fossil skull of what was supposed to be the missing link, and nothing much had... more had been done on that and this was being questioned and so on.
+>
+> And then Robert Broom had found these skulls... although Robert Broom was well known for all his work on reptile palaeontology, but he had started to excavate caves just outside a town called Krugersdorp, called Sterkfontein and Kromdraai. And in our science year we... we decided we would go on expedition to Sterkfontein and... in order to go and try... we went with Broom and, in fact, that was the beginning of mounting more and more expeditions to try and do excavations and so on.
+>
+> So I got led through this to a very deep interest in archaeology and palaeontology and that of course did echo something about one's interest in nature again, and here it had come back the other way and of course this is... this had brought me directly in... into contact with, you know, problems of evolution in this way.
+>
+> So I know that this sounds as if a lot of things were being done at the same time, but that is what it was like. So, you know, Saturday afternoon... or we would go for the weekend to Sterkfontein; we would go and dig in the caves or sort rubble all day; we'd play poker all night. We played poker, which depended on using sheets of toilet paper – scrip – and in fact I... there was this hysterical evening. You know, there was the Sterkfontein skull that everybody knew about, and what happened is at 2.00am one morning, I got what I called the Sterkfontein hand, and this was a royal flush. It's the first and only time I got it – I cleaned them out of their toilet paper scrip, but that's the only thing I ever discovered from this excavation, was the Sterkfontein hand, which was a royal flush in hearts. That I'll never forget. In fact, we woke everybody up at 2.00am to show this great discovery of the Sterkfontein hand, but there you are, so...
+>
+> And then you back to the lab on Monday, you know, do a little bit of neuroanatomy and on Wednesday, do something else. So it was a very sort of, you know, life in which everything was on the go. And one had developed a little coterie of people who were not just interested in, you know, just going to university and qualifying and so on.
+
+---
+
+## 30. Forming a territorial army
+
+> I should also say that I also spent... I was also in the army at this time. In fact, what had happened was, as part of the war effort, the university students and the medical students had formed something that was a... like the territorial army – that is, a kind of weekend army – as part of this, and in fact there was the... the whole of the Johannesburg Medical School had formed a field ambulance. I think it was called the **25th Field Ambulance**, and in fact there were two full-time soldiers that actually occupied offices in the medical school, and the head of the ambulance was Professor Dart, who had the rank of colonel and then all the other lecturers in the medical school had different ranks.
+>
+> In fact, a very old friend of mine, John Robinson, who was a medical student a little bit ahead of me; he was very famous as the man who broke down when we went on our annual three week camp and was sent home in... in tears.
+
+---
+
+## 31. The Army camps
+
+> So in the army – the 25th Field Ambulance – we would go to camp on weekends. That is, we would collect trucks in Johannesburg at two o'clock on... and meet at two o'clock on Saturday afternoon, go out to one of the army camps, and then of course come back on Sunday evening and that during the holidays, which was during July – it was still very cold, especially at the height of Johannesburg – we would go for a two to three week camp.
+>
+> And one of the camps we went to was out in the bush so we could spend a bit of time doing some archaeology on the side and here we would do exercises and manoeuvres and actually bring people in. I rose to the rank of corporal actually, but I think I was too young to be promoted any further than that, and I served my time and I learnt how to drive.
+>
+> And I also became a cook with a man called Cecil Luck, whom was a lecturer in the physiology department – a very interesting man who went out to Uganda to teach there and of course returned to South Africa when that changed the way it did. But he was a physiologist and he was in fact in charge of the cooking, and of course I should hesitate to say that that's where I learnt how to cook – possibly that's where I learnt how not to cook – but that is just one the things that one learnt, and it also...
+>
+> And all of this, having grown up in a small town which had... in which the big scene... the big feature were all these mine dumps; that is the dumps of all the sand and clay that had come from extracting gold. These yellow mine dumps, flat, completely artificial. The only place one had ever seen was Germiston Lake, which was in fact the remnants of an old mine. The whole idea of getting right out into... into the bush was amazing. I mean that already happened in going out to Sterkfontein and it happened more and more with the army camps. And then, of course, later on as we went on more and more archaeological expeditions... so this opened up this whole incredible country, and coming from a small, urban thing where the... everything... there was no nature, no... nothing to see, this was one of the most incredible eye-openers of the time.
+
+---
+
+## 32. Geology: expedition with Alexander du Toit
+
+> I then had developed this... this very great interest in archaeology and palaeontology, and so going out on these camps had become a regular thing, and in fact I went... in 1947, I went on an expedition with a man called Bosazzar and another man called Ray Adie, both of whom were geologists. We went on an expedition to the Kalahari Desert and it was... and I had been there before to parts of this, but actually I wrote a scientific paper on this... on the whole idea that there were these desert cycles in Africa which... which were most important for how the whole development of this thing, and that these were correlated, basically, with the cycles – the glacial cycles that were better known in the north...
+
+*[Q] So you learnt geology too?*
+
+> Yes, I learnt geology. In fact I learnt quite a lot of geology. In fact, I'd become quite an expert on it and did later... and in 1947 or '48, I can't remember, when a big expedition came out from the University of California who wanted to see all the sights, I went with them and I went essentially as a guide, and that's where I met – because they'd asked him to go – **Alex du Toit**. Alex du Toit, as it would be called in French, but du Toit as we called it, was one of the most remarkable people. He is the... one of the great inventors of Gondwanaland, he's... with Wegener, and his book, *The Geology of South Africa*, of which I have a copy, is in fact the whole of the idea of the wandering continents, and he had come to the conclusion of geology alone that Africa and South America were once joined up.
+>
+> Now, he had a most remarkable life. He was already quite an old man when I met him, and he had gone out to survey the Kalahari Desert – which is where we went – as a young man for the geological survey in about 1890. In fact, the geological maps were the ones he made. And he turned up there dressed like, I would say, a Dutch Reform Church preacher. He was dressed in a black suit with a waistcoat and a tie and a hat. Now, all the Americans had come out you know, in expedition outfits with... with bush hats with little leopard skin rings. I had come out in my thing, which was shorts and boots and a shirt and a hat because we wore this, but du Toit had come there dressed in this beautiful suit.
+>
+> And I remember that one wonderful thing that happened on this trip was we were going along a road in the Kalahari Desert, in the middle of nowhere, and the people were asking about water divination, so he said he believes in it. So they said, 'You, a scientist; you believe in water divination?' He says, 'Yes'. He says, 'Just stop the car here'. He says, 'I'll show it to you, prove it to you'. So stop the car apparently in the middle of nowhere, and he gets out of the car and he cuts a branch, and he goes about... does this sort of tremendous amount of formality and ritual, and then he walks along the road and the thing bends. And he says, 'Well', he says, 'this means there must be water somewhere, so there should be a fault line somewhere here, and if we just go off down here, let's go and look for it'. And sure enough, we go down there and there's this thing, which... there's a little... little spring there – it had dried up, but you could see there had been a spring there. So all these Americans were amazingly impressed by this.
+>
+> And when we were going back, he started to tell me in Afrikaans how he came through here as a young man in about 1890 on an ox wagon doing... making the geological survey of this region and that he had found the spring here and that he recognised the topography of the land while we were talking. So I found this to be very amazing thing. However, he had a... this gives one an eye for country. It gives one an eye that one can look at a... at... at the topography and see its history in it. And of course, as you may imagine, this was threatening to become another profession and so I decided to give it up.
+>
+> And a colleague of mine who was one year behind me, Philip Tobias, he decided that he would continue it and I've always enjoyed it as a hobby; I've always enjoyed... I've just enjoyed the idea that one can go out and look at a country and of course extract its history from it, and of course that's another interest of course I've had in astronomy.
+
+---
+
+## 33. "To Serve Man"
+
+> Astronomy I'm a complete amateur. I got interested in this... of course, if you live in the southern hemisphere you can't... you can't but be interested in the sky, and of course I would say that most of my interest in the stars was as a... an assiduous reader of science fiction. I became... from about the age of eight – seven or eight – I became a reader of science fiction and this had come about... if I can go back to there...
+>
+> One of my mother's brothers was... was rather wealthy; that is, he had done well. He had a shop in Fordsburg where he sold first bicycles and then... and then radios, and he had done very well, Uncle Harry, and was not married. And I used to go and visit him and one of the things that there was in the street in Fordsburg was... Fordsburg was a suburb of... of Johannesburg, next to an equally depressed area called Mayfair, surprisingly enough, just out on the western suburbs and was inhabited by a lot of people, mostly poor whites then, who had come in as being displaced from the land, had come into the city, mostly Afrikaaners who had come in as a result of the agricultural depression in the thirties. And so they... they were the clientele there, and my uncle would always take me for lunch to the Fordsburg Hotel – which is where he had his lunch – where we'd have something that I think you can only get in South Africa called a mixed grill, and I actually knew someone who could eat three South African mixed grills and... and survive, but still.
+>
+> And then he would give me some money – half a crown, which was, well, amazing – and I would go to this second-hand bookstore where this person had past numbers of something called *Amazing Stories* which you could buy for about tuppence each. These were the pulp magazines – there were two of them which were the best; one was called *Amazing Stories*; other called *Astounding Stories*. They came from... they came from... America and I collected these and this is where I encountered, you know, all the great names – Robert Heinlein and so on.
+>
+> And I still have an enormous collection of science fiction. In fact, this stood me very well in later years, when Francis Crick wrote a paper on the idea of Pangenesis, namely that all life... Panspermia, I'm sorry – that all life had been brought here from outer space and the planet seeded. I told him that I'd read this somewhere before, and he said that was very interesting, could I give him the reference. I said, well, I can't remember the exact number, but it was *Amazing Stories*, either 1936 or 1937, I'm sure you could find... find it there; it's been published before and he should be careful, you know, not to be accused of plagiarism.
+>
+> However... but this again was, you know, an interesting... another way of looking at the world and of course in the early days it was the kind of small boy interest. But in later years I... I liked this a lot for what it explored about society and human nature, and I think that some of the inversions, the unexpected inversions... and I can remember two of these, because there's a sort of thinking that I liked... I liked the... I like the playing with words, and the one I think very, very well of is the one written by a man called... August Derleth *[sic]* I think his name is. The title of this article is *How to Serve Man* *[sic]*, and it says that earth is in a terrible state. These people come from outer space and they bring enormous benefits; they give humanity boxes which are endless supplies of energy and they just exude goodness – altruism. Of course, the... the teller of the story is a journalist who is deeply suspicious of all of this and all his friends say, 'No, no, no, these come from another planet; they're completely altruistic; there are no hidden motives', and what is then... they then say their slogan is *How To Serve Man* *[sic]* – that's what they've entitled it – and they have these courses that people get elected for and go and get taken to wonderful places where they get educated and so on, except what is very strange is that no one has ever met anybody who's come back from this.
+>
+> And of course, the investigation goes on when he discovers that what these people are really interested in is cooking and eating, and *How to Serve Man* *[sic]* is in fact not only the title of the most important book in their culture but it's a recipe book, and of course that's the end of the story.
+>
+> So I think this kind of duality has always appealed to me and there are lots of other cases of it and... and I think their experiments with societies, some of them are, I think, brilliant. *The Space Merchants* I think is a brilliant parody of America; of the future. The only thing in this is, you know, it's come true basically – that's the disappointing thing.
+
+---
+
+## 34. Language and wordplay
+
+*[Q] Your... your passion for words and language, I mean, which is the first time you've mentioned it; did you read novels and poetry?*
+
+> Oh yes; I didn't read much poetry but I've always been a great devourer of books, indiscriminate of course, so I read everything that I can lay my hands on. I did not much enjoy the sort of formal text that we were given at school; in fact I have an... I have a total dislike for Sir Walter Scott, after being forced to read *Quentin Durward* for my matric – as far as I'm concerned, I never want to read another thing. However... but it is just the... the whole idea of... of this communication has been... has been an interest of mine for a very long time.
+
+*[Q] The wordplay, Sydney?*
+
+> The wordplay I think is part of... is part of the way one... one learns to think. I think wordplay is just alternative interpretations of the same thing, and I think that that's a lot of... a lot of science involves that: of... of taking... looking at the thing on the surface and see that there... there's more than one way of looking at it and see there's more than one way of extracting something from it.
+
+*[Q] But did you get pleasure from this wordplay even when rather young or do you think it was something that came to you later?*
+
+> Yes, well I think the... the idea of punning is... there's probably a gene for it in our family because my grandson is exactly like this. At quite a young age he is already inventing words and doing things like this. I mean, inventing words is a good one; for example, he has... he has an invention of a... a Jewish-Japanese restaurant, which is called **Sosumi** – an American Jewish-Japanese restaurant. So this is... the... the wordplay is part of the way one manipulates one's thinking, and so I think that's also part of it.
+
+---
+
+## 35. The Nadi reaction
+
+> During my Honours year, I again expanded my interests into large parts of biology, because that's the one thing this... this enables one to do. But I had started to do things in... in cytochemistry, and, in fact, one of the interesting things was to do something which was called the **Nadi reaction**. Now, the Nadi reaction has, in recent years, come into favour as a measurement of the cytochrome oxidase system. But I can honestly say that I was the first person to discover that.
+>
+> It had been known as the Nadi reaction and it had measured some enzyme called... which was called indophenol oxidase, and what you did was you took these two components, diphenyl diamine, and you put it in and when you had this enzyme, it made this com... it made this blue dye, indophenol blue.
+>
+> And I did a set of experiments which actually proved that this was related to what had then been called... had then been called cytochrome oxidase. Because what I showed... it was mitochondria that gave you the Nadi reaction, all right? And... and I actually wrote a paper on this and published it as part of the annual meeting of the South African Association for the Advancement of Science in 1946, so it goes back a long way.
+
+*[Q] It wasn't your first; that was one of your later papers?*
+
+> Yeah, that was the second... my second paper, yes.
+
+---
+
+## 36. My MSc in working out the chromosome complement of Elephantulus
+
+> After completing my Honours degree, I pursued a Master's degree, using the extra year to study genetics and chromosomes. I was profoundly influenced by Edmund Beecher Wilson's *"The Cell in Development and Heredity,"* particularly the passage stating that "The chromosomes are the bearers... the material bearers of heredity."
+>
+> Beginning with onion root specimens, I taught myself cytogenetics using two key texts: CD Darlington's *"Recent Advances in Cytogenetics"* (1937) and Darlington and La Cour's *"The Handling of Chromosomes."* I selected the **Elephantulus** – a small shrew native to South Africa – as my research subject.
+>
+> My Master of Science thesis, *"The Chromosome Complement of Elephantulus,"* represented pioneering cytogenetic work in South Africa. Though I initially reported an incorrect number (14 rather than 28), this research established the field locally. Philip Tobias subsequently studied the gerbil, further developing cytogenetics in the region. I characterized this work as "the first sort of connection of genes and cells," continuing my broader investigation into cellular mechanisms.
+
+---
+
