@@ -154,3 +154,117 @@
 
 ---
 
+## 13. Going to Johannesburg University to study medicine
+
+> Well, I had completed school at the age of... just at the end of my fourteenth year, and of course the war was on now so this was 19...
+
+*[Q] What year was this?*
+
+> I finished school in 1941, so in 1942 I went to university. Now, I didn't study science at university; what I did was I studied medicine, and the reason I did this was that I could get a bursary to go and study medicine and so on – because my parents would never have been able to afford it. So I got a bursary – it was £60 a year – from the Germiston town council; I won it in a competition.
+
+*[Q] What was the competition?*
+
+> It was just your exam results and interview and so on, and I got a bursary to go and study medicine. That, of course, paid my fees which were £60 a year, and I wasn't really interested in medicine but that's all there were bursaries for. And so the... this enabled me of course to go to university, but because there was no... my parents couldn't afford for me to go and live in Johannesburg or do that; I commuted every day from Germiston and that meant getting up... because classes started there at about eight o'clock in the morning, 8.30, so it meant getting up at about a quarter to six, cycling to the station which was about two and a half miles – which was quite hard on those cold winter mornings – catching the... the train, getting into the Johannesburg station and then walking to the university and doing this again at night and bringing sandwiches for lunch.
+>
+> So that actually... one lived at home, one didn't eat... I never ate in a cafe until... for quite a time, but always brought my lunch from home and then went back at home, you know, in the evening, catching the quarter past five train, and going out there, and getting my bicycle, and going back again.
+
+---
+
+## 14. Minyan Man
+
+> I had also- I had got a sideline at that stage which allowed me to earn a sixpence a day and that was to be a- what is called a Minyan Man. What happens is that in order to say prayers, you must have ten adults there and of course you reach this adulthood at the age of thirteen. And so when I had undergone my Bar Mitzvah, I was then - because I was one of the poor people in the town - I was offered this job which meant coming every morning to the synagogue - which was actually on the way to the station, so you could just do it on the thing - and being present for people to come and say the Kaddish actually, the prayers for the dead, which they had to do on the anniversary and for which they needed ten people.
+>
+> And- so I spent quite a lot of time also, being the, the tenth man at prayers for the dead and I must say that I now don't go to funerals, it's one of my- I can't explain it but I just seem- I had enough of funerals for about four years of my life, of having to attend them and so on - as a professional mourner essentially - that now I don't go to funerals. I think I won't avoid being able to go to my own one but certainly not as a tenth man. However, so that was a- that paid sixpence a session, so you could earn a little bit more than that.
+
+---
+
+## 15. Science at university: Weinstein, Roux and Karnovsky
+
+> At the university, that is where I met one of the most- I met a very interesting person who really taught me a lot in science. He was called Weinstein. He was a lecturer in the botany department. He had come as a refugee to Johannesburg - I don't even think he had a lectureship - but he was- but he taught there. The other person I came in contact with was a very great man called Edward Roux and it was Edward Roux who taught me botany, but what impressed-
+
+*[Q] But what were you doing, doing botany in medicine - sorry Sydney?*
+
+> The first year of medicine, you do Botany, Zoology, Chemistry and Physics, right, and so it's a pretty good scientific education. And the thing that I can remember that stands out most, was I used to spend, go after all the classes had finished to the labs in the Botany department and help Mr Weinstein every now and then and he showed me Chromatography. He showed me what I think was the first thing, it was all done on Kieselguhr and it was the separation of Carotenoid Pigments, just by absorption on to this, and that I just recalled as being tremendously impressive.
+>
+> As you may know, I mean we did a lot of laboratory work there; physics, chemistry. My teacher in chemistry, my lecturer in chemistry, was a man called Karnovsky, who later went on to Harvard and whose younger brother actually, Manfred, was with me, was someone I taught- Morris. Morris, Morris- Manfred was the older brother. Manfred had taught me, started to teach me chemistry there, he had come back there. I- he- I once criticised him. He asked me a question and I told him he didn't know what he was talking about and so, we still recall, he threw me out of the chemistry lecture- lecture theatre there because I argued with him. Actually, I was right.
+>
+> However, that really- there I started to really learn biology systematically and chemistry and physics and of course that- and of course going to university and not participating in university life in any sense because I would- I was a commuter and would go out, back each day, each night and so on. Being in South Africa, I was quite a good rugby player, and so I played a little bit of rugby in my first year, but I gave it up and-
+
+*[Q] Sydney, if I could just come back to Roux and Weinstein. I mean, you said Roux was a very great man from your past. I mean these were very important influences, Weinstein and Roux?*
+
+> Yes, well, I think Weinstein I just have, but Roux was- was- taught botany as a, as a living subject. I mean, it made me very interested, I think all the other- I mean zoology was deathly. We dissected a- we dissected a dogfish, you know, and one had to learn, start to learn almost by rote all of these things- there was very little functional thing. But it seemed to me that Roux had communicated, you know, what now would be called plant physiology. That was his interest at the time.
+
+*[Q] Was any genetics there?*
+
+> There was no genetics, in fact we didn't get taught genetics and I'll tell you how I got to genetics later on.
+
+---
+
+## 16. Edward Roux
+
+> Well, Eddie I first came across as a scientist, but later I came across as a man and the author of I think the most moving book about South Africa, called *"Time Longer Than Rope"*. Because, Eddie of course was a left-wing activist all his life and his history, which I thought was tragic then, is even more tragic considering what has become of the world.
+>
+> Because Eddie was a communist, an early communist, dumped by the Komintern Agreement at the time, so he was branded as a Trotskyite, worked with the African movement as an independent until the time after the war, when he was still as great, and wrote this famous book about the history of African political movements and sort of gave me the- I mean I think it was really on knowing more about him and what he, and what he stood for, that led me to my reluctance to join any organisation and I never was a member of any organisation in the sense that people were members of political parties or political movements, because I've always felt you compromise if you join an organisation.
+>
+> And even now, when people ask me to sign petitions, I'm very reluctant because I just want to know who the other people in here and are they people I'd want to be associated with and I think that- so Eddie was, I think, a fantastic person as a scientist and as a man, and *"Time Longer Than Rope"* should be read by everybody, especially now, especially now.
+
+---
+
+## 17. My sad story of Harold Daitz
+
+> Harold Daitz was a great influence on my life and in fact I found someone who had an understanding- this was someone who really taught me about the importance of asking questions in science and I spent hours, and this also came my love of just sitting around in the lab till all hours of the night, just talking. And of course it's something that my mother never understood, don't think my wife has still understood saying well, you know- why have you come home at four o'clock in the morning? And the thing is, well, you can't say- well we got talking, you know, and it just went on.
+>
+> And so, this is just something that was important. He went to England about a year before I did, he went to Oxford - Oxford I'll come back to that in a moment - and of course, when I came to England, and I came to Oxford, I went straight to his flat to see him to be greeted by his wife, that's Edna Rutowitz as she was, Edna O'Shaughnessy as she is now and to be told that he had died of a heart attack, the week before- I hadn't known.
+>
+> So, that I thought was- because one had all sorts of, you know, ideas about how great it would be to be doing science together.
+
+*[Q] So he was in a way the first person you really spoke science to, was he?*
+
+> He was the first person who spoke science, he was interested in neuroanatomy. Of course neuroanatomy and neurobiology are of course very interesting and very old interests of mine, and because of the influence of this whole school of people doing neuroanatomy in Johannesburg.
+
+---
+
+## 18. Joseph Gillman
+
+> But I think the most significant person in many ways, and certainly the person about whom all the people that came under his influence never stopped talking about, and that was Joe Gilman. And Joe was then the Senior Lecturer in Histology and someone who exerted a great intellectual influence on a wide number of people and it was partly his interest, his interest in theoretical issues in science, I mean we used to spend hours and hours and hours discussing the difference between evocation and induction, Embryological Induction.
+>
+> But Joe started something that was very interesting. He had a brother called Teddy Gilman who actually came to England to Cambridge some years ago, many years ago and Joe and I started to read *"Biochemistry and Morphogenesis"*. We read it at lunchtime, that is, it was one of the things. I brought sandwiches and sat down there and read from this book-
+
+*[Q] Aloud?*
+
+> Yes, yes. That is, three or four pages used to be read at each lunch-time and discussed, it's very talmudic, but nonetheless that's the way I read *"Biochemistry and Morphogenesis"*.
+
+*[Q] But I'd like to interrupt. But he was the senior lecturer and you were just a student.*
+
+> I was just the student - I was an Honours student when all of this started - but I think Joe really wanted to be a theoretician, and of course, I think in retrospect Joe would want you to agree with the way he thought about it, and of course that was one of his failings, and although he was a great stimulus of people, there was this incredible love hate relationship. People couldn't stand to be with him.
+>
+> When Joe- I remember when Joe went to Accra - he left Johannesburg and went to Accra - we had just come to London, this was in the fifties, he left just after Sharpville. We used to say- any day and N'Kruma is going to arrive in London and say please let me in, and people were saying- why do you want to be here? He said- it's this guy Gilman, I can't stand him any longer, I've just got to get out.
+>
+> But that is the thing, and I still see friends of mine who went through this period, like Ben Kaminer who just, you know go back to those days and another- and so, Joe I think was a great formative influence. I think he was too much of a person who- he certainly was not an experimentalist in the sense that I had become one, you know, he was a great describer, his thesis was on the Golgi Apparatus and he had done- I mean there were all kinds of strange connections.
+>
+> For example, he started nutritional work. One of my jobs was actually to make amino acids, because of course we were doing nutrition on rats there, but we couldn't - it was during the war - we couldn't make amino acids. So, I actually manufactured Cysteine and Tryptophan by the classic methods. Cysteine from a barber, from the barber's shop, from human hair. There is a classical description of how to make Cysteine, and actually, Tryptophan from milk and Gowland Hopkins is, is someone who had given all those descriptions, so I had learnt to make amino acids and so on.
+
+---
+
+## 19. Seymour Papert
+
+> Now a very important person in my South African life is someone- that is **Seymour Papert**. Seymour was someone about my age, contemporary of mine, and Seymour was a brilliant, is still a brilliant mathematician and in fact, much later in the course, he was also very interested in politics and philosophy and it was much later, while I was a medical student, that I got to know him very well and in fact, he taught me mathematics and I taught him physiology. Thank God it wasn't the other way around.
+>
+> And he is someone who I think got me interested in the whole idea of mathematical theories and ultimately in computers and things like this because he went off to MIT where he worked with Marvin Minsky on the whole field of Artificial Intelligence and so on. So he was a very good friend and a very important one and also, because of the fringe left-wing politics that we were associated together.
+
+---
+
+## 20. The beginning of my interest in biochemistry
+
+> In my second year I went up to the medical school where I did Anatomy and Physiology, and that was the beginnings really of, of a new kind of interest, because physiology, I just found totally remarkable. Actually, what I found interesting there was, what is now called biochemistry and-
+
+*[Q] And was there biochemistry as such?*
+
+> It was taught as part of physiology. We did a little bit of biochemistry as it was called, which were largely sort of tests for- of urine for glucose. There was a kind of standard thing which every medical student went to. I have to say that the teaching in medicine in South Africa was based on the Scots system, and they aimed to produce someone who could leave the medical school and do everything in medicine and so we had a lot of courses there which I'll come to in a moment.
+>
+> But there were two people, there were a number of people, when I came to do second year medicine, that I found very, very stimulating. One was Joe Gilman, and since he's played quite a big role in mine and other people's lives, he needs something of his own, but I'll come back to that if you- we can leave that.
+>
+> So- but the one thing that I think you will- that I learnt during this which I found, is that this is the first time I came to realise my teachers knew nothing. And this had come because I discovered a book which is up there on the shelf- no, no- and which is called *"Perspectives in Biochemistry"*.
+
+---
+
