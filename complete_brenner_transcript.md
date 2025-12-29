@@ -82,3 +82,75 @@
 
 ---
 
+## 7. Libraries
+
+> And of course the most interesting thing that I can recall from one of those is of course discovering the public library. A man called **Andrew Carnegie** was a great... a great donor to the world because he gave money to set up public libraries, and Germiston had a public library – the Carnegie it was called – and so getting in there and finding the world of books. So the world of books has always been very important – there were no books at home of course – and I rapidly graduated to the adult library, and of course I read voraciously about lots of things.
+
+---
+
+## 8. The early books that inspired me to do chemistry
+
+> But one of the early books... there are two early books that I read while I went through school which were in the field of science and which I remember very clearly. One was called *The Young Chemist*, and this was a book by a man called Sherwood Taylor, and it gave wonderful recipes for how to do chemistry experiments, and I lost my copy of that unfortunately, but I'd started doing chemistry at the age of 10.
+>
+> By this time we had changed our houses and had moved into the house in the southern parts of Germiston – so that was 1937 – where there was a garage and which... we didn't have a car, and that's when I started to do chemistry in a serious way. It was very difficult of course to get apparatus and... and this, but I saved my money and bought a test-tube every two weeks or some reagent and of course went to buy these at the pharmacist.
+>
+> And... so those experiments there which were involved... you know, in making pigments and so on. I started doing biochemistry shortly after that, which was extracting pigments from leaves and petals and so on, and actually discovering that anthocyanin pigments actually responded to pH and, needless to say, that was not an original discovery.
+
+---
+
+## 9. Never more than top six in high school
+
+> In the meantime, I had progressed through school and as... we did not have much choice; we would always pursue a standard curriculum, and the subjects that we did was English, Afrikaans – which was the other language there – Latin, general science, history and mathematics. And that was the standard education if you were going on to more important things. If you weren't going to go to university, then of course you did commercial arithmetic instead of Latin; that was... sometimes was called... I think in my day it was still called bookkeeping but later they called it commercial arithmetic – it just sounded better.
+>
+> And I think that during my period in high school, I wasn't... I wasn't the sort of top of the class student. I was good, I always got into the first six, but people never pointed to me and said, 'He's going to be the... the winner'. And so I was quite... this... and of course I... when I passed my exams I did get a first class, but I didn't get any distinctions, for example.
+>
+> Yes, and all the people actually that were thought to be the real winners, who got four distinctions in matric, went on later to a life of total intellectual obscurity and so I think that led me always to the conclusion that even if a student comes to me with a first class degree, he has to prove to me he could have got a second class degree if he'd tried. Because I think that kind of book learning and giving it back in examinations was not my forte.
+>
+> I think that what... because already I think I'd started to ask questions beyond this, especially in science, I realised that what I was being taught in chemistry and physics and so on was just the... was just what was in the book and what you needed to do to... to pass an examination.
+>
+> The teachers were not very good, and of course this was at a... you know, in a provincial place in a provincial country in a small school, but, you know, one learnt just the basic elementary paths of chemistry. Mathematics did not take you as far as calculus; it took you as far as the solution of quadratic equations.
+
+---
+
+## 10. Beaten, bullied and strangled
+
+> School teachers... the... the ones I remember positively is, first of all, Mrs McCartney – the owner of this kindergarten. I remember her. I remember my teacher Miss Stein, from when I first went to the public school, standard... when I was in standard II and for the rest of them... I mean, I have memories of them as being just a completely bunch of cruel... there was a... they were really awful people in my high school who were...
+>
+> For example they... the boys had... there was a man called Mr Cooij *[sic]*, who said we all had to wear ties – I think from this period stems my total dislike of ties – and if you came to his class without a tie, then what he would do is he would take the... the cords from the skylights, the fan lights, the windows and he would tie this around your neck in such a way that your feet were about a quarter of an inch off the ground, so you either strangled or stood on tiptoe all through the class, so every boy who didn't get a tie was strung up there. So, you know, such things of... like cruelty were pretty standard.
+>
+> I remember my English teacher who didn't like the way I recited the only poetry that I remembered, which was from King Lear, and is this wonderful speech where Edmund decries the fact that he's a bastard and it's full of words like base, vile, bastard, bastard, which of course was wonderful to enunciate in public and... with the correct tone of voice, and all the boys that crossed his... that crossed him, we would have to crawl into the class and stand – I mean, it's just ridiculous – and be like dogs there, kneel by our chairs until we got permission to sit there. So school wasn't a very stimulating environment and one just...
+
+*[Q] Were you beaten?*
+
+> Yes, we were; we were beaten. We were extremely bullied as well. It was a school with... and all schools there were... and since I was small and two to three years younger than everybody else, I simply grew up to be a professional coward; it's the only thing... that is, I would agree to everything not to get bullied. So, you know... so that is... that is also something that helps you to withdraw and then have fantasies how you can get your revenge on all of these people, but that was the thing... so, in a way, going to university was a tremendous liberation.
+
+---
+
+## 11. Self motivation and independent learning
+
+> Well, of course I had decided that I wanted to be a scientist.
+
+*[Q] Why?*
+
+> Because I thought that it was something that you could actually do, and I should have said that of course the thing that turned me onto biology was the book *The Science of Life* by Wells... Huxley and Wells, I think it is... just G P Wells. And this book, of which I still have the copy, which I have to confess I stole from the public library and told them I lost it because I couldn't get a copy of it at the time, and so I paid the fine which may be... may have been two shillings in those days – that's a lot of money – and that is the book that really turned me on to biology.
+>
+> Because of course the biology at school, that... the things we learnt were quite simple. You know, they were about beans and how beans grew and so on, and I was always very interested in the experimental part of it. And I had realised in this way that you didn't actually have to ask people to do things; you could just go and do them. If you can get hold of a book that told you... introduced you to how to do it, you could just go and do it.
+>
+> So that is something I think that I have kept with me all my life because I've never learnt anything from going to courses. If I want to learn a new subject, I get a book and I start doing it. And it's advice I've always gived... I mean, when I got interested in computing in the early '60s, I started by learning an assembly language and actually programming a computer because there's... and I think in today's environment where nobody can learn anything unless they go to a course, or do this in a formal sense, I just never had that since there was no one really to teach me, and so I had cultivated – not cultivated, it had just come, probably out of necessity combined with inclination – just the idea that knowledge is out there; it's available. If you can't buy the book you can always go to the public library and steal it if necessary. So, I think that that is... and I think that's one of the most important things, to become a scientist.
+
+*[Q] Sydney, it seems you were totally self-motivated. There were no friends, no teachers, no parents, nothing.*
+
+> Yes, I mean, you know, I'd fortunately grown up in a culture where learning was quite important. The... the old... the Jewish immigrants into South Africa had come with the old Jewish culture that learning was important and of course if one could divert this learning to become a surgeon or a lawyer that was even better. My mother always said you should never marry a girl because... for her money but it's just as easy to fall in love with a rich girl as it is with a poor girl. So, I mean, there was that kind of culture which never said, 'This is nonsense', and so there was no stopping. School I think was just... if anybody had been through that, that was the thing, so I think you can become totally self-motivated because the world is out there and it's just available.
+
+---
+
+## 12. Humans' interest in science
+
+> I think I had what most small boys have – and probably girls as well – which is just an interest in nature. In fact I've noticed in my own children that they always begin with this interest in nature, of seeds, of having animals swim around and looking down things at magnifying glasses. And then I think it is the formal teaching that destroys this. So if you just take as much of the formal teaching as is necessary to pass examinations, you needn't have this exploratory urge and I think that's one of the things that... that I think is... is science... and of course the fact that there is a way of actually asking and answering questions about nature.
+>
+> Well, the Wells book covers everything that was known about biology and so there was the whole thing about physiology, about how things worked, and how things worked seemed to me to be very important. I mean you know, I'm not trying... I'm trying not to add hindsight to all of this but just the fascination of knowledge in itself – that people had actually discovered, you know, that there were pigments involved in photosynthesis and this whole ability to, you know, draw the veil apart from nature. So I thought that that was something... that is what drove me. Now...
+>
+> Physics less so. It was this strange... it was biology which I... I thought was, you know, very important and it was just that attraction. I haven't been a good mathematician, I don't think I've been clever enough to be a mathematician. I found that physics, as it was taught to us, had got away from nature – it was all about pendulums and things like that – whereas biology was still there, and so that was the... that was the interest.
+
+---
+
