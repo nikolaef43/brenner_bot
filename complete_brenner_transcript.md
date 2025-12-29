@@ -2002,13 +2002,17 @@
 
 ## 164. Theories may be logical but not natural
 
-> Theories must have **"biological plausibility"** - there's a distinction between theories that are **"correct in a logical sense but they're untrue because they don't refer to the natural thing we're all interested in."**
+> This idea that every connection, so to speak, in the nervous system would be encoded by a specific molecular interaction gave rise to a lot of problems. That is, he calculated the number of synapses in the nervous system and showed they were vastly in excess of the number of base pairs in the DNA let alone the genes. But that was naive because it strongly underestimated the power of combinatorics.
+>
+> I didn't believe in it, because it assumed the prime numbers existed in nature, that's one of the reasons I didn't believe in it. It is that that I think is so important in trying to make theories, is that they should always contain some biochemical plausibility – some **biological plausibility** – estimate. **Many theories are correct in a logical sense but they're untrue because they don't refer to the natural thing we're all interested in.**
 
 ---
 
 ## 165. We must be careful when making analogies in science
 
-> One of the things I did during that time but never published, was to try and calculate what was the reliability of biological machines... von Neumann's work on biological systems and feedback mechanisms showed how analogies must be used carefully in science.
+> One of the things I did during that time but never published, was to try and calculate what was the reliability of biological machines. Von Neumann had shown that you could build reliable machines out of unreliable components, but these machines are very big, and the question is: can you shrink them? And in fact of course that was what he showed; you can't shrink them below certain limits, otherwise the noise starts to interfere.
+>
+> But I think **we should suspect these easy analogies because they are likely to be wrong, because these analogies operate in our conscious minds which are very restricted**. You know, we like to think of the nervous system as something like a general sending commands to an army. You know, there's a general here and he's got captains and he's got lieutenants and he's got sergeants and he's got private soldiers, and this hierarchical structure seems to be the way that we think about command structures and administrative structures. But this may not be the way organisms actually operate. And I think that we've got to be very careful about the analogies we import from our conscious experience into our biology.
 
 ---
 
@@ -2042,7 +2046,9 @@
 
 ## 168. The freedom to work without short-term justification
 
-> The whole of the *C. elegans* project wasn't anything like the science I'd done earlier... The freedom to pursue long-term goals without constant short-term justification was essential for this kind of foundational research.
+> The whole of the *C. elegans* project wasn't anything like the science I'd done earlier. It took a long time to mature, and I don't think we could have done it in the environment that requires short-term justification for anything.
+>
+> **Being able to work without this endless justification that is common today**... the endless thing just saying... which I feel is completely stifling to creative work in science... I think made that subject. The Medical Research Council was very supportive of this; they didn't require this endless justification. And I think that's what allowed us to do the kind of work that we did.
 
 ---
 
