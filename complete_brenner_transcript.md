@@ -46,3 +46,17 @@
 
 ---
 
+## 3. Where did the insult 'Peruvian Jew' come from
+
+> I think that to try and understand what the whole of this culture, or this immigrant culture in Johannesburg, was... it can be very easily illustrated by an original piece of sociological research that I conducted after I came to England. I was... met some people who said they'd met some nice South Africans who had come from Johannesburg and they were talking about mutual friends of them... of theirs, and the South African said, 'Oh, those Peruvians'. So they said, 'Well, we then went to the other people when we met them and said, "We didn't know you came from Peru", and they got very upset'.
+>
+> Now, I said to them, 'Don't worry, you know, this is a... this is a term of... of abuse and in fact it means... it's a kind of Jew who is stingy, mean, uneducated, uncultured'. And they said, 'But how... what on earth is the connection with Peru?' So I said, 'Well, look, I don't know, I've never thought about it until now, but I will do some research'.
+>
+> So I went and did research and the long story can be cut short. The following is the true origins of this word, because it was clear it was impossible for 90% of South African Jews to have come from Peru; that was inconceivable. I then discovered that when the immigrants came, there had been prior to this great movement at the turn of the century – the first 20 years – there had been a much earlier immigration of Jews from... largely from Germany, who of course were financiers and, incidentally, the same history is the same as the one in America. Namely the earlier immigrants, the Lehmans and so on, who'd come from Germany, were succeeded later by the East European ones.
+>
+> The people who had come from Eastern Europe decided to form an organisation which was called in Yiddish the **Polnischer und Russischer Yiddische Verein**, abbreviated to **PERUV** – Polnischer und Russischer Yiddische Verein. PERUV. And the people who attended this club came to be called *Peruvnics*, which fits, but later this had become anglicised, as indeed you know; Simon turned into Seymour, and, you know, all the names that come... and so they were called Peruvians. It was a much more gentile... hence the origin of the word Peruvian Jew. It only has... nothing to do with Peru but with origins in Eastern Europe and reflects exactly the age-old disdain that the German Jews had felt for the Eastern European immigrants – the Eastern European co-religionists.
+>
+> And that was that story, then, and... and of course it was amazing to me in later life to find that the same cultural thing had been gone through in exactly the same way in... in America. Later, when I got to know Ed Shils very well and went to visit with him in Chicago, exactly the same kind of history took place in Chicago between the earlier immigrants and the later people from Eastern Europe, who did that.
+
+---
+
