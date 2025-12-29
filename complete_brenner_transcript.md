@@ -2001,3 +2001,93 @@
 > And a lot of our work then turned, partly to looking at other genes in this, and later we found, Bob Waterston found that another gene controlled — unc-15 — controlled the specification of another protein called paramyosin. And it became very clear in working through this, and by... we were able to prove that that was the structural gene and not another gene that told another gene to make myosin, because we found that physical changes in myosin modif... were specified by the same gene.
 
 ---
+
+## 171. 'Leaky' mutants may give clues to the evolution of development
+
+> The mutants of the nervous system, I started to look at very early on, and found that many of those that were not muscle mutants had very large deviations in the organisation of their neurones. That is, we could find differences very easily. Now, of course what you would hope for is that you could find a very specific difference, so that you could identify a process that corresponded to this gene. And many of the mutants, all we could say is they made a mess.
+>
+> And the interesting thing is **how many of them made the same mess, and how many of them made a mess which was different in this**. And of course we could find various classes of this, so we found one we found a number of mutants that made exactly the same mess, every time. And then of course another mutant made different messes in different organisms.
+>
+> And during this time and again it's not something that has been ever formalised anywhere but you can ask yourself is the genetic program in very general terms, say build this, build this, build this, build this? Or does it come or does it say well, there's a big part that says build this, build a sort of a leg, and then we have all this tinkering that goes that goes on which evolution has added, to build a proper leg, an accurate leg? And one's guess is that **there will be sort of leg programs and there will be a second level which will be called refining programs**.
+>
+> So evolution might actually be viewed as, you know, **one step backwards, two steps forward in another direction**. However, that's the sort of thing that that I think will eventually emerge as we understand these programs.
+
+---
+
+## 172. Analysis of epistasis within nematodes
+
+> By the early years of the '70s the nematode program had become established. Genetics — the basic genetics — had been done and there were now many people exploring other mutants and analysing them in the same way. The anatomy was slowly being completed, and of course many people were looking for systems that they could begin to exploit.
+>
+> And many people came to the lab, isolated various mutants, mapped them and then began to do complementation with them. Apart from looking at the structural changes we could analyse these mutants by putting them in combinations, the so-called **analysis of epistasis**. Namely if you put two mutations together and the phenotype was like A, then it meant that B had no extra effect and therefore acted after A. And so one could then analyse what came to be called **genetic pathways**.
+>
+> But the core of it, and it worried me all the time, was **how on earth would one ever get down to finding the molecules involved in regulation?** If there are proteins like Jacob-Monod, that recognised DNA, and if any of our mutants affected these, how on earth would we actually prove this?
+
+---
+
+## 173. The C paradox inspires Francis Crick to ideas about regulation
+
+> In early '70s Francis got interested in... had been interested in some time, and we both got very interested... and he in particular after he went to a meeting, in what was called **the C paradox**. And this was that it appeared that higher organisms had more DNA than they should reasonably have to specify what they were doing.
+>
+> It used to be said that people were divided into three classes: those, there were the physicists who believed that organisms had... didn't have enough DNA to do what physicists thought were very complicated things; there were the smart molecular biologists who thought that organisms just had exactly the right amount of DNA that they needed; and there were a group of people who were really concerned with what this extra DNA was required for.
+>
+> And one day Francis came in very excited, he'd been to a meeting, and he said, 'I've got a new idea and I think that **regulation must be carried out by... by single stranded nucleic acid**'. So, you have the idea that higher organisms would have to do a lot of regulation, they require what is called the versatility of control. They'd have to recognise rather longer stretches of DNA, and you can't do that with a protein, this was the idea.
+>
+> At least it had the clarity that **if the axiom was wrong everything else would have to be wrong**, as I pointed out to him.
+
+---
+
+## 174. Dispute over the repetitive DNA in *Caenorhabditis elegans*
+
+> We had been doing experiments on *C. elegans*... exploring the nature of repetitive DNA and its significance in nematode development.
+
+---
+
+## 175. Extra DNA is kept like junk, not thrown out like garbage
+
+> A lot of it was conditioned by one experimental result found in drosophila about bands and interbands, and it looked like one band contained one gene. This is a great mapping experiment. We now know what bands and interbands are, because the idea was the band or the interband was the control region.
+>
+> But Francis did write a paper on the structure of the eukaryotic chromosome in 1971, which embodied this deductive theory of... of this, and I think it was completely wrong and, and not the right thing to do. I mean, it was an interesting paper, but it, it rested on such shaky assumptions it could be easily demolished, like versatility of regulation which needn't be too versatile if you have 'don't care' conditions.
+>
+> I wrote a paper myself trying to... which essentially just accounted for it as **junk**. That is not liked, is still not liked very much, because I think people feel very uncomfortable with the idea that a lot of their DNA is of no value. Not to them and not to anybody. And I think we have to get beyond the sort of psychology to really appreciate what are the forces in evolution that say junk can be kept or not kept as the case is made.
+>
+> I mean, my only contribution to the junk subject is to differentiate, to make a strong differentiation between **junk and garbage**. Because very clear is **junk is the rubbish you keep and garbage is the rubbish you throw out**. So extra DNA by definition cannot be garbage, but only junk, because if it were garbage it wouldn't be there. And I think that's essentially the answer, because **junk is just garbage that there's no need to throw out**.
+
+---
+
+## 176. A new technique to get down to the molecular basis
+
+> Having got to this stage of — in the early '70s — of extensive analysis of the genetics of this beast, an extensive amount of work on the biochemistry beginning, the anatomy going ahead, the development going ahead, the whole of... techniques of knocking out neurones by laser abrasion, knocking out cells by laser abrasion and having a way of studying development, **one felt the ship was, was at sea but it was very unclear where it was heading**.
+
+---
+
+## 177. Inserting nematode DNA into *Bacillus subtilis*
+
+> I had an experiment which Francis dissuaded me from doing, which was to see if nematode genes would work in bacteria... I invented a unit for it called **an Av**.
+
+---
+
+## 178. Using my invented unit - Av - in an experiment
+
+> I invented a unit which was an Av. **An Av of events was 6 x 10²³ events**. So for example, a milli-Av was 6 x 10²⁰, and a micro-Av was 6 x 10¹⁷. And I thought that I could go down to perhaps a nano-Av, by using big vats of culture. But certainly I could look at about 10¹³ events. Which is of course just slightly under a nano-Av.
+>
+> And of course now we know that **experiment wouldn't had a hope in hell of working**. No, not a chance. Zero. For the simple reason, these nematode genes have introns in them. The... the bacterium wouldn't have known what to do with them. I mean, you know, apart from all the other barriers for transfer, which we now know about, host-induced modification wouldn't have had a thing.
+>
+> So Francis talked me out of it. He was quite right, because I thought it was, you know, **the last desperate experiment**.
+
+---
+
+## 179. The beginning of controversy in genetic manipulation
+
+> Paul Berg came to the lab and he asked me about advice on an experiment that he was trying to do with SV40... This marked the beginning of discussions about the safety and ethics of genetic manipulation experiments.
+
+---
+
+## 180. My predictions of synthesising at the Ashby commission
+
+> I think it was August 1974... September, I received a letter from the secretary of the MRC [Medical Research Council] enjoining me not to do any of these experiments because of the moratorium which was very easy to obey, because I suddenly realised the great merit of something I had discovered very early, which is **the difference between chastity and impotence**. So we didn't have to be chaste, we were impotent to do anything. So of course we could agree to the moratorium immediately.
+>
+> But I could see that in fact this, this needed to be got into... into the work. However, we lived in a time now where these things had to be handled very carefully. In this country we set up the Ashby Commission, and I gave evidence to the Ashby Commission and I had the chance to look at my evidence again a few months ago, because I felt quite certain that I'd remembered saying something which people denied, but of course it is there.
+>
+> What I predicted they... nobody would cloning all these genes, **they would be synthesising them**. And I predicted that in fact people would synthesise the gene for insulin. And the gene for insulin would be put into a plasmid and that would be produced as a thing. Now that was pooh-poohed at the time, because you see, it raised the question which no one was willing to ask about, was if a... if your gene carries the danger from the organism that it comes from, what the hell is an insulin gene, a synthetic insulin gene? **It's a piece of chemistry**.
+
+---
