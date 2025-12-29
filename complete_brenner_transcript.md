@@ -2366,13 +2366,33 @@
 
 ## 205. Why choose *Caenorhabditis elegans* for gene-behaviour link?
 
-> It is fair to say that **I was not interested in development *per se***. That is, I was not going to start a thing which would begin with a fertilised egg and then go through all the steps... **the nervous system is an organ**. It's an organ built out of cells, and you can ask yourself two questions: how does it work?
+> It is fair to say that **I was not interested in development *per se***. That is, I was not going to start a thing which would begin with a fertilised egg and then go through all the steps and ask about the germ layers and so on, which was the classical style of doing that.
+>
+> Nor was I interested in... in relegating myself to a secondary problem such as differentiation and ask questions like, why's a pancreas cell different from a liver cell?
+>
+> **The nervous system is an organ.** It's an organ built out of cells, and you can ask yourself two questions: how does it work? — which is how does it work to generate behaviour — and then you have to ask how do the genes work to build a nervous system?
+>
+> **The connection between genes and behaviour must go through the construction and performance of a nervous system.**
+>
+> If you're interested in complexity you have to be interested in development. Your solution will be couched in developmental terms.
+>
+> The nematodes looked like something in which **lineage would be very important**. Perhaps there was some mechanism here in which when cells divided they actually computed their future fate.
+>
+> **Gradients would be the analogue way of doing it, and lineage would be the digital way of doing it**, so to speak.
 
 ---
 
 ## 206. Are organisms computable by their DNA?
 
-> Question is are... are organisms computable from their DNA? I gave this at a talk which... Heine... Heine Ursprung reminded me of, and in fact it was at a discussion in London of Developmental Society, in which I said that **one day people will be able to compute a mouse from the DNA sequences alone** which I'm told was the most outrageous statement that anybody had ever made at any Developmental Society meeting...
+> Question is are... are organisms computable from their DNA? I gave this at a talk which... Heine... Heine Ursprung reminded me of, and in fact it was at a discussion in London of Developmental Society, in which I said that **one day people will be able to compute a mouse from the DNA sequences alone** which I'm told was the most outrageous statement that anybody had ever made at any Developmental Society meeting.
+>
+> Computable from DNA sequences and some initial conditions. We want to understand how you build... how a mouse is built, you want to build a mouse. **We would understand the algorithm of how the mouse is built, because we could build it.** It's an essential argument... to realise as to the nature of explanation in biology.
+>
+> If you were a physicist, what you would want to do is to have a set of equations. These equations would... be called almost certainly **the general appendage equation**. You could get wings with feathers, you could get feet with scales, and you could get legs with hair. It is the variables in this equation which determine this.
+>
+> All the genes have to do is specify that K1 is this. K1 could be the diffusion constant of a small molecule. K2... could be the distance over which it is moved or pumped. We don't have wings with hair on them, and we don't have feet with feathers. This set of equations would... have certain eigenvalues and forbidden areas.
+>
+> A physicist would then say... well, he can understand it.
 
 ---
 
@@ -2576,7 +2596,9 @@
 >
 > So I think I like to call the fugu **the discount genome**, because you get 90% discount on sequencing. And since I think I've enhanced the job tenfold, then I've fulfilled the great technical requirement which everybody said we should have, a tenfold step in technology every five years, and so I've done that in a few months **just by choosing the right organism**.
 >
-> Now, I think that this will now become a world-wide use. We have now a lot of people coming to our lab to… to find pieces of DNA that correspond to this, and I'm encouraging as many people to work on this, because… [Question follows regarding explanation of helpfulness]
+> Now, I think that this will now become a world-wide use. We have now a lot of people coming to our lab to… to find pieces of DNA that correspond to this, and I'm encouraging as many people to work on this, because…
+>
+> *[Q] Could you explain why it's so helpful?*
 >
 > Well, if you… to explain why it's so helpful is the following. Let us just assume that certain groups of genes have stayed together throughout this whole period of about a half a billion years of evolution. Now, many people can map a human gene, let's say a gene for breast cancer, but they can only find it into a piece of DNA, somewhere in a piece of DNA that's a million base pairs. Right. Now, to sequence through the million base pairs and find the gene is enormously tedious and time consuming. Right? And what we are saying is, well, you'll only have to do a 100,000, a 125,000, because what you do is you start with something on this, go and get the piece of the fugu genome and then move along.
 >
