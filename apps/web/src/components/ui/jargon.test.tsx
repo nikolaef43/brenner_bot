@@ -8,7 +8,7 @@
  * @see @/components/jargon.tsx
  */
 
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { Jargon } from "@/components/jargon";
@@ -94,7 +94,9 @@ describe("Jargon", () => {
       render(<Jargon term="recode" />);
       const button = screen.getByRole("button");
 
-      button.focus();
+      act(() => {
+        button.focus();
+      });
 
       await waitFor(() => {
         expect(screen.getByRole("link", { name: /view full entry/i })).toBeInTheDocument();
@@ -107,7 +109,9 @@ describe("Jargon", () => {
 
       render(<Jargon term="level-split" />);
 
-      screen.getByRole("button").focus();
+      act(() => {
+        screen.getByRole("button").focus();
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/think of it like:/i)).toBeInTheDocument();
@@ -118,7 +122,9 @@ describe("Jargon", () => {
       const term = getJargon("level-split");
       render(<Jargon term="level-split" />);
 
-      screen.getByRole("button").focus();
+      act(() => {
+        screen.getByRole("button").focus();
+      });
 
       await waitFor(() => {
         expect(screen.getByText(term!.short)).toBeInTheDocument();
@@ -129,13 +135,17 @@ describe("Jargon", () => {
       render(<Jargon term="recode" />);
       const button = screen.getByRole("button");
 
-      button.focus();
+      act(() => {
+        button.focus();
+      });
 
       await waitFor(() => {
         expect(screen.getByRole("link", { name: /view full entry/i })).toBeInTheDocument();
       });
 
-      button.blur();
+      act(() => {
+        button.blur();
+      });
 
       await waitFor(() => {
         expect(screen.queryByRole("link", { name: /view full entry/i })).not.toBeInTheDocument();
@@ -145,7 +155,9 @@ describe("Jargon", () => {
     it("includes glossary link in tooltip", async () => {
       render(<Jargon term="potency" />);
 
-      screen.getByRole("button").focus();
+      act(() => {
+        screen.getByRole("button").focus();
+      });
 
       await waitFor(() => {
         const link = screen.getByRole("link", { name: /view full entry/i });
