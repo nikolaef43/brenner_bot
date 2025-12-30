@@ -272,6 +272,7 @@ interface DocCardProps {
 function DocCard({ doc, index }: DocCardProps) {
   const badge = getModelBadge(doc.id);
   const readTime = getReadTime(doc.id);
+  const isRawResponse = doc.id.startsWith("raw-");
 
   return (
     <AnimatedElement
@@ -317,10 +318,12 @@ function DocCard({ doc, index }: DocCardProps) {
                     {readTime}
                   </span>
 
-                  {/* Filename - hidden on mobile */}
-                  <CardDescription className="hidden lg:block font-mono text-[10px] truncate max-w-[180px]">
-                    {doc.filename}
-                  </CardDescription>
+                  {/* Filename - hidden on mobile and for raw responses (ugly paths) */}
+                  {!isRawResponse && (
+                    <CardDescription className="hidden lg:block font-mono text-[10px] truncate max-w-[180px]">
+                      {doc.filename}
+                    </CardDescription>
+                  )}
                 </div>
               </div>
 
@@ -332,6 +335,287 @@ function DocCard({ doc, index }: DocCardProps) {
           </CardHeader>
         </Card>
       </Link>
+    </AnimatedElement>
+  );
+}
+
+// ============================================================================
+// RAW RESPONSES SECTION - Premium grouped design
+// ============================================================================
+
+type ModelKey = "gpt" | "opus" | "gemini";
+
+const modelConfig: Record<ModelKey, {
+  name: string;
+  fullName: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  iconBg: string;
+}> = {
+  gpt: {
+    name: "GPT-5.2",
+    fullName: "GPT-5.2 Pro",
+    color: "text-emerald-600 dark:text-emerald-400",
+    bgColor: "bg-emerald-500/10",
+    borderColor: "border-emerald-500/20",
+    iconBg: "bg-gradient-to-br from-emerald-500/20 to-emerald-600/20",
+  },
+  opus: {
+    name: "Opus 4.5",
+    fullName: "Claude Opus 4.5",
+    color: "text-amber-600 dark:text-amber-400",
+    bgColor: "bg-amber-500/10",
+    borderColor: "border-amber-500/20",
+    iconBg: "bg-gradient-to-br from-amber-500/20 to-amber-600/20",
+  },
+  gemini: {
+    name: "Gemini 3",
+    fullName: "Gemini 3 Deep Think",
+    color: "text-blue-600 dark:text-blue-400",
+    bgColor: "bg-blue-500/10",
+    borderColor: "border-blue-500/20",
+    iconBg: "bg-gradient-to-br from-blue-500/20 to-blue-600/20",
+  },
+};
+
+function getModelFromId(id: string): ModelKey | null {
+  if (id.includes("gpt")) return "gpt";
+  if (id.includes("opus")) return "opus";
+  if (id.includes("gemini")) return "gemini";
+  return null;
+}
+
+function getBatchLabel(id: string): string {
+  if (id.includes("batch-1")) return "Batch 1";
+  if (id.includes("batch-2")) return "Batch 2";
+  if (id.includes("batch-3")) return "Batch 3";
+  if (id.includes("truncated")) return "Extended";
+  return "Response";
+}
+
+function getBatchDescription(id: string): string {
+  if (id.includes("truncated")) return "Previously truncated responses, now complete";
+  const batch = getBatchLabel(id);
+  return `${batch} of reasoning traces`;
+}
+
+// Model icon components
+const GPTIcon = ({ className = "size-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.896zm16.597 3.855-5.833-3.387L15.119 7.2a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.407-.667zm2.01-3.023-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08-4.778 2.758a.795.795 0 0 0-.392.681zm1.097-2.365 2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z" />
+  </svg>
+);
+
+const ClaudeIcon = ({ className = "size-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+  </svg>
+);
+
+const GeminiIcon = ({ className = "size-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const ModelIcon = ({ model, className = "size-5" }: { model: ModelKey; className?: string }) => {
+  if (model === "gpt") return <GPTIcon className={className} />;
+  if (model === "opus") return <ClaudeIcon className={className} />;
+  if (model === "gemini") return <GeminiIcon className={className} />;
+  return null;
+};
+
+interface RawResponsesSectionProps {
+  docs: CorpusDoc[];
+  isExpanded: boolean;
+  onToggle: () => void;
+  sectionIndex: number;
+}
+
+function RawResponsesSection({ docs, isExpanded, onToggle, sectionIndex }: RawResponsesSectionProps) {
+  const [activeModel, setActiveModel] = useState<ModelKey>("gpt");
+  const category = categories["raw-responses"];
+
+  // Group docs by model
+  const groupedByModel = useMemo(() => {
+    const groups: Record<ModelKey, CorpusDoc[]> = { gpt: [], opus: [], gemini: [] };
+    docs.forEach(doc => {
+      const model = getModelFromId(doc.id);
+      if (model) groups[model].push(doc);
+    });
+    return groups;
+  }, [docs]);
+
+  if (docs.length === 0) return null;
+
+  const modelKeys: ModelKey[] = ["gpt", "opus", "gemini"];
+
+  return (
+    <AnimatedElement
+      animation="reveal-up"
+      delay={sectionIndex * 100}
+      className="space-y-4 sm:space-y-5"
+    >
+      {/* Section Header */}
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between gap-3 text-left group lg:cursor-default"
+      >
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className={`flex items-center justify-center size-8 sm:size-10 rounded-xl bg-gradient-to-br ${category.color} text-foreground transition-transform group-hover:scale-105 lg:group-hover:scale-100`}>
+            {category.icon}
+          </div>
+          <div>
+            <h2 className="text-base sm:text-lg font-semibold text-foreground">
+              {category.title}
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
+              {category.description}
+            </p>
+          </div>
+        </div>
+        <div className={`lg:hidden flex items-center justify-center size-8 rounded-full bg-muted/50 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>
+          <ChevronDownIcon className="size-4 text-muted-foreground" />
+        </div>
+      </button>
+
+      {/* Content - Collapsible on mobile */}
+      <div className={`transition-all duration-300 ease-out lg:block ${isExpanded ? "block" : "hidden lg:block"}`}>
+        {/* Desktop: Premium tabbed interface */}
+        <div className="hidden lg:block">
+          <div className="rounded-2xl border border-border/50 bg-gradient-to-b from-card to-card/80 overflow-hidden shadow-sm">
+            {/* Tab bar */}
+            <div className="flex border-b border-border/50 bg-muted/30">
+              {modelKeys.map((model) => {
+                const config = modelConfig[model];
+                const isActive = activeModel === model;
+                const count = groupedByModel[model].length;
+
+                return (
+                  <button
+                    key={model}
+                    onClick={() => setActiveModel(model)}
+                    className={`flex-1 relative px-6 py-4 text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? `${config.color} bg-background`
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <ModelIcon model={model} className="size-4" />
+                      <span>{config.name}</span>
+                      <span className={`px-1.5 py-0.5 rounded-full text-xs ${
+                        isActive ? config.bgColor : "bg-muted"
+                      }`}>
+                        {count}
+                      </span>
+                    </div>
+                    {/* Active indicator line */}
+                    {isActive && (
+                      <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${
+                        model === "gpt" ? "bg-emerald-500" :
+                        model === "opus" ? "bg-amber-500" : "bg-blue-500"
+                      }`} />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Tab content */}
+            <div className="p-4">
+              <div className="space-y-2">
+                {groupedByModel[activeModel].map((doc, index) => {
+                  const config = modelConfig[activeModel];
+                  return (
+                    <Link
+                      key={doc.id}
+                      href={`/corpus/${doc.id}`}
+                      className={`group flex items-center gap-4 p-4 rounded-xl border ${config.borderColor} ${config.bgColor} hover:shadow-md transition-all duration-200`}
+                    >
+                      {/* Batch number indicator */}
+                      <div className={`flex items-center justify-center size-10 rounded-lg ${config.iconBg} ${config.color} font-semibold text-lg shrink-0`}>
+                        {index + 1}
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className={`font-medium ${config.color} group-hover:underline`}>
+                            {getBatchLabel(doc.id)}
+                          </h3>
+                          <span className="text-xs text-muted-foreground">
+                            {getReadTime(doc.id)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-0.5 truncate">
+                          {getBatchDescription(doc.id)}
+                        </p>
+                      </div>
+
+                      {/* Arrow */}
+                      <ArrowRightIcon className={`size-4 ${config.color} opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 shrink-0`} />
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile: Stacked accordion style */}
+        <div className="lg:hidden space-y-3">
+          {modelKeys.map((model) => {
+            const config = modelConfig[model];
+            const modelDocs = groupedByModel[model];
+            if (modelDocs.length === 0) return null;
+
+            return (
+              <div
+                key={model}
+                className={`rounded-xl border ${config.borderColor} overflow-hidden`}
+              >
+                {/* Model header */}
+                <div className={`flex items-center gap-3 px-4 py-3 ${config.bgColor}`}>
+                  <div className={`flex items-center justify-center size-8 rounded-lg ${config.iconBg} ${config.color}`}>
+                    <ModelIcon model={model} className="size-4" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className={`font-medium ${config.color}`}>{config.fullName}</h3>
+                    <p className="text-xs text-muted-foreground">{modelDocs.length} response batches</p>
+                  </div>
+                </div>
+
+                {/* Batch list */}
+                <div className="divide-y divide-border/50">
+                  {modelDocs.map((doc, index) => (
+                    <Link
+                      key={doc.id}
+                      href={`/corpus/${doc.id}`}
+                      className="group flex items-center gap-3 px-4 py-3 bg-background hover:bg-muted/50 transition-colors active:bg-muted"
+                    >
+                      {/* Batch number */}
+                      <span className={`flex items-center justify-center size-7 rounded-md ${config.bgColor} ${config.color} text-sm font-medium`}>
+                        {index + 1}
+                      </span>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-medium text-foreground">{getBatchLabel(doc.id)}</span>
+                        <span className="text-xs text-muted-foreground ml-2">{getReadTime(doc.id)}</span>
+                      </div>
+
+                      {/* Arrow */}
+                      <ArrowRightIcon className="size-4 text-muted-foreground group-hover:text-foreground shrink-0" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </AnimatedElement>
   );
 }
@@ -352,6 +636,18 @@ function CategorySection({ categoryKey, docs, isExpanded, onToggle, sectionIndex
   const category = categories[categoryKey];
 
   if (docs.length === 0) return null;
+
+  // Use specialized component for raw responses
+  if (categoryKey === "raw-responses") {
+    return (
+      <RawResponsesSection
+        docs={docs}
+        isExpanded={isExpanded}
+        onToggle={onToggle}
+        sectionIndex={sectionIndex}
+      />
+    );
+  }
 
   return (
     <AnimatedElement
