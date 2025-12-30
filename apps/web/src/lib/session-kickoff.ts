@@ -147,9 +147,11 @@ export interface KickoffMessage {
  * These are condensed versions of the prompts in role_prompts_v0.1.md
  */
 function getRolePromptSection(role: RoleConfig): string {
+  let promptSection: string;
+
   switch (role.role) {
     case "hypothesis_generator":
-      return `## Your Role: ${role.displayName}
+      promptSection = `## Your Role: ${role.displayName}
 
 You generate candidate hypotheses by hunting for paradoxes, importing cross-domain patterns, and rigorously separating levels of explanation.
 
@@ -165,9 +167,10 @@ You generate candidate hypotheses by hunting for paradoxes, importing cross-doma
 **Citation**: Use \`(§n)\` for Brenner quotes, \`[inference]\` for your reasoning.
 
 **Output Format**: Use \`\`\`delta blocks with operation: "ADD", section: "hypothesis_slate"`;
+      break;
 
     case "test_designer":
-      return `## Your Role: ${role.displayName}
+      promptSection = `## Your Role: ${role.displayName}
 
 You convert hypotheses into discriminative tests—experiments designed to KILL models, not just collect data. Every test must include a potency check.
 
@@ -183,9 +186,10 @@ You convert hypotheses into discriminative tests—experiments designed to KILL 
 **Scoring Rubric**: likelihood_ratio, cost, speed, ambiguity (0-3 each)
 
 **Output Format**: Use \`\`\`delta blocks with operation: "ADD", section: "discriminative_tests"`;
+      break;
 
     case "adversarial_critic":
-      return `## Your Role: ${role.displayName}
+      promptSection = `## Your Role: ${role.displayName}
 
 You attack the current framing. You find what would make everything wrong. You check scale constraints and quarantine anomalies. You are the immune system against self-deception.
 
@@ -201,16 +205,20 @@ You attack the current framing. You find what would make everything wrong. You c
 **Output Sections**: anomaly_register, adversarial_critique, assumption_ledger (for scale checks)
 
 **Output Format**: Use \`\`\`delta blocks with appropriate section and operation`;
+      break;
 
     default:
-      return `## Your Role: ${role.displayName}
+      promptSection = `## Your Role: ${role.displayName}
 
 ${role.description}
 
 **Primary Operators**: ${role.operators.join(", ")}
 
 **Output Format**: Use \`\`\`delta blocks per delta_output_format_v0.1.md`;
+      break;
   }
+
+  return promptSection;
 }
 
 // ============================================================================
@@ -248,6 +256,12 @@ export function getAgentRole(agentName: string): RoleConfig {
 
   return DEFAULT_ROLE;
 }
+
+const ROLE_DELTA_SUBJECT_TAG: Record<AgentRole, string> = {
+  hypothesis_generator: "gpt",
+  test_designer: "opus",
+  adversarial_critic: "gemini",
+};
 
 /**
  * Compose the kickoff message body for a specific agent.
@@ -317,7 +331,9 @@ function composeKickoffBody(config: KickoffConfig, role: RoleConfig): string {
 
   // Instructions
   sections.push("## Response Format");
-  sections.push("Reply to this thread with subject `DELTA[" + role.displayName + "]: <description>`.");
+  const deltaTag = ROLE_DELTA_SUBJECT_TAG[role.role];
+  sections.push(`Reply to this thread with subject \`DELTA[${deltaTag}]: <description>\`.`);
+  sections.push("(Role tags: hypotheses → `gpt`/`codex`; tests → `opus`/`claude`; critique → `gemini`.)");
   sections.push("Include your reasoning as prose, followed by `## Deltas` with your structured contributions.");
   sections.push("");
 

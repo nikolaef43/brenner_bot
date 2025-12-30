@@ -79,6 +79,27 @@ describe("parseSubjectType", () => {
     expect(result.role).toBe("hypothesis_generator");
   });
 
+  it("parses DELTA[Test Designer] as test_designer", () => {
+    const result = parseSubjectType("DELTA[Test Designer]: Potency checks");
+    expect(result.type).toBe("delta");
+    expect(result.role).toBe("test_designer");
+    expect(result.shorthand).toBe("test_designer");
+  });
+
+  it("parses DELTA[Hypothesis Generator] as hypothesis_generator", () => {
+    const result = parseSubjectType("DELTA[Hypothesis Generator]: Added H3");
+    expect(result.type).toBe("delta");
+    expect(result.role).toBe("hypothesis_generator");
+    expect(result.shorthand).toBe("hypothesis_generator");
+  });
+
+  it("parses DELTA[Adversarial Critic] as adversarial_critic", () => {
+    const result = parseSubjectType("DELTA[Adversarial Critic]: Scale check");
+    expect(result.type).toBe("delta");
+    expect(result.role).toBe("adversarial_critic");
+    expect(result.shorthand).toBe("adversarial_critic");
+  });
+
   it("parses COMPILED subjects", () => {
     const result = parseSubjectType("COMPILED: v3 artifact with contributions");
     expect(result.type).toBe("compiled");
@@ -182,6 +203,26 @@ describe("computeThreadStatus", () => {
     expect(status.roles.hypothesis_generator.contributors).toContain("CodexAgent");
     expect(status.roles.test_designer.completed).toBe(false);
     expect(status.roles.adversarial_critic.completed).toBe(false);
+  });
+
+  it("tracks role completion from DELTA role-name subjects", () => {
+    const messages: AgentMailMessage[] = [
+      createMessage({
+        subject: "KICKOFF: Test session",
+        from: "Operator",
+        created_ts: "2025-12-30T10:00:00Z",
+      }),
+      createMessage({
+        subject: "DELTA[Test Designer]: Added potency checks",
+        from: "ClaudeAgent",
+        created_ts: "2025-12-30T10:05:00Z",
+      }),
+    ];
+
+    const status = computeThreadStatus(messages);
+    expect(status.phase).toBe("partially_complete");
+    expect(status.roles.test_designer.completed).toBe(true);
+    expect(status.roles.test_designer.contributors).toContain("ClaudeAgent");
   });
 
   it("detects awaiting_compilation when all roles responded", () => {

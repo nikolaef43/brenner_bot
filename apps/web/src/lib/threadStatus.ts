@@ -114,16 +114,28 @@ export interface ThreadStatus {
 const ROLE_SHORTHAND_MAP: Record<string, BrennerRole> = {
   opus: "test_designer",
   claude: "test_designer",
+  claude_code: "test_designer",
   gpt: "hypothesis_generator",
   codex: "hypothesis_generator",
+  codex_cli: "hypothesis_generator",
   gemini: "adversarial_critic",
+  gemini_cli: "adversarial_critic",
   human: "hypothesis_generator", // Default human contributions to hypothesis
+
+  // Allow role names as delta tags (e.g. DELTA[Test Designer]) for robustness.
+  hypothesis_generator: "hypothesis_generator",
+  hypothesisgenerator: "hypothesis_generator",
+  test_designer: "test_designer",
+  testdesigner: "test_designer",
+  adversarial_critic: "adversarial_critic",
+  adversarialcritic: "adversarial_critic",
+  research_collaborator: "hypothesis_generator",
 };
 
 /** Regex patterns for parsing subject lines */
 const SUBJECT_PATTERNS = {
   kickoff: /^KICKOFF:/i,
-  delta: /^DELTA\[(\w+)\]:/i,
+  delta: /^DELTA\[([^\]]+)\]:/i,
   compiled: /^COMPILED:/i,
   critique: /^CRITIQUE:/i,
   ack: /^ACK:/i,
@@ -137,6 +149,14 @@ const SUBJECT_PATTERNS = {
 // ============================================================================
 // Parsing Helpers
 // ============================================================================
+
+function normalizeDeltaTag(rawTag: string): string {
+  return rawTag
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_")
+    .replace(/[^a-z0-9_]/g, "");
+}
 
 /**
  * Extract the message type from a subject line.
@@ -164,7 +184,7 @@ export function parseSubjectType(
   // Check DELTA first (has role info)
   const deltaMatch = trimmed.match(SUBJECT_PATTERNS.delta);
   if (deltaMatch) {
-    const shorthand = deltaMatch[1].toLowerCase();
+    const shorthand = normalizeDeltaTag(deltaMatch[1]);
     const role = ROLE_SHORTHAND_MAP[shorthand];
     return { type: "delta", role, shorthand };
   }
