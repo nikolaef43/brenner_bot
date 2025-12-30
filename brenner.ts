@@ -93,6 +93,14 @@ function asBoolFlag(flags: ParsedArgs["flags"], key: string): boolean {
   return flags[key] === true;
 }
 
+function asIntFlag(flags: ParsedArgs["flags"], key: string): number | undefined {
+  const raw = asStringFlag(flags, key);
+  if (!raw) return undefined;
+  const n = Number.parseInt(raw, 10);
+  if (!Number.isFinite(n)) throw new Error(`Invalid --${key}: expected integer, got "${raw}"`);
+  return n;
+}
+
 function splitCsv(value: string | undefined): string[] {
   if (!value) return [];
   return value
@@ -115,6 +123,10 @@ Commands:
   mail tools
   mail agents --project-key <abs-path>
   mail send --project-key <abs-path> --sender <AgentName> --to <A,B> --subject <s> --body-file <path> [--thread-id <id>] [--ack-required]
+  mail inbox --project-key <abs-path> --agent <AgentName> [--limit <n>] [--since <iso>] [--urgent-only] [--include-bodies] [--threads]
+  mail read --project-key <abs-path> --agent <AgentName> --message-id <n>
+  mail ack --project-key <abs-path> --agent <AgentName> --message-id <n>
+  mail thread --project-key <abs-path> --thread-id <id> [--include-examples] [--llm]
 
   prompt compose --template <path> --excerpt-file <path> [--theme <s>] [--domain <s>] [--question <s>]
 
@@ -140,6 +152,8 @@ Agent Mail connection (env):
 
 Examples:
   ./brenner.ts mail tools
+  ./brenner.ts mail inbox --project-key "$PWD" --agent GreenCastle --threads
+  ./brenner.ts mail ack --project-key "$PWD" --agent GreenCastle --message-id 123
   ./brenner.ts prompt compose --template metaprompt_by_gpt_52.md --excerpt-file excerpt.md --theme "problem choice"
   ./brenner.ts session start --project-key "$PWD" --sender GreenCastle --to BlueMountain,RedForest \\
     --thread-id FEAT-123 --excerpt-file excerpt.md --question "..." --ack-required
@@ -192,6 +206,7 @@ async function main(): Promise<void> {
 
   if (top === "mail") {
     const client = new AgentMailClient();
+    const projectKey = asStringFlag(flags, "project-key") ?? process.cwd();
 
     if (sub === "health") {
       // Prefer the FastAPI health endpoint when reachable; fall back to MCP tool.
@@ -217,7 +232,6 @@ async function main(): Promise<void> {
     }
 
     if (sub === "agents") {
-      const projectKey = asStringFlag(flags, "project-key") ?? process.cwd();
       const projectSlug = projectKey.startsWith("/")
         ? parseEnsureProjectSlug(await client.toolsCall("ensure_project", { human_key: projectKey }))
         : projectKey;
@@ -228,7 +242,6 @@ async function main(): Promise<void> {
     }
 
     if (sub === "send") {
-      const projectKey = asStringFlag(flags, "project-key") ?? process.cwd();
       const sender = asStringFlag(flags, "sender") ?? process.env.AGENT_NAME;
       if (!sender) throw new Error("Missing --sender (or set AGENT_NAME).");
       const to = splitCsv(asStringFlag(flags, "to"));
@@ -249,6 +262,132 @@ async function main(): Promise<void> {
         body_md: bodyMd,
         thread_id: threadId ?? null,
         ack_required: ackRequired,
+      });
+      console.log(JSON.stringify(result, null, 2));
+      process.exit(0);
+    }
+
+    if (sub === "inbox") {
+      const agentName = asStringFlag(flags, "agent") ?? process.env.AGENT_NAME;
+      if (!agentName) throw new Error("Missing --agent (or set AGENT_NAME).");
+
+      const limit = asIntFlag(flags, "limit") ?? 20;
+      const urgentOnly = asBoolFlag(flags, "urgent-only");
+      const includeBodies = asBoolFlag(flags, "include-bodies");
+      const sinceTs = asStringFlag(flags, "since");
+
+      const result = await client.toolsCall("fetch_inbox", {
+        project_key: projectKey,
+        agent_name: agentName,
+        limit,
+        urgent_only: urgentOnly,
+        include_bodies: includeBodies,
+        since_ts: sinceTs ?? null,
+      });
+
+      if (asBoolFlag(flags, "threads")) {
+        // Best-effort grouping by thread_id from structuredContent, falling back to raw content parsing.
+        const messages: Array<Record<string, Json>> = [];
+
+        if (isRecord(result) && isRecord(result.structuredContent)) {
+          const structured = result.structuredContent.result;
+          if (Array.isArray(structured)) {
+            for (const item of structured) {
+              if (isRecord(item)) messages.push(item);
+            }
+          }
+        } else if (isRecord(result) && Array.isArray(result.content) && result.content.length > 0) {
+          const first = result.content[0];
+          if (isRecord(first) && typeof first.text === "string") {
+            try {
+              const parsed = JSON.parse(first.text) as Json;
+              if (Array.isArray(parsed)) {
+                for (const item of parsed) {
+                  if (isRecord(item)) messages.push(item);
+                }
+              }
+            } catch {
+              // ignore
+            }
+          }
+        }
+
+        const threads: Record<
+          string,
+          { thread_id: string; message_ids: number[]; latest_ts: string | null; ack_required_count: number }
+        > = {};
+
+        for (const m of messages) {
+          const threadId = typeof m.thread_id === "string" && m.thread_id.length > 0 ? m.thread_id : "(no-thread)";
+          const messageId = typeof m.id === "number" ? m.id : null;
+          const createdTs = typeof m.created_ts === "string" ? m.created_ts : null;
+          const ackRequired = m.ack_required === true;
+
+          const existing = (threads[threadId] ??= {
+            thread_id: threadId,
+            message_ids: [],
+            latest_ts: null,
+            ack_required_count: 0,
+          });
+
+          if (messageId !== null) existing.message_ids.push(messageId);
+          if (createdTs && (!existing.latest_ts || createdTs > existing.latest_ts)) existing.latest_ts = createdTs;
+          if (ackRequired) existing.ack_required_count++;
+        }
+
+        const out = {
+          agent: agentName,
+          threads: Object.values(threads).sort((a, b) => (b.latest_ts ?? "").localeCompare(a.latest_ts ?? "")),
+        };
+        console.log(JSON.stringify(out, null, 2));
+      } else {
+        console.log(JSON.stringify(result, null, 2));
+      }
+
+      process.exit(0);
+    }
+
+    if (sub === "read") {
+      const agentName = asStringFlag(flags, "agent") ?? process.env.AGENT_NAME;
+      if (!agentName) throw new Error("Missing --agent (or set AGENT_NAME).");
+      const messageId = asIntFlag(flags, "message-id");
+      if (!messageId) throw new Error("Missing --message-id.");
+
+      const result = await client.toolsCall("mark_message_read", {
+        project_key: projectKey,
+        agent_name: agentName,
+        message_id: messageId,
+      });
+      console.log(JSON.stringify(result, null, 2));
+      process.exit(0);
+    }
+
+    if (sub === "ack") {
+      const agentName = asStringFlag(flags, "agent") ?? process.env.AGENT_NAME;
+      if (!agentName) throw new Error("Missing --agent (or set AGENT_NAME).");
+      const messageId = asIntFlag(flags, "message-id");
+      if (!messageId) throw new Error("Missing --message-id.");
+
+      const result = await client.toolsCall("acknowledge_message", {
+        project_key: projectKey,
+        agent_name: agentName,
+        message_id: messageId,
+      });
+      console.log(JSON.stringify(result, null, 2));
+      process.exit(0);
+    }
+
+    if (sub === "thread") {
+      const threadId = asStringFlag(flags, "thread-id");
+      if (!threadId) throw new Error("Missing --thread-id.");
+      const includeExamples = asBoolFlag(flags, "include-examples");
+      const llmMode = asBoolFlag(flags, "llm");
+
+      const result = await client.toolsCall("summarize_thread", {
+        project_key: projectKey,
+        thread_id: threadId,
+        include_examples: includeExamples,
+        llm_mode: llmMode,
       });
       console.log(JSON.stringify(result, null, 2));
       process.exit(0);

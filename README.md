@@ -304,7 +304,7 @@ Status legend:
 | `mail send --project-key <abs-path> ...` | Send a message to agents (optionally in a `--thread-id`) | ✅ |
 | `prompt compose --template <path> --excerpt-file <path> ...` | Render a kickoff prompt (template + excerpt injection) | ✅ |
 | `session start --project-key <abs-path> ...` | Compose + send a “kickoff” message via Agent Mail (alias: `orchestrate start`) | ✅ |
-| `mail inbox` / `mail ack` / `mail thread` | Inbox + acknowledgement + thread tooling | 🧭 (see `brenner_bot-5so.5.2`) |
+| `mail inbox` / `mail ack` / `mail thread` | Inbox + acknowledgement + thread tooling | ✅ |
 | `session compile` / `session publish` | Compile agent deltas into a canonical artifact + publish back to thread | 🧭 (see `brenner_bot-5so.5.3`, `brenner_bot-5so.3.4`) |
 | `corpus search` / `excerpt build` | Corpus search + excerpt builder | 🧭 (see `brenner_bot-5so.5.4.1`, `brenner_bot-5so.5.4.2`) |
 

@@ -186,13 +186,11 @@ export class AgentMailClient {
     projectKey: string;
     agentName: string;
     messageId: number;
-    reason?: string;
   }): Promise<JsonValue> {
     return this.toolsCall("acknowledge_message", {
       project_key: args.projectKey,
       agent_name: args.agentName,
       message_id: args.messageId,
-      reason: args.reason ?? "",
     });
   }
 }
