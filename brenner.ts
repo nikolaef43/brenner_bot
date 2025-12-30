@@ -17,6 +17,14 @@ import { AgentMailClient } from "./apps/web/src/lib/agentMail";
 import type { Json } from "./apps/web/src/lib/json";
 import { composeKickoffMessages, type KickoffConfig } from "./apps/web/src/lib/session-kickoff";
 import { computeThreadStatusFromThread, formatThreadStatusSummary } from "./apps/web/src/lib/threadStatus";
+import {
+  parseManifest,
+  detectPlatform,
+  generateInstallPlan,
+  formatPlanHuman,
+  formatPlanJson,
+  type PlatformString,
+} from "./apps/web/src/lib/toolchain-manifest";
 
 function isRecord(value: Json): value is { [key: string]: Json } {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -129,6 +137,8 @@ Commands:
   mail ack --project-key <abs-path> --agent <AgentName> --message-id <n>
   mail thread --project-key <abs-path> --thread-id <id> [--include-examples] [--llm]
 
+  toolchain plan [--manifest <path>] [--platform <p>] [--json]
+
   prompt compose --template <path> --excerpt-file <path> [--theme <s>] [--domain <s>] [--question <s>]
 
   session start --project-key <abs-path> --sender <AgentName> --to <A,B> --thread-id <id>
@@ -157,6 +167,8 @@ Examples:
   ./brenner.ts mail tools
   ./brenner.ts mail inbox --project-key "$PWD" --agent GreenCastle --threads
   ./brenner.ts mail ack --project-key "$PWD" --agent GreenCastle --message-id 123
+  ./brenner.ts toolchain plan
+  ./brenner.ts toolchain plan --platform darwin-arm64 --json
   ./brenner.ts prompt compose --template metaprompt_by_gpt_52.md --excerpt-file excerpt.md --theme "problem choice"
   ./brenner.ts session start --project-key "$PWD" --sender GreenCastle --to BlueMountain,RedForest \\
     --thread-id FEAT-123 --excerpt-file excerpt.md --question "..." --ack-required
@@ -397,6 +409,55 @@ async function main(): Promise<void> {
     }
 
     throw new Error(`Unknown mail command: ${sub ?? "(missing)"}`);
+  }
+
+  if (top === "toolchain" && sub === "plan") {
+    const manifestPath = resolve(asStringFlag(flags, "manifest") ?? "specs/toolchain.manifest.json");
+    const jsonMode = asBoolFlag(flags, "json");
+    const platformOverride = asStringFlag(flags, "platform") as PlatformString | undefined;
+
+    // Read and parse manifest
+    let manifestJson: string;
+    try {
+      manifestJson = readTextFile(manifestPath);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error(`Failed to read manifest: ${msg}`);
+      process.exit(1);
+    }
+
+    const parseResult = parseManifest(manifestJson);
+    if (!parseResult.ok) {
+      console.error(parseResult.error);
+      process.exit(1);
+    }
+
+    // Detect or use override platform
+    const platform = platformOverride ?? detectPlatform();
+    if (!platform) {
+      console.error(
+        `Unsupported platform: ${process.platform}/${process.arch}\n` +
+          `Supported: linux-x64, linux-arm64, darwin-arm64, darwin-x64, win-x64`
+      );
+      process.exit(1);
+    }
+
+    // Validate platform override if provided
+    const validPlatforms = ["linux-x64", "linux-arm64", "darwin-arm64", "darwin-x64", "win-x64"];
+    if (platformOverride && !validPlatforms.includes(platformOverride)) {
+      console.error(`Invalid --platform: ${platformOverride}\nSupported: ${validPlatforms.join(", ")}`);
+      process.exit(1);
+    }
+
+    const plan = generateInstallPlan(parseResult.manifest, platform);
+
+    if (jsonMode) {
+      console.log(formatPlanJson(plan));
+    } else {
+      console.log(formatPlanHuman(plan));
+    }
+
+    process.exit(0);
   }
 
   if (top === "prompt" && sub === "compose") {
