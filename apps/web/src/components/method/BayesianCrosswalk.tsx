@@ -339,7 +339,7 @@ export function BayesianCrosswalk({ className }: { className?: string }) {
         <h2 className="text-2xl font-bold tracking-tight">The Bayesian Crosswalk</h2>
         <p className="text-muted-foreground max-w-xl mx-auto text-sm">
           Brenner never used formal probability, but his reasoning maps precisely onto{" "}
-          <Jargon term="bayesian-inference">Bayesian concepts</Jargon>. Click any row to explore.
+          <Jargon term="bayesian-update">Bayesian concepts</Jargon>. Click any row to explore.
         </p>
       </div>
 

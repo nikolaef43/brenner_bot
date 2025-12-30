@@ -165,7 +165,7 @@ export function WhatIsThis({ className }: { className?: string }) {
             <button
               type="button"
               onClick={dismiss}
-              className="absolute top-4 right-4 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors z-10"
+              className="absolute top-4 right-4 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors z-10 touch-manipulation active:scale-95"
               aria-label="Dismiss introduction"
             >
               <XIcon />
