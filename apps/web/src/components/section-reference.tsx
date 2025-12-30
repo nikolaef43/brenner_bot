@@ -102,7 +102,7 @@ export function SectionReference({ sectionNumber, endNumber, title: propsTitle, 
   // For ranges, link to the first section but show the range in display
   const transcriptUrl = `/corpus/transcript#section-${sectionNumber}`;
   const displayText = endNumber ? `§${sectionNumber}-${endNumber}` : `§${sectionNumber}`;
-  const isRange = endNumber !== undefined && endNumber !== sectionNumber;
+  const _isRange = endNumber !== undefined && endNumber !== sectionNumber;
 
   const portalContainer = typeof document === "undefined" ? null : document.body;
 
