@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { BrennerLoopDiagram } from "@/components/method/BrennerLoopDiagram";
+import { BayesianCrosswalk } from "@/components/method/BayesianCrosswalk";
 import { Jargon } from "@/components/jargon";
 
 export const metadata: Metadata = {
@@ -203,6 +204,11 @@ export default function MethodPage() {
         </div>
       </section>
 
+      {/* Bayesian Crosswalk */}
+      <section className="animate-fade-in-up">
+        <BayesianCrosswalk />
+      </section>
+
       {/* Quick Links */}
       <section className="space-y-4 animate-fade-in-up">
         <h2 className="text-xl font-semibold">Go Deeper</h2>
@@ -262,10 +268,6 @@ export default function MethodPage() {
           <li className="flex items-start gap-2">
             <span className="text-primary mt-0.5">-</span>
             <span>Interactive operator palette for composing Brenner Loop sessions</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-primary mt-0.5">-</span>
-            <span>Bayesian crosswalk visualization showing belief updates</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-primary mt-0.5">-</span>
