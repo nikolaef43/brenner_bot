@@ -294,46 +294,58 @@ bun run type-check   # type-check (if configured)
 
 ---
 
-## Corpus Files and Vercel Deployment (CRITICAL)
+## Corpus Files and Vercel Deployment (CRITICAL - READ THIS)
 
-**⚠️ ABSOLUTE RULE: The `apps/web/public/_corpus/` directory MUST be committed to git.**
+**🚨 THIS SECTION EXISTS BECAUSE THE ENTIRE SITE WAS BROKEN FOR HOURS 🚨**
 
-### Why This Matters
+### The Catastrophic Failure (2024-12-30)
 
-The web app serves corpus documents (transcript, distillations, quote bank, etc.) from `public/_corpus/`. The build process also uses these files to generate the search index.
+Two bugs combined to completely break brennerbot.org:
 
-**The Problem That Occurred:**
-1. Someone added `/public/_corpus/` to `.gitignore`
-2. The files existed locally (copied by `bun run build`)
-3. But they were never committed to git
-4. Vercel deploys only git-tracked files
-5. On Vercel: no corpus files → search index build fails → **ENTIRE SITE BREAKS**
-6. Every page returned "Application error: a server-side exception has occurred"
+**Bug 1: Corpus files were gitignored**
+- Someone added `/public/_corpus/` to `.gitignore`
+- Files existed locally (copied by `bun run build`)
+- But they were NEVER committed to git
+- Vercel only deploys git-tracked files
+- Result: Vercel had NO corpus files → build failed → **ENTIRE SITE 500 ERRORS**
 
-### The Fix
+**Bug 2: Wrong URL path in fallback fetch**
+- `src/lib/corpus.ts` had a fallback to fetch files via HTTP when filesystem unavailable
+- The URL was `/corpus/filename` but files are served from `/_corpus/filename`
+- Even if files existed, the fetch would 404
 
-The `.gitignore` file now explicitly documents that `public/_corpus/` is NOT ignored:
+**Symptoms:**
+- Every Vercel deployment showed "Error" with 0-2 second build times
+- All dynamic pages returned "Application error: a server-side exception has occurred"
+- Static pages worked, dynamic pages (like `/corpus/transcript`) did not
+- Local development worked fine (had the files), only Vercel was broken
 
-```gitignore
-# Note: public/_corpus/ is NOT gitignored - these files MUST be committed
-# so they deploy to Vercel. The copy-corpus script populates them from repo root.
-```
+### The Rules (NEVER VIOLATE)
 
-### Rules for Agents
+1. **`apps/web/public/_corpus/` MUST be committed to git** - NEVER add it to `.gitignore`
+2. **The directory is `_corpus` (with underscore)** - This avoids conflict with the `/corpus` route
+3. **After `bun run build`, check for new corpus files**: `git status apps/web/public/_corpus/`
+4. **If corpus files changed, commit them** - They are ~800KB total, not huge
 
-1. **NEVER add `public/_corpus/` to `.gitignore`**
-2. After running `bun run build` locally, check if corpus files are staged: `git status public/_corpus/`
-3. If you see new corpus files, commit them
-4. The `copy-corpus.ts` script handles copying from repo root - but git handles deployment
-
-### How to Verify
+### How to Verify Before Deploying
 
 ```bash
-# These files MUST be in git:
-git ls-files apps/web/public/_corpus/
+# MUST show 17+ files - if empty, deployment WILL fail:
+git ls-files apps/web/public/_corpus/ | wc -l
 
-# Should show 17+ files. If empty, the site WILL break on deploy.
+# MUST show _corpus (with underscore) in the fetch URL:
+grep "baseUrl}/_corpus" apps/web/src/lib/corpus.ts
+
+# Test the build locally:
+cd apps/web && bun run build
 ```
+
+### If Site Breaks Again
+
+1. Check `git ls-files apps/web/public/_corpus/` - if empty, files were gitignored
+2. Check `apps/web/.gitignore` - ensure `_corpus` is NOT listed
+3. Check `apps/web/src/lib/corpus.ts` - ensure `fetchFromPublicUrl` uses `/_corpus/`
+4. Run `vercel deploy --prod` from `apps/web/` to deploy with local files
 
 ---
 
