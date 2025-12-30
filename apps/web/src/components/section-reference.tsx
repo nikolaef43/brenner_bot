@@ -6,6 +6,7 @@ import {
   useRef,
   useEffect,
   useLayoutEffect,
+  Fragment,
   type CSSProperties,
 } from "react";
 import Link from "next/link";
@@ -57,6 +58,8 @@ const springSnappy = {
 interface SectionReferenceProps {
   /** The section number (e.g., 106 for §106) */
   sectionNumber: number;
+  /** Optional end number for ranges (e.g., 108 for §106-108) */
+  endNumber?: number;
   /** Optional section title to display in tooltip */
   title?: string;
   /** Optional preview text snippet */
@@ -76,7 +79,7 @@ interface SectionReferenceProps {
  * - Mobile: Shows bottom sheet on tap
  * - Styled with dotted underline to indicate interactivity
  */
-export function SectionReference({ sectionNumber, title, preview, className }: SectionReferenceProps) {
+export function SectionReference({ sectionNumber, endNumber, title, preview, className }: SectionReferenceProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [tooltipLayout, setTooltipLayout] = useState<{
@@ -87,8 +90,10 @@ export function SectionReference({ sectionNumber, title, preview, className }: S
   const tooltipRef = useRef<HTMLDivElement>(null);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
+  // For ranges, link to the first section but show the range in display
   const transcriptUrl = `/corpus/transcript#section-${sectionNumber}`;
-  const displayText = `§${sectionNumber}`;
+  const displayText = endNumber ? `§${sectionNumber}-${endNumber}` : `§${sectionNumber}`;
+  const isRange = endNumber !== undefined && endNumber !== sectionNumber;
 
   const portalContainer = typeof document === "undefined" ? null : document.body;
 
@@ -258,6 +263,7 @@ export function SectionReference({ sectionNumber, title, preview, className }: S
             >
               <TooltipContent
                 sectionNumber={sectionNumber}
+                endNumber={endNumber}
                 title={title}
                 preview={preview}
                 transcriptUrl={transcriptUrl}
@@ -321,6 +327,7 @@ export function SectionReference({ sectionNumber, title, preview, className }: S
                 >
                   <SheetContent
                     sectionNumber={sectionNumber}
+                    endNumber={endNumber}
                     title={title}
                     preview={preview}
                     transcriptUrl={transcriptUrl}
@@ -343,20 +350,24 @@ export function SectionReference({ sectionNumber, title, preview, className }: S
 
 interface ContentProps {
   sectionNumber: number;
+  endNumber?: number;
   title?: string;
   preview?: string;
   transcriptUrl: string;
   onClose?: () => void;
 }
 
-function TooltipContent({ sectionNumber, title, preview, transcriptUrl }: ContentProps) {
+function TooltipContent({ sectionNumber, endNumber, title, preview, transcriptUrl }: ContentProps) {
+  const displayRef = endNumber ? `§${sectionNumber}-${endNumber}` : `§${sectionNumber}`;
+  const isRange = endNumber !== undefined && endNumber !== sectionNumber;
+
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/20 text-primary">
           <DocumentIcon className="h-3.5 w-3.5" />
         </div>
-        <span className="font-semibold text-foreground">§{sectionNumber}</span>
+        <span className="font-semibold text-foreground">{displayRef}</span>
       </div>
 
       {title && (
@@ -373,7 +384,9 @@ function TooltipContent({ sectionNumber, title, preview, transcriptUrl }: Conten
 
       {!title && !preview && (
         <p className="text-xs text-muted-foreground">
-          Transcript section {sectionNumber}
+          {isRange
+            ? `Transcript sections ${sectionNumber} through ${endNumber}`
+            : `Transcript section ${sectionNumber}`}
         </p>
       )}
 
@@ -382,7 +395,7 @@ function TooltipContent({ sectionNumber, title, preview, transcriptUrl }: Conten
           href={transcriptUrl}
           className="group inline-flex items-center gap-1.5 text-[11px] font-medium text-primary underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
         >
-          Go to section
+          {isRange ? `Go to section ${sectionNumber}` : "Go to section"}
           <ArrowRightIcon className="size-3 transition-transform group-hover:translate-x-0.5" />
         </Link>
       </div>
@@ -394,7 +407,10 @@ function TooltipContent({ sectionNumber, title, preview, transcriptUrl }: Conten
 // Sheet Content (Mobile)
 // ============================================================================
 
-function SheetContent({ sectionNumber, title, preview, transcriptUrl, onClose }: ContentProps) {
+function SheetContent({ sectionNumber, endNumber, title, preview, transcriptUrl, onClose }: ContentProps) {
+  const displayRef = endNumber ? `§${sectionNumber}-${endNumber}` : `§${sectionNumber}`;
+  const isRange = endNumber !== undefined && endNumber !== sectionNumber;
+
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-3">
@@ -403,10 +419,10 @@ function SheetContent({ sectionNumber, title, preview, transcriptUrl, onClose }:
         </div>
         <div>
           <h3 id={`section-ref-sheet-title-${sectionNumber}`} className="text-xl font-bold text-foreground">
-            §{sectionNumber}
+            {displayRef}
           </h3>
           <p className="text-sm text-muted-foreground">
-            Transcript section
+            {isRange ? "Transcript sections" : "Transcript section"}
           </p>
         </div>
       </div>
@@ -436,7 +452,7 @@ function SheetContent({ sectionNumber, title, preview, transcriptUrl, onClose }:
           onClick={onClose}
           className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-primary text-primary-foreground font-medium shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] transition-all"
         >
-          Go to Section
+          {isRange ? `Go to Section ${sectionNumber}` : "Go to Section"}
           <ArrowRightIcon className="size-4" />
         </Link>
       </div>
@@ -528,22 +544,23 @@ export function RenderWithSectionRefs({
         const match = part.match(/^§(\d+)(?:-(\d+))?$/);
         if (match) {
           const sectionNumber = parseInt(match[1], 10);
+          const endNumber = match[2] ? parseInt(match[2], 10) : undefined;
           const title = sectionTitles?.get(sectionNumber);
           const preview = sectionPreviews?.get(sectionNumber);
 
-          // For ranges like §1-3, just use the first number
           return (
             <SectionReference
-              key={`section-${sectionNumber}-${index}`}
+              key={`section-${sectionNumber}-${endNumber ?? ""}-${index}`}
               sectionNumber={sectionNumber}
+              endNumber={endNumber}
               title={title}
               preview={preview}
             />
           );
         }
 
-        // Regular text
-        return part;
+        // Regular text - wrap in Fragment with key for proper React keying
+        return <Fragment key={`text-${index}`}>{part}</Fragment>;
       })}
     </span>
   );

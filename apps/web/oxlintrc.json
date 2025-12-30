@@ -29,12 +29,16 @@
 
     "react/react-in-jsx-scope": "off",
 
-    "jest/no-disabled-tests": "warn",
-    "jest/require-to-throw-message": "warn",
-
     "import/no-unassigned-import": "off",
 
-    "nextjs/no-html-link-for-pages": "off"
+    "nextjs/no-html-link-for-pages": "off",
+
+    "unicorn/no-array-sort": "off",
+    "unicorn/consistent-function-scoping": "off",
+    "unicorn/no-instanceof-builtins": "off",
+
+    "jest/no-disabled-tests": "warn",
+    "jest/require-to-throw-message": "off"
   },
   "ignorePatterns": [
     ".next/**",
