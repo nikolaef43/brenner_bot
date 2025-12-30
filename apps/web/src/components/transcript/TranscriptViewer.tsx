@@ -751,6 +751,7 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
     const hash = window.location.hash;
     const urlParams = new URLSearchParams(window.location.search);
     const queryParam = urlParams.get("q");
+    const isMobile = window.innerWidth < 1024;
 
     // Store query param for back-to-search and highlighting
     if (queryParam) {
@@ -765,9 +766,18 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
       const sectionIndex = data.sections.findIndex((s) => s.number === sectionNum);
 
       if (sectionIndex >= 0) {
-        // Delay to ensure virtualizer is initialized
+        // Delay to ensure DOM/virtualizer is initialized
         setTimeout(() => {
-          virtualizer.scrollToIndex(sectionIndex, { align: "start", behavior: "smooth" });
+          if (isMobile) {
+            // Mobile: scroll element into view
+            const el = document.getElementById(`section-${sectionNum}`);
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          } else {
+            // Desktop: use virtualizer
+            virtualizer.scrollToIndex(sectionIndex, { align: "start", behavior: "smooth" });
+          }
           // Set flash highlight on the target section
           setHighlightedSection(sectionIndex);
           // Clear highlight after 3 seconds
@@ -780,18 +790,45 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
     // Restore saved position if no hash and we have a saved position
     if (canRestore && position) {
       setTimeout(() => {
-        virtualizer.scrollToIndex(position.activeSection, { align: "start" });
+        if (isMobile) {
+          // Mobile: scroll to section element
+          const section = data.sections[position.activeSection];
+          if (section) {
+            const el = document.getElementById(`section-${section.number}`);
+            if (el) {
+              el.scrollIntoView({ block: "start" });
+            }
+          }
+        } else {
+          // Desktop: use virtualizer
+          virtualizer.scrollToIndex(position.activeSection, { align: "start" });
+        }
         markRestored();
       }, 100);
     }
   }, [data.sections, virtualizer, canRestore, position, markRestored]);
 
   // Scroll to section from TOC
+  // Mobile: scroll element into view, Desktop: use virtualizer
   const scrollToSection = useCallback(
     (index: number) => {
-      virtualizer.scrollToIndex(index, { align: "start", behavior: "smooth" });
+      const isMobile = window.innerWidth < 1024;
+
+      if (isMobile) {
+        // Mobile: scroll the section element into view
+        const section = data.sections[index];
+        if (section) {
+          const el = document.getElementById(`section-${section.number}`);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }
+      } else {
+        // Desktop: use virtualizer
+        virtualizer.scrollToIndex(index, { align: "start", behavior: "smooth" });
+      }
     },
-    [virtualizer]
+    [virtualizer, data.sections]
   );
 
   // Memoize virtual items to avoid recalculation

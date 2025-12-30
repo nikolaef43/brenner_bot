@@ -66,9 +66,8 @@ export function useSearch(options: { limit?: number } = {}): UseSearchReturn {
   // State
   const [query, setQuery] = useState("");
   const [scope, setScope] = useState<SearchScope>("all");
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [isIndexLoaded, setIsIndexLoaded] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isIndexLoaded, setIsIndexLoaded] = useState(() => searchEngine.isLoaded);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Debounce the query
   const [debouncedQuery, isPending] = useDebounce(query, DEBOUNCE_DELAY);
@@ -79,7 +78,6 @@ export function useSearch(options: { limit?: number } = {}): UseSearchReturn {
 
     // Check if already loaded
     if (searchEngine.isLoaded) {
-      setIsIndexLoaded(true);
       return;
     }
 
@@ -88,12 +86,12 @@ export function useSearch(options: { limit?: number } = {}): UseSearchReturn {
       .then(() => {
         if (mounted) {
           setIsIndexLoaded(true);
-          setError(null);
+          setLoadError(null);
         }
       })
       .catch((err) => {
         if (mounted) {
-          setError(err.message || "Failed to load search index");
+          setLoadError(err.message || "Failed to load search index");
           setIsIndexLoaded(false);
         }
       });
@@ -103,27 +101,24 @@ export function useSearch(options: { limit?: number } = {}): UseSearchReturn {
     };
   }, []);
 
-  // Execute search when debounced query or scope changes
-  useEffect(() => {
-    if (!isIndexLoaded) return;
-
-    if (!debouncedQuery.trim()) {
-      setResults([]);
-      return;
-    }
+  const { results, error } = useMemo<{ results: SearchResult[]; error: string | null }>(() => {
+    if (loadError) return { results: [], error: loadError };
+    if (!isIndexLoaded) return { results: [], error: null };
+    if (!debouncedQuery.trim()) return { results: [], error: null };
 
     try {
       const searchResults = searchEngine.search(debouncedQuery, {
         scope,
         limit,
       });
-      setResults(searchResults);
-      setError(null);
+      return { results: searchResults, error: null };
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Search failed");
-      setResults([]);
+      return {
+        results: [],
+        error: err instanceof Error ? err.message : "Search failed",
+      };
     }
-  }, [debouncedQuery, scope, limit, isIndexLoaded]);
+  }, [debouncedQuery, scope, limit, isIndexLoaded, loadError]);
 
   // Actions
   const search = useCallback((newQuery: string) => {
@@ -132,7 +127,6 @@ export function useSearch(options: { limit?: number } = {}): UseSearchReturn {
 
   const clearSearch = useCallback(() => {
     setQuery("");
-    setResults([]);
   }, []);
 
   const updateScope = useCallback((newScope: SearchScope) => {

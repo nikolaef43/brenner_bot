@@ -495,6 +495,210 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     related: ["phenotype", "genetic-code", "c-elegans"],
     category: "biology",
   },
+  allele: {
+    term: "Allele",
+    short: "A particular version of a gene at a specific position in the genome.",
+    long:
+      "Alleles are alternative forms of the same gene. Most genes have a 'wild-type' (normal) allele and various mutant alleles. An organism can be homozygous (two identical alleles) or heterozygous (two different alleles).",
+    analogy:
+      "Think of it like different editions of the same book—same story, slightly different text.",
+    related: ["gene", "wild-type", "homozygous", "heterozygous"],
+    category: "biology",
+  },
+  gene: {
+    term: "Gene",
+    short: "A segment of DNA that encodes a functional product (usually a protein).",
+    long:
+      "Genes are the fundamental units of heredity. Each gene contains instructions for making one or more proteins. Mutations in genes alter protein function, producing phenotypic changes that geneticists can study.",
+    analogy:
+      "Think of it like a recipe in a cookbook—DNA is the cookbook, genes are individual recipes.",
+    related: ["allele", "genetic-code", "phenotype", "genotype"],
+    category: "biology",
+  },
+  dna: {
+    term: "DNA",
+    short: "Deoxyribonucleic acid—the molecule that stores genetic information.",
+    long:
+      "DNA is a double-helix molecule made of four nucleotide bases (A, T, G, C). The sequence of bases encodes all genetic information. DNA is transcribed to RNA and ultimately translated into proteins.",
+    why:
+      "Brenner's work helped establish that DNA's sequence (not its chemistry) carries the genetic message.",
+    related: ["rna", "genetic-code", "gene"],
+    category: "biology",
+  },
+  rna: {
+    term: "RNA",
+    short: "Ribonucleic acid—single-stranded molecule that carries and implements genetic information.",
+    long:
+      "RNA comes in several forms: mRNA carries genetic messages, tRNA brings amino acids to ribosomes, rRNA forms the ribosome structure. RNA is the intermediary between DNA and proteins.",
+    related: ["dna", "mrna", "ribosome"],
+    category: "biology",
+  },
+  codon: {
+    term: "Codon",
+    short: "A three-nucleotide sequence that specifies one amino acid.",
+    long:
+      "Codons are the 'words' of the genetic code. Each three-letter combination (like AUG or GCA) corresponds to a specific amino acid or stop signal. Brenner helped prove the code uses non-overlapping triplets.",
+    why:
+      "Brenner's genetic code work established that codons are read sequentially without overlap.",
+    related: ["genetic-code", "amino-acid", "mrna"],
+    category: "biology",
+  },
+  "amino-acid": {
+    term: "Amino Acid",
+    short: "The building blocks of proteins—20 standard types coded by DNA.",
+    long:
+      "Amino acids are linked together to form proteins. The sequence of amino acids determines the protein's 3D structure and function. The genetic code maps 64 codons to 20 amino acids plus stop signals.",
+    related: ["codon", "genetic-code", "protein"],
+    category: "biology",
+  },
+  protein: {
+    term: "Protein",
+    short: "A molecular machine made of amino acids that performs cellular functions.",
+    long:
+      "Proteins are chains of amino acids folded into specific 3D shapes. They catalyze reactions (enzymes), provide structure, transport molecules, and send signals. Most genes encode proteins.",
+    analogy:
+      "Think of it like a tool—the amino acid sequence is the blueprint, the folded protein is the working tool.",
+    related: ["amino-acid", "gene", "ribosome"],
+    category: "biology",
+  },
+  transcription: {
+    term: "Transcription",
+    short: "The process of copying DNA into RNA.",
+    long:
+      "Transcription is the first step of gene expression. An enzyme (RNA polymerase) reads DNA and produces a complementary RNA strand. This RNA is then processed and translated into protein.",
+    related: ["dna", "rna", "mrna", "translation"],
+    category: "biology",
+  },
+  translation: {
+    term: "Translation",
+    short: "The process of reading mRNA to build proteins at the ribosome.",
+    long:
+      "Translation is the second step of gene expression. Ribosomes read mRNA codons and link corresponding amino acids into a protein chain. Transfer RNAs (tRNAs) bring amino acids to the ribosome.",
+    related: ["transcription", "mrna", "ribosome", "codon"],
+    category: "biology",
+  },
+  mutation: {
+    term: "Mutation",
+    short: "A change in DNA sequence that may alter gene function.",
+    long:
+      "Mutations can be insertions, deletions, or substitutions of nucleotides. Some mutations are harmless, others cause loss or gain of function. Forward genetics uses mutations to understand gene function.",
+    analogy:
+      "Think of it like a typo—some typos are unnoticeable, others completely change meaning.",
+    related: ["mutagenesis", "allele", "phenotype"],
+    category: "biology",
+  },
+  "wild-type": {
+    term: "Wild-type",
+    short: "The normal, non-mutant version of an organism or gene.",
+    long:
+      "Wild-type refers to the standard reference strain or allele. In C. elegans, the N2 Bristol strain is wild-type. Mutant phenotypes are described as deviations from wild-type.",
+    related: ["mutation", "allele", "c-elegans"],
+    category: "biology",
+  },
+  homozygous: {
+    term: "Homozygous",
+    short: "Having two identical alleles of a gene.",
+    long:
+      "A homozygous organism has inherited the same allele from both parents. Homozygotes express the allele's phenotype directly, making them useful for genetic analysis.",
+    related: ["heterozygous", "allele", "genotype"],
+    category: "biology",
+  },
+  heterozygous: {
+    term: "Heterozygous",
+    short: "Having two different alleles of a gene.",
+    long:
+      "A heterozygous organism carries one copy each of two different alleles. The phenotype depends on whether alleles are dominant or recessive. Heterozygotes reveal genetic dominance relationships.",
+    related: ["homozygous", "dominant", "recessive", "allele"],
+    category: "biology",
+  },
+  dominant: {
+    term: "Dominant",
+    short: "An allele whose phenotype shows even when heterozygous.",
+    long:
+      "A dominant allele produces its phenotype whether there's one copy or two. Dominant mutations often represent gain-of-function or interference with normal protein.",
+    analogy:
+      "Think of it like a loud voice that's heard even when quieter voices are present.",
+    related: ["recessive", "heterozygous", "allele"],
+    category: "biology",
+  },
+  recessive: {
+    term: "Recessive",
+    short: "An allele whose phenotype only shows when homozygous.",
+    long:
+      "A recessive allele is masked by a dominant allele in heterozygotes. Recessive mutations typically represent loss-of-function—both copies must be non-functional to show the phenotype.",
+    analogy:
+      "Think of it like a quiet voice drowned out by louder ones until it's the only voice speaking.",
+    related: ["dominant", "homozygous", "allele"],
+    category: "biology",
+  },
+  "cell-lineage": {
+    term: "Cell Lineage",
+    short: "The complete ancestral history of a cell, tracing back to the fertilized egg.",
+    long:
+      "Cell lineage maps show which cells divide to produce which daughter cells throughout development. In C. elegans, the entire lineage of all 959 cells is known—a major achievement enabled by the worm's transparency.",
+    why:
+      "Brenner chose C. elegans partly because its invariant cell lineage made developmental genetics tractable.",
+    related: ["c-elegans", "apoptosis", "neuron"],
+    category: "biology",
+  },
+  apoptosis: {
+    term: "Apoptosis",
+    short: "Programmed cell death—cells that deliberately kill themselves.",
+    long:
+      "Apoptosis is controlled suicide of cells. In C. elegans, exactly 131 cells die during development. The genes controlling apoptosis (ced genes) were discovered in C. elegans and are conserved in humans.",
+    why:
+      "The C. elegans apoptosis pathway (ced-3, ced-4, ced-9) became a model for understanding human programmed cell death.",
+    related: ["cell-lineage", "c-elegans"],
+    category: "biology",
+  },
+  neuron: {
+    term: "Neuron",
+    short: "A nerve cell specialized for transmitting electrical and chemical signals.",
+    long:
+      "Neurons process and transmit information through electrical signals and chemical neurotransmitters. C. elegans has exactly 302 neurons, and their complete wiring diagram (connectome) is mapped.",
+    why:
+      "Brenner chose C. elegans partly to understand the genetic basis of behavior through its simple nervous system.",
+    related: ["synapse", "c-elegans", "connectome"],
+    category: "biology",
+  },
+  synapse: {
+    term: "Synapse",
+    short: "A junction where neurons communicate with each other or with muscles.",
+    long:
+      "Synapses are the connection points between neurons. Signals cross synapses via chemical neurotransmitters or (rarely) direct electrical coupling. C. elegans has about 7,000 synapses.",
+    related: ["neuron", "c-elegans"],
+    category: "biology",
+  },
+  connectome: {
+    term: "Connectome",
+    short: "The complete wiring diagram of all neural connections in a nervous system.",
+    long:
+      "A connectome maps every neuron and every synapse in a brain. C. elegans was the first organism with a complete connectome (mapped from electron microscopy in the 1980s by White, Brenner, and colleagues).",
+    why:
+      "The C. elegans connectome was a landmark achievement, enabling computational models of neural circuits.",
+    related: ["neuron", "synapse", "c-elegans"],
+    category: "biology",
+  },
+  hermaphrodite: {
+    term: "Hermaphrodite",
+    short: "An organism with both male and female reproductive organs.",
+    long:
+      "C. elegans hermaphrodites can self-fertilize, producing genetically identical offspring. This makes genetics simpler—you can maintain pure genetic lines without crossing. Males exist but are rare (0.1%).",
+    why:
+      "Self-fertilization was key to Brenner's choice of C. elegans—it simplified maintaining and crossing genetic strains.",
+    related: ["c-elegans", "wild-type"],
+    category: "biology",
+  },
+  ems: {
+    term: "EMS",
+    short: "Ethyl methanesulfonate—a chemical mutagen widely used in genetics.",
+    long:
+      "EMS causes point mutations by modifying guanine bases. It's the workhorse mutagen for forward genetic screens because it produces many single-nucleotide changes distributed across the genome.",
+    why:
+      "Brenner used EMS mutagenesis to create the first C. elegans mutant collection, enabling genetic dissection of development and behavior.",
+    related: ["mutagenesis", "mutation", "c-elegans"],
+    category: "biology",
+  },
 
   // -------------------------------------------------------------------------
   // Bayesian / Statistical Terms
@@ -547,6 +751,84 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     analogy:
       "Think of it like measuring how surprised you'd be if reality differed from your expectations.",
     related: ["likelihood-ratio", "prior", "posterior"],
+    category: "bayesian",
+  },
+  odds: {
+    term: "Odds",
+    short: "The ratio of probability of an event to probability it doesn't happen.",
+    long:
+      "Odds express probability differently: if probability is 75%, odds are 3:1 (three times more likely to happen than not). Bayesian updating is often cleaner using odds than probabilities.",
+    analogy:
+      "Think of it like betting—'3 to 1 odds' means you'd bet $3 to win $1.",
+    related: ["prior", "posterior", "bayesian-update"],
+    category: "bayesian",
+  },
+  "bayes-factor": {
+    term: "Bayes Factor",
+    short: "A ratio measuring the evidence for one hypothesis versus another.",
+    long:
+      "The Bayes factor is the likelihood ratio integrated over parameter uncertainty. A Bayes factor of 10 means the data are 10 times more likely under one hypothesis. It's used for model comparison.",
+    why:
+      "Bayes factors quantify 'potency' in statistical terms—how much the data should shift beliefs.",
+    related: ["likelihood-ratio", "potency", "decision-experiment"],
+    category: "bayesian",
+  },
+  "base-rate": {
+    term: "Base Rate",
+    short: "The prior probability of something in a population before specific evidence.",
+    long:
+      "The base rate is how common something is overall. Ignoring base rates leads to bad inferences—a positive medical test doesn't mean disease if the disease is rare (base rate neglect).",
+    analogy:
+      "Think of it like knowing that only 1 in 10,000 people have a disease before interpreting a positive test.",
+    why:
+      "Brenner's emphasis on priors aligns with paying attention to base rates when interpreting experiments.",
+    related: ["prior", "posterior", "bayesian-update"],
+    category: "bayesian",
+  },
+  sensitivity: {
+    term: "Sensitivity",
+    short: "The probability a test correctly detects a condition when present.",
+    long:
+      "Sensitivity (true positive rate) measures how often a test correctly identifies positives. High sensitivity means few false negatives. A sensitive test catches most cases but may have false alarms.",
+    related: ["specificity", "likelihood-ratio"],
+    category: "bayesian",
+  },
+  specificity: {
+    term: "Specificity",
+    short: "The probability a test correctly rules out a condition when absent.",
+    long:
+      "Specificity (true negative rate) measures how often a test correctly identifies negatives. High specificity means few false positives. A specific test rules out with confidence.",
+    analogy:
+      "Think of it like a bouncer who only lets the right people in—high specificity means few gate-crashers.",
+    related: ["sensitivity", "likelihood-ratio"],
+    category: "bayesian",
+  },
+  evidence: {
+    term: "Evidence",
+    short: "Data or observations that update beliefs about hypotheses.",
+    long:
+      "In Bayesian terms, evidence is information that changes the probability of hypotheses. Strong evidence shifts beliefs substantially; weak evidence shifts them little. Evidence strength is measured by likelihood ratios.",
+    related: ["likelihood-ratio", "bayesian-update", "posterior"],
+    category: "bayesian",
+  },
+  "information-gain": {
+    term: "Information Gain",
+    short: "How much an experiment reduces uncertainty about a question.",
+    long:
+      "Information gain measures the expected reduction in entropy (uncertainty) from an observation. High information gain experiments are 'potent'—they teach you a lot regardless of outcome.",
+    why:
+      "Brenner's discriminative experiments maximize information gain by having different predictions under each hypothesis.",
+    related: ["kl-divergence", "potency", "decision-experiment"],
+    category: "bayesian",
+  },
+  hypothesis: {
+    term: "Hypothesis",
+    short: "A proposed explanation for phenomena, to be tested by experiment.",
+    long:
+      "A hypothesis is a specific, testable claim about how something works. Good hypotheses make predictions that could be falsified. Experiments arbitrate between competing hypotheses.",
+    analogy:
+      "Think of it like a suspect in a murder investigation—you gather evidence to convict or exonerate.",
+    related: ["falsification", "exclusion-test", "decision-experiment"],
     category: "bayesian",
   },
 
