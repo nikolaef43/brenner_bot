@@ -11,6 +11,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { getJargon, type JargonTerm } from "@/lib/jargon";
 
 // ============================================================================
@@ -36,6 +37,22 @@ const SparklesIcon = ({ className = "size-4" }: { className?: string }) => (
 );
 
 // ============================================================================
+// Animation Configs
+// ============================================================================
+
+const springSmooth = {
+  type: "spring" as const,
+  stiffness: 300,
+  damping: 30,
+};
+
+const springSnappy = {
+  type: "spring" as const,
+  stiffness: 400,
+  damping: 25,
+};
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -58,18 +75,11 @@ interface JargonProps {
  * - Desktop: Shows tooltip on hover
  * - Mobile: Shows bottom sheet on tap
  * - Styled with dotted underline to indicate interactivity
- *
- * @example
- * <Jargon term="c-elegans">C. elegans</Jargon>
- * <Jargon term="level-split" />
  */
 export function Jargon({ term, children, className }: JargonProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === "undefined") return false;
-    if (typeof window.matchMedia !== "function") return false;
-    return window.matchMedia("(max-width: 768px)").matches;
-  });
+  const [isMobile, setIsMobile] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const [tooltipLayout, setTooltipLayout] = useState<{
     position: "top" | "bottom";
     style: CSSProperties;
@@ -81,9 +91,12 @@ export function Jargon({ term, children, className }: JargonProps) {
   const termKey = term.toLowerCase().replace(/[\s_]+/g, "-");
   const jargonData = getJargon(termKey);
 
-  // Check if we can use portals (client-side only)
-  const canUsePortal = typeof document !== "undefined";
+  // Track mount state for portal rendering
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
+  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (closeTimeoutRef.current) {
@@ -92,10 +105,9 @@ export function Jargon({ term, children, className }: JargonProps) {
     };
   }, []);
 
-  // Detect mobile on mount
+  // Detect mobile on mount and resize
   useEffect(() => {
     const checkMobile = () => {
-      if (typeof window.matchMedia !== "function") return;
       setIsMobile(window.matchMedia("(max-width: 768px)").matches);
     };
     checkMobile();
@@ -103,23 +115,20 @@ export function Jargon({ term, children, className }: JargonProps) {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Calculate tooltip position and style to avoid viewport edges
+  // Calculate tooltip position for desktop
   useLayoutEffect(() => {
     if (!isOpen || !triggerRef.current || isMobile) return;
 
     const rect = triggerRef.current.getBoundingClientRect();
     const offsetWidth = triggerRef.current.offsetWidth;
 
-    // If near top of viewport, show below
     const position: "top" | "bottom" = rect.top < 200 ? "bottom" : "top";
 
-    // Calculate left position (centered on trigger, clamped to viewport)
     const left = Math.min(
       Math.max(16, rect.left - 140 + offsetWidth / 2),
       Math.max(16, window.innerWidth - 336)
     );
 
-    // Calculate vertical position
     const verticalStyle = position === "top"
       ? { bottom: window.innerHeight - rect.top + 8 }
       : { top: rect.bottom + 8 };
@@ -129,19 +138,36 @@ export function Jargon({ term, children, className }: JargonProps) {
 
   // Lock body scroll when mobile sheet is open
   useEffect(() => {
-    if (isOpen && isMobile) {
-      const scrollY = window.scrollY;
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = "100%";
-      return () => {
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.width = "";
-        window.scrollTo(0, scrollY);
-      };
-    }
+    if (!isOpen || !isMobile) return;
+
+    const scrollY = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      document.body.style.overflow = "";
+      window.scrollTo(0, scrollY);
+    };
   }, [isOpen, isMobile]);
+
+  // Handle escape key to close
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen]);
 
   const handleMouseEnter = useCallback(() => {
     if (isMobile) return;
@@ -171,7 +197,6 @@ export function Jargon({ term, children, className }: JargonProps) {
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
     }
-    // Check if focus is moving to an element inside the tooltip
     const relatedTarget = e.relatedTarget as Node | null;
     if (relatedTarget && tooltipRef.current?.contains(relatedTarget)) {
       return;
@@ -189,28 +214,7 @@ export function Jargon({ term, children, className }: JargonProps) {
     setIsOpen(false);
   }, []);
 
-  // Handle click outside for mobile
-  useEffect(() => {
-    if (!isOpen || !isMobile) return;
-
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (
-        triggerRef.current &&
-        !triggerRef.current.contains(target) &&
-        tooltipRef.current &&
-        !tooltipRef.current.contains(target)
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen, isMobile]);
-
   if (!jargonData) {
-    // If term not found, render plain content (preserve styling if className was provided)
     const content = children || term;
     return <span className={className}>{content}</span>;
   }
@@ -243,83 +247,88 @@ export function Jargon({ term, children, className }: JargonProps) {
         {displayText}
       </button>
 
-      {/* Desktop Tooltip - rendered via portal to escape stacking contexts */}
-      {canUsePortal && createPortal(
-        isOpen && !isMobile ? (
-          <div
-            ref={tooltipRef}
-            className={[
-              "fixed z-[9999] w-80 max-w-[calc(100vw-2rem)]",
-              "rounded-xl border border-border/50 bg-card/95 p-4 shadow-2xl backdrop-blur-xl",
-              "before:absolute before:inset-x-0 before:h-1 before:rounded-t-xl before:bg-gradient-to-r before:from-primary/50 before:via-purple-500/50 before:to-primary/50",
-              tooltipLayout.position === "top" ? "before:top-0" : "before:bottom-0 before:rounded-t-none before:rounded-b-xl",
-              "animate-in fade-in-0 zoom-in-95 duration-200",
-            ].join(" ")}
-            style={tooltipLayout.style}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            onBlur={(e: React.FocusEvent) => {
-              const relatedTarget = e.relatedTarget as Node | null;
-              if (relatedTarget && triggerRef.current?.contains(relatedTarget)) {
-                return;
-              }
-              if (relatedTarget && tooltipRef.current?.contains(relatedTarget)) {
-                return;
-              }
-              closeTimeoutRef.current = setTimeout(() => {
-                setIsOpen(false);
-              }, 150);
-            }}
-          >
-            <TooltipContent term={jargonData} termKey={termKey} />
-          </div>
-        ) : null,
+      {/* Desktop Tooltip */}
+      {isMounted && createPortal(
+        <AnimatePresence>
+          {isOpen && !isMobile && (
+            <motion.div
+              ref={tooltipRef}
+              initial={{ opacity: 0, y: tooltipLayout.position === "top" ? 8 : -8, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: tooltipLayout.position === "top" ? 8 : -8, scale: 0.95 }}
+              transition={springSnappy}
+              className={[
+                "fixed z-[9999] w-80 max-w-[calc(100vw-2rem)]",
+                "rounded-xl border border-border/50 bg-card/95 p-4 shadow-2xl backdrop-blur-xl",
+                "before:absolute before:inset-x-0 before:h-1 before:rounded-t-xl before:bg-gradient-to-r before:from-primary/50 before:via-purple-500/50 before:to-primary/50",
+                tooltipLayout.position === "top" ? "before:top-0" : "before:bottom-0 before:rounded-t-none before:rounded-b-xl",
+              ].join(" ")}
+              style={tooltipLayout.style}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <TooltipContent term={jargonData} termKey={termKey} />
+            </motion.div>
+          )}
+        </AnimatePresence>,
         document.body
       )}
 
-      {/* Mobile Bottom Sheet - rendered via portal to escape stacking contexts */}
-      {canUsePortal && createPortal(
-        isOpen && isMobile ? (
-          <>
-            {/* Backdrop */}
-            <div
-              className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm animate-in fade-in-0 duration-200"
-              onClick={handleClose}
-              aria-hidden="true"
-            />
-
-            {/* Sheet */}
-            <div
-              ref={tooltipRef}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby={`jargon-sheet-title-${termKey}`}
-              className="fixed inset-x-0 bottom-0 z-[9999] flex max-h-[80vh] flex-col rounded-t-3xl border-t border-border/50 bg-card/98 shadow-2xl backdrop-blur-xl animate-in slide-in-from-bottom duration-300"
-            >
-              {/* Handle */}
-              <div className="flex shrink-0 justify-center pt-3 pb-1">
-                <div className="h-1 w-10 rounded-full bg-muted-foreground/30" />
-              </div>
-
-              {/* Close button */}
-              <button
+      {/* Mobile Bottom Sheet */}
+      {isMounted && createPortal(
+        <AnimatePresence>
+          {isOpen && isMobile && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm"
+                style={{ touchAction: "none" }}
                 onClick={handleClose}
-                className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
-                aria-label="Close"
-              >
-                <XIcon />
-              </button>
+                aria-hidden="true"
+              />
 
-              {/* Content */}
-              <div
-                className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-2 pb-[calc(2rem+env(safe-area-inset-bottom,0px))]"
-                style={{ WebkitOverflowScrolling: 'touch' }}
+              {/* Sheet */}
+              <motion.div
+                ref={tooltipRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={`jargon-sheet-title-${termKey}`}
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={springSmooth}
+                className="fixed inset-x-0 bottom-0 z-[9999] flex max-h-[80vh] flex-col rounded-t-3xl border-t border-border/50 bg-card shadow-2xl"
+                style={{ touchAction: "pan-y" }}
               >
-                <SheetContent term={jargonData} termKey={termKey} />
-              </div>
-            </div>
-          </>
-        ) : null,
+                {/* Handle */}
+                <div className="flex shrink-0 justify-center pt-3 pb-1">
+                  <div className="h-1.5 w-12 rounded-full bg-muted-foreground/40" />
+                </div>
+
+                {/* Close button */}
+                <button
+                  onClick={handleClose}
+                  className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors active:bg-muted/80"
+                  aria-label="Close"
+                >
+                  <XIcon />
+                </button>
+
+                {/* Content */}
+                <div
+                  className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-2 pb-[calc(2rem+env(safe-area-inset-bottom,0px))]"
+                  style={{ WebkitOverflowScrolling: "touch" }}
+                >
+                  <SheetContent term={jargonData} termKey={termKey} />
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>,
         document.body
       )}
     </>
@@ -335,7 +344,6 @@ function TooltipContent({ term, termKey }: { term: JargonTerm; termKey: string }
 
   return (
     <div className="space-y-2">
-      {/* Term header */}
       <div className="flex items-center gap-2">
         <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/20 text-primary">
           <LightbulbIcon className="h-3.5 w-3.5" />
@@ -343,12 +351,10 @@ function TooltipContent({ term, termKey }: { term: JargonTerm; termKey: string }
         <span className="font-semibold text-foreground">{term.term}</span>
       </div>
 
-      {/* Short definition */}
       <p className="text-sm leading-relaxed text-muted-foreground">
         {term.short}
       </p>
 
-      {/* Analogy if available */}
       {term.analogy && (
         <div className="rounded-lg bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
           <span className="font-medium text-primary">Think of it like:</span>{" "}
@@ -356,7 +362,6 @@ function TooltipContent({ term, termKey }: { term: JargonTerm; termKey: string }
         </div>
       )}
 
-      {/* Link to full glossary */}
       <div className="flex items-center justify-end pt-1">
         <Link
           href={glossaryHref}
@@ -378,7 +383,6 @@ function SheetContent({ term, termKey }: { term: JargonTerm; termKey: string }) 
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex items-center gap-3">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 shadow-lg">
           <LightbulbIcon className="h-6 w-6 text-primary" />
@@ -391,7 +395,6 @@ function SheetContent({ term, termKey }: { term: JargonTerm; termKey: string }) 
         </div>
       </div>
 
-      {/* Full explanation */}
       <div className="space-y-4">
         <div>
           <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -402,7 +405,6 @@ function SheetContent({ term, termKey }: { term: JargonTerm; termKey: string }) 
           </p>
         </div>
 
-        {/* Why it matters */}
         {term.why && (
           <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
             <p className="mb-1 text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
@@ -414,7 +416,6 @@ function SheetContent({ term, termKey }: { term: JargonTerm; termKey: string }) 
           </div>
         )}
 
-        {/* Analogy */}
         {term.analogy && (
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
             <div className="flex items-center gap-2 mb-1">
@@ -429,7 +430,6 @@ function SheetContent({ term, termKey }: { term: JargonTerm; termKey: string }) 
           </div>
         )}
 
-        {/* Related terms */}
         {term.related && term.related.length > 0 && (
           <div>
             <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
