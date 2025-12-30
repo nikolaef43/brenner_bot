@@ -1240,7 +1240,12 @@ async function main(): Promise<void> {
 
         const threads: Record<
           string,
-          { thread_id: string; message_ids: number[]; latest_ts: string | null; ack_required_count: number }
+          {
+            thread_id: string;
+            message_ids: number[];
+            latest_ts: string | null;
+            ack_required_message_count: number;
+          }
         > = {};
 
         for (const m of messages) {
@@ -1253,12 +1258,12 @@ async function main(): Promise<void> {
             thread_id: threadId,
             message_ids: [],
             latest_ts: null,
-            ack_required_count: 0,
+            ack_required_message_count: 0,
           });
 
           if (messageId !== null) existing.message_ids.push(messageId);
           if (createdTs && (!existing.latest_ts || createdTs > existing.latest_ts)) existing.latest_ts = createdTs;
-          if (ackRequired) existing.ack_required_count++;
+          if (ackRequired) existing.ack_required_message_count++;
         }
 
         const out = {
