@@ -196,10 +196,12 @@ export function JargonText<E extends ElementType = "span">({
           return <span key={i}>{segment.content}</span>;
 
         case "jargon":
-          return (
-            <Jargon key={i} term={segment.termKey!}>
+          return segment.termKey ? (
+            <Jargon key={i} term={segment.termKey}>
               {segment.content}
             </Jargon>
+          ) : (
+            <span key={i}>{segment.content}</span>
           );
 
         case "highlight":
@@ -214,10 +216,14 @@ export function JargonText<E extends ElementType = "span">({
 
         case "jargon-highlight":
           // Both jargon tooltip AND highlight styling
-          return (
-            <Jargon key={i} term={segment.termKey!} className="font-semibold text-primary bg-primary/10 px-0.5 rounded">
+          return segment.termKey ? (
+            <Jargon key={i} term={segment.termKey} className="font-semibold text-primary bg-primary/10 px-0.5 rounded">
               {segment.content}
             </Jargon>
+          ) : (
+            <span key={i} className="font-semibold text-primary bg-primary/10 px-0.5 rounded">
+              {segment.content}
+            </span>
           );
 
         default:
