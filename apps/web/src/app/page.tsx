@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FeatureCard } from "@/components/ui/card";
+import { Jargon } from "@/components/jargon";
 
 // Icons
 const BookIcon = () => (
@@ -38,7 +39,7 @@ const features = [
     icon: <BookIcon />,
     label: "Browse",
     title: "Corpus",
-    description: "The complete Brenner transcript collection from Web of Stories, plus curated quote banks and metaprompts.",
+    description: <>The complete Brenner transcript collection from Web of Stories, plus curated <Jargon term="quote-bank">quote banks</Jargon> and <Jargon term="metaprompt">metaprompts</Jargon>.</>,
     accent: "text-primary",
   },
   {
@@ -46,7 +47,7 @@ const features = [
     icon: <SparklesIcon />,
     label: "Compare",
     title: "Distillations",
-    description: "Three frontier model distillations of Brenner's methodology. Compare perspectives from GPT-5.2, Opus 4.5, and Gemini 3.",
+    description: <>Three frontier model <Jargon term="distillation">distillations</Jargon> of Brenner&apos;s methodology. Compare perspectives from GPT-5.2, Opus 4.5, and Gemini 3.</>,
     accent: "text-accent",
   },
   {
@@ -54,7 +55,7 @@ const features = [
     icon: <BeakerIcon />,
     label: "Learn",
     title: "Method",
-    description: "The operators, loop structure, and Bayesian framework that operationalize Brenner's approach to scientific discovery.",
+    description: <>The <Jargon term="operator-library">operators</Jargon>, loop structure, and <Jargon term="bayesian-update">Bayesian</Jargon> framework that operationalize Brenner&apos;s approach to scientific discovery.</>,
     accent: "text-primary",
   },
 ];
@@ -176,7 +177,7 @@ export default function Home() {
                     Start a Research Session
                   </h3>
                   <p className="text-sm sm:text-base text-muted-foreground">
-                    Compose a Brenner Loop kickoff prompt and send it to your agent constellation via Agent Mail.
+                    Compose a <Jargon term="kickoff">kickoff</Jargon> prompt and send it to your agent constellation via <Jargon term="agent-mail">Agent Mail</Jargon>.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 text-primary font-medium text-sm sm:text-base">

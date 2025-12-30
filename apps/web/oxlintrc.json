@@ -21,30 +21,18 @@
   },
   "rules": {
     "no-console": "off",
-    "no-await-in-loop": "off",
-    "no-constant-binary-expression": "off",
     "eqeqeq": ["error", "smart"],
 
-    "typescript/no-explicit-any": "warn",
+    "typescript/no-explicit-any": "error",
     "typescript/prefer-ts-expect-error": "error",
+    "typescript/no-non-null-assertion": "warn",
 
     "react/react-in-jsx-scope": "off",
-    "react/no-array-index-key": "off",
 
-    "unicorn/no-array-sort": "off",
-    "unicorn/consistent-function-scoping": "off",
-    "unicorn/no-instanceof-builtins": "off",
-
-    "jest/no-conditional-expect": "off",
-    "jest/valid-expect": "off",
-    "jest/no-disabled-tests": "off",
-    "jest/no-standalone-expect": "off",
-    "jest/require-to-throw-message": "off",
-    "vitest/no-conditional-expect": "off",
-    "vitest/valid-expect": "off",
+    "jest/no-disabled-tests": "warn",
+    "jest/require-to-throw-message": "warn",
 
     "import/no-unassigned-import": "off",
-    "import/no-named-as-default": "off",
 
     "nextjs/no-html-link-for-pages": "off"
   },

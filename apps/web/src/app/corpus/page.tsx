@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useMemo, useCallback, type ReactNode } from "react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AnimatedElement, HeroBackground } from "@/components/ui/animated-element";
+import { Jargon } from "@/components/jargon";
 
 // ============================================================================
 // TYPES
@@ -957,7 +958,7 @@ export default function CorpusIndexPage() {
                   1
                 </span>
                 <span>
-                  Start with a <strong className="text-foreground">Distillation</strong> for a structured overview of Brenner&apos;s methodology.
+                  Start with a <Jargon term="distillation"><strong className="text-foreground">Distillation</strong></Jargon> for a structured overview of Brenner&apos;s methodology.
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -965,7 +966,7 @@ export default function CorpusIndexPage() {
                   2
                 </span>
                 <span>
-                  Use the <strong className="text-foreground">Quote Bank</strong> to find specific Brenner quotes on topics of interest.
+                  Use the <Jargon term="quotebank"><strong className="text-foreground">Quote Bank</strong></Jargon> to find specific Brenner quotes on topics of interest.
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -973,7 +974,7 @@ export default function CorpusIndexPage() {
                   3
                 </span>
                 <span>
-                  Dive into the full <strong className="text-foreground">Transcript</strong> for context and nuance around specific ideas.
+                  Dive into the full <Jargon term="corpus"><strong className="text-foreground">Transcript</strong></Jargon> for context and nuance around specific ideas.
                 </span>
               </li>
             </ul>

@@ -79,7 +79,6 @@ interface JargonProps {
 export function Jargon({ term, children, className }: JargonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
   const [tooltipLayout, setTooltipLayout] = useState<{
     position: "top" | "bottom";
     style: CSSProperties;
@@ -91,10 +90,7 @@ export function Jargon({ term, children, className }: JargonProps) {
   const termKey = term.toLowerCase().replace(/[\s_]+/g, "-");
   const jargonData = getJargon(termKey);
 
-  // Track mount state for portal rendering
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const portalContainer = typeof document === "undefined" ? null : document.body;
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -248,7 +244,7 @@ export function Jargon({ term, children, className }: JargonProps) {
       </button>
 
       {/* Desktop Tooltip */}
-      {isMounted && createPortal(
+      {portalContainer && createPortal(
         <AnimatePresence>
           {isOpen && !isMobile && (
             <motion.div
@@ -271,11 +267,11 @@ export function Jargon({ term, children, className }: JargonProps) {
             </motion.div>
           )}
         </AnimatePresence>,
-        document.body
+        portalContainer
       )}
 
       {/* Mobile Bottom Sheet */}
-      {isMounted && createPortal(
+      {portalContainer && createPortal(
         <AnimatePresence>
           {isOpen && isMobile && (
             <motion.div
@@ -331,7 +327,7 @@ export function Jargon({ term, children, className }: JargonProps) {
             </motion.div>
           )}
         </AnimatePresence>,
-        document.body
+        portalContainer
       )}
     </>
   );

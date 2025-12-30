@@ -139,10 +139,22 @@ describe("Home Page", () => {
       expect(
         screen.getByText(/complete brenner transcript collection/i)
       ).toBeInTheDocument();
+      // Distillations description - text may be split across Jargon components
+      // Find paragraph elements specifically to avoid matching parent containers
       expect(
-        screen.getByText(/three frontier model distillations/i)
+        screen.getByText((_, element) => {
+          if (element?.tagName.toLowerCase() !== "p") return false;
+          return element?.textContent?.toLowerCase().includes("three frontier model") ?? false;
+        })
       ).toBeInTheDocument();
-      expect(screen.getByText(/operators.*loop structure/i)).toBeInTheDocument();
+      // Operators/loop structure - text may be split across Jargon components
+      expect(
+        screen.getByText((_, element) => {
+          if (element?.tagName.toLowerCase() !== "p") return false;
+          const text = element?.textContent?.toLowerCase() ?? "";
+          return text.includes("operators") && text.includes("loop structure");
+        })
+      ).toBeInTheDocument();
     });
 
     it("shows feature labels", () => {
