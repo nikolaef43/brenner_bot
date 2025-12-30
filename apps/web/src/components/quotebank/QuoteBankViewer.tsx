@@ -17,42 +17,42 @@ interface QuoteBankHeroProps {
 
 function QuoteBankHero({ title, description, quoteCount, tagCount }: QuoteBankHeroProps) {
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/20 mb-12">
+    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/20 mb-8 sm:mb-12">
       {/* Decorative elements */}
-      <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+      <div className="absolute top-0 right-0 w-48 sm:w-80 h-48 sm:h-80 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-40 sm:w-64 h-40 sm:h-64 bg-primary/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
 
       {/* Quote decoration */}
-      <div className="absolute top-8 right-8 text-[180px] font-serif text-amber-500/10 leading-none select-none hidden lg:block">
+      <div className="absolute top-4 right-4 sm:top-8 sm:right-8 text-[100px] sm:text-[180px] font-serif text-amber-500/10 leading-none select-none hidden sm:block">
         &ldquo;
       </div>
 
-      <div className="relative px-8 py-12 lg:px-12 lg:py-16">
+      <div className="relative px-5 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-16">
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-sm font-medium mb-6">
-          <QuoteIcon className="size-4" />
+        <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs sm:text-sm font-medium mb-4 sm:mb-6">
+          <QuoteIcon className="size-3.5 sm:size-4" />
           Reference Collection
         </div>
 
         {/* Title */}
-        <h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-4">
+        <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-3 sm:mb-4">
           {title}
         </h1>
 
         {/* Description */}
-        <p className="text-lg text-muted-foreground mb-8 max-w-2xl">
+        <p className="text-base sm:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-2xl">
           {description}
         </p>
 
         {/* Stats */}
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-card/80 backdrop-blur-sm border border-border/50 text-sm">
-            <span className="text-2xl font-bold text-foreground">{quoteCount}</span>
-            <span className="text-muted-foreground">quotes</span>
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-card/80 backdrop-blur-sm border border-border/50 text-sm">
+            <span className="text-xl sm:text-2xl font-bold text-foreground">{quoteCount}</span>
+            <span className="text-muted-foreground text-xs sm:text-sm">quotes</span>
           </div>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-card/80 backdrop-blur-sm border border-border/50 text-sm">
-            <span className="text-2xl font-bold text-foreground">{tagCount}</span>
-            <span className="text-muted-foreground">categories</span>
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-card/80 backdrop-blur-sm border border-border/50 text-sm">
+            <span className="text-xl sm:text-2xl font-bold text-foreground">{tagCount}</span>
+            <span className="text-muted-foreground text-xs sm:text-sm">categories</span>
           </div>
         </div>
       </div>
@@ -134,19 +134,23 @@ interface SearchProps {
 
 function Search({ value, onChange }: SearchProps) {
   return (
-    <div className="relative mb-8">
-      <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
+    <div className="relative mb-6 sm:mb-8">
+      <SearchIcon className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 size-4 sm:size-5 text-muted-foreground" />
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search quotes..."
-        className="w-full pl-12 pr-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+        className="w-full pl-10 sm:pl-12 pr-10 sm:pr-12 py-2.5 sm:py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-base"
+        autoComplete="off"
+        autoCorrect="off"
+        spellCheck="false"
       />
       {value && (
         <button
           onClick={() => onChange("")}
-          className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-muted-foreground hover:text-foreground transition-colors"
+          className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground active:scale-90 transition-all touch-manipulation rounded-lg"
+          aria-label="Clear search"
         >
           <XIcon />
         </button>
