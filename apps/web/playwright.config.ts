@@ -5,6 +5,11 @@ import { defineConfig, devices } from "@playwright/test";
  *
  * By default, tests run against the live production site.
  * To test locally, set BASE_URL=http://localhost:3000
+ *
+ * Environment variables:
+ * - BASE_URL: Override the base URL (default: https://brennerbot.org)
+ * - RECORD_VIDEO: Set to "on" to record videos of all tests
+ * - SLOW_MO: Set to a number (ms) to slow down actions for debugging
  */
 export default defineConfig({
   testDir: "./e2e",
@@ -12,20 +17,59 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [["html", { outputFolder: "playwright-report" }], ["list"]],
+  timeout: 60000, // 60 second timeout per test
+  expect: {
+    timeout: 10000, // 10 second timeout for assertions
+  },
+  reporter: [
+    // Custom reporter for detailed logging
+    ["./e2e/utils/custom-reporter.ts"],
+    // HTML report for visual debugging
+    ["html", { outputFolder: "playwright-report", open: "never" }],
+    // JSON report for CI integration
+    ["json", { outputFile: "test-results/results.json" }],
+  ],
   use: {
     baseURL: process.env.BASE_URL || "https://brennerbot.org",
+    // Tracing: capture on first retry for debugging failures
     trace: "on-first-retry",
+    // Screenshots: always capture on failure, optionally on success
     screenshot: "only-on-failure",
+    // Video: off by default, enable with RECORD_VIDEO=on
+    video: process.env.RECORD_VIDEO === "on" ? "on" : "off",
+    // Slow motion for debugging (set SLOW_MO=100 for 100ms delay)
+    launchOptions: {
+      slowMo: process.env.SLOW_MO ? parseInt(process.env.SLOW_MO, 10) : 0,
+    },
+    // Viewport size
+    viewport: { width: 1280, height: 720 },
+    // Action timeout
+    actionTimeout: 15000,
+    // Navigation timeout
+    navigationTimeout: 30000,
   },
   projects: [
+    // Desktop browsers
     {
       name: "desktop-chrome",
       use: { ...devices["Desktop Chrome"] },
     },
     {
+      name: "desktop-firefox",
+      use: { ...devices["Desktop Firefox"] },
+    },
+    {
+      name: "desktop-safari",
+      use: { ...devices["Desktop Safari"] },
+    },
+    // Mobile browsers
+    {
       name: "mobile-chrome",
       use: { ...devices["Pixel 5"] },
+    },
+    {
+      name: "mobile-safari",
+      use: { ...devices["iPhone 12"] },
     },
   ],
   outputDir: "test-results/",

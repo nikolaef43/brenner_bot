@@ -1,5 +1,5 @@
-import { readFile, access, readdir } from "node:fs/promises";
-import { resolve, join } from "node:path";
+import { readFile, access } from "node:fs/promises";
+import { resolve } from "node:path";
 
 export type DocCategory = "transcript" | "quote-bank" | "distillation" | "metaprompt" | "raw-response";
 

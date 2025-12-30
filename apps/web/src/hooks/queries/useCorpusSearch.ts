@@ -1,0 +1,173 @@
+"use client";
+
+/**
+ * useCorpusSearch - Query Hook for Corpus Full-Text Search
+ *
+ * Provides reactive search across all corpus documents with automatic caching.
+ * Replaces the manual caching in globalSearch.ts with TanStack Query.
+ *
+ * Features:
+ * - Automatic result caching
+ * - Debounce-friendly (use with useDebounce for input)
+ * - Category and model filtering
+ * - Loading and error states
+ *
+ * @example
+ * ```tsx
+ * function SearchResults() {
+ *   const [query, setQuery] = useState("");
+ *   const debouncedQuery = useDebounce(query, 300);
+ *
+ *   const { data, isLoading, isFetching } = useCorpusSearch(debouncedQuery, {
+ *     category: "distillation",
+ *     limit: 20,
+ *   });
+ *
+ *   return (
+ *     <div>
+ *       <input value={query} onChange={(e) => setQuery(e.target.value)} />
+ *       {isFetching && <Spinner />}
+ *       {data?.hits.map((hit) => <SearchHit key={hit.id} hit={hit} />)}
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
+
+import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import { searchAction } from "@/lib/globalSearchAction";
+import type {
+  GlobalSearchResult,
+  SearchCategory,
+} from "@/lib/globalSearchTypes";
+
+// ============================================================================
+// Types
+// ============================================================================
+
+export interface SearchOptions {
+  /** Maximum results to return */
+  limit?: number;
+  /** Filter by category */
+  category?: SearchCategory;
+  /** Filter by model */
+  model?: "gpt" | "opus" | "gemini";
+}
+
+export interface UseCorpusSearchOptions
+  extends Omit<
+    UseQueryOptions<GlobalSearchResult, Error, GlobalSearchResult, readonly (string | SearchOptions)[]>,
+    "queryKey" | "queryFn"
+  > {
+  /** Search query string */
+  query: string;
+  /** Search options */
+  searchOptions?: SearchOptions;
+}
+
+// ============================================================================
+// Query Key Factory
+// ============================================================================
+
+/**
+ * Query key factory for corpus search.
+ * Keys include the query and options for proper cache isolation.
+ */
+export const corpusSearchKeys = {
+  all: ["corpus", "search"] as const,
+  query: (query: string, options?: SearchOptions) =>
+    ["corpus", "search", query, options ?? {}] as const,
+};
+
+// ============================================================================
+// Hook
+// ============================================================================
+
+/**
+ * Search the corpus with automatic caching.
+ *
+ * Features:
+ * - Results cached by query + options
+ * - Disabled for empty queries
+ * - Shorter stale time (search may update with new content)
+ * - Includes search metadata (timing, category counts)
+ *
+ * @param query - Search query string
+ * @param options - Search and query options
+ * @returns Query result with search hits and metadata
+ */
+export function useCorpusSearch(
+  query: string,
+  options?: SearchOptions & Omit<UseCorpusSearchOptions, "query" | "searchOptions">
+) {
+  const { limit, category, model, ...queryOptions } = options ?? {};
+  const searchOptions: SearchOptions = { limit, category, model };
+
+  return useQuery({
+    queryKey: corpusSearchKeys.query(query, searchOptions),
+    queryFn: () => searchAction(query, searchOptions),
+    // Only run search if query is non-empty (at least 2 chars)
+    enabled: query.length >= 2,
+    // Search results can become stale faster than static docs
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    // Keep previous data while fetching new results
+    placeholderData: (previousData) => previousData,
+    ...queryOptions,
+  });
+}
+
+/**
+ * Hook variant with debounced query handling.
+ * Use this when you want Query to handle the loading states
+ * but still want responsive UI during typing.
+ *
+ * @param query - Raw query (will be disabled if < 2 chars)
+ * @param options - Search options
+ * @returns Query result with isFetching for loading indicator
+ */
+export function useCorpusSearchInstant(
+  query: string,
+  options?: SearchOptions
+) {
+  const { limit, category, model } = options ?? {};
+  const searchOptions: SearchOptions = { limit, category, model };
+
+  return useQuery({
+    queryKey: corpusSearchKeys.query(query, searchOptions),
+    queryFn: () => searchAction(query, searchOptions),
+    enabled: query.length >= 2,
+    staleTime: 2 * 60 * 1000,
+    // Keep showing previous results while typing
+    placeholderData: (previousData) => previousData,
+    // Don't retry on user typos
+    retry: false,
+  });
+}
+
+/**
+ * Prefetch search results (useful for common queries).
+ */
+export async function prefetchCorpusSearch(
+  queryClient: import("@tanstack/react-query").QueryClient,
+  query: string,
+  options?: SearchOptions
+): Promise<void> {
+  if (query.length < 2) return;
+
+  await queryClient.prefetchQuery({
+    queryKey: corpusSearchKeys.query(query, options),
+    queryFn: () => searchAction(query, options),
+  });
+}
+
+/**
+ * Invalidate all search results.
+ * Call this when corpus content changes.
+ */
+export function invalidateSearchResults(
+  queryClient: import("@tanstack/react-query").QueryClient
+): Promise<void> {
+  return queryClient.invalidateQueries({
+    queryKey: corpusSearchKeys.all,
+  });
+}

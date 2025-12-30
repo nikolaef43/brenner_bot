@@ -197,8 +197,9 @@ export function CommandPalette() {
   // Keyboard shortcuts
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Open command palette with Cmd+K or Ctrl+K
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      // Open command palette with Cmd+/ or Ctrl+/ (navigation palette)
+      // Note: Cmd+K is reserved for SpotlightSearch (corpus search)
+      if ((e.metaKey || e.ctrlKey) && e.key === "/") {
         e.preventDefault();
         setOpen((prev) => !prev);
         return;
@@ -367,7 +368,7 @@ export function CommandPalette() {
           </div>
           <span className="flex items-center gap-1">
             <kbd className="command-palette-kbd">⌘</kbd>
-            <kbd className="command-palette-kbd">K</kbd>
+            <kbd className="command-palette-kbd">/</kbd>
             <span className="ml-1">to toggle</span>
           </span>
         </div>
@@ -383,7 +384,7 @@ export function CommandPaletteHint() {
       className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-muted/50 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
       onClick={() => {
         window.dispatchEvent(
-          new KeyboardEvent("keydown", { key: "k", metaKey: true })
+          new KeyboardEvent("keydown", { key: "/", metaKey: true })
         );
       }}
     >
@@ -394,7 +395,7 @@ export function CommandPaletteHint() {
           ⌘
         </kbd>
         <kbd className="px-1.5 py-0.5 text-xs font-mono bg-background rounded border border-border">
-          K
+          /
         </kbd>
       </div>
     </button>

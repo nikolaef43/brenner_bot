@@ -229,6 +229,12 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
                       count={results?.categories.distillation}
                     />
                     <CategoryPill
+                      category="metaprompt"
+                      isActive={activeCategory === "metaprompt"}
+                      onClick={() => setActiveCategory("metaprompt")}
+                      count={results?.categories.metaprompt}
+                    />
+                    <CategoryPill
                       category="raw-response"
                       isActive={activeCategory === "raw-response"}
                       onClick={() => setActiveCategory("raw-response")}
