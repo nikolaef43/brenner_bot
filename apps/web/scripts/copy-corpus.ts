@@ -2,11 +2,12 @@ import { copyFile, mkdir, stat, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { CORPUS_DOCS } from "../src/lib/corpus";
 
-async function assertFileExists(path: string): Promise<void> {
+async function fileExists(path: string): Promise<boolean> {
   try {
     await stat(path);
-  } catch (error) {
-    throw new Error(`Missing corpus file at ${path}`, { cause: error });
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -20,6 +21,19 @@ function restrictedCorpusStub(filename: string): string {
     `- Reason: content policy / distribution constraints`,
     ``,
     `See: \`content_policy_research_v0.1.md\``,
+    ``,
+  ].join("\n");
+}
+
+function missingFileStub(filename: string): string {
+  return [
+    `# Document not available`,
+    ``,
+    `This document could not be found during build.`,
+    ``,
+    `- File: \`${filename}\``,
+    ``,
+    `This may occur in cloud builds where the full repository structure is not available.`,
     ``,
   ].join("\n");
 }
@@ -40,8 +54,21 @@ async function main(): Promise<void> {
       continue;
     }
 
-    await assertFileExists(sourcePath);
-    await copyFile(sourcePath, outputPath);
+    // Check if the output file already exists (e.g., committed to git for Vercel)
+    if (await fileExists(outputPath)) {
+      console.log(`[copy-corpus] Skipping ${doc.filename} - already exists in public/corpus`);
+      continue;
+    }
+
+    // Try to copy from repo root (local dev scenario)
+    if (await fileExists(sourcePath)) {
+      await copyFile(sourcePath, outputPath);
+      console.log(`[copy-corpus] Copied ${doc.filename}`);
+    } else {
+      // Write a stub for missing files (Vercel build without repo root access)
+      console.warn(`[copy-corpus] Source not found, writing stub for ${doc.filename}`);
+      await writeFile(outputPath, missingFileStub(doc.filename), "utf8");
+    }
   }
 }
 
