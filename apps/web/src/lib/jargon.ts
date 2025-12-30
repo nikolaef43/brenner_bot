@@ -75,11 +75,11 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     short:
       "Decompose a problem into distinct levels of organization (⊘).",
     long:
-      "The operator ⊘ separates a problem into levels (e.g., atoms → molecules → cells → organisms). Each level has its own rules. Confusion arises when you mix levels or try to explain one level purely in terms of another.",
+      "The operator ⊘ separates a problem into levels (e.g., atoms → molecules → cells → organisms). Each level has its own rules. Confusion arises when you mix levels or try to explain one level purely in terms of another. Distinguish program from interpreter, message from machine, specification from execution.",
     analogy:
       "Think of it like separating a building into floors. Plumbing problems on floor 3 don't require knowing every brick in the foundation.",
     why:
-      "Brenner emphasizes that biology operates across multiple levels. Failing to level-split leads to confused explanations.",
+      "Brenner emphasizes that biology operates across multiple levels. Failing to level-split leads to confused explanations. Transcript anchors: §45-46 (Von Neumann insight), §50 (chastity vs impotence), §59 (logic vs machinery), §105 (message vs machine), §147 (proper vs improper simulation), §205 (construction vs performance).",
     related: ["recode", "scale-prison", "object-transpose"],
     category: "operators",
   },
@@ -87,11 +87,11 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Recode",
     short: "Change representation to make patterns visible (𝓛).",
     long:
-      "The operator 𝓛 transforms data or problems into a different representation where the answer becomes obvious. What's hidden in one encoding may be obvious in another.",
+      "The operator 𝓛 transforms data or problems into a different representation where the answer becomes obvious. What's hidden in one encoding may be obvious in another. Especially powerful: reduce dimensionality from 3D to 1D when possible.",
     analogy:
       "Think of it like switching from Roman numerals to Arabic numerals—suddenly multiplication becomes easy.",
     why:
-      "Brenner solved the genetic code by recoding the problem from chemistry to information theory.",
+      "Brenner solved the genetic code by recoding the problem from chemistry to information theory. Transcript anchors: §34 (wordplay as alternative interpretations), §58 (dimensional reduction: 'reduction to one dimension... absolute crucial step'), §147 (machine language constraint), §161 (European vs American plan), §175 (junk vs garbage definitional cleanup), §197 (digital/analogue sanity), §205 (gradients vs lineage), §208 (machine language of development).",
     related: ["level-split", "invariant-extract", "digital-handle"],
     category: "operators",
   },
@@ -99,35 +99,35 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Invariant Extract",
     short: "Find what stays the same across transformations (≡).",
     long:
-      "The operator ≡ identifies properties that remain constant despite changes. These invariants are often the key to understanding a system.",
+      "The operator ≡ identifies properties that remain constant despite changes. These invariants are often the key to understanding a system. Find what survives coarse operations, what must hold regardless of specifics.",
     analogy:
       "Think of it like noticing that no matter how you shuffle a deck, there are always 52 cards.",
     why:
-      "Brenner used invariants to identify the essential features of genetic systems that any solution must preserve.",
-    related: ["level-split", "recode"],
+      "Brenner used invariants to identify the essential features of genetic systems that any solution must preserve. Transcript anchors: §66 (scale constraints), §88-89 (phase problem), §100 (dominant-variable rescue: magnesium vs caesium), §109 (topology-level inference), §134 (topological proof of co-linearity), §163 (combinatorial constraints), §178 (feasibility units).",
+    related: ["level-split", "recode", "scale-prison"],
     category: "operators",
   },
   "exclusion-test": {
     term: "Exclusion Test",
     short: "Design tests that rule out hypotheses, not confirm them (✂).",
     long:
-      "The operator ✂ focuses on what can be eliminated. A discriminative experiment asks: 'What result would prove this hypothesis wrong?' If you can't answer that, the experiment is impotent.",
+      "The operator ✂ focuses on what can be eliminated. A discriminative experiment asks: 'What result would prove this hypothesis wrong?' If you can't answer that, the experiment is impotent. Derive what patterns are forbidden under each hypothesis, then design cheap tests that probe those forbidden patterns.",
     analogy:
       "Think of it like a murder mystery where you look for alibis that rule suspects out, not evidence that could fit anyone.",
     why:
-      "Brenner insisted on 'potent' experiments that could actually falsify theories, not just add confirming data.",
-    related: ["potency", "forbidden-pattern", "theory-kill"],
+      "Brenner insisted on 'potent' experiments that could actually falsify theories, not just add confirming data. Transcript anchors: §69 (overlapping code elimination via forbidden amino-acid pairs), §103 ('Both could be wrong'—the third alternative), §147 ('Exclusion is always a tremendously good thing in science').",
+    related: ["potency", "forbidden-pattern", "theory-kill", "potency-check"],
     category: "operators",
   },
   "object-transpose": {
     term: "Object Transpose",
     short: "Switch which entity you're experimenting on (⟂).",
     long:
-      "The operator ⟂ changes what counts as the experimental object. Sometimes the organism isn't what you should vary—it might be the environment, the tool, or the question itself.",
+      "The operator ⟂ changes what counts as the experimental object. Sometimes the organism isn't what you should vary—it might be the environment, the tool, or the question itself. Treat the Tree of Life as a component library to be raided.",
     analogy:
       "Think of it like realizing you should test different fishing spots, not different fish.",
     why:
-      "Brenner chose C. elegans specifically because its properties as an object (small, fast, transparent) enabled experiments impossible in other organisms.",
+      "Brenner chose C. elegans specifically because its properties as an object (small, fast, transparent) enabled experiments impossible in other organisms. Transcript anchors: §91 ('choice of the experimental object remains one of the most important things'), §128-129 (C. elegans specification), §145-146 (EM window forcing function), §191 ('kitchen table' genome mapping), §199 ('Somewhere there is the ideal organism'), §221-222 (Fugu as discount genome).",
     related: ["level-split", "scale-prison", "c-elegans"],
     category: "operators",
   },
@@ -135,11 +135,11 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Amplify",
     short: "Enhance weak signals until they become measurable (↑).",
     long:
-      "The operator ↑ uses techniques to make small effects large enough to detect. Many biological signals are too faint to observe directly.",
+      "The operator ↑ uses biological amplification mechanisms (selection, replication, dominance, abundance) to make signals large and robust. Let biology do the work rather than fighting noise with statistics.",
     analogy:
       "Think of it like using a stethoscope to hear a heartbeat you couldn't detect with your bare ear.",
     why:
-      "Brenner's genetics work required amplifying molecular effects to organism-level phenotypes that could be scored by eye.",
+      "Brenner's genetics work required amplifying molecular effects to organism-level phenotypes that could be scored by eye. Transcript anchors: §62 ('genetics is digital; it's all or none... a thousand times, a million times'), §94 (abundance trick: 'single protein accounted for 70% of all protein synthesis'), §138 (abundance dominates background), §154 (selection for rare worm mutants via tracks).",
     related: ["digital-handle", "abundance-trick"],
     category: "operators",
   },
@@ -147,11 +147,11 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Democratize",
     short: "Make expensive techniques cheap and accessible (⇓).",
     long:
-      "The operator ⇓ spreads capability. Technology that only a few labs can do is less valuable than technology any lab can use.",
+      "The operator ⇓ spreads capability. Technology that only a few labs can do is less valuable than technology any lab can use. Related to DIY—build simple tools that others can replicate.",
     analogy:
       "Think of it like making smartphones—cameras that once required professional equipment became available to everyone.",
     why:
-      "Brenner valued methods that could be adopted by the whole field, not just elite labs with special equipment.",
+      "Brenner valued methods that could be adopted by the whole field, not just elite labs with special equipment. Transcript anchor: §86 (negative staining democratizes EM—'now anybody could do it').",
     related: ["diy", "abundance-trick"],
     category: "operators",
   },
@@ -728,15 +728,25 @@ export function getCategoryCounts(): [JargonCategory, number][] {
  * @returns Array of [key, term] tuples matching the query
  */
 export function searchJargon(query: string): [string, JargonTerm][] {
-  const lowerQuery = query.toLowerCase();
+  const lowerQuery = query.toLowerCase().trim();
+  if (!lowerQuery) return Object.entries(jargonDictionary);
+
+  const parts = lowerQuery.split(/\s+/).filter(Boolean);
 
   return Object.entries(jargonDictionary).filter(([key, term]) => {
-    return (
-      key.includes(lowerQuery) ||
-      term.term.toLowerCase().includes(lowerQuery) ||
-      term.short.toLowerCase().includes(lowerQuery) ||
-      term.long.toLowerCase().includes(lowerQuery)
-    );
+    const haystack = [
+      key,
+      term.term,
+      term.short,
+      term.long,
+      term.analogy ?? "",
+      term.why ?? "",
+      ...(term.related ?? []),
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return parts.every((part) => haystack.includes(part));
   });
 }
 
