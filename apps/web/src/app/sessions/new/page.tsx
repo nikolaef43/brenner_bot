@@ -1,4 +1,4 @@
-import { resolve } from "node:path";
+import { isAbsolute, resolve, win32 } from "node:path";
 import { cookies, headers } from "next/headers";
 import { AgentMailClient } from "@/lib/agentMail";
 import { isLabModeEnabled, checkOrchestrationAuth } from "@/lib/auth";
@@ -263,7 +263,9 @@ export default async function NewSessionPage({
   let agentNames: string[] = [];
   try {
     const client = new AgentMailClient();
-    const projectSlug = projectKeyDefault.startsWith("/")
+    // Treat Windows absolute paths as absolute even on non-Windows runtimes.
+    const isAbsoluteProjectKey = isAbsolute(projectKeyDefault) || win32.isAbsolute(projectKeyDefault);
+    const projectSlug = isAbsoluteProjectKey
       ? parseEnsureProjectSlug(await client.toolsCall("ensure_project", { human_key: projectKeyDefault }))
       : projectKeyDefault;
     if (!projectSlug) throw new Error("Agent Mail: could not resolve project slug.");

@@ -352,7 +352,7 @@ Status legend:
 | `session start --project-key <abs-path> ...` | Compose + send a “kickoff” message via Agent Mail (alias: `orchestrate start`) | ✅ |
 | `session status --thread-id <id> [--watch]` | Show per-role session status (and optionally wait until complete) | ✅ |
 | `mail inbox` / `mail ack` / `mail thread` | Inbox + acknowledgement + thread tooling | ✅ |
-| `session compile` / `session publish` | Compile agent deltas into a canonical artifact + publish back to thread | 🧭 (see `brenner_bot-5so.5.3`, `brenner_bot-5so.3.4`) |
+| `session compile` / `session write` / `session publish` | Compile agent deltas into a canonical artifact, optionally write to disk, and publish back to thread | ✅ |
 | `corpus search <query>` | Corpus search (ranked hits + anchors + snippets) | ✅ |
 
 #### Config precedence (contract)

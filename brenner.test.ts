@@ -134,6 +134,9 @@ describe("help and usage", () => {
     expect(result.stdout).toContain("memory context");
     expect(result.stdout).toContain("session start");
     expect(result.stdout).toContain("session status");
+    expect(result.stdout).toContain("session compile");
+    expect(result.stdout).toContain("session write");
+    expect(result.stdout).toContain("session publish");
   });
 
   it("usage includes environment variable documentation", async () => {
@@ -698,6 +701,46 @@ describe("session status validation", () => {
     ]);
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("connect");
+  });
+});
+
+// ============================================================================
+// Tests: session compile/write/publish Command Validation
+// ============================================================================
+
+describe("session compile validation", () => {
+  it("requires --thread-id flag", async () => {
+    const result = await runCli(["session", "compile"]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--thread-id");
+  });
+});
+
+describe("session write validation", () => {
+  it("requires --thread-id flag", async () => {
+    const result = await runCli(["session", "write"]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--thread-id");
+  });
+});
+
+describe("session publish validation", () => {
+  it("requires --thread-id flag", async () => {
+    const result = await runCli(["session", "publish"]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--thread-id");
+  });
+
+  it("requires --sender flag", async () => {
+    const result = await runCli(["session", "publish", "--thread-id", "TEST-1", "--to", "Agent"]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--sender");
+  });
+
+  it("requires --to flag", async () => {
+    const result = await runCli(["session", "publish", "--thread-id", "TEST-1", "--sender", "Test"]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--to");
   });
 });
 

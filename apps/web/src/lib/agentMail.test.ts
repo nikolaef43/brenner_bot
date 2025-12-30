@@ -9,7 +9,7 @@
  * Run with: cd apps/web && bun run test -- src/lib/agentMail.test.ts
  */
 
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { AgentMailClient, AgentMailConfig, AgentMailInbox, AgentMailMessage } from "./agentMail";
 
 // ============================================================================
@@ -235,6 +235,54 @@ describe("error handling", () => {
     // This will fail because the server isn't running, giving us a connection error
     const client = new AgentMailClient({ baseUrl: "http://localhost:59998" });
     await expect(client.toolsList()).rejects.toThrow();
+  });
+});
+
+// ============================================================================
+// Tests: SSE Response Parsing (unit-level, uses fetch stub)
+// ============================================================================
+
+describe("SSE response parsing", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("parses a text/event-stream JSON-RPC success envelope", async () => {
+    const sseBody = [
+      "event: message",
+      'data: {"jsonrpc":"2.0","id":"1","result":{"ok":true}}',
+      "",
+      "",
+    ].join("\n");
+
+    vi.stubGlobal("fetch", async () => {
+      return new Response(sseBody, {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream; charset=utf-8" },
+      });
+    });
+
+    const client = new AgentMailClient({ baseUrl: "http://example.com" });
+    const result = await client.call("tools/list");
+    expect(result).toEqual({ ok: true });
+  });
+
+  it("throws on a text/event-stream JSON-RPC error envelope", async () => {
+    const sseBody = [
+      'data: {"jsonrpc":"2.0","id":"1","error":{"code":-32000,"message":"boom"}}',
+      "",
+      "",
+    ].join("\n");
+
+    vi.stubGlobal("fetch", async () => {
+      return new Response(sseBody, {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream" },
+      });
+    });
+
+    const client = new AgentMailClient({ baseUrl: "http://example.com" });
+    await expect(client.call("tools/list")).rejects.toThrow("boom");
   });
 });
 

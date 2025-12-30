@@ -53,10 +53,24 @@ function persistState() {
 }
 
 if (typeof window !== "undefined") {
-  readingStore.subscribe(persistState);
+  // Avoid duplicate subscriptions/listeners during dev HMR by reusing stable globals.
+  const GLOBAL_STORAGE_HANDLER_KEY = "__brenner_readingStore_storageHandler__";
+  const GLOBAL_UNSUBSCRIBE_KEY = "__brenner_readingStore_unsubscribe__";
+
+  const previousUnsubscribe = (globalThis as unknown as Record<string, unknown>)[GLOBAL_UNSUBSCRIBE_KEY];
+  if (typeof previousUnsubscribe === "function") {
+    previousUnsubscribe();
+  }
+
+  (globalThis as unknown as Record<string, unknown>)[GLOBAL_UNSUBSCRIBE_KEY] = readingStore.subscribe(persistState);
 
   // Cross-tab sync
-  window.addEventListener("storage", (e) => {
+  const previousStorageHandler = (globalThis as unknown as Record<string, unknown>)[GLOBAL_STORAGE_HANDLER_KEY];
+  if (typeof previousStorageHandler === "function") {
+    window.removeEventListener("storage", previousStorageHandler as (e: StorageEvent) => void);
+  }
+
+  const storageHandler = (e: StorageEvent) => {
     if (e.key === STORAGE_KEY && e.newValue) {
       try {
         const newState = JSON.parse(e.newValue) as ReadingState;
@@ -65,7 +79,10 @@ if (typeof window !== "undefined") {
         // Ignore parse errors
       }
     }
-  });
+  };
+
+  window.addEventListener("storage", storageHandler);
+  (globalThis as unknown as Record<string, unknown>)[GLOBAL_STORAGE_HANDLER_KEY] = storageHandler;
 }
 
 // Actions

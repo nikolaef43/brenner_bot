@@ -56,6 +56,115 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function isJsonRpcEnvelope(value: unknown): value is Record<string, unknown> {
+  if (!isRecord(value)) return false;
+  if (value.jsonrpc !== "2.0") return false;
+  return "result" in value || "error" in value;
+}
+
+async function readJsonRpcEnvelopeFromSse(res: Response): Promise<unknown> {
+  const reader = res.body?.getReader();
+
+  const parseEventData = (eventData: string): unknown | null => {
+    const trimmed = eventData.trim();
+    if (!trimmed || trimmed === "[DONE]") return null;
+
+    try {
+      const parsed = JSON.parse(trimmed) as unknown;
+      return isJsonRpcEnvelope(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  };
+
+  if (!reader) {
+    const text = await res.text();
+    const lines = text.split(/\r?\n/);
+    let dataLines: string[] = [];
+    let lastDataSnippet = "";
+
+    for (const line of lines) {
+      if (line === "") {
+        const eventData = dataLines.join("\n");
+        dataLines = [];
+        lastDataSnippet = eventData.slice(0, 400);
+        const parsed = parseEventData(eventData);
+        if (parsed) return parsed;
+        continue;
+      }
+
+      if (line.startsWith("data:")) dataLines.push(line.slice(5).trimStart());
+    }
+
+    const finalEventData = dataLines.join("\n");
+    lastDataSnippet = finalEventData.slice(0, 400);
+    const finalParsed = parseEventData(finalEventData);
+    if (finalParsed) return finalParsed;
+
+    throw new Error(`Agent Mail SSE response missing JSON-RPC payload: ${lastDataSnippet}`);
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let dataLines: string[] = [];
+  let lastDataSnippet = "";
+
+  const finalizeEvent = (): unknown | null => {
+    const eventData = dataLines.join("\n");
+    dataLines = [];
+    lastDataSnippet = eventData.slice(0, 400);
+    return parseEventData(eventData);
+  };
+
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      while (true) {
+        const newlineIndex = buffer.indexOf("\n");
+        if (newlineIndex === -1) break;
+
+        let line = buffer.slice(0, newlineIndex);
+        buffer = buffer.slice(newlineIndex + 1);
+        if (line.endsWith("\r")) line = line.slice(0, -1);
+
+        if (line === "") {
+          const parsed = finalizeEvent();
+          if (parsed) {
+            try {
+              await reader.cancel();
+            } catch {}
+            return parsed;
+          }
+          continue;
+        }
+
+        if (line.startsWith("data:")) dataLines.push(line.slice(5).trimStart());
+      }
+    }
+  } finally {
+    buffer += decoder.decode();
+  }
+
+  if (buffer) {
+    for (const line of buffer.split(/\r?\n/)) {
+      if (line === "") {
+        const parsed = finalizeEvent();
+        if (parsed) return parsed;
+        continue;
+      }
+      if (line.startsWith("data:")) dataLines.push(line.slice(5).trimStart());
+    }
+  }
+
+  const finalParsed = finalizeEvent();
+  if (finalParsed) return finalParsed;
+
+  throw new Error(`Agent Mail SSE response missing JSON-RPC payload: ${lastDataSnippet}`);
+}
+
 function readFirstResourceText(result: JsonValue): string {
   if (!isRecord(result)) throw new Error(`Agent Mail malformed resources/read response: ${JSON.stringify(result)}`);
 
@@ -111,12 +220,18 @@ export class AgentMailClient {
     if (this.config.bearerToken) headers.Authorization = `Bearer ${this.config.bearerToken}`;
 
     const res = await fetch(this.endpoint(), { method: "POST", headers, body });
-    const text = await res.text();
+    const contentType = res.headers.get("content-type")?.toLowerCase() ?? "";
+
     let data: unknown = undefined;
-    try {
-      data = text ? (JSON.parse(text) as unknown) : undefined;
-    } catch {
-      throw new Error(`Agent Mail non-JSON response (HTTP ${res.status}): ${text.slice(0, 400)}`);
+    if (contentType.includes("text/event-stream")) {
+      data = await readJsonRpcEnvelopeFromSse(res);
+    } else {
+      const text = await res.text();
+      try {
+        data = text ? (JSON.parse(text) as unknown) : undefined;
+      } catch {
+        throw new Error(`Agent Mail non-JSON response (HTTP ${res.status}): ${text.slice(0, 400)}`);
+      }
     }
 
     if (!res.ok) throw new Error(`Agent Mail HTTP ${res.status}: ${JSON.stringify(data)}`);

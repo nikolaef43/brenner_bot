@@ -9,7 +9,7 @@
  * Runtime: Bun-only. Local imports are bundled when compiled.
  */
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 
@@ -21,7 +21,20 @@ import { globalSearch, type SearchCategory } from "./apps/web/src/lib/globalSear
 import type { Json } from "./apps/web/src/lib/json";
 import { parseQuoteBank } from "./apps/web/src/lib/quotebank-parser";
 import { composeKickoffMessages, type KickoffConfig } from "./apps/web/src/lib/session-kickoff";
-import { computeThreadStatusFromThread, formatThreadStatusSummary } from "./apps/web/src/lib/threadStatus";
+import { parseDeltaMessage, type ValidDelta } from "./apps/web/src/lib/delta-parser";
+import {
+  createEmptyArtifact,
+  formatLintReportHuman,
+  lintArtifact,
+  mergeArtifactWithTimestamps,
+  renderArtifactMarkdown,
+} from "./apps/web/src/lib/artifact-merge";
+import {
+  computeThreadStatusFromThread,
+  extractVersion,
+  formatThreadStatusSummary,
+  parseSubjectType,
+} from "./apps/web/src/lib/threadStatus";
 import {
   parseManifest,
   detectPlatform,
@@ -940,6 +953,10 @@ Commands:
                [--with-memory] [--unified] [--template <path>] [--theme <s>] [--domain <s>]
 
   session status [--project-key <abs-path>] --thread-id <id> [--watch] [--timeout <seconds>]
+  session compile [--project-key <abs-path>] --thread-id <id> [--out-file <path>] [--json]
+  session write [--project-key <abs-path>] --thread-id <id> [--out-file <path>] [--json]
+  session publish [--project-key <abs-path>] --thread-id <id> [--sender <AgentName>] --to <A,B>
+                [--subject <s>] [--ack-required] [--json]
 
     By default, sends role-specific prompts to each recipient:
       - Codex/GPT → Hypothesis Generator
@@ -1048,6 +1065,135 @@ function composePrompt(options: {
     chunks.push("");
   }
   return chunks.join("\n");
+}
+
+type CompileSessionResult =
+  | {
+      ok: true;
+      threadId: string;
+      version: number;
+      markdown: string;
+      lint: ReturnType<typeof lintArtifact>;
+      merge: {
+        applied: number;
+        skipped: number;
+        warnings: Json[];
+      };
+      deltas: {
+        total_blocks: number;
+        valid: number;
+        invalid: number;
+      };
+      invalid_deltas: Array<{ message_id: number; subject: string; error: string }>;
+    }
+  | {
+      ok: false;
+      threadId: string;
+      errors: Json[];
+      warnings: Json[];
+      merge: { applied: number; skipped: number };
+      deltas: {
+        total_blocks: number;
+        valid: number;
+        invalid: number;
+      };
+      invalid_deltas: Array<{ message_id: number; subject: string; error: string }>;
+    };
+
+function computeNextCompiledVersion(messages: Array<{ subject: string }>): number {
+  let maxVersion = 0;
+  let compiledCount = 0;
+
+  for (const message of messages) {
+    const type = parseSubjectType(message.subject).type;
+    if (type !== "compiled") continue;
+    compiledCount++;
+
+    const parsed = extractVersion(message.subject);
+    if (typeof parsed === "number" && parsed > maxVersion) maxVersion = parsed;
+  }
+
+  return Math.max(maxVersion, compiledCount) + 1;
+}
+
+async function compileSessionArtifact(args: {
+  client: AgentMailClient;
+  projectKey: string;
+  threadId: string;
+}): Promise<CompileSessionResult> {
+  if (isAbsolute(args.projectKey)) {
+    await args.client.toolsCall("ensure_project", { human_key: args.projectKey });
+  }
+
+  const thread = await args.client.readThread({ projectKey: args.projectKey, threadId: args.threadId, includeBodies: true });
+  const version = computeNextCompiledVersion(thread.messages);
+
+  const base = createEmptyArtifact(args.threadId);
+  base.metadata.version = Math.max(0, version - 1);
+  base.metadata.status = "active";
+
+  const mergedDeltas: Array<ValidDelta & { timestamp: string; agent: string }> = [];
+  const invalidDeltas: Array<{ message_id: number; subject: string; error: string }> = [];
+
+  let totalBlocks = 0;
+  let validCount = 0;
+  let invalidCount = 0;
+
+  for (const message of thread.messages) {
+    if (typeof message.body_md !== "string" || message.body_md.trim().length === 0) continue;
+    const parsed = parseDeltaMessage(message.body_md);
+    totalBlocks += parsed.totalBlocks;
+    validCount += parsed.validCount;
+    invalidCount += parsed.invalidCount;
+
+    for (const delta of parsed.deltas) {
+      if (delta.valid) {
+        mergedDeltas.push({
+          ...delta,
+          timestamp: message.created_ts,
+          agent: message.from ?? "unknown",
+        });
+        continue;
+      }
+
+      invalidDeltas.push({
+        message_id: message.id,
+        subject: message.subject,
+        error: delta.error,
+      });
+    }
+  }
+
+  const mergeResult = mergeArtifactWithTimestamps(base, mergedDeltas);
+  if (!mergeResult.ok) {
+    return {
+      ok: false,
+      threadId: args.threadId,
+      errors: mergeResult.errors as unknown as Json[],
+      warnings: mergeResult.warnings as unknown as Json[],
+      merge: { applied: mergeResult.applied_count, skipped: mergeResult.skipped_count },
+      deltas: { total_blocks: totalBlocks, valid: validCount, invalid: invalidCount },
+      invalid_deltas: invalidDeltas,
+    };
+  }
+
+  const lint = lintArtifact(mergeResult.artifact);
+  const markdown = renderArtifactMarkdown(mergeResult.artifact);
+
+  return {
+    ok: true,
+    threadId: args.threadId,
+    version: mergeResult.artifact.metadata.version,
+    markdown,
+    lint,
+    merge: {
+      applied: mergeResult.applied_count,
+      skipped: mergeResult.skipped_count,
+      warnings: mergeResult.warnings as unknown as Json[],
+    },
+    deltas: { total_blocks: totalBlocks, valid: validCount, invalid: invalidCount },
+    invalid_deltas: invalidDeltas,
+  };
 }
 
 async function main(): Promise<void> {
@@ -1991,6 +2137,150 @@ async function main(): Promise<void> {
     }
 
     process.exit(0);
+  }
+
+  if (normalizedTop === "session" && sub === "compile") {
+    const client = new AgentMailClient(runtimeConfig.agentMail);
+    const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
+    const threadId = asStringFlag(flags, "thread-id");
+    if (!threadId) throw new Error("Missing --thread-id.");
+
+    const jsonMode = asBoolFlag(flags, "json");
+    const outFileRaw = asStringFlag(flags, "out-file") ?? asStringFlag(flags, "out");
+    const outFile = outFileRaw ? resolve(outFileRaw) : null;
+
+    const result = await compileSessionArtifact({ client, projectKey, threadId });
+    if (!result.ok) {
+      if (jsonMode) {
+        console.log(JSON.stringify(result, null, 2));
+      } else {
+        console.error(`Failed to compile artifact for thread ${threadId}.`);
+        if (result.deltas.total_blocks > 0) {
+          console.error(
+            `Delta blocks: ${result.deltas.valid} valid, ${result.deltas.invalid} invalid (total ${result.deltas.total_blocks}).`
+          );
+        }
+        console.error(JSON.stringify({ errors: result.errors, warnings: result.warnings }, null, 2));
+      }
+      process.exit(1);
+    }
+
+    if (outFile) {
+      mkdirSync(dirname(outFile), { recursive: true });
+      writeFileSync(outFile, result.markdown, "utf8");
+    }
+
+    if (jsonMode) {
+      const payload = outFile ? { ...result, out_file: outFile } : result;
+      console.log(JSON.stringify(payload, null, 2));
+      process.exit(0);
+    }
+
+    process.stdout.write(result.markdown);
+
+    if (outFile) {
+      console.error(`Wrote artifact to ${outFile}.`);
+    }
+
+    if (result.deltas.total_blocks > 0) {
+      console.error(
+        `Delta blocks: ${result.deltas.valid} valid, ${result.deltas.invalid} invalid (total ${result.deltas.total_blocks}).`
+      );
+    }
+    if (result.invalid_deltas.length > 0) {
+      console.error(`Invalid delta blocks (sample):`);
+      for (const item of result.invalid_deltas.slice(0, 5)) {
+        console.error(`- message ${item.message_id}: ${item.subject} → ${item.error}`);
+      }
+    }
+
+    console.error(formatLintReportHuman(result.lint, `artifact v${result.version}`));
+    process.exit(0);
+  }
+
+  if (normalizedTop === "session" && sub === "write") {
+    const client = new AgentMailClient(runtimeConfig.agentMail);
+    const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
+    const threadId = asStringFlag(flags, "thread-id");
+    if (!threadId) throw new Error("Missing --thread-id.");
+
+    const jsonMode = asBoolFlag(flags, "json");
+    const outFileRaw = asStringFlag(flags, "out-file") ?? asStringFlag(flags, "out");
+    const outFile = resolve(outFileRaw ?? join(projectKey, "artifacts", `${threadId}.md`));
+
+    const result = await compileSessionArtifact({ client, projectKey, threadId });
+    if (!result.ok) {
+      console.log(JSON.stringify(result, null, 2));
+      process.exit(1);
+    }
+
+    mkdirSync(dirname(outFile), { recursive: true });
+    writeFileSync(outFile, result.markdown, "utf8");
+
+    if (jsonMode) {
+      console.log(JSON.stringify({ ...result, out_file: outFile }, null, 2));
+    } else {
+      console.error(`Wrote artifact to ${outFile}.`);
+      console.error(formatLintReportHuman(result.lint, `artifact v${result.version}`));
+    }
+
+    process.exit(0);
+  }
+
+  if (normalizedTop === "session" && sub === "publish") {
+    const client = new AgentMailClient(runtimeConfig.agentMail);
+    const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
+    const threadId = asStringFlag(flags, "thread-id");
+    if (!threadId) throw new Error("Missing --thread-id.");
+
+    let sender = asStringFlag(flags, "sender") ?? process.env.AGENT_NAME;
+    if (!sender) throw new Error("Missing --sender (or set AGENT_NAME).");
+    const to = splitCsv(asStringFlag(flags, "to"));
+    if (to.length === 0) throw new Error("Missing --to <A,B>.");
+    const ackRequired = asBoolFlag(flags, "ack-required");
+    const jsonMode = asBoolFlag(flags, "json");
+
+    await client.toolsCall("ensure_project", { human_key: projectKey });
+    const registerResult = await client.toolsCall("register_agent", {
+      project_key: projectKey,
+      name: sender,
+      program: "brenner-cli",
+      model: "orchestrator",
+      task_description: `Brenner Protocol publish: ${threadId}`,
+    });
+    const actualName = parseAgentNameFromToolResult(registerResult);
+    if (actualName && actualName !== sender) {
+      console.error(`Agent Mail assigned sender name "${actualName}" (requested "${sender}").`);
+      sender = actualName;
+    }
+
+    const compiled = await compileSessionArtifact({ client, projectKey, threadId });
+    if (!compiled.ok) {
+      console.log(JSON.stringify(compiled, null, 2));
+      process.exit(1);
+    }
+
+    const subject = asStringFlag(flags, "subject") ?? `COMPILED: v${compiled.version} artifact`;
+
+    const sendResult = await client.toolsCall("send_message", {
+      project_key: projectKey,
+      sender_name: sender,
+      to,
+      subject,
+      body_md: compiled.markdown,
+      thread_id: threadId,
+      ack_required: ackRequired,
+    });
+
+    const payload = { compiled, send: sendResult };
+    if (jsonMode) {
+      console.log(JSON.stringify(payload, null, 2));
+    } else {
+      console.log(JSON.stringify(sendResult, null, 2));
+      console.error(formatLintReportHuman(compiled.lint, `artifact v${compiled.version}`));
+    }
+
+    process.exit(isToolError(sendResult) ? 1 : 0);
   }
 
   if (normalizedTop === "session" && sub === "status") {
