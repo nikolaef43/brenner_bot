@@ -246,19 +246,36 @@ export async function globalSearch(
   const startTime = performance.now();
 
   const normalizedQuery = query.trim().toLowerCase();
+  const emptyCategories: Record<DocCategory, number> = {
+    transcript: 0,
+    "quote-bank": 0,
+    distillation: 0,
+    metaprompt: 0,
+    "raw-response": 0,
+  };
+
   if (!normalizedQuery) {
     return {
       query,
       hits: [],
       totalMatches: 0,
       searchTimeMs: 0,
-      categories: {
-        transcript: 0,
-        "quote-bank": 0,
-        distillation: 0,
-        metaprompt: 0,
-        "raw-response": 0,
-      },
+      categories: emptyCategories,
+    };
+  }
+
+  // Debounce-friendly behavior: ignore queries that would otherwise match everything.
+  // We currently treat 1-character terms as noise, so if no meaningful terms remain,
+  // return empty quickly (prevents `[].every(...) === true` from matching all chunks).
+  const queryTerms = normalizedQuery.split(/\s+/).filter((t) => t.length > 1);
+  if (queryTerms.length === 0) {
+    const endTime = performance.now();
+    return {
+      query,
+      hits: [],
+      totalMatches: 0,
+      searchTimeMs: Math.round(endTime - startTime),
+      categories: emptyCategories,
     };
   }
 
@@ -283,14 +300,13 @@ export async function globalSearch(
     "raw-response": 0,
   };
 
-  // Support multi-word queries
-  const queryTerms = normalizedQuery.split(/\s+/).filter((t) => t.length > 1);
-
   for (const chunk of candidates) {
-    const inTitle = chunk.titleLower.includes(normalizedQuery) ||
-      queryTerms.every((term) => chunk.titleLower.includes(term));
-    const inBody = chunk.contentLower.includes(normalizedQuery) ||
-      queryTerms.every((term) => chunk.contentLower.includes(term));
+    const inTitle =
+      chunk.titleLower.includes(normalizedQuery) ||
+      (queryTerms.length > 0 && queryTerms.every((term) => chunk.titleLower.includes(term)));
+    const inBody =
+      chunk.contentLower.includes(normalizedQuery) ||
+      (queryTerms.length > 0 && queryTerms.every((term) => chunk.contentLower.includes(term)));
 
     if (!inTitle && !inBody) continue;
 

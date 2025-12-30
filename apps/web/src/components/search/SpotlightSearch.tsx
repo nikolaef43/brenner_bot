@@ -258,7 +258,7 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
               {/* Loading Skeletons */}
               {isLoading && !results && query && (
                 <div className="p-3 sm:p-4 space-y-2">
-                  {[...Array(4)].map((_, i) => (
+                  {Array.from({ length: 4 }).map((_, i) => (
                     <SearchResultSkeleton key={i} delay={i * 50} />
                   ))}
                 </div>
@@ -455,6 +455,7 @@ function HighlightedText({ text, query }: { text: string; query: string }) {
   if (!query) return <>{text}</>;
 
   const terms = query.toLowerCase().split(/\s+/).filter((t) => t.length > 1);
+  if (terms.length === 0) return <>{text}</>;
   const regex = new RegExp(`(${terms.map(escapeRegex).join("|")})`, "gi");
   const parts = text.split(regex);
 
