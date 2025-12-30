@@ -21,9 +21,6 @@ export default defineConfig({
     // Exclude E2E tests (handled by Playwright)
     exclude: ["e2e/**/*", "node_modules/**/*"],
 
-    // Enable source maps for better debugging
-    sourcemap: true,
-
     // Global test timeout (5 seconds)
     testTimeout: 5000,
 
