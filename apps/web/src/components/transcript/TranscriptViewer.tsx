@@ -170,11 +170,10 @@ export function ReadingProgress() {
 
 interface TranscriptSectionProps {
   section: TSection;
-  index: number;
   isActive: boolean;
 }
 
-export function TranscriptSection({ section, index, isActive }: TranscriptSectionProps) {
+export function TranscriptSection({ section, isActive }: TranscriptSectionProps) {
   return (
     <section
       id={`section-${section.number}`}
@@ -454,7 +453,6 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
             >
               <TranscriptSection
                 section={section}
-                index={index}
                 isActive={activeSection === index}
               />
             </div>

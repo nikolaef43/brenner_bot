@@ -37,7 +37,7 @@ function parseInlineFormatting(text: string): { clean: string; highlights: strin
   }
 
   // Clean the text
-  let clean = text
+  const clean = text
     .replace(/\*\*([^*]+)\*\*/g, "$1") // Remove bold markers
     .replace(/\*([^*]+)\*/g, "$1")     // Remove italic markers
     .replace(/\[sic\]/g, "[sic]")      // Keep sic markers
