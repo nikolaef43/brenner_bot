@@ -131,6 +131,8 @@ The idea is to turn those into **prompt templates + structured research protocol
 
 ### Conceptual architecture
 
+> **Key insight**: This is a **CLI-based** architecture. We use subscription-tier CLI tools (Claude Max, GPT Pro, Gemini Ultra) running in terminal sessions—not AI APIs. Coordination happens via Agent Mail; orchestration via ntm (Named Tmux Manager).
+
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {
   'primaryColor': '#e3f2fd',
@@ -159,38 +161,49 @@ flowchart TB
         S --> P
     end
 
-    subgraph COORD["<b>COORDINATION LAYER</b>"]
+    subgraph COCKPIT["<b>TERMINAL COCKPIT</b>"]
         direction TB
+        NTM["🖥️ ntm · tmux sessions<br/><i>agent panes · routing</i>"]
         AM["📬 Agent Mail · MCP<br/><i>threads · inbox · acks</i>"]
+        NTM <--> AM
 
-        subgraph AGENTS[" "]
+        subgraph CLI["<b>CLI Agents</b> <i>(subscription tiers)</i>"]
             direction LR
-            C["🟣 Claude<br/><i>synthesis</i>"]
-            G["🟢 GPT<br/><i>reasoning</i>"]
-            M["🔵 Gemini<br/><i>reframing</i>"]
+            C["🟣 claude code<br/><i>Claude Max</i>"]
+            G["🟢 codex-cli<br/><i>GPT Pro</i>"]
+            M["🔵 gemini-cli<br/><i>Gemini Ultra</i>"]
         end
 
-        AC["🔧 Artifact Compiler<br/><i>merge + lint</i>"]
-
-        AM --> AGENTS --> AC
+        NTM --> CLI
+        CLI --> AM
     end
 
     subgraph ARTIFACTS["<b>DURABLE ARTIFACTS</b>"]
-        direction LR
-        H["Hypothesis<br/>Slates"]
-        D["Discriminative<br/>Tests"]
-        A["Assumption<br/>Ledgers"]
-        X["Adversarial<br/>Critiques"]
+        direction TB
+        subgraph OUTPUTS[" "]
+            direction LR
+            H["Hypothesis<br/>Slates"]
+            D["Discriminative<br/>Tests"]
+        end
+        subgraph OUTPUTS2[" "]
+            direction LR
+            A["Assumption<br/>Ledgers"]
+            X["Adversarial<br/>Critiques"]
+        end
     end
 
-    SOURCES --> KERNEL --> COORD --> ARTIFACTS
+    SOURCES --> KERNEL
+    KERNEL --> COCKPIT
+    COCKPIT --> ARTIFACTS
     ARTIFACTS -.->|"feedback"| SOURCES
 
     style SOURCES fill:#e3f2fd,stroke:#64b5f6,stroke-width:2px,color:#1565c0
     style KERNEL fill:#e8f5e9,stroke:#81c784,stroke-width:2px,color:#2e7d32
-    style COORD fill:#f3e5f5,stroke:#ba68c8,stroke-width:2px,color:#7b1fa2
+    style COCKPIT fill:#f3e5f5,stroke:#ba68c8,stroke-width:2px,color:#7b1fa2
+    style CLI fill:#fce4ec,stroke:#f48fb1,stroke-width:1px,color:#880e4f
     style ARTIFACTS fill:#fff8e1,stroke:#ffb74d,stroke-width:2px,color:#ef6c00
-    style AGENTS fill:#fafafa,stroke:#bdbdbd,stroke-width:1px
+    style OUTPUTS fill:#fffde7,stroke:#fff59d,stroke-width:1px
+    style OUTPUTS2 fill:#fffde7,stroke:#fff59d,stroke-width:1px
 ```
 
 ### The Agent Mail connection
