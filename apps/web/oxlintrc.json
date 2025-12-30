@@ -1,0 +1,35 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2024": true
+  },
+  "settings": {
+    "react": {
+      "version": "19"
+    },
+    "next": {
+      "rootDir": "."
+    }
+  },
+  "rules": {
+    "no-console": "off",
+    "eqeqeq": ["error", "smart"],
+
+    "typescript/no-explicit-any": "warn",
+    "typescript/prefer-ts-expect-error": "error",
+
+    "react/react-in-jsx-scope": "off",
+    "react/no-array-index-key": "off"
+  },
+  "ignorePatterns": [
+    ".next/**",
+    "node_modules/**",
+    "out/**",
+    "build/**",
+    "*.config.js",
+    "*.config.mjs",
+    "*.config.ts"
+  ]
+}
