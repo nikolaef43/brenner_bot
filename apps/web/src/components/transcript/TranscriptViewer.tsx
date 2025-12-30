@@ -140,6 +140,137 @@ export function TableOfContents({ sections, activeSection, onSectionClick }: Tab
 }
 
 // ============================================================================
+// TRANSCRIPT SEARCH
+// ============================================================================
+
+interface TranscriptSearchProps {
+  sections: TSection[];
+  onResultClick: (sectionIndex: number) => void;
+  onSearchChange: (query: string) => void;
+}
+
+export function TranscriptSearch({ sections, onResultClick, onSearchChange }: TranscriptSearchProps) {
+  const { query, results, isSearching, search, clearSearch, setScope } = useSearch({ limit: 20 });
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Set scope to transcript only on mount
+  useEffect(() => {
+    setScope("transcript");
+  }, [setScope]);
+
+  // Notify parent of search query changes for highlighting
+  useEffect(() => {
+    onSearchChange(query);
+  }, [query, onSearchChange]);
+
+  // Filter results to find matching sections
+  const matchingSections = useMemo(() => {
+    if (!results.length) return [];
+
+    return results
+      .filter(r => r.category === "transcript" && r.sectionNumber !== undefined)
+      .map(r => {
+        const sectionIndex = sections.findIndex(s => s.number === r.sectionNumber);
+        return {
+          result: r,
+          sectionIndex,
+          section: sectionIndex >= 0 ? sections[sectionIndex] : null,
+        };
+      })
+      .filter(m => m.section !== null);
+  }, [results, sections]);
+
+  const handleResultClick = (sectionIndex: number) => {
+    onResultClick(sectionIndex);
+    setIsOpen(false);
+  };
+
+  const handleClear = () => {
+    clearSearch();
+    inputRef.current?.focus();
+  };
+
+  return (
+    <div className="relative mb-4">
+      {/* Search Input */}
+      <div className="relative">
+        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground size-4" />
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(e) => {
+            search(e.target.value);
+            setIsOpen(true);
+          }}
+          onFocus={() => query && setIsOpen(true)}
+          placeholder="Search transcript..."
+          className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-muted/50 border border-border/50 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+        />
+        {query && (
+          <button
+            onClick={handleClear}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <CloseIcon className="size-4" />
+          </button>
+        )}
+        {isSearching && (
+          <div className="absolute right-10 top-1/2 -translate-y-1/2">
+            <div className="size-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          </div>
+        )}
+      </div>
+
+      {/* Search Results Dropdown */}
+      {isOpen && query && (
+        <div className="absolute z-50 top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-lg overflow-hidden max-h-80 overflow-y-auto">
+          {matchingSections.length > 0 ? (
+            <>
+              <div className="px-3 py-2 text-xs text-muted-foreground border-b border-border/50 bg-muted/30">
+                {matchingSections.length} result{matchingSections.length !== 1 ? "s" : ""} found
+              </div>
+              {matchingSections.map(({ result, sectionIndex, section }) => (
+                <button
+                  key={result.id}
+                  onClick={() => handleResultClick(sectionIndex)}
+                  className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border/30 last:border-b-0"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                      §{section!.number}
+                    </span>
+                    <span className="text-sm font-medium text-foreground line-clamp-1">
+                      {section!.title}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {result.snippet || "Click to view this section"}
+                  </p>
+                </button>
+              ))}
+            </>
+          ) : !isSearching ? (
+            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+              No results found for &ldquo;{query}&rdquo;
+            </div>
+          ) : null}
+        </div>
+      )}
+
+      {/* Click outside to close */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
 // READING PROGRESS
 // ============================================================================
 
@@ -623,6 +754,22 @@ function ArrowUpIcon() {
   return (
     <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+    </svg>
+  );
+}
+
+function SearchIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={`size-4 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    </svg>
+  );
+}
+
+function CloseIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={`size-4 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
   );
 }
