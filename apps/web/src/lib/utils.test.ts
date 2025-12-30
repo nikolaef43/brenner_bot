@@ -28,8 +28,11 @@ describe("cn() - class name merging", () => {
       expect(cn("foo", false && "bar", "baz")).toBe("foo baz");
       expect(cn("foo", null, "baz")).toBe("foo baz");
       expect(cn("foo", undefined, "baz")).toBe("foo baz");
-      expect(cn("foo", 0 && "bar", "baz")).toBe("foo baz");
-      expect(cn("foo", "" && "bar", "baz")).toBe("foo baz");
+      // Use variables to avoid TS2873 "expression is always falsy" warnings
+      const zero = 0 as number;
+      const emptyStr = "" as string;
+      expect(cn("foo", zero && "bar", "baz")).toBe("foo baz");
+      expect(cn("foo", emptyStr && "bar", "baz")).toBe("foo baz");
     });
 
     it("includes truthy conditional classes", () => {

@@ -10,7 +10,12 @@ import {
   parseDistillation,
   getModelFromId,
   getDistillationMeta,
+  type DistillationContent,
 } from "./distillation-parser";
+
+// Type helpers for narrowing DistillationContent union
+type ListContent = Extract<DistillationContent, { type: "list" }>;
+type QuoteContent = Extract<DistillationContent, { type: "quote" }>;
 
 // ============================================================================
 // Test Fixtures
@@ -226,7 +231,7 @@ describe("parseDistillation", () => {
     it("identifies ordered lists", () => {
       const result = parseDistillation(SIMPLE_DISTILLATION, "test-doc");
       const allContent = result.parts.flatMap((p) => p.sections.flatMap((s) => s.content));
-      const orderedLists = allContent.filter((c) => c.type === "list" && c.ordered);
+      const orderedLists = allContent.filter((c): c is ListContent => c.type === "list" && c.ordered);
       expect(orderedLists.length).toBeGreaterThan(0);
       expect(orderedLists[0]?.items.length).toBe(3);
     });
@@ -234,7 +239,7 @@ describe("parseDistillation", () => {
     it("identifies unordered lists", () => {
       const result = parseDistillation(SIMPLE_DISTILLATION, "test-doc");
       const allContent = result.parts.flatMap((p) => p.sections.flatMap((s) => s.content));
-      const unorderedLists = allContent.filter((c) => c.type === "list" && !c.ordered);
+      const unorderedLists = allContent.filter((c): c is ListContent => c.type === "list" && !c.ordered);
       expect(unorderedLists.length).toBeGreaterThan(0);
       expect(unorderedLists[0]?.items.length).toBe(2);
     });
@@ -244,7 +249,7 @@ describe("parseDistillation", () => {
     it("extracts § references from quotes", () => {
       const result = parseDistillation(SIMPLE_DISTILLATION, "test-doc");
       const allContent = result.parts.flatMap((p) => p.sections.flatMap((s) => s.content));
-      const quotesWithRef = allContent.filter((c) => c.type === "quote" && c.reference);
+      const quotesWithRef = allContent.filter((c): c is QuoteContent => c.type === "quote" && !!c.reference);
       expect(quotesWithRef.length).toBeGreaterThan(0);
       expect(quotesWithRef[0]?.reference).toBe("42");
     });
@@ -252,7 +257,7 @@ describe("parseDistillation", () => {
     it("extracts range references (§58-59)", () => {
       const result = parseDistillation(MULTI_PART_DISTILLATION, "test-doc");
       const allContent = result.parts.flatMap((p) => p.sections.flatMap((s) => s.content));
-      const quotesWithRef = allContent.filter((c) => c.type === "quote" && c.reference);
+      const quotesWithRef = allContent.filter((c): c is QuoteContent => c.type === "quote" && !!c.reference);
       expect(quotesWithRef.some((q) => q.reference === "58-59")).toBe(true);
     });
   });
@@ -402,7 +407,7 @@ Rather than cataloging phenomena, we seek to reconstruct the system.
     expect(allContent.filter((c) => c.type === "list").length).toBe(2);
 
     // Check reference extraction
-    const quotesWithRef = allContent.filter((c) => c.type === "quote" && c.reference);
+    const quotesWithRef = allContent.filter((c): c is QuoteContent => c.type === "quote" && !!c.reference);
     expect(quotesWithRef[0]?.reference).toBe("12");
   });
 });

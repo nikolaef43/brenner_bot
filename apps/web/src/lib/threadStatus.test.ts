@@ -21,16 +21,17 @@ import type { AgentMailMessage } from "./agentMail";
 // ============================================================================
 
 function createMessage(overrides: Partial<AgentMailMessage> & { subject: string }): AgentMailMessage {
+  const { subject, created_ts, from, to, importance, ack_required, ...rest } = overrides;
   return {
     id: Math.floor(Math.random() * 10000),
     thread_id: "RS-20251230-test",
-    subject: overrides.subject,
-    created_ts: overrides.created_ts ?? new Date().toISOString(),
-    from: overrides.from ?? "TestAgent",
-    to: overrides.to ?? [],
-    importance: overrides.importance ?? "normal",
-    ack_required: overrides.ack_required ?? false,
-    ...overrides,
+    subject,
+    created_ts: created_ts ?? new Date().toISOString(),
+    from: from ?? "TestAgent",
+    to: to ?? [],
+    importance: importance ?? "normal",
+    ack_required: ack_required ?? false,
+    ...rest,
   };
 }
 
