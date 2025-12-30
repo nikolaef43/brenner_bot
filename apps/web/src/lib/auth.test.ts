@@ -188,62 +188,62 @@ describe("hasValidLabSecret", () => {
   });
 
   describe("when secret is configured", () => {
-    const SECRET = "super-secret-value-12345";
+    const TEST_LAB_VALUE = "lab-test-value-12345";
 
     it("returns true for matching header", () => {
-      withEnv({ BRENNER_LAB_SECRET: SECRET }, () => {
-        const headers = makeHeaders({ "x-brenner-lab-secret": SECRET });
+      withEnv({ BRENNER_LAB_SECRET: TEST_LAB_VALUE }, () => {
+        const headers = makeHeaders({ "x-brenner-lab-secret": TEST_LAB_VALUE });
         expect(hasValidLabSecret(headers)).toBe(true);
       });
     });
 
     it("returns true for matching cookie", () => {
-      withEnv({ BRENNER_LAB_SECRET: SECRET }, () => {
-        const cookies = makeCookies({ brenner_lab_secret: SECRET });
+      withEnv({ BRENNER_LAB_SECRET: TEST_LAB_VALUE }, () => {
+        const cookies = makeCookies({ brenner_lab_secret: TEST_LAB_VALUE });
         expect(hasValidLabSecret(undefined, cookies)).toBe(true);
       });
     });
 
     it("prefers header over cookie (header checked first)", () => {
-      withEnv({ BRENNER_LAB_SECRET: SECRET }, () => {
-        const headers = makeHeaders({ "x-brenner-lab-secret": SECRET });
-        const cookies = makeCookies({ brenner_lab_secret: "wrong-secret" });
+      withEnv({ BRENNER_LAB_SECRET: TEST_LAB_VALUE }, () => {
+        const headers = makeHeaders({ "x-brenner-lab-secret": TEST_LAB_VALUE });
+        const cookies = makeCookies({ brenner_lab_secret: "wrong-value" });
         expect(hasValidLabSecret(headers, cookies)).toBe(true);
       });
     });
 
     it("falls back to cookie when header is missing", () => {
-      withEnv({ BRENNER_LAB_SECRET: SECRET }, () => {
+      withEnv({ BRENNER_LAB_SECRET: TEST_LAB_VALUE }, () => {
         const headers = makeHeaders({});
-        const cookies = makeCookies({ brenner_lab_secret: SECRET });
+        const cookies = makeCookies({ brenner_lab_secret: TEST_LAB_VALUE });
         expect(hasValidLabSecret(headers, cookies)).toBe(true);
       });
     });
 
     it("falls back to cookie when header is wrong", () => {
-      withEnv({ BRENNER_LAB_SECRET: SECRET }, () => {
+      withEnv({ BRENNER_LAB_SECRET: TEST_LAB_VALUE }, () => {
         const headers = makeHeaders({ "x-brenner-lab-secret": "wrong" });
-        const cookies = makeCookies({ brenner_lab_secret: SECRET });
+        const cookies = makeCookies({ brenner_lab_secret: TEST_LAB_VALUE });
         expect(hasValidLabSecret(headers, cookies)).toBe(true);
       });
     });
 
     it("returns false for wrong header value", () => {
-      withEnv({ BRENNER_LAB_SECRET: SECRET }, () => {
-        const headers = makeHeaders({ "x-brenner-lab-secret": "wrong-secret" });
+      withEnv({ BRENNER_LAB_SECRET: TEST_LAB_VALUE }, () => {
+        const headers = makeHeaders({ "x-brenner-lab-secret": "wrong-value" });
         expect(hasValidLabSecret(headers)).toBe(false);
       });
     });
 
     it("returns false for wrong cookie value", () => {
-      withEnv({ BRENNER_LAB_SECRET: SECRET }, () => {
-        const cookies = makeCookies({ brenner_lab_secret: "wrong-secret" });
+      withEnv({ BRENNER_LAB_SECRET: TEST_LAB_VALUE }, () => {
+        const cookies = makeCookies({ brenner_lab_secret: "wrong-value" });
         expect(hasValidLabSecret(undefined, cookies)).toBe(false);
       });
     });
 
     it("returns false when both header and cookie are wrong", () => {
-      withEnv({ BRENNER_LAB_SECRET: SECRET }, () => {
+      withEnv({ BRENNER_LAB_SECRET: TEST_LAB_VALUE }, () => {
         const headers = makeHeaders({ "x-brenner-lab-secret": "wrong" });
         const cookies = makeCookies({ brenner_lab_secret: "also-wrong" });
         expect(hasValidLabSecret(headers, cookies)).toBe(false);
@@ -251,8 +251,8 @@ describe("hasValidLabSecret", () => {
     });
 
     it("is case-sensitive (different case fails)", () => {
-      withEnv({ BRENNER_LAB_SECRET: SECRET }, () => {
-        const headers = makeHeaders({ "x-brenner-lab-secret": SECRET.toUpperCase() });
+      withEnv({ BRENNER_LAB_SECRET: TEST_LAB_VALUE }, () => {
+        const headers = makeHeaders({ "x-brenner-lab-secret": TEST_LAB_VALUE.toUpperCase() });
         expect(hasValidLabSecret(headers)).toBe(false);
       });
     });
@@ -334,8 +334,8 @@ describe("checkOrchestrationAuth", () => {
 
     describe("with lab secret", () => {
       it("authorizes with valid header secret", () => {
-        withEnv({ BRENNER_LAB_MODE: "1", BRENNER_LAB_SECRET: "my-secret" }, () => {
-          const headers = makeHeaders({ "x-brenner-lab-secret": "my-secret" });
+        withEnv({ BRENNER_LAB_MODE: "1", BRENNER_LAB_SECRET: "my-test-key" }, () => {
+          const headers = makeHeaders({ "x-brenner-lab-secret": "my-test-key" });
           const result = checkOrchestrationAuth(headers);
           expect(result.authorized).toBe(true);
           expect(result.reason).toContain("lab secret");
@@ -343,8 +343,8 @@ describe("checkOrchestrationAuth", () => {
       });
 
       it("authorizes with valid cookie secret", () => {
-        withEnv({ BRENNER_LAB_MODE: "1", BRENNER_LAB_SECRET: "my-secret" }, () => {
-          const cookies = makeCookies({ brenner_lab_secret: "my-secret" });
+        withEnv({ BRENNER_LAB_MODE: "1", BRENNER_LAB_SECRET: "my-test-key" }, () => {
+          const cookies = makeCookies({ brenner_lab_secret: "my-test-key" });
           const result = checkOrchestrationAuth(undefined, cookies);
           expect(result.authorized).toBe(true);
           expect(result.reason).toContain("lab secret");
@@ -352,8 +352,8 @@ describe("checkOrchestrationAuth", () => {
       });
 
       it("returns invalid secret message when secret is configured but wrong", () => {
-        withEnv({ BRENNER_LAB_MODE: "1", BRENNER_LAB_SECRET: "my-secret" }, () => {
-          const headers = makeHeaders({ "x-brenner-lab-secret": "wrong-secret" });
+        withEnv({ BRENNER_LAB_MODE: "1", BRENNER_LAB_SECRET: "my-test-key" }, () => {
+          const headers = makeHeaders({ "x-brenner-lab-secret": "wrong-key" });
           const result = checkOrchestrationAuth(headers);
           expect(result.authorized).toBe(false);
           expect(result.reason).toContain("Invalid or missing lab secret");
@@ -374,10 +374,10 @@ describe("checkOrchestrationAuth", () => {
 
     describe("priority order", () => {
       it("prefers Cloudflare Access over lab secret", () => {
-        withEnv({ BRENNER_LAB_MODE: "1", BRENNER_LAB_SECRET: "secret" }, () => {
+        withEnv({ BRENNER_LAB_MODE: "1", BRENNER_LAB_SECRET: "test-key" }, () => {
           const headers = makeHeaders({
             "cf-access-jwt-assertion": "jwt-token",
-            "x-brenner-lab-secret": "secret",
+            "x-brenner-lab-secret": "test-key",
           });
           const result = checkOrchestrationAuth(headers);
           expect(result.authorized).toBe(true);
@@ -394,8 +394,8 @@ describe("checkOrchestrationAuth", () => {
 
 describe("assertOrchestrationAuth", () => {
   it("does not throw when authorized", () => {
-    withEnv({ BRENNER_LAB_MODE: "1", BRENNER_LAB_SECRET: "secret" }, () => {
-      const headers = makeHeaders({ "x-brenner-lab-secret": "secret" });
+    withEnv({ BRENNER_LAB_MODE: "1", BRENNER_LAB_SECRET: "test-key" }, () => {
+      const headers = makeHeaders({ "x-brenner-lab-secret": "test-key" });
       expect(() => assertOrchestrationAuth(headers)).not.toThrow();
     });
   });
