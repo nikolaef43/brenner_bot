@@ -24,7 +24,34 @@ Key routes:
 - `/corpus`: browse primary docs in this repo (read server-side from repo root)
 - `/sessions/new`: compose a “Brenner Loop kickoff” prompt and send it to agents via Agent Mail
 
-Quality gates:
+## Generated Files
+
+The search index is **generated at build time** and must not be edited manually.
+
+### Search Index Generator
+
+**Location:** `scripts/build-search-index.ts`
+
+The generator parses the corpus files (transcript, quote-bank, distillations, metaprompts) and builds a MiniSearch index for client-side full-text search.
+
+**Output files** (in `public/search/`):
+- `index.json` — Serialized MiniSearch index (~650KB)
+- `stats.json` — Index metadata (entry counts, size)
+
+**Regenerate the index:**
+```bash
+cd apps/web
+bun run scripts/build-search-index.ts
+```
+
+**Automatic generation:** The index is rebuilt automatically during `bun run build` via the `prebuild` script.
+
+**Current statistics:**
+- 431 indexed entries
+- 236 transcript sections, 63 quotes, 117 distillation sections, 15 metaprompt sections
+
+## Quality Gates
+
 ```bash
 cd apps/web
 bun run build
