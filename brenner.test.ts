@@ -130,6 +130,7 @@ describe("help and usage", () => {
     expect(result.stdout).toContain("mail ack");
     expect(result.stdout).toContain("mail thread");
     expect(result.stdout).toContain("upgrade");
+    expect(result.stdout).toContain("lint <artifact.json>");
     expect(result.stdout).toContain("prompt compose");
     expect(result.stdout).toContain("memory context");
     expect(result.stdout).toContain("session start");
@@ -231,6 +232,59 @@ describe("corpus search command", () => {
     }
     expect(parsed.hits.length).toBeGreaterThan(0);
     expect(parsed.hits[0]?.docId).toBe("transcript");
+  });
+});
+
+// ============================================================================
+// Tests: Lint Command
+// ============================================================================
+
+describe("lint command", () => {
+  const fixturesDir = resolve(__dirname, "apps", "web", "src", "lib", "__fixtures__", "linter");
+  const validPath = join(fixturesDir, "valid-artifact.json");
+  const warningPath = join(fixturesDir, "warning-artifact.json");
+  const invalidPath = join(fixturesDir, "invalid-artifact.json");
+
+  it("reports VALID for a valid artifact (human output)", async () => {
+    const result = await runCli(["lint", validPath]);
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("Artifact Linter Report");
+    expect(result.stdout).toContain("Status: VALID");
+  });
+
+  it("reports VALID for a warning-only artifact (human output)", async () => {
+    const result = await runCli(["lint", warningPath]);
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("Status: VALID");
+    expect(result.stdout).toContain("Warnings");
+  });
+
+  it("reports INVALID and exits 1 for an invalid artifact (human output)", async () => {
+    const result = await runCli(["lint", invalidPath]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toContain("Status: INVALID");
+    expect(result.stdout).toContain("Errors (must fix):");
+  });
+
+  it("supports --json output", async () => {
+    const result = await runCli(["lint", validPath, "--json"]);
+    expect(result.exitCode).toBe(0);
+
+    let parsed: { artifact: string; valid: boolean; summary: { errors: number; warnings: number; info: number } };
+    try {
+      parsed = JSON.parse(result.stdout) as {
+        artifact: string;
+        valid: boolean;
+        summary: { errors: number; warnings: number; info: number };
+      };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      throw new Error(`Expected lint --json output. Parse failed: ${msg}\n\nstdout:\n${result.stdout}`);
+    }
+
+    expect(parsed.artifact).toBe("GOLDEN-VALID-001");
+    expect(parsed.valid).toBe(true);
+    expect(parsed.summary.errors).toBe(0);
   });
 });
 

@@ -25,9 +25,11 @@ import { parseDeltaMessage, type ValidDelta } from "./apps/web/src/lib/delta-par
 import {
   createEmptyArtifact,
   formatLintReportHuman,
+  formatLintReportJson,
   lintArtifact,
   mergeArtifactWithTimestamps,
   renderArtifactMarkdown,
+  type Artifact,
 } from "./apps/web/src/lib/artifact-merge";
 import {
   computeThreadStatusFromThread,
@@ -172,6 +174,22 @@ function splitCsv(value: string | undefined): string[] {
 
 function readTextFile(path: string): string {
   return readFileSync(path, "utf8");
+}
+
+function parseArtifactFromJsonFile(path: string): Artifact {
+  let parsed: Json;
+  try {
+    parsed = JSON.parse(readTextFile(path)) as Json;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    throw new Error(`Failed to parse artifact JSON at ${path}: ${msg}`);
+  }
+
+  if (!isRecord(parsed)) {
+    throw new Error(`Artifact JSON must be an object: ${path}`);
+  }
+
+  return parsed as unknown as Artifact;
 }
 
 function stdoutLine(message: string): void {
@@ -966,6 +984,7 @@ Commands:
   mail thread [--project-key <abs-path>] --thread-id <id> [--include-examples] [--llm]
 
   toolchain plan [--manifest <path>] [--platform <p>] [--json]
+  lint <artifact.json> [--json]
 
   prompt compose --excerpt-file <path> [--template <path>] [--theme <s>] [--domain <s>] [--question <s>]
 
@@ -1857,6 +1876,25 @@ async function main(): Promise<void> {
     }
 
     process.exit(0);
+  }
+
+  if (top === "lint") {
+    const jsonMode = asBoolFlag(flags, "json");
+    const artifactPathRaw = sub;
+    if (!artifactPathRaw) throw new Error("Missing <artifact.json> path.");
+
+    const artifactPath = resolve(artifactPathRaw);
+    const artifact = parseArtifactFromJsonFile(artifactPath);
+    const report = lintArtifact(artifact);
+
+    const artifactName = artifact.metadata?.session_id ? artifact.metadata.session_id : artifactPath;
+    if (jsonMode) {
+      stdoutLine(formatLintReportJson(report, artifactName));
+    } else {
+      stdoutLine(formatLintReportHuman(report, artifactName));
+    }
+
+    process.exit(report.valid ? 0 : 1);
   }
 
   if (top === "excerpt" && sub === "build") {
