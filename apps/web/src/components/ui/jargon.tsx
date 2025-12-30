@@ -250,7 +250,7 @@ function JargonBottomSheet({ term, open, onClose }: BottomSheetProps) {
           </h2>
           <button
             onClick={handleClose}
-            className="size-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors touch-manipulation"
+            className="size-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-150 touch-manipulation active:scale-[0.92]"
             aria-label="Close"
           >
             <CloseIcon />
@@ -305,7 +305,7 @@ function JargonBottomSheet({ term, open, onClose }: BottomSheetProps) {
                     <a
                       key={relatedKey}
                       href={`/glossary#${relatedKey}`}
-                      className="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-muted hover:bg-muted/80 text-foreground transition-colors"
+                      className="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-muted hover:bg-muted/80 text-foreground transition-all duration-150 touch-manipulation active:scale-[0.97]"
                       onClick={handleClose}
                     >
                       {relatedTerm?.term ?? relatedKey}
