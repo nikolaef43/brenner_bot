@@ -740,6 +740,26 @@ export function RawResponseViewer({ data }: RawResponseViewerProps) {
 // PARSER HELPER - Called from DocumentContentClient
 // ============================================================================
 
+/**
+ * Strip inline markdown formatting for clean plaintext display (e.g., TOC titles).
+ */
+function stripInlineMarkdownForTOC(text: string): string {
+  return text
+    // Remove bold: **text** or __text__
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/__(.+?)__/g, "$1")
+    // Remove italic: *text* or _text_
+    .replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, "$1")
+    .replace(/(?<!_)_([^_\n]+?)_(?!_)/g, "$1")
+    // Remove inline code: `text`
+    .replace(/`([^`]+?)`/g, "$1")
+    // Convert links [text](url) to just text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    // Clean up any double spaces
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function parseRawResponse(content: string, docId: string): RawResponseData {
   // Determine model from docId
   let model: "gpt" | "opus" | "gemini" = "gpt";
@@ -777,7 +797,9 @@ export function parseRawResponse(content: string, docId: string): RawResponseDat
   let match;
   while ((match = headingRegex.exec(content)) !== null) {
     const level = match[1].length;
-    const titleText = match[2];
+    const rawTitle = match[2];
+    // Strip markdown formatting for clean TOC display
+    const titleText = stripInlineMarkdownForTOC(rawTitle);
     const id = titleText.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     sections.push({ id, level, title: titleText, content: "" });
   }
