@@ -128,7 +128,7 @@ export default function Home() {
 
         <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => (
-            <Link key={feature.href} href={feature.href} className="touch-manipulation">
+            <Link key={feature.href} href={feature.href} className="touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl">
               <FeatureCard className={`h-full animate-fade-in-up stagger-${index + 1} active:scale-[0.98] transition-transform`}>
                 <div className="p-5 sm:p-6 space-y-3 sm:space-y-4">
                   <div className={`inline-flex items-center justify-center size-10 sm:size-12 rounded-xl bg-muted ${feature.accent}`}>
@@ -159,7 +159,7 @@ export default function Home() {
       {/* Lab Mode Card */}
       {labModeEnabled && (
         <section className="animate-fade-in-up px-4 sm:px-0">
-          <Link href="/sessions/new" className="touch-manipulation">
+          <Link href="/sessions/new" className="touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-2xl block">
             <div className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 p-5 sm:p-8 shadow-lg hover:shadow-xl hover:border-primary/50 active:scale-[0.99] transition-all group">
               <div className="absolute top-0 right-0 -mt-4 -mr-4 size-24 sm:size-32 bg-primary/10 rounded-full blur-3xl" />
               <div className="absolute bottom-0 left-0 -mb-4 -ml-4 size-20 sm:size-24 bg-accent/10 rounded-full blur-3xl" />

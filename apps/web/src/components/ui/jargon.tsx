@@ -121,7 +121,7 @@ function JargonTooltip({ term, triggerRect, onClose, onMouseEnter, onMouseLeave 
       <div className="mt-3 pt-2 border-t border-border/50">
         <a
           href={`/glossary#${term.term.toLowerCase().replace(/\s+/g, "-")}`}
-          className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+          className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 active:scale-95 transition-all touch-manipulation rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={onClose}
         >
           View in glossary
@@ -305,7 +305,7 @@ function JargonBottomSheet({ term, open, onClose }: BottomSheetProps) {
                     <a
                       key={relatedKey}
                       href={`/glossary#${relatedKey}`}
-                      className="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-muted hover:bg-muted/80 text-foreground transition-all duration-150 touch-manipulation active:scale-[0.97]"
+                      className="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-muted hover:bg-muted/80 text-foreground transition-all duration-150 touch-manipulation active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       onClick={handleClose}
                     >
                       {relatedTerm?.term ?? relatedKey}

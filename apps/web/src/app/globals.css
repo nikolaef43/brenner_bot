@@ -2700,13 +2700,18 @@ p, li, span, div {
   }
 
   .command-palette-item {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer;
-    transition: background-color var(--duration-fast) var(--ease-out);
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer touch-manipulation;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+    transition: background-color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
   }
 
   .command-palette-item:hover,
   .command-palette-item[data-selected="true"] {
     @apply bg-muted;
+  }
+
+  .command-palette-item:active {
+    @apply scale-[0.98];
   }
 
   .command-palette-item-icon {

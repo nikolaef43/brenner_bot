@@ -231,7 +231,7 @@ export default async function DistillationsPage() {
               <Link
                 key={d.model}
                 href={`/corpus/${d.docId}`}
-                className={`group relative flex flex-col rounded-2xl border bg-card overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1 active:translate-y-0 active:scale-[0.99] ${colors.border} ${colors.glow} animate-fade-in-up stagger-${index + 1} ring-1 ring-transparent ${colors.ring} touch-manipulation`}
+                className={`group relative flex flex-col rounded-2xl border bg-card overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1 active:translate-y-0 active:scale-[0.99] ${colors.border} ${colors.glow} animate-fade-in-up stagger-${index + 1} ring-1 ring-transparent ${colors.ring} touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
               >
                 {/* Gradient overlay on hover */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`} />

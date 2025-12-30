@@ -381,7 +381,7 @@ export function CommandPalette() {
 export function CommandPaletteHint() {
   return (
     <button
-      className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-muted/50 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+      className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-muted/50 text-sm text-muted-foreground hover:text-foreground hover:bg-muted active:scale-[0.98] transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       onClick={() => {
         window.dispatchEvent(
           new KeyboardEvent("keydown", { key: "/", metaKey: true })

@@ -91,7 +91,7 @@ export default async function CorpusDocPage({
     <div className="w-full">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1 text-sm text-muted-foreground mb-8 animate-fade-in" aria-label="Breadcrumb">
-        <Link href="/corpus" className="hover:text-foreground transition-colors link-underline">
+        <Link href="/corpus" className="hover:text-foreground active:text-primary transition-colors link-underline touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm">
           Corpus
         </Link>
         <ChevronRightIcon />
@@ -107,7 +107,7 @@ export default async function CorpusDocPage({
           {prev ? (
             <Link
               href={`/corpus/${prev.id}`}
-              className="group flex items-center gap-4 p-5 rounded-2xl border bg-card hover:bg-muted/50 hover:border-primary/30 transition-all"
+              className="group flex items-center gap-4 p-5 rounded-2xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <div className="flex items-center justify-center size-12 rounded-xl bg-muted text-muted-foreground group-hover:text-primary transition-colors">
                 <ArrowLeftIcon />
@@ -126,7 +126,7 @@ export default async function CorpusDocPage({
           {next ? (
             <Link
               href={`/corpus/${next.id}`}
-              className="group flex items-center gap-4 p-5 rounded-2xl border bg-card hover:bg-muted/50 hover:border-primary/30 transition-all text-right sm:flex-row-reverse"
+              className="group flex items-center gap-4 p-5 rounded-2xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-right sm:flex-row-reverse"
             >
               <div className="flex items-center justify-center size-12 rounded-xl bg-muted text-muted-foreground group-hover:text-primary transition-colors">
                 <ArrowRightIcon />
@@ -146,7 +146,7 @@ export default async function CorpusDocPage({
         <div className="mt-10 text-center space-y-3">
           <Link
             href="/corpus"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80 active:scale-[0.98] transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <ArrowLeftIcon />
             Back to Corpus
