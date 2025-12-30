@@ -118,7 +118,7 @@ export default async function Image() {
               display: "flex",
             }}
           >
-            Operationalizing Sydney Brenner's Scientific Methodology via Multi-Agent Collaboration
+            Operationalizing Sydney Brenner&apos;s Scientific Methodology via Multi-Agent Collaboration
           </p>
 
           {/* Stats */}

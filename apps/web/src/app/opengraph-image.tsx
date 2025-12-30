@@ -157,7 +157,7 @@ export default async function Image() {
               display: "flex",
             }}
           >
-            Operationalizing Sydney Brenner's Scientific Methodology
+            Operationalizing Sydney Brenner&apos;s Scientific Methodology
           </p>
 
           {/* Tagline */}
