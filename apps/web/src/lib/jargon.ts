@@ -1415,6 +1415,42 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     related: ["genetic-code", "mutation", "forbidden-pattern", "digital-handle"],
     category: "method",
   },
+
+  // -------------------------------------------------------------------------
+  // Tier 3: Project/UI Terms
+  // -------------------------------------------------------------------------
+  crosswalk: {
+    term: "Crosswalk",
+    short: "Comparison table showing how different model distillations map the same concepts.",
+    long:
+      "A structured comparison of how Opus 4.5, GPT-5.2, and Gemini 3 each articulate the same underlying Brenner concepts. The crosswalk reveals convergent insights (multiple models independently identify the same pattern) and divergent framings (different models emphasize different aspects).",
+    why:
+      "Multi-model consensus is more robust than single-model output. The crosswalk helps identify which insights are model-independent (probably real) versus model-specific (possibly artifacts).",
+    related: ["distillation", "corpus", "metaprompt"],
+    category: "project",
+  },
+  transcript: {
+    term: "Transcript",
+    short: "The raw 236-section Brenner interview—the primary source material.",
+    long:
+      "The complete transcript of Sydney Brenner's oral history interviews, organized into 236 numbered sections. This is the authoritative source from which all distillations, operators, and quote-bank entries derive. Section references use the §n format (e.g., §57, §109).",
+    why:
+      "Every claim about Brenner's method should be traceable to specific transcript sections. The §n anchors ensure distillations remain grounded in primary evidence rather than drifting into interpretation.",
+    related: ["section", "corpus", "anchor", "quote-bank"],
+    category: "project",
+  },
+  section: {
+    term: "Section",
+    short: "A numbered unit of the Brenner transcript, referenced as §n.",
+    long:
+      "The transcript is divided into numbered sections (§1 through §236). Each section typically covers a single topic, story, or methodological point. Section references (§57, §86, §109, etc.) provide precise attribution for Brenner quotes and concepts.",
+    analogy:
+      "Like verse numbers in a sacred text—allowing precise citation and cross-referencing regardless of page layout or edition.",
+    why:
+      "Section numbers enable granular references that survive reformatting. When a definition cites '§109,' you can locate the exact passage in the transcript.",
+    related: ["transcript", "anchor", "quote-bank"],
+    category: "project",
+  },
 };
 
 // ============================================================================
@@ -1505,4 +1541,119 @@ export function searchJargon(query: string): [string, JargonTerm][] {
  */
 export function getTermCount(): number {
   return Object.keys(jargonDictionary).length;
+}
+
+// ============================================================================
+// Auto-Matching for Text Processing
+// ============================================================================
+
+/**
+ * A match found in text with its position and term key.
+ */
+export interface JargonMatch {
+  /** Start index in the original text */
+  start: number;
+  /** End index in the original text */
+  end: number;
+  /** The matched text as it appears */
+  matchedText: string;
+  /** The dictionary key for this term */
+  termKey: string;
+}
+
+// Cache for the compiled regex and term map
+let _matcherCache: {
+  regex: RegExp;
+  termMap: Map<string, string>;
+} | null = null;
+
+/**
+ * Build a matcher that can find jargon terms in text.
+ * Results are cached for performance.
+ */
+function buildJargonMatcher(): { regex: RegExp; termMap: Map<string, string> } {
+  if (_matcherCache) return _matcherCache;
+
+  // Build a map from lowercase display terms to their keys
+  const termMap = new Map<string, string>();
+
+  for (const [key, term] of Object.entries(jargonDictionary)) {
+    // Add the display term
+    termMap.set(term.term.toLowerCase(), key);
+
+    // Add the key itself (handles hyphenated keys)
+    termMap.set(key.toLowerCase(), key);
+
+    // Add common variations
+    const termLower = term.term.toLowerCase();
+
+    // Handle "C. elegans" -> "c elegans", "c. elegans"
+    if (termLower.includes(". ")) {
+      termMap.set(termLower.replace(/\. /g, " "), key);
+      termMap.set(termLower.replace(/\. /g, ". "), key);
+    }
+
+    // Handle hyphenated terms: "level-split" -> "level split"
+    if (key.includes("-")) {
+      termMap.set(key.replace(/-/g, " "), key);
+    }
+  }
+
+  // Sort by length (longest first) to match longer terms before shorter ones
+  const sortedTerms = Array.from(termMap.keys()).sort((a, b) => b.length - a.length);
+
+  // Build regex pattern - escape special chars and require word boundaries
+  const escapedTerms = sortedTerms.map((t) =>
+    t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  );
+
+  // Use word boundaries, case-insensitive
+  const pattern = `\\b(${escapedTerms.join("|")})\\b`;
+  const regex = new RegExp(pattern, "gi");
+
+  _matcherCache = { regex, termMap };
+  return _matcherCache;
+}
+
+/**
+ * Find all jargon terms in a piece of text.
+ *
+ * @param text - The text to search
+ * @returns Array of matches with positions and term keys
+ *
+ * @example
+ * const matches = findJargonInText("C. elegans uses potency checks.");
+ * // Returns matches for "C. elegans" and "potency"
+ */
+export function findJargonInText(text: string): JargonMatch[] {
+  const { regex, termMap } = buildJargonMatcher();
+  const matches: JargonMatch[] = [];
+
+  // Reset regex state
+  regex.lastIndex = 0;
+
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(text)) !== null) {
+    const matchedText = match[0];
+    const termKey = termMap.get(matchedText.toLowerCase());
+
+    if (termKey) {
+      matches.push({
+        start: match.index,
+        end: match.index + matchedText.length,
+        matchedText,
+        termKey,
+      });
+    }
+  }
+
+  return matches;
+}
+
+/**
+ * Get the set of all matchable term patterns (for debugging/testing).
+ */
+export function getMatchableTerms(): string[] {
+  const { termMap } = buildJargonMatcher();
+  return Array.from(termMap.keys());
 }

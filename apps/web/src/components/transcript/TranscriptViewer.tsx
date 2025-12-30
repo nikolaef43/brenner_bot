@@ -7,6 +7,7 @@ import { CopyButton } from "@/components/ui/copy-button";
 import { useReadingPosition } from "@/hooks/useReadingPosition";
 import { useSearch as useLocalSearch } from "@/lib/search";
 import { useSearch as useGlobalSearch } from "@/components/search";
+import { JargonText } from "@/components/jargon-text";
 
 const CANONICAL_SITE_BASE_URL = "https://brennerbot.org";
 
@@ -567,15 +568,17 @@ function BrennerQuote({ text, highlights }: BrennerQuoteProps) {
           />
         </div>
 
-        {/* Quote text */}
+        {/* Quote text with jargon tooltips */}
         <div className="space-y-4">
           {paragraphs.map((para, i) => (
-            <p
+            <JargonText
               key={i}
+              as="p"
+              highlights={highlights}
               className="text-lg lg:text-xl leading-relaxed text-foreground/90 font-serif"
             >
-              {highlights ? renderTextWithHighlights(para, highlights) : para}
-            </p>
+              {para}
+            </JargonText>
           ))}
         </div>
       </div>
@@ -625,9 +628,13 @@ function InterviewerQuestion({ text, highlights }: { text: string; highlights?: 
       <div className="flex-shrink-0 size-7 rounded-full bg-muted flex items-center justify-center">
         <span className="text-xs font-bold text-muted-foreground">Q</span>
       </div>
-      <p className="text-base text-muted-foreground italic leading-relaxed">
-        {highlights ? renderTextWithHighlights(text, highlights) : text}
-      </p>
+      <JargonText
+        as="p"
+        highlights={highlights}
+        className="text-base text-muted-foreground italic leading-relaxed"
+      >
+        {text}
+      </JargonText>
     </div>
   );
 }
@@ -638,9 +645,13 @@ function InterviewerQuestion({ text, highlights }: { text: string; highlights?: 
 
 function Paragraph({ text, highlights }: { text: string; highlights?: string[] }) {
   return (
-    <p className="text-lg leading-relaxed text-foreground/80">
-      {highlights ? renderTextWithHighlights(text, highlights) : text}
-    </p>
+    <JargonText
+      as="p"
+      highlights={highlights}
+      className="text-lg leading-relaxed text-foreground/80"
+    >
+      {text}
+    </JargonText>
   );
 }
 
