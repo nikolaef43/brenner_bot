@@ -124,103 +124,103 @@ export default function RootLayout({
               {/* Reading Progress */}
               <ReadingProgress />
 
-          {/* Header */}
-          <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
-            <div className="container-default">
-              <div className="flex h-16 items-center justify-between">
-                {/* Logo */}
-                <Link
-                  href="/"
-                  className="group flex items-center gap-2 font-semibold tracking-tight text-foreground transition-colors hover:text-primary"
-                >
-                  <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold transition-transform group-hover:scale-105">
-                    B
-                  </span>
-                  <span className="hidden sm:inline">BrennerBot</span>
-                </Link>
-
-                {/* Desktop Navigation */}
-                <div className="flex items-center gap-2">
-                  <HeaderNav />
-
-                  {/* Global Search */}
-                  <SearchTrigger className="flex" />
-                  <ExcerptBasketTrigger className="flex" />
-
-                  {labModeEnabled && (
-                    <Button asChild size="sm" className="hidden lg:inline-flex ml-2">
-                      <Link href="/sessions/new">New Session</Link>
-                    </Button>
-                  )}
-
-                  <ThemeToggle />
-                </div>
-              </div>
-            </div>
-          </header>
-
-          {/* Main Content */}
-          <main className="flex-1 pb-mobile-nav">
-            <div className="container-default py-8 lg:py-12">
-              {children}
-            </div>
-          </main>
-
-          {/* Footer - Desktop only, hidden when bottom nav is visible */}
-          <footer className="hidden lg:block border-t border-border/50 bg-muted/20">
-            <div className="container-default py-8">
-              <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="flex size-6 items-center justify-center rounded bg-primary text-primary-foreground text-xs font-bold">
-                      B
-                    </span>
-                    <span className="font-semibold">BrennerBot</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground max-w-md">
-                    Research lab for operationalizing Sydney Brenner&apos;s scientific methodology
-                    via multi-agent collaboration.
-                  </p>
-                </div>
-
-                <div className="flex flex-col gap-4 sm:items-end">
-                  <div className="flex items-center gap-6 text-sm">
-                    <a
-                      href="https://github.com/Dicklesworthstone/brenner_bot"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-foreground transition-colors link-underline"
+              {/* Header */}
+              <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+                <div className="container-default">
+                  <div className="flex h-16 items-center justify-between">
+                    {/* Logo */}
+                    <Link
+                      href="/"
+                      className="group flex items-center gap-2 font-semibold tracking-tight text-foreground transition-colors hover:text-primary"
                     >
-                      GitHub
-                    </a>
-                    <a
-                      href="https://github.com/Dicklesworthstone/mcp_agent_mail"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-foreground transition-colors link-underline"
-                    >
-                      Agent Mail
-                    </a>
+                      <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold transition-transform group-hover:scale-105">
+                        B
+                      </span>
+                      <span className="hidden sm:inline">BrennerBot</span>
+                    </Link>
+
+                    {/* Desktop Navigation */}
+                    <div className="flex items-center gap-2">
+                      <HeaderNav />
+
+                      {/* Global Search */}
+                      <SearchTrigger className="flex" />
+                      <ExcerptBasketTrigger className="flex" />
+
+                      {labModeEnabled && (
+                        <Button asChild size="sm" className="hidden lg:inline-flex ml-2">
+                          <Link href="/sessions/new">New Session</Link>
+                        </Button>
+                      )}
+
+                      <ThemeToggle />
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground/60">
-                    Built with Next.js + Bun. Coordinated via Agent Mail.
-                  </p>
                 </div>
-              </div>
-            </div>
-          </footer>
+              </header>
 
-          {/* Mobile Bottom Navigation */}
-          <BottomNav />
+              {/* Main Content */}
+              <main className="flex-1 pb-mobile-nav">
+                <div className="container-default py-8 lg:py-12">
+                  {children}
+                </div>
+              </main>
 
-          {/* Back to Top Button */}
-          <BackToTop />
+              {/* Footer - Desktop only, hidden when bottom nav is visible */}
+              <footer className="hidden lg:block border-t border-border/50 bg-muted/20">
+                <div className="container-default py-8">
+                  <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="flex size-6 items-center justify-center rounded bg-primary text-primary-foreground text-xs font-bold">
+                          B
+                        </span>
+                        <span className="font-semibold">BrennerBot</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground max-w-md">
+                        Research lab for operationalizing Sydney Brenner&apos;s scientific methodology
+                        via multi-agent collaboration.
+                      </p>
+                    </div>
 
-          {/* Command Palette (⌘K) */}
-          <CommandPalette />
+                    <div className="flex flex-col gap-4 sm:items-end">
+                      <div className="flex items-center gap-6 text-sm">
+                        <a
+                          href="https://github.com/Dicklesworthstone/brenner_bot"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-foreground transition-colors link-underline"
+                        >
+                          GitHub
+                        </a>
+                        <a
+                          href="https://github.com/Dicklesworthstone/mcp_agent_mail"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-foreground transition-colors link-underline"
+                        >
+                          Agent Mail
+                        </a>
+                      </div>
+                      <p className="text-xs text-muted-foreground/60">
+                        Built with Next.js + Bun. Coordinated via Agent Mail.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </footer>
 
-          {/* Toast Notifications */}
-          <Toaster />
+              {/* Mobile Bottom Navigation */}
+              <BottomNav />
+
+              {/* Back to Top Button */}
+              <BackToTop />
+
+              {/* Command Palette (⌘K) */}
+              <CommandPalette />
+
+              {/* Toast Notifications */}
+              <Toaster />
             </div>
           </SearchProvider>
         </Providers>
