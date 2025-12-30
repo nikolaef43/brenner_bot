@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "@tanstack/react-store";
 import {
   readingStore,
@@ -23,8 +23,10 @@ interface UseReadingPositionReturn {
   save: (scrollOffset: number, activeSection: number) => void;
   /** Clear saved position for this document */
   clear: () => void;
-  /** Whether we should restore position on mount (true only once, then becomes false) */
-  shouldRestore: boolean;
+  /** Whether there's a position that can be restored (resets when docId changes) */
+  canRestore: boolean;
+  /** Call this after restoring to prevent repeated restoration attempts */
+  markRestored: () => void;
 }
 
 /**
@@ -36,16 +38,17 @@ interface UseReadingPositionReturn {
  * @example
  * ```tsx
  * function TranscriptViewer({ docId, data }) {
- *   const { position, save, shouldRestore } = useReadingPosition(docId, {
+ *   const { position, save, canRestore, markRestored } = useReadingPosition(docId, {
  *     maxSection: data.sections.length - 1,
  *   });
  *
  *   // Restore position on mount
  *   useEffect(() => {
- *     if (shouldRestore && position) {
+ *     if (canRestore && position) {
  *       virtualizer.scrollToIndex(position.activeSection, { align: 'start' });
+ *       markRestored();
  *     }
- *   }, [shouldRestore]);
+ *   }, [canRestore, position, markRestored]);
  *
  *   // Save on scroll
  *   const handleScroll = () => {
@@ -63,15 +66,8 @@ export function useReadingPosition(
   const position = useStore(readingStore, (state) => state.positions[docId] ?? null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Track restoration using a keyed ref pattern (allowed by React rules)
-  // The ref contains both the docId and restoration flag, reset when docId changes
-  const restorationRef = useRef<{ docId: string; restored: boolean } | null>(null);
-
-  // Initialize or reset the restoration tracking when docId changes
-  // This pattern is allowed: checking ref.current and initializing conditionally
-  if (restorationRef.current === null || restorationRef.current.docId !== docId) {
-    restorationRef.current = { docId, restored: false };
-  }
+  // Track restoration state using state (key includes docId to auto-reset)
+  const [restoredDocId, setRestoredDocId] = useState<string | null>(null);
 
   // Validate position against maxSection
   const validPosition =
@@ -79,6 +75,9 @@ export function useReadingPosition(
     (maxSection === undefined || position.activeSection <= maxSection)
       ? position
       : null;
+
+  // Can restore if: valid position exists AND we haven't marked this docId as restored
+  const canRestore = validPosition !== null && restoredDocId !== docId;
 
   // Debounced save
   const save = useCallback(
@@ -102,6 +101,11 @@ export function useReadingPosition(
     clearReadingPosition(docId);
   }, [docId]);
 
+  // Mark as restored
+  const markRestored = useCallback(() => {
+    setRestoredDocId(docId);
+  }, [docId]);
+
   // Cleanup debounce on unmount
   useEffect(() => {
     return () => {
@@ -111,20 +115,11 @@ export function useReadingPosition(
     };
   }, []);
 
-  // Compute shouldRestore - true only on first render with valid position
-  // After returning shouldRestore=true once, mark as restored
-  const restorationState = restorationRef.current;
-  const shouldRestore = !restorationState.restored && validPosition !== null;
-
-  // Mark as restored after this render (side effect at end of render is ok for refs)
-  if (shouldRestore) {
-    restorationState.restored = true;
-  }
-
   return {
     position: validPosition,
     save,
     clear,
-    shouldRestore,
+    canRestore,
+    markRestored,
   };
 }

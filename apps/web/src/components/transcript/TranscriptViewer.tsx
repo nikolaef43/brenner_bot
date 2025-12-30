@@ -5,6 +5,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import type { ParsedTranscript, TranscriptSection as TSection, TranscriptContent } from "@/lib/transcript-parser";
 import { CopyButton } from "@/components/ui/copy-button";
 import { useReadingPosition } from "@/hooks/useReadingPosition";
+import { useSearch } from "@/lib/search";
 
 // ============================================================================
 // TRANSCRIPT HERO
@@ -409,7 +410,7 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Reading position persistence
-  const { position, save: savePosition, shouldRestore } = useReadingPosition("transcript", {
+  const { position, save: savePosition, canRestore, markRestored } = useReadingPosition("transcript", {
     maxSection: data.sections.length - 1,
   });
 
@@ -480,12 +481,13 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
     }
 
     // Restore saved position if no hash and we have a saved position
-    if (shouldRestore && position) {
+    if (canRestore && position) {
       setTimeout(() => {
         virtualizer.scrollToIndex(position.activeSection, { align: "start" });
+        markRestored();
       }, 100);
     }
-  }, [data.sections, virtualizer, shouldRestore, position]);
+  }, [data.sections, virtualizer, canRestore, position, markRestored]);
 
   // Scroll to section from TOC
   const scrollToSection = useCallback(
