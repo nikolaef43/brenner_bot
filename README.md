@@ -114,7 +114,7 @@ This repository provides everything needed to run "Brenner-style" research workf
 
 - **Corpus search + excerpt builder**: Full-text search across the 236 transcript segments. Build cited excerpt blocks for session kickoffs with stable `§n` anchors.
 - **Multi-agent orchestration**: Kick off Brenner Loop sessions with Claude, GPT, and Gemini via Agent Mail. Each model produces structured deltas (not essays) that get compiled into durable artifacts.
-- **Artifact compiler + linter**: Parse agent responses, merge deterministically, and run Brenner-style guardrails (third alternative check, potency controls, citation requirements).
+- **Artifact compiler + linter**: Parse agent responses, merge deterministically, and validate against 50+ Brenner-style rules (third alternative check, potency controls, citation anchors, provenance verification, scale constraints). Human-readable and JSON output formats.
 - **Web app (brennerbot.org)**: Browse the corpus, compose excerpts, start sessions, and review compiled artifacts.
 - **CLI (brenner)**: Terminal-first workflow for power users. Compiles to a single self-contained binary via `bun build --compile`.
 
@@ -444,6 +444,7 @@ These are the **final synthesis documents**, triangulated across all three model
 
 - **`apps/web/`**
   - Next.js App Router UI for browsing the corpus, composing excerpts, orchestrating sessions, and reviewing compiled artifacts.
+  - Mobile-first responsive design with optimized touch targets (44px minimum) and viewport handling.
   - Deployed at `brennerbot.org`.
 
 ### CLI
@@ -748,7 +749,7 @@ The Brenner method encoded as executable primitives:
 - **Delta spec** (`artifact_delta_spec_v0.1.md`): ADD/EDIT/KILL operations, merge rules, conflict policy
 - **Operator library**: definitions, triggers, failure modes, anchored quotes
 - **Role prompts**: Claude/GPT/Gemini-specific templates that output structured deltas
-- **Guardrails + linter**: third alternative check, potency controls, citations, scale constraints
+- **Guardrails + linter**: 50+ validation rules covering structural integrity, hypothesis hygiene, third alternative requirements, potency controls, citation anchors (`§n`), provenance verification, and scale constraints. Outputs in human-readable text or machine-parseable JSON.
 
 ### 3. Coordination bus (Agent Mail)
 
