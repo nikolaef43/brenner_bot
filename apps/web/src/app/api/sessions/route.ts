@@ -184,7 +184,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
 
   // Compose and send
   try {
-    const projectKey = body.projectKey || repoRootFromWebCwd();
+    const projectKey = body.projectKey || process.env.BRENNER_PROJECT_KEY || repoRootFromWebCwd();
     const client = new AgentMailClient();
     const subject = normalizeKickoffSubject(cleanThreadId, body.subject);
 

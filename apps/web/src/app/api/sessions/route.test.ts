@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const toolsCallMock = vi.hoisted(() =>
   vi.fn(async (tool: string) => {
@@ -37,8 +37,18 @@ function makeRequest(body: unknown): NextRequest {
 }
 
 describe("POST /api/sessions", () => {
+  const originalProjectKey = process.env.BRENNER_PROJECT_KEY;
+
   beforeEach(() => {
     toolsCallMock.mockClear();
+  });
+
+  afterEach(() => {
+    if (originalProjectKey === undefined) {
+      delete process.env.BRENNER_PROJECT_KEY;
+    } else {
+      process.env.BRENNER_PROJECT_KEY = originalProjectKey;
+    }
   });
 
   it("rejects recipients that become empty after trimming", async () => {
@@ -98,5 +108,24 @@ describe("POST /api/sessions", () => {
     expect(json).toMatchObject({ success: true, threadId: "TEST-REL" });
 
     expect(toolsCallMock.mock.calls.some(([tool]) => tool === "ensure_project")).toBe(false);
+  });
+
+  it("defaults to BRENNER_PROJECT_KEY when body.projectKey is omitted", async () => {
+    process.env.BRENNER_PROJECT_KEY = "/abs/from/env";
+
+    const response = await POST(
+      makeRequest({
+        sender: "Operator",
+        recipients: ["Claude"],
+        threadId: "TEST-ENV",
+        excerpt: "### Excerpt\n\n> **§1**: \"Hello\"\n",
+      })
+    );
+
+    expect(response.status).toBe(200);
+    const json = await response.json();
+    expect(json).toMatchObject({ success: true, threadId: "TEST-ENV" });
+
+    expect(toolsCallMock).toHaveBeenCalledWith("ensure_project", { human_key: "/abs/from/env" });
   });
 });
