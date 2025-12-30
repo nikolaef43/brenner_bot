@@ -119,8 +119,10 @@ export function getReadingPosition(docId: string): ReadingPosition | null {
 
 export function clearReadingPosition(docId: string): void {
   readingStore.setState((state) => {
-    const { [docId]: _removed, ...rest } = state.positions;
-    return { positions: rest };
+    const positions = Object.fromEntries(
+      Object.entries(state.positions).filter(([key]) => key !== docId)
+    );
+    return { positions };
   });
 }
 

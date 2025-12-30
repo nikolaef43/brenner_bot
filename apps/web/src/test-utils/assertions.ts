@@ -84,9 +84,10 @@ export function assertDefined<T>(value: T | null | undefined, description = "val
 }
 
 /**
- * Assert that two objects are deeply equal with a descriptive message.
+ * Assert that two objects are deeply equal.
+ * Note: The description parameter is reserved for future enhanced error messages.
  */
-export function assertDeepEqual<T>(actual: T, expected: T, _description = "values"): void {
+export function assertDeepEqual<T>(actual: T, expected: T): void {
   expect(actual).toEqual(expected);
 }
 
