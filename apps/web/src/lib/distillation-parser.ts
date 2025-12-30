@@ -117,18 +117,6 @@ export function getModelFromId(id: string): { name: string; color: string; icon:
 }
 
 /**
- * Parse inline formatting for plain-text contexts (TOC entries, anchor IDs).
- * Strips markdown markers for contexts where we need plain text.
- */
-function parseInlinePlain(text: string): string {
-  return text
-    .replace(/\*\*([^*]+)\*\*/g, "$1")
-    .replace(/\*([^*]+)\*/g, "$1")
-    .replace(/`([^`]+)`/g, "$1")
-    .trim();
-}
-
-/**
  * Preserve inline formatting for content that will be rendered with styled elements.
  * Only trims whitespace, keeping markdown markers intact for the viewer.
  */

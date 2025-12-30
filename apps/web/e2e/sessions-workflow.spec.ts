@@ -13,15 +13,11 @@
 import {
   test,
   expect,
-  navigateTo,
-  waitForContent,
   fillInput,
-  clickElement,
   takeScreenshot,
   assertTextContent,
   assertUrl,
   waitForNetworkIdle,
-  assertPageHasContent,
 } from "./utils";
 
 test.describe("Sessions Workflow", () => {

@@ -199,10 +199,7 @@ export default class BrennerBotReporter implements Reporter {
   }
 
   private countTests(suite: Suite): number {
-    let count = 0;
-    for (const test of suite.tests) {
-      count++;
-    }
+    let count = suite.tests.length;
     for (const child of suite.suites) {
       count += this.countTests(child);
     }

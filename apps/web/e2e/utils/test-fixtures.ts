@@ -5,13 +5,12 @@
  * Philosophy: Every test should produce detailed, actionable output.
  */
 
-import { test as base, expect, type Page, type TestInfo } from "@playwright/test";
+import { test as base, expect, type Page } from "@playwright/test";
 import {
   createE2ELogger,
   withStep,
   clearTestContext,
   attachLogsToTest,
-  type E2ELogEntry,
 } from "./e2e-logging";
 import {
   setupNetworkLogging,

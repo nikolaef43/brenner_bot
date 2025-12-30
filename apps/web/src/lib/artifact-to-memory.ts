@@ -196,7 +196,8 @@ function extractFromTests(tests: DiscriminativeTest[], provenance: string): Memo
     }
 
     // Pattern: Tests with high likelihood ratio and low ambiguity
-    if (test.score?.likelihood_ratio && test.score.likelihood_ratio >= 3 && test.score?.ambiguity && test.score.ambiguity <= 2) {
+    if (test.score?.likelihood_ratio !== undefined && test.score.likelihood_ratio >= 3 &&
+        test.score?.ambiguity !== undefined && test.score.ambiguity <= 2) {
       rules.push({
         rule: `Prefer tests with high likelihood ratios (≥3) and low ambiguity (≤2). Example: ${test.name} achieves clean separation between ${test.discriminates}.`,
         category: 'evidence-per-week',
