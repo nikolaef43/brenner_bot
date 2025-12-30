@@ -11,7 +11,7 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { isAbsolute, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 
 // Shared modules from web lib (bundled by Bun)
 import { AgentMailClient } from "./apps/web/src/lib/agentMail";
@@ -170,18 +170,72 @@ async function withWorkingDirectory<T>(cwd: string, fn: () => Promise<T>): Promi
 function resolveWebAppCwd(projectKey: string): string {
   const absoluteProjectKey = resolve(projectKey);
 
-  const repoRootCandidate = resolve(absoluteProjectKey, "apps", "web");
-  if (existsSync(join(repoRootCandidate, "package.json"))) return repoRootCandidate;
-
   const webAppMarkerFiles = ["package.json", "next.config.ts"];
   if (webAppMarkerFiles.every((f) => existsSync(join(absoluteProjectKey, f)))) return absoluteProjectKey;
 
+  let cursor = absoluteProjectKey;
+  while (true) {
+    const repoRootCandidate = resolve(cursor, "apps", "web");
+    if (existsSync(join(repoRootCandidate, "package.json"))) return repoRootCandidate;
+
+    const parent = dirname(cursor);
+    if (parent === cursor) break;
+    cursor = parent;
+  }
+
   throw new Error(
-    `Could not locate apps/web for project key: ${absoluteProjectKey}\n` +
+    `Could not locate apps/web from project key: ${absoluteProjectKey}\n` +
       `Expected either:\n` +
-      `- Repo root containing apps/web (${repoRootCandidate})\n` +
-      `- Web app root (apps/web) containing package.json (${absoluteProjectKey})`
+      `- A repo root (or subdir) containing apps/web/package.json\n` +
+      `- The web app root itself (apps/web) containing: ${webAppMarkerFiles.join(", ")}`
   );
+}
+
+function normalizePublicBaseUrl(value: string, envName: string): string {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error(`${envName} must be an absolute http(s) URL (got "${value}")`);
+  }
+
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    throw new Error(`${envName} must be an absolute http(s) URL (got "${value}")`);
+  }
+
+  url.pathname = "";
+  url.search = "";
+  url.hash = "";
+
+  return url.toString().replace(/\/$/, "");
+}
+
+function getCliPublicBaseUrl(): string {
+  const explicit = process.env.BRENNER_PUBLIC_BASE_URL?.trim();
+  if (explicit) return normalizePublicBaseUrl(explicit, "BRENNER_PUBLIC_BASE_URL");
+
+  const vercelUrl = process.env.VERCEL_URL?.trim();
+  if (vercelUrl) return `https://${vercelUrl}`;
+
+  if (process.env.NODE_ENV === "development") return "http://localhost:3000";
+
+  return "https://brennerbot.org";
+}
+
+function toAbsoluteUrl(url: string, baseUrl: string): string {
+  const trimmed = url.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (!trimmed.startsWith("/")) return trimmed;
+
+  try {
+    return new URL(trimmed, baseUrl).toString();
+  } catch {
+    return `${baseUrl.replace(/\/$/, "")}${trimmed}`;
+  }
+}
+
+function singleLine(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
 }
 
 function nonEmptyString(value: unknown): string | undefined {
@@ -271,7 +325,10 @@ function parseBrennerConfigJson(text: string, configPath: string): BrennerConfig
     const projectKey = nonEmptyString(defaults.projectKey);
     const template = nonEmptyString(defaults.template);
     if (projectKey || template) {
-      out.defaults = { ...(projectKey ? { projectKey } : {}), ...(template ? { template } : {}) };
+      const merged: { projectKey?: string; template?: string } = {};
+      if (projectKey) merged.projectKey = projectKey;
+      if (template) merged.template = template;
+      out.defaults = merged;
     }
   }
 
@@ -669,9 +726,10 @@ async function getCassMemoryContext(task: string, options: CassMemoryContextOpti
           }
 
           mcpContext = parsed;
-          errors.push(
-            `mcp cm_context: success=false${parsed.error?.message ? ` (${parsed.error.message})` : ""}${parsed.error?.hint ? ` — ${parsed.error.hint}` : ""}`
-          );
+          let detail = "";
+          if (parsed.error?.message) detail += ` (${parsed.error.message})`;
+          if (parsed.error?.hint) detail += ` — ${parsed.error.hint}`;
+          errors.push(`mcp cm_context: success=false${detail}`);
         }
       }
     } catch (e) {
@@ -731,9 +789,10 @@ async function getCassMemoryContext(task: string, options: CassMemoryContextOpti
     const parsed = parseCassMemoryContext(payload, task);
 
     if (!parsed.success) {
-      errors.push(
-        `cm context: success=false${parsed.error?.message ? ` (${parsed.error.message})` : ""}${parsed.error?.hint ? ` — ${parsed.error.hint}` : ""}`
-      );
+      let detail = "";
+      if (parsed.error?.message) detail += ` (${parsed.error.message})`;
+      if (parsed.error?.hint) detail += ` — ${parsed.error.hint}`;
+      errors.push(`cm context: success=false${detail}`);
       return {
         ok: false,
         context: parsed,
@@ -866,7 +925,7 @@ Commands:
   mail tools
   mail agents [--project-key <abs-path>]
   mail send [--project-key <abs-path>] [--sender <AgentName>] --to <A,B> --subject <s> --body-file <path> [--thread-id <id>] [--ack-required]
-  mail inbox [--project-key <abs-path>] [--agent <AgentName>] [--limit <n>] [--since <iso>] [--urgent-only] [--include-bodies] [--threads]
+  mail inbox [--project-key <abs-path>] [--agent <AgentName>] [--limit <n>] [--since <iso>] [--urgent-only] [--include-bodies] [--threads] [--summaries]
   mail read [--project-key <abs-path>] [--agent <AgentName>] --message-id <n>
   mail ack [--project-key <abs-path>] [--agent <AgentName>] --message-id <n>
   mail thread [--project-key <abs-path>] --thread-id <id> [--include-examples] [--llm]
@@ -910,6 +969,9 @@ Cass Memory MCP connection (env):
   CM_MCP_BASE_URL            optional (enables MCP mode; e.g. http://127.0.0.1:3001)
   CM_MCP_PATH                default: /mcp/
   CM_MCP_BEARER_TOKEN        optional
+
+Corpus fetch (env):
+  BRENNER_PUBLIC_BASE_URL    optional (absolute http(s) URL; default: auto)
 
 Build metadata (for --version):
   BRENNER_VERSION            optional (prefer semver, e.g. 0.1.0)
@@ -1315,7 +1377,16 @@ async function main(): Promise<void> {
       const limit = asIntFlag(flags, "limit") ?? 20;
       const urgentOnly = asBoolFlag(flags, "urgent-only");
       const includeBodies = asBoolFlag(flags, "include-bodies");
+      const includeSummaries = asBoolFlag(flags, "summaries");
+      const threadsMode = asBoolFlag(flags, "threads");
       const sinceTs = asStringFlag(flags, "since");
+
+      if (includeSummaries && !threadsMode) {
+        throw new Error("Use --summaries together with --threads.");
+      }
+      if (includeSummaries && includeBodies) {
+        throw new Error("Use either --include-bodies or --summaries (not both).");
+      }
 
       const result = await client.toolsCall("fetch_inbox", {
         project_key: projectKey,
@@ -1326,7 +1397,7 @@ async function main(): Promise<void> {
         since_ts: sinceTs ?? null,
       });
 
-      if (asBoolFlag(flags, "threads")) {
+      if (threadsMode) {
         // Best-effort grouping by thread_id from structuredContent, falling back to raw content parsing.
         const messages: Array<Record<string, Json>> = [];
 
@@ -1381,11 +1452,90 @@ async function main(): Promise<void> {
           if (ackRequired) existing.ack_required_message_count++;
         }
 
-        const out = {
-          agent: agentName,
-          threads: Object.values(threads).sort((a, b) => (b.latest_ts ?? "").localeCompare(a.latest_ts ?? "")),
-        };
-        console.log(JSON.stringify(out, null, 2));
+        const baseThreads = Object.values(threads).sort((a, b) => (b.latest_ts ?? "").localeCompare(a.latest_ts ?? ""));
+
+        if (!includeSummaries) {
+          const out = { agent: agentName, threads: baseThreads };
+          console.log(JSON.stringify(out, null, 2));
+          process.exit(0);
+        }
+
+        const enriched: Array<
+          (typeof baseThreads)[number] & {
+            status?: {
+              phase: string;
+              respondedRoleCount: number;
+              totalRoleCount: number;
+              pendingAcks: number;
+              awaitingAckFrom: string[];
+              hasArtifact: boolean;
+              latestArtifact: null | {
+                message_id: number;
+                version: number | null;
+                compiledAt: string;
+                contributors: string[];
+              };
+              roleContributors: Record<string, string[]>;
+              summary: string;
+            } | null;
+            status_error?: string;
+          }
+        > = [];
+
+        for (const threadMeta of baseThreads) {
+          if (threadMeta.thread_id === "(no-thread)") {
+            enriched.push({ ...threadMeta, status: null });
+            continue;
+          }
+
+          try {
+            const thread = await client.readThread({ projectKey, threadId: threadMeta.thread_id, includeBodies: false });
+            const status = computeThreadStatusFromThread(thread);
+            const totalRoleCount = Object.keys(status.roles).length;
+            const respondedRoleCount = Object.values(status.roles).filter((r) => r.completed).length;
+            const artifactLabel = status.latestArtifact
+              ? status.latestArtifact.version
+                ? `v${status.latestArtifact.version}`
+                : "latest"
+              : null;
+
+            const summaryParts = [
+              `${respondedRoleCount}/${totalRoleCount} roles`,
+              `Phase: ${status.phase.replace(/_/g, " ")}`,
+              status.acks.pendingCount > 0 ? `${status.acks.pendingCount} pending acks` : null,
+              artifactLabel ? `Artifact: ${artifactLabel}` : null,
+            ].filter(Boolean) as string[];
+
+            enriched.push({
+              ...threadMeta,
+              status: {
+                phase: status.phase,
+                respondedRoleCount,
+                totalRoleCount,
+                pendingAcks: status.acks.pendingCount,
+                awaitingAckFrom: status.acks.awaitingFrom,
+                hasArtifact: status.latestArtifact !== null,
+                latestArtifact: status.latestArtifact
+                  ? {
+                      message_id: status.latestArtifact.message.id,
+                      version: status.latestArtifact.version,
+                      compiledAt: status.latestArtifact.compiledAt,
+                      contributors: status.latestArtifact.contributors,
+                    }
+                  : null,
+                roleContributors: Object.fromEntries(
+                  Object.entries(status.roles).map(([role, roleStatus]) => [role, roleStatus.contributors])
+                ),
+                summary: summaryParts.join(" | "),
+              },
+            });
+          } catch (e) {
+            const message = e instanceof Error ? e.message : String(e);
+            enriched.push({ ...threadMeta, status_error: message });
+          }
+        }
+
+        console.log(JSON.stringify({ agent: agentName, threads: enriched }, null, 2));
       } else {
         console.log(JSON.stringify(result, null, 2));
       }
@@ -1582,6 +1732,7 @@ async function main(): Promise<void> {
 
   if (top === "corpus" && sub === "search") {
     const jsonMode = asBoolFlag(flags, "json");
+    const publicBaseUrl = getCliPublicBaseUrl();
 
     const positionalQuery = positional.slice(2).join(" ").trim();
     const query = positionalQuery || asStringFlag(flags, "query");
@@ -1624,16 +1775,29 @@ async function main(): Promise<void> {
     }
 
     const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
-    const webCwd = resolveWebAppCwd(projectKey);
 
-    const result = await withWorkingDirectory(webCwd, async () =>
+    const runSearch = () =>
       globalSearch(query, {
         limit,
         category,
         model,
         ...(docIds.length > 0 ? { docIds } : {}),
-      })
-    );
+      });
+
+    let result: Awaited<ReturnType<typeof runSearch>>;
+    let webCwd: string | null = null;
+    try {
+      webCwd = resolveWebAppCwd(projectKey);
+    } catch {
+      // ignore
+    }
+
+    if (webCwd) {
+      result = await withWorkingDirectory(webCwd, runSearch);
+    } else {
+      // Fall back to HTTP-only mode (works outside the repo).
+      result = await runSearch();
+    }
 
     if (jsonMode) {
       console.log(
@@ -1641,6 +1805,7 @@ async function main(): Promise<void> {
           {
             ...result,
             filters: { limit, category, model: model ?? null, docIds },
+            publicBaseUrl,
           },
           null,
           2
@@ -1660,8 +1825,8 @@ async function main(): Promise<void> {
       lines.push("");
       const where = [hit.docId, hit.anchor].filter(Boolean).join(" ");
       lines.push(`${i + 1}. ${where} — ${hit.title}`);
-      lines.push(`   ${hit.snippet}`);
-      lines.push(`   ${hit.url}`);
+      lines.push(`   ${singleLine(hit.snippet)}`);
+      lines.push(`   ${toAbsoluteUrl(hit.url, publicBaseUrl)}`);
     }
 
     console.log(lines.join("\n").trim());

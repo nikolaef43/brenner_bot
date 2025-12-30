@@ -43,7 +43,7 @@ interface CliResult {
  */
 async function runCli(
   args: string[],
-  options?: { timeout?: number; env?: Record<string, string> }
+  options?: { timeout?: number; env?: Record<string, string>; cwd?: string }
 ): Promise<CliResult> {
   const timeout = options?.timeout ?? 5000;
   const env = {
@@ -57,6 +57,7 @@ async function runCli(
     const proc = spawn(process.execPath, ["run", CLI_PATH, ...args], {
       timeout,
       env,
+      cwd: options?.cwd,
     });
 
     let stdout = "";
@@ -207,6 +208,26 @@ describe("corpus search command", () => {
     const result = await runCli(["corpus", "search"], { timeout: 10000 });
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("Missing query");
+  });
+
+  it("works when executed from a repo subdirectory (auto-detects apps/web)", async () => {
+    const repoSubdir = resolve(__dirname, "apps", "web", "src");
+    const result = await runCli(
+      ["corpus", "search", "Brenner", "--docs", "transcript", "--limit", "1", "--json"],
+      { timeout: 30000, cwd: repoSubdir }
+    );
+
+    expect(result.exitCode).toBe(0);
+
+    let parsed: { hits: Array<{ docId: string }> };
+    try {
+      parsed = JSON.parse(result.stdout) as { hits: Array<{ docId: string }> };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      throw new Error(`Expected corpus search --json output. Parse failed: ${msg}\n\nstdout:\n${result.stdout}`);
+    }
+    expect(parsed.hits.length).toBeGreaterThan(0);
+    expect(parsed.hits[0]?.docId).toBe("transcript");
   });
 });
 
@@ -446,6 +467,24 @@ describe("mail inbox validation", () => {
     const result = await runCli(["mail", "inbox"]);
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("--agent");
+  });
+
+  it("--summaries requires --threads", async () => {
+    const result = await runCli(["mail", "inbox", "--summaries"], {
+      env: { AGENT_NAME: "TestAgent" },
+    });
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--summaries");
+    expect(result.stderr).toContain("--threads");
+  });
+
+  it("--summaries conflicts with --include-bodies", async () => {
+    const result = await runCli(["mail", "inbox", "--threads", "--summaries", "--include-bodies"], {
+      env: { AGENT_NAME: "TestAgent" },
+    });
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--include-bodies");
+    expect(result.stderr).toContain("--summaries");
   });
 });
 
@@ -1161,6 +1200,15 @@ describe("boolean flags", () => {
       { AGENT_NAME: "TestAgent" }
     );
     expect(result.stderr).not.toContain("threads");
+    expect(result.stderr).toContain("connect");
+  });
+
+  it("--summaries is recognized as boolean", async () => {
+    const result = await runCliWithEnv(
+      ["mail", "inbox", "--threads", "--summaries"],
+      { AGENT_NAME: "TestAgent" }
+    );
+    expect(result.stderr).not.toContain("summaries");
     expect(result.stderr).toContain("connect");
   });
 
