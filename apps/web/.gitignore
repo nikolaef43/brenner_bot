@@ -47,3 +47,7 @@ next-env.d.ts
 
 # Note: public/_corpus/ is NOT gitignored - these files MUST be committed
 # so they deploy to Vercel. The copy-corpus script populates them from repo root.
+
+# IMPORTANT: Ignore public/corpus/ (old location before route conflict fix)
+# Files MUST be in _corpus, not corpus, to avoid conflict with /corpus/[doc] route
+public/corpus/
