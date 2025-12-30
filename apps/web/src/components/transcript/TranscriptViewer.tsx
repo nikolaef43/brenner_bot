@@ -272,6 +272,60 @@ export function TranscriptSearch({ sections, onResultClick, onSearchChange }: Tr
 }
 
 // ============================================================================
+// STICKY SECTION INDICATOR - Shows current section on mobile while scrolling
+// ============================================================================
+
+interface StickySectionIndicatorProps {
+  currentSection: TSection | null;
+  totalSections: number;
+  onTocClick: () => void;
+}
+
+function StickySectionIndicator({ currentSection, totalSections, onTocClick }: StickySectionIndicatorProps) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    // Show indicator after scrolling past the hero section
+    const handleScroll = () => {
+      setVisible(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Only show on mobile
+  if (typeof window !== "undefined" && window.innerWidth >= 1024) {
+    return null;
+  }
+
+  if (!visible || !currentSection) return null;
+
+  return (
+    <div className="lg:hidden sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border/50 -mx-4 px-4 py-2">
+      <button
+        onClick={onTocClick}
+        className="w-full flex items-center justify-between gap-2 touch-manipulation"
+        aria-label="Open table of contents"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="flex-shrink-0 text-xs font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+            §{currentSection.number}
+          </span>
+          <span className="text-sm font-medium text-foreground truncate">
+            {currentSection.title}
+          </span>
+        </div>
+        <div className="flex-shrink-0 flex items-center gap-1 text-xs text-muted-foreground">
+          <span>{currentSection.number}/{totalSections}</span>
+          <ChevronIcon className="size-4" />
+        </div>
+      </button>
+    </div>
+  );
+}
+
+// ============================================================================
 // READING PROGRESS
 // ============================================================================
 
