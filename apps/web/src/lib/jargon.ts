@@ -1203,6 +1203,218 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     related: ["discriminative-test", "potency", "exclusion-test", "decision-experiment"],
     category: "brenner",
   },
+
+  // -------------------------------------------------------------------------
+  // Tier 1: Critical Core Concepts
+  // -------------------------------------------------------------------------
+  "dont-worry-hypothesis": {
+    term: "Don't Worry Hypothesis",
+    short: "Assume a mechanism exists and proceed; don't block on seeming impossibilities.",
+    long:
+      "When a theory has strong evidence but one component 'seems impossible,' assume that component has some solution and proceed. Nature has had billions of years to solve engineering problems. 'Seems impossible' usually means 'I can't currently imagine how.' This lets theory development proceed productively.",
+    analogy:
+      "Like assuming your package will arrive even though you don't know the exact route the delivery truck takes.",
+    why:
+      "Brenner applied this to DNA unwinding (§57), energy in protein synthesis, and repeatedly to avoid blocking on tractable-but-secondary problems. It's 'very important in biology' because it permits productive work despite apparent difficulties.",
+    related: ["exception-quarantine", "house-of-cards", "theory-kill", "third-alternative"],
+    category: "brenner",
+  },
+  "generative-grammar": {
+    term: "Generative Grammar",
+    short: "The discoverable causal rules that produce phenomena—reality's 'source code.'",
+    long:
+      "Brenner's first axiom: the world is not merely patterns and correlations but is produced by causal machinery operating according to discoverable rules. Biology is literally computation—DNA is source code, development is execution, mutation is debugging, evolution is version control. Science is reverse-engineering these production rules.",
+    analogy:
+      "Like the grammar of a language that generates infinite sentences from finite rules—or like source code that compiles into a running program.",
+    why:
+      "This ontology—learned from Von Neumann's work on self-reproducing automata—underlies Brenner's entire approach. 'The moment I saw the DNA molecule, then I knew it.' Transcript anchors: §23-36 (DNA as information), §126 (gedanken mouse), §147 (proper simulation).",
+    related: ["two-axioms", "machine-language", "level-split", "recode"],
+    category: "brenner",
+  },
+  "house-of-cards": {
+    term: "House of Cards",
+    short: "Theory architecture where all components mutually constrain—all or nothing.",
+    long:
+      "Build theories where every prediction depends on others. You can't accept one part and reject the rest. If N independent predictions each have probability p of being true by chance, the whole theory has probability p^N. This makes theories fragile in principle but extremely well-confirmed when they survive testing.",
+    analogy:
+      "Like a jigsaw puzzle where every piece interlocks—you can't remove one piece and claim the rest still work.",
+    why:
+      "The genetic code theory was 'the real house of cards theory; you had to buy everything... it was all or nothing theory' (§111). Attack any part and the whole falls. This architecture multiplies evidential weight exponentially.",
+    related: ["exception-quarantine", "occams-broom", "forbidden-pattern", "assumption-ledger"],
+    category: "brenner",
+  },
+  "chastity-impotence": {
+    term: "Chastity vs Impotence",
+    short: "Distinguish 'won't happen' (chaste) from 'can't detect' (impotent).",
+    long:
+      "Same null result, fundamentally different reasons. A chaste experiment correctly shows an effect doesn't exist. An impotent experiment fails to detect an effect that exists. Before interpreting negative results, verify your intervention actually worked (potency check). The outcome is the same; the reasons are fundamentally different.",
+    analogy:
+      "Like the difference between 'the suspect has an alibi' (chaste—truly innocent) and 'we couldn't reach the witness' (impotent—can't tell).",
+    why:
+      "Brenner's wordplay crystallizes a fundamental experimental distinction (§50). Science must distinguish true negatives from false negatives. Many failed replications are impotent, not chaste.",
+    related: ["potency-check", "potency", "exclusion-test", "decision-experiment"],
+    category: "brenner",
+  },
+  "cheap-loop": {
+    term: "Cheap Loop",
+    short: "Minimize time between hypothesis and test; optimize for iteration speed.",
+    long:
+      "Research productivity depends on loop time—how fast you can propose, test, and update. Bureaucracy, expensive equipment, and slow assays are taxes on discrimination. Choose systems where experiments are cheap and fast. The 'quickie' is a cheap loop strategy.",
+    analogy:
+      "Like preferring a whiteboard over a formal proposal process—speed of iteration beats perfection of planning.",
+    why:
+      "Brenner valued arriving at a lab and doing an experiment immediately (§80). 'What was so interesting in those times was you could arrive at a lab and do an experiment.' The quickie (§99) exemplifies cheap loop thinking.",
+    related: ["quickie", "hal", "diy", "materialize", "brenner-loop"],
+    category: "brenner",
+  },
+  "two-axioms": {
+    term: "Two Axioms",
+    short: "Brenner's foundational commitments: reality has grammar, understanding = reconstruction.",
+    long:
+      "Everything in Brenner's method derives from two axioms. Axiom 1: Reality has a generative grammar—phenomena are produced by causal machinery operating according to discoverable rules. Axiom 2: To understand is to be able to reconstruct—you haven't explained something until you can specify how to build it from primitives (the Gedanken Organism Standard).",
+    analogy:
+      "Like Euclid's axioms generating all of geometry—from these two commitments, the entire Brenner method unfolds with logical necessity.",
+    why:
+      "These axioms are the generative core from which all Brenner operators and strategies derive. Understand them and the rest follows as corollary.",
+    related: ["generative-grammar", "gedanken-organism", "machine-language", "level-split"],
+    category: "brenner",
+  },
+  satisficing: {
+    term: "Satisficing",
+    short: "Evolution satisfies constraints rather than optimizing—good enough beats best.",
+    long:
+      "A key insight from Herbert Simon applied to biology: evolution doesn't find optimal solutions, it finds solutions that satisfy the relevant constraints. 'Function precedes mechanism'—what matters is that something works, not that it works optimally. This explains why biological systems often look 'messy' rather than elegant.",
+    analogy:
+      "Like buying the first apartment that meets your requirements rather than viewing every apartment in the city to find the absolute best.",
+    why:
+      "This axiom liberates thinking from teleological optimization assumptions. Evolution tinkers; it doesn't engineer. Transcript anchors: Part I distillation (Axiom 1 discussion).",
+    related: ["two-axioms", "generative-grammar", "gedanken-organism"],
+    category: "brenner",
+  },
+  "imprisoned-imagination": {
+    term: "Imprisoned Imagination",
+    short: "Constrain theorizing by physical reality—calculate before speculating.",
+    long:
+      "Stay 'imprisoned within the physical context of everything.' Before theorizing, get the scale right. The DNA in a bacterium is 1mm long, folded up a thousand times in a 1μ cell. Ribosomes are packed so tightly that messengers thread through them 'like hysterical snakes.' Pictures showing a bacterium with 'a little circle in it are ridiculous.'",
+    analogy:
+      "Like an architect who can't just draw pretty pictures but must specify actual materials and loads—imagination constrained by physics becomes powerful.",
+    why:
+      "This 'imprisonment' is actually liberation—it prevents theorizing that can't possibly work physically. Brenner and Crick 'tried very hard to stay imprisoned within the physical context of everything' (§229).",
+    related: ["scale-prison", "materialize", "gedanken-organism"],
+    category: "brenner",
+  },
+  "conversational-science": {
+    term: "Conversational Science",
+    short: "Thinking out loud as cognitive technology—externalize half-formed ideas.",
+    long:
+      "Never restrain yourself; say it, even if it's completely stupid and ridiculous and wrong. Uttering an idea gets it into the open where others can pick up something from it. Ideas are 'at least 50% wrong the first time' they appear. Speaking externalizes thought, enabling self-correction, combinatorial recombination with other minds, and creation of an 'extended cognitive system.'",
+    analogy:
+      "Like pair programming where two minds catch errors that one would miss—the blackboard discussions weren't social niceties but thinking technology.",
+    why:
+      "The 20 years sharing an office with Crick, the Talmudic readings of textbooks aloud, the late nights talking science till 4am—these were research methods, not recreation. Transcript anchors: §167, §319-332.",
+    related: ["productive-ignorance", "cross-domain-import", "brenner-loop"],
+    category: "brenner",
+  },
+
+  // -------------------------------------------------------------------------
+  // Tier 2: Important Methodology Terms
+  // -------------------------------------------------------------------------
+  "machine-language": {
+    term: "Machine Language",
+    short: "The primitives a system actually computes with—not metaphors, but real operations.",
+    long:
+      "Every system computes in its own primitives. For genetics: genes, alleles, recombination events. For development: cells, divisions, recognition proteins. For behavior: neurons, synapses, connection strengths. If your explanation uses vocabulary the system cannot 'execute,' you have made a category error.",
+    analogy:
+      "Like the difference between describing what a program does in English versus the actual CPU instructions it runs—only the instructions are what the machine actually executes.",
+    why:
+      "'The machine language of development is in terms of cells and the recognition proteins they carry... not gradients and not differential equations' (§208). Brenner insisted explanations must be expressible in the system's actual primitives.",
+    related: ["level-split", "generative-grammar", "two-axioms", "recode"],
+    category: "brenner",
+  },
+  "negative-staining": {
+    term: "Negative Staining",
+    short: "A democratizing EM technique discovered via cross-domain pattern recognition.",
+    long:
+      "A technique that 'took electron microscopy out of the hands of the elite and gave it to the people.' Instead of staining the object, you surround it with dense stain so it appears light against a dark background. Brenner recognized this from medical training (viewing syphilis spirochetes) and applied it to electron microscopy.",
+    analogy:
+      "Like seeing a shadow—you don't illuminate the object, you illuminate everything around it so the object stands out as an absence.",
+    why:
+      "'Now anybody could do it' (§86). This exemplifies the democratize operator—breaking infrastructure monopolies by turning elite craft into cheap, teachable procedures via cross-domain pattern recognition.",
+    related: ["democratize", "cross-domain-import", "diy", "cheap-loop"],
+    category: "method",
+  },
+  "opening-game": {
+    term: "Opening Game",
+    short: "Early research phase with maximum freedom—develop position before committing.",
+    long:
+      "Chess metaphor for early-stage research. In the opening, you have 'tremendous freedom of choice'—you develop pieces and control space before launching a specific attack. Avoid crowded priors and industrialized midgames. The opening game is where strategic choices matter most.",
+    analogy:
+      "Like the first moves in chess—establish control and flexibility before the tactical battles begin.",
+    why:
+      "'The opening game... tremendous freedom of choice' (§192). Brenner warned against jumping into crowded competitions. Work 'out of phase' with fashion to find open territory.",
+    related: ["dephase", "productive-ignorance", "cheap-loop"],
+    category: "brenner",
+  },
+  "co-linearity": {
+    term: "Co-linearity",
+    short: "The correspondence between gene sequence and protein sequence order.",
+    long:
+      "The principle that the order of mutations in a gene corresponds to the order of amino acid changes in its protein. Proving co-linearity was a major goal—it established that genes encode proteins in a simple sequential mapping, not a scrambled or overlapping code.",
+    analogy:
+      "Like proving that the order of words in a telegram corresponds to the order they appear in the original message—no scrambling, no codes within codes.",
+    why:
+      "'We could give a topological proof of co-linearity—we wouldn't have to do any protein sequencing' (§134). This was a key bridge between genetics and biochemistry, proven by clever genetic logic before sequencing was available.",
+    related: ["genetic-code", "reading-frame", "recode", "digital-handle"],
+    category: "biology",
+  },
+  "reading-frame": {
+    term: "Reading Frame",
+    short: "The triplet grouping that determines how DNA is decoded into protein.",
+    long:
+      "DNA is read in non-overlapping triplets (codons), and the 'frame' is which nucleotide you start counting from. Shift the frame by one or two bases and you get a completely different (usually nonsense) protein. The reading frame is a discrete, integer quantity—not continuous.",
+    analogy:
+      "Like the difference between 'THE CAT ATE' and 'HEC ATA TE'—same letters, completely different meaning depending on where you start grouping.",
+    why:
+      "Brenner's frameshift experiments (§109) proved the code was triplet and non-overlapping by showing that +1 and -1 frameshifts could cancel each other out, restoring function.",
+    related: ["frameshift", "genetic-code", "co-linearity", "codon"],
+    category: "biology",
+  },
+  frameshift: {
+    term: "Frameshift",
+    short: "A mutation that shifts the reading frame, scrambling all downstream codons.",
+    long:
+      "An insertion or deletion of nucleotides (not multiples of 3) shifts the reading frame, causing all subsequent codons to be misread. The result is usually a completely non-functional protein. Crucially, two frameshifts in opposite directions can cancel out and restore function.",
+    analogy:
+      "Like accidentally deleting one space in a sentence—everything after the deletion becomes gibberish until you add another space to 'fix' the frame.",
+    why:
+      "Frameshift analysis was central to proving the triplet code (§109). If code were doublet, frameshifts would behave differently. The logic is purely topological—you can infer the code structure from pattern alone.",
+    related: ["reading-frame", "genetic-code", "mutation", "codon"],
+    category: "biology",
+  },
+  "anatomical-dissection": {
+    term: "Anatomical Dissection",
+    short: "Isolate gross parts first before fine purification—chunk before fractionate.",
+    long:
+      "Instead of treating a complex structure as 'a mixture of proteins to go on columns and separate,' first isolate gross anatomical chunks. Make structure legible before investing in 'proper' purification. Brenner could isolate bacteriophage parts by simple pH tricks before others could by column chromatography.",
+    analogy:
+      "Like separating a car into engine, chassis, and body before analyzing individual bolts—gross structure guides fine analysis.",
+    why:
+      "'The whole idea that you could actually isolate chunks as a preliminary was something no one accepted at the time' (§85). This prototype-first approach enabled faster progress with simpler tools.",
+    related: ["diy", "cheap-loop", "level-split"],
+    category: "method",
+  },
+  "mutational-spectra": {
+    term: "Mutational Spectra",
+    short: "Patterns across many mutants that reveal mechanism class and code structure.",
+    long:
+      "Use a spectrum (pattern over many mutants) to type causal mechanisms. If a chemical mutagen changes G to A, observing which amino acids change constrains the genetic code. The dream: 'we'd actually decode the protein this way' by correlating mutagen chemistry with amino acid changes.",
+    analogy:
+      "Like using the pattern of errors from a broken typewriter to deduce which key is stuck—the spectrum of mistakes reveals the mechanism.",
+    why:
+      "This was an attempt to crack the genetic code through mutagen logic rather than sequencing (§90). Though ultimately superseded by direct methods, it exemplifies the Brenner approach of extracting maximum information from pattern.",
+    related: ["genetic-code", "mutation", "forbidden-pattern", "digital-handle"],
+    category: "method",
+  },
 };
 
 // ============================================================================

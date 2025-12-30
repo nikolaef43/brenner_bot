@@ -222,7 +222,7 @@ function QuoteCard({ quote, isHighlighted }: QuoteCardProps) {
           {quote.quote.length >= 300 && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="mt-3 px-3 py-1.5 -ml-1 text-sm text-primary hover:underline active:scale-95 transition-transform touch-manipulation rounded-lg"
+              className="mt-3 px-3 py-1.5 -ml-1 text-sm text-primary hover:underline active:scale-95 active:text-primary/80 transition-all touch-manipulation rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {isExpanded ? "Show less" : "Read more"}
             </button>
@@ -250,7 +250,7 @@ function QuoteCard({ quote, isHighlighted }: QuoteCardProps) {
 
         {/* Tags - horizontal scroll on mobile */}
         {quote.tags.length > 0 && (
-          <div className="mt-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="mt-4 -mx-4 px-4 sm:mx-0 sm:px-0 relative">
             <div className="flex gap-1.5 sm:gap-2 overflow-x-auto sm:flex-wrap scrollbar-hide">
               {quote.tags.map((tag) => (
                 <span
@@ -261,6 +261,7 @@ function QuoteCard({ quote, isHighlighted }: QuoteCardProps) {
                 </span>
               ))}
             </div>
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-card to-transparent pointer-events-none sm:hidden" />
           </div>
         )}
       </div>

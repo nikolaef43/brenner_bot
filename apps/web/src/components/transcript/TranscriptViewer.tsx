@@ -113,7 +113,7 @@ export function TableOfContents({ sections, activeSection, onSectionClick }: Tab
       {/* Mobile toggle */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="lg:hidden w-full flex items-center justify-between px-4 py-3 rounded-xl bg-card border border-border mb-2"
+        className="lg:hidden w-full flex items-center justify-between px-4 py-3 rounded-xl bg-card border border-border mb-2 hover:bg-card/80 active:bg-muted/50 active:scale-[0.99] transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="font-medium">Table of Contents</span>
         <ChevronIcon className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />

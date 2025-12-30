@@ -57,7 +57,7 @@ If `ntm deps` fails, fix that first (it will tell you which CLI is missing).
 ### Corpus files are present (local dev)
 
 In this repo, primary corpus sources live at the repo root (example: `complete_brenner_transcript.md`).
-The web app build copies them into `apps/web/public/corpus/` via:
+The web app build copies them into `apps/web/public/_corpus/` via:
 
 ```bash
 cd apps/web
@@ -131,6 +131,19 @@ cat > excerpt.md <<'EOF'
 
 §57 — (paste another excerpt if needed)
 EOF
+```
+
+Or build an excerpt from the corpus/quote bank:
+
+```bash
+# Search for relevant transcript anchors (§n)
+./brenner.ts corpus search "exclusion" --docs transcript --limit 5
+
+# Build excerpt from specific sections
+./brenner.ts excerpt build --sections "§103,§105" --ordering chronological > excerpt.md
+
+# Or build excerpt by quote-bank tags (deduplicated by §)
+./brenner.ts excerpt build --tags "third-alternative,conversation" --limit 7 > excerpt.md
 ```
 
 Compose the kickoff prompt:
@@ -230,6 +243,10 @@ Useful CLI commands:
 # View your inbox (add --threads to group by thread)
 ./brenner.ts mail inbox --project-key "$PWD" --agent FuchsiaDog --threads
 
+# Read + ack a specific message
+./brenner.ts mail read --project-key "$PWD" --agent FuchsiaDog --message-id 123
+./brenner.ts mail ack --project-key "$PWD" --agent FuchsiaDog --message-id 123
+
 # Read a specific thread (include examples / guidance for agents)
 ./brenner.ts mail thread --project-key "$PWD" --thread-id "$THREAD_ID" --include-examples
 ```
@@ -239,31 +256,36 @@ Common nudge (send to all `ntm` panes):
 ntm send "$THREAD_ID" --all "Check Agent Mail thread: $THREAD_ID and reply with DELTA[...] blocks (see specs/delta_output_format_v0.1.md)"
 ```
 
-### 3.6 Compile + publish (v0 manual workflow)
+### 3.6 Status → compile/write → publish (CLI workflow)
 
-**Current state**: the artifact compiler is specified, but the operator-facing `session compile`/`session publish` CLI commands are not implemented yet.
-Until they exist, compilation is an explicit human step.
-
-**Goal**: turn a thread’s deltas into a single canonical artifact, then publish it back into the same thread.
-
-1) Start from the canonical schema: `specs/artifact_schema_v0.1.md`.
-2) Apply agent deltas per: `specs/artifact_delta_spec_v0.1.md`.
-3) Save a local artifact file (example): `artifact_v1.md`.
-4) Publish it back to Agent Mail as a `COMPILED:` message:
+Watch session status (optional):
 
 ```bash
-./brenner.ts mail send \
-  --project-key "$PWD" \
-  --sender FuchsiaDog \
-  --to BlueLake,PurpleMountain,RedForest \
-  --thread-id "$THREAD_ID" \
-  --subject "COMPILED: v1 artifact" \
-  --body-file artifact_v1.md \
-  --ack-required
+./brenner.ts session status --project-key "$PWD" --thread-id "$THREAD_ID" --watch
 ```
 
-Then iterate:
-- Ask for critique (`CRITIQUE:`), request revisions, collect new `DELTA[...]`, publish `COMPILED: v2 ...`, etc.
+Compile the thread into a canonical artifact (prints markdown to stdout; prints lint report to stderr):
+
+```bash
+./brenner.ts session compile --project-key "$PWD" --thread-id "$THREAD_ID" > artifact_v1.md
+```
+
+Write the artifact to disk (default path: `artifacts/{thread_id}.md`):
+
+```bash
+./brenner.ts session write --project-key "$PWD" --thread-id "$THREAD_ID"
+```
+
+Publish a `COMPILED:` message back into the same thread (re-compiles before sending):
+
+```bash
+./brenner.ts session publish --project-key "$PWD" --thread-id "$THREAD_ID" \
+  --sender Operator --to BlueLake,PurpleMountain,RedForest --ack-required
+```
+
+Notes:
+- Use `--json` on `session compile`/`write`/`publish` for machine-readable output.
+- If compilation fails, `session compile` reports invalid delta blocks (by message id + subject). Ask the agent to resend a corrected `DELTA[...]` with a valid fenced `delta` block (see `specs/delta_output_format_v0.1.md`).
 
 ### 3.7 Conversation protocol (copy/paste)
 
@@ -282,6 +304,18 @@ Rules:
 5) Keep levels split (program vs interpreter; message vs machine).
 6) If we can’t cite it, label it `[inference]` and move on.
 ~~~
+
+### 3.8 Troubleshooting (common failures)
+
+- Agent Mail connectivity:
+  - `./brenner.ts mail health` fails → check `AGENT_MAIL_BASE_URL`, `AGENT_MAIL_PATH`, and (if enabled) `AGENT_MAIL_BEARER_TOKEN`.
+  - Ensure the Agent Mail server is running locally (see Preconditions).
+- “Agent not found” / identity confusion:
+  - Use `./brenner.ts mail agents --project-key "$PWD"` to confirm exact names.
+  - Set `AGENT_NAME=YourName` (or pass `--sender/--agent`) so read/ack operations use the right inbox.
+- Project key pitfalls:
+  - Prefer `--project-key "$PWD"` (absolute path). Avoid relative paths when coordinating across machines.
+  - If you’re hitting URL-encoding oddities, double-check you’re using the CLI path (not a browser URL) for `--project-key`.
 
 ---
 

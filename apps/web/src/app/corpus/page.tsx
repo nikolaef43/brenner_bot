@@ -724,7 +724,7 @@ function SearchBar({ value, onChange, resultCount }: SearchBarProps) {
         {value && (
           <button
             onClick={() => onChange("")}
-            className="absolute right-3 sm:right-4 p-1 rounded-full hover:bg-muted transition-colors"
+            className="absolute right-3 sm:right-4 p-1 rounded-full hover:bg-muted active:bg-muted/80 active:scale-90 transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <XMarkIcon className="size-4 text-muted-foreground" />
           </button>

@@ -249,9 +249,12 @@ function ContentPart({ part }: { part: ContentPart }) {
 
     case "code":
       return (
-        <pre className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-muted border border-border overflow-x-auto -mx-2 sm:mx-0">
-          <code className="text-xs sm:text-sm font-mono text-foreground/90">{part.text}</code>
-        </pre>
+        <div className="relative -mx-2 sm:mx-0">
+          <pre className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-muted border border-border overflow-x-auto">
+            <code className="text-xs sm:text-sm font-mono text-foreground/90">{part.text}</code>
+          </pre>
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-muted to-transparent pointer-events-none sm:hidden" />
+        </div>
       );
 
     default:

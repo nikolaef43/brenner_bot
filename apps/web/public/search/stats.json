@@ -1,10 +1,10 @@
 {
-  "totalEntries": 461,
+  "totalEntries": 484,
   "byCategory": {
     "transcript": 236,
-    "quote-bank": 93,
+    "quote-bank": 116,
     "metaprompt": 15,
     "distillation": 117
   },
-  "indexSizeBytes": 691925
+  "indexSizeBytes": 713327
 }

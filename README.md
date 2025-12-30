@@ -331,6 +331,8 @@ cass health
 cm onboard status
 ```
 
+Troubleshooting + upgrades: `specs/bootstrap_troubleshooting_v0.1.md`
+
 #### CLI command map (contract)
 
 Status legend:
