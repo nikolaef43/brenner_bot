@@ -6,6 +6,7 @@
  */
 
 import { describe, test, expect } from "vitest";
+import { readFile } from "node:fs/promises";
 import {
   parseManifest,
   detectPlatform,
@@ -327,7 +328,7 @@ describe("real manifest", () => {
     const manifestPath = new URL("../../../../../specs/toolchain.manifest.json", import.meta.url);
     let manifestJson: string;
     try {
-      manifestJson = await Bun.file(manifestPath).text();
+      manifestJson = await readFile(manifestPath, "utf8");
     } catch {
       // Skip if file doesn't exist in test environment
       return;

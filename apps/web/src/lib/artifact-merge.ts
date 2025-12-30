@@ -224,6 +224,11 @@ function deepClone<T>(obj: T): T {
 }
 
 const SYSTEM_ITEM_FIELDS = new Set(["id", "killed", "killed_by", "killed_at", "kill_reason"]);
+const FORBIDDEN_PAYLOAD_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+
+function isForbiddenPayloadKey(key: string): boolean {
+  return FORBIDDEN_PAYLOAD_KEYS.has(key);
+}
 
 function getItemsForSection(artifact: Artifact, section: DeltaSection): BaseItem[] {
   if (section === "research_thread") {
@@ -307,7 +312,7 @@ function applyAdd(
   artifact: Artifact,
   delta: TimestampedDelta,
   errors: MergeError[],
-  _warnings: MergeWarning[],
+  warnings: MergeWarning[],
 ): boolean {
   const { section, payload, raw } = delta;
 
@@ -352,6 +357,14 @@ function applyAdd(
   const sanitizedPayload: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(payload)) {
     if (SYSTEM_ITEM_FIELDS.has(key)) continue;
+    if (isForbiddenPayloadKey(key)) {
+      warnings.push({
+        code: "FORBIDDEN_PAYLOAD_KEY",
+        message: `Ignoring forbidden payload key "${key}" (prototype pollution risk)`,
+        delta_raw: raw,
+      });
+      continue;
+    }
     sanitizedPayload[key] = value;
   }
 
@@ -395,6 +408,14 @@ function applyEdit(
       const sanitizedPayload: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(payload)) {
         if (SYSTEM_ITEM_FIELDS.has(key)) continue;
+        if (isForbiddenPayloadKey(key)) {
+          warnings.push({
+            code: "FORBIDDEN_PAYLOAD_KEY",
+            message: `Ignoring forbidden payload key "${key}" (prototype pollution risk)`,
+            delta_raw: raw,
+          });
+          continue;
+        }
         sanitizedPayload[key] = value;
       }
 
@@ -414,6 +435,14 @@ function applyEdit(
       const rtRecord = rt as unknown as Record<string, unknown>;
       for (const [key, value] of Object.entries(payload)) {
         if (SYSTEM_ITEM_FIELDS.has(key)) continue;
+        if (isForbiddenPayloadKey(key)) {
+          warnings.push({
+            code: "FORBIDDEN_PAYLOAD_KEY",
+            message: `Ignoring forbidden payload key "${key}" (prototype pollution risk)`,
+            delta_raw: raw,
+          });
+          continue;
+        }
         if (key === "anchors" && !(payload as Record<string, unknown>).replace) {
           rtRecord[key] = mergeArrayField(rtRecord[key], value);
         } else if (key !== "replace") {
@@ -460,6 +489,14 @@ function applyEdit(
     for (const [key, value] of Object.entries(payload)) {
       if (key === "replace") continue;
       if (SYSTEM_ITEM_FIELDS.has(key)) continue;
+      if (isForbiddenPayloadKey(key)) {
+        warnings.push({
+          code: "FORBIDDEN_PAYLOAD_KEY",
+          message: `Ignoring forbidden payload key "${key}" (prototype pollution risk)`,
+          delta_raw: raw,
+        });
+        continue;
+      }
 
       // Array fields: merge by default, replace if explicitly requested
       if (

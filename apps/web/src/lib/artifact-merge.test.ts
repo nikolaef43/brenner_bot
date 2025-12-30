@@ -253,6 +253,34 @@ describe("EDIT operations", () => {
     expect(h1.claim).toBe("Updated claim");
   });
 
+  test("ignores forbidden payload keys (prototype pollution)", () => {
+    const artifact = createEmptyArtifact("TEST-001");
+    const addDelta = makeValidDelta("ADD", "hypothesis_slate", null, {
+      name: "Original",
+      claim: "Original claim",
+      mechanism: "Original mechanism",
+    });
+
+    const afterAdd = mergeArtifact(artifact, [addDelta], "Agent1", "2025-01-01T00:00:00Z");
+    expect(afterAdd.ok).toBe(true);
+    if (!afterAdd.ok) return;
+
+    const payload = JSON.parse('{"__proto__":{"polluted":true},"claim":"Updated claim"}') as Record<string, unknown>;
+    const editDelta = makeValidDelta("EDIT", "hypothesis_slate", "H1", payload);
+
+    const result = mergeArtifact(afterAdd.artifact, [editDelta], "Agent2", "2025-01-01T00:01:00Z");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.warnings.some((w) => w.code === "FORBIDDEN_PAYLOAD_KEY")).toBe(true);
+
+    const h1 = result.artifact.sections.hypothesis_slate[0] as unknown as Record<string, unknown>;
+    expect(h1.claim).toBe("Updated claim");
+    expect(h1.polluted).toBeUndefined();
+    expect(Object.getPrototypeOf(h1)).toBe(Object.prototype);
+  });
+
   test("creates research_thread on first EDIT", () => {
     const artifact = createEmptyArtifact("TEST-001");
     const delta = makeValidDelta("EDIT", "research_thread", null, {
@@ -270,6 +298,26 @@ describe("EDIT operations", () => {
     expect(result.artifact.sections.research_thread).not.toBeNull();
     expect(result.artifact.sections.research_thread?.id).toBe("RT");
     expect(result.artifact.sections.research_thread?.statement).toBe("What is X?");
+  });
+
+  test("ignores forbidden payload keys on research_thread (prototype pollution)", () => {
+    const artifact = createEmptyArtifact("TEST-001");
+    const payload = JSON.parse('{"__proto__":{"polluted":true},"statement":"What is X?","context":"Background","why_it_matters":"Important"}') as Record<string, unknown>;
+    const delta = makeValidDelta("EDIT", "research_thread", null, payload);
+
+    const result = mergeArtifact(artifact, [delta], "TestAgent", "2025-01-01T00:00:00Z");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.warnings.some((w) => w.code === "FORBIDDEN_PAYLOAD_KEY")).toBe(true);
+
+    const rt = result.artifact.sections.research_thread as unknown as Record<string, unknown> | null;
+    expect(rt).not.toBeNull();
+    if (!rt) return;
+
+    expect(rt.polluted).toBeUndefined();
+    expect(Object.getPrototypeOf(rt)).toBe(Object.prototype);
   });
 
   test("merges array fields by default", () => {

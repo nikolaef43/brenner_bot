@@ -142,7 +142,6 @@ jobs:
       - name: TypeScript check
         working-directory: apps/web
         run: bunx tsc --noEmit
-        continue-on-error: true
 
   cli-tests:
     name: CLI Tests
@@ -161,7 +160,6 @@ jobs:
 
       - name: Run CLI tests
         run: bun test brenner.test.ts
-        continue-on-error: true
 
   brenner-compile:
     name: Brenner Compile (standalone)
