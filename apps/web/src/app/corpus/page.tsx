@@ -497,7 +497,7 @@ function RawResponsesSection({ docs, isExpanded, onToggle, sectionIndex }: RawRe
                   <button
                     key={model}
                     onClick={() => setActiveModel(model)}
-                    className={`flex-1 relative px-6 py-4 text-sm font-medium transition-all duration-200 ${
+                    className={`flex-1 relative px-6 py-4 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${
                       isActive
                         ? `${config.color} bg-background`
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
@@ -533,7 +533,7 @@ function RawResponsesSection({ docs, isExpanded, onToggle, sectionIndex }: RawRe
                     <Link
                       key={doc.id}
                       href={`/corpus/${doc.id}`}
-                      className={`group flex items-center gap-4 p-4 rounded-xl border ${config.borderColor} ${config.bgColor} hover:shadow-md transition-all duration-200`}
+                      className={`group flex items-center gap-4 p-4 rounded-xl border ${config.borderColor} ${config.bgColor} hover:shadow-md active:scale-[0.98] transition-all duration-200 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
                     >
                       {/* Batch number indicator */}
                       <div className={`flex items-center justify-center size-10 rounded-lg ${config.iconBg} ${config.color} font-semibold text-lg shrink-0`}>
@@ -594,7 +594,7 @@ function RawResponsesSection({ docs, isExpanded, onToggle, sectionIndex }: RawRe
                     <Link
                       key={doc.id}
                       href={`/corpus/${doc.id}`}
-                      className="group flex items-center gap-3 px-4 py-3 bg-background hover:bg-muted/50 transition-colors active:bg-muted"
+                      className="group flex items-center gap-3 px-4 py-3 bg-background hover:bg-muted/50 transition-all active:bg-muted active:scale-[0.98] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
                     >
                       {/* Batch number */}
                       <span className={`flex items-center justify-center size-7 rounded-md ${config.bgColor} ${config.color} text-sm font-medium`}>
@@ -768,7 +768,7 @@ function CategoryPills({ activeCategory, onChange, counts }: CategoryPillsProps)
             <button
               key={cat}
               onClick={() => onChange(cat)}
-              className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 touch-manipulation active:scale-[0.97] ${
+              className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 touch-manipulation active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                 isActive
                   ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                   : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80"
@@ -938,7 +938,7 @@ export default function CorpusIndexPage() {
                 setSearchQuery("");
                 setActiveCategory("all");
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 active:scale-[0.98] transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               Clear filters
             </button>
