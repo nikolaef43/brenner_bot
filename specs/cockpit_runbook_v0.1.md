@@ -338,8 +338,29 @@ If you use `cm` (cass-memory) for procedural memory:
 
 ```bash
 # Optional: stash a new rule learned from the session
-cm playbook add "Rule: ..." --category "research"
+cm playbook add "Rule: ..." --category "prompt-hygiene"
 
 # Optional: mark a session as processed (if you used cm onboard workflows)
 cm onboard mark-done /path/to/session.jsonl
+```
+
+### Recommended `cm` playbook categories (Brenner Loop)
+
+Use a small, stable set of categories so rules stay findable.
+
+| Category | What belongs here | Example rule you might store |
+|---|---|---|
+| `protocol-kernel` | Schema + invariants: artifact sections, anchor formats, delta rules, required fields | “If a claim isn’t grounded in `§n`, label it `[inference]`.” |
+| `prompt-hygiene` | How we write prompts + interpret outputs: provenance labeling, citation style, anti-confabulation patterns | “Never paraphrase as a quote; keep quotes short and cite `§n` inline.” |
+| `evidence-per-week` | Choosing next experiments: likelihood ratios, potency controls, time/cost tradeoffs | “Prefer tests that separate ≥2 hypotheses with ‘across-the-room’ readouts.” |
+| `thread-operations` | Agent Mail + workflow mechanics: thread IDs, subject tags, ack discipline, file reservations | “Thread ID is join-key; never change it mid-session.” |
+| `artifact-compilation` | Merging + linting: delta merge policy, conflict resolution, publish conventions | “Resolve conflicts by explicit `EDIT` blocks, not silent overwrite.” |
+| `safety-and-gating` | Guardrails: lab mode, auth, secrets hygiene, no vendor API policy | “Orchestration actions must be gated; fail closed if lab auth missing.” |
+
+**Example commands**:
+
+```bash
+cm playbook add "Rule: Thread ID is the global join key; keep it stable across kickoff/DELTA/COMPILED." --category "thread-operations"
+cm playbook add "Rule: Any non-§-grounded claim in artifacts must be labeled [inference]." --category "protocol-kernel"
+cm playbook add "Rule: Prefer discriminative tests with potency controls (chastity vs impotence) and extreme likelihood ratios." --category "evidence-per-week"
 ```
