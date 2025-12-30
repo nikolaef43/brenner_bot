@@ -109,7 +109,7 @@ export function useCorpusSearch(
     // User options first (as defaults)
     ...queryOptions,
     // Required settings that must not be overridden
-    queryKey: corpusSearchKeys.query(query, searchOptions),
+    queryKey: corpusSearchKeys.query(query, searchOptions as Record<string, unknown>),
     queryFn: () => searchAction(query, searchOptions),
     // Only run search if query is non-empty (at least 2 chars) AND user hasn't disabled
     enabled: query.length >= 2 && userEnabled,
@@ -141,7 +141,7 @@ export function useCorpusSearchInstant(
   };
 
   return useQuery({
-    queryKey: corpusSearchKeys.query(query, searchOptions),
+    queryKey: corpusSearchKeys.query(query, searchOptions as Record<string, unknown>),
     queryFn: () => searchAction(query, searchOptions),
     enabled: query.length >= 2,
     staleTime: 2 * 60 * 1000,
