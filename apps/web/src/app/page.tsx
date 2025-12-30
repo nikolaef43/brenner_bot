@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FeatureCard } from "@/components/ui/card";
 import { Jargon } from "@/components/jargon";
+import { WhatIsThis } from "@/components/onboarding/WhatIsThis";
 
 // Icons
 const BookIcon = () => (
@@ -114,6 +115,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* What Is This? - First-time visitor onboarding */}
+      <WhatIsThis className="px-4 sm:px-0" />
 
       {/* Features Section */}
       <section className="space-y-6 sm:space-y-8">
