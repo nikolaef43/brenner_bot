@@ -51,3 +51,7 @@ next-env.d.ts
 # IMPORTANT: Ignore public/corpus/ (old location before route conflict fix)
 # Files MUST be in _corpus, not corpus, to avoid conflict with /corpus/[doc] route
 public/corpus/
+
+# Local scratch copies (should not be committed)
+src/lib/operators.local.ts
+src/lib/operators.test.ts.disabled
