@@ -74,15 +74,17 @@ export function BrennerLoopDiagram() {
   return (
     <div className="w-full">
       {/* Desktop: Interactive SVG diagram */}
-      <div className="hidden lg:block pb-4">
+      <div
+        className="hidden lg:block pb-4"
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => {
+          setIsHovering(false);
+          setActiveStage(null);
+        }}
+      >
         <div
           className="relative mx-auto"
-          style={{ width: svgSize, minHeight: svgSize + 160 }}
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => {
-            setIsHovering(false);
-            setActiveStage(null);
-          }}
+          style={{ width: svgSize }}
         >
           <svg
             viewBox={`0 0 ${svgSize} ${svgSize}`}
@@ -255,32 +257,32 @@ export function BrennerLoopDiagram() {
             </g>
           </svg>
 
-          {/* Active stage detail card */}
-          <div
-            className={`absolute left-1/2 -translate-x-1/2 w-80 transition-all duration-300 ${
-              activeStage ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
-            }`}
-            style={{ top: svgSize + 16 }}
-          >
-            {activeStage && (
-              <div className="rounded-xl border border-border bg-card/95 backdrop-blur-sm p-4 shadow-xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">
-                    {activeStage}
-                  </span>
-                  <h3 className="font-semibold text-foreground">
-                    {loopStages[activeStage - 1]?.title}
-                  </h3>
-                </div>
-                <p className="text-sm text-muted-foreground mb-2">
-                  {loopStages[activeStage - 1]?.description}
-                </p>
-                <blockquote className="text-xs italic text-muted-foreground border-l-2 border-primary/30 pl-2">
-                  &ldquo;{loopStages[activeStage - 1]?.quote}&rdquo;
-                </blockquote>
+        </div>
+
+        {/* Active stage detail card - positioned below the diagram */}
+        <div
+          className={`mx-auto w-80 mt-4 transition-all duration-300 ${
+            activeStage ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none h-0 overflow-hidden"
+          }`}
+        >
+          {activeStage && (
+            <div className="rounded-xl border border-border bg-card/95 backdrop-blur-sm p-4 shadow-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="flex items-center justify-center size-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                  {activeStage}
+                </span>
+                <h3 className="font-semibold text-foreground">
+                  {loopStages[activeStage - 1]?.title}
+                </h3>
               </div>
-            )}
-          </div>
+              <p className="text-sm text-muted-foreground mb-2">
+                {loopStages[activeStage - 1]?.description}
+              </p>
+              <blockquote className="text-xs italic text-muted-foreground border-l-2 border-primary/30 pl-2">
+                &ldquo;{loopStages[activeStage - 1]?.quote}&rdquo;
+              </blockquote>
+            </div>
+          )}
         </div>
       </div>
 

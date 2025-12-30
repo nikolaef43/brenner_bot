@@ -87,7 +87,7 @@ export default async function CorpusDocPage({
   );
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-7xl mx-auto">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1 text-sm text-muted-foreground mb-8 animate-fade-in" aria-label="Breadcrumb">
         <Link href="/corpus" className="hover:text-foreground transition-colors link-underline">

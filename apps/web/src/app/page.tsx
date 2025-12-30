@@ -90,10 +90,17 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 pt-4 px-4 sm:px-0 animate-fade-in-up stagger-3">
             <Link
-              href="/corpus"
+              href="/corpus/transcript"
               className="group inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-3 rounded-xl bg-primary text-primary-foreground font-medium shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] touch-manipulation"
             >
-              Explore the Corpus
+              Read the Transcript
+              <ArrowRightIcon />
+            </Link>
+            <Link
+              href="/corpus"
+              className="group inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-3 rounded-xl border border-border bg-card text-foreground font-medium shadow-sm hover:shadow-md hover:border-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] touch-manipulation"
+            >
+              Explore Corpus
               <ArrowRightIcon />
             </Link>
             <Link
