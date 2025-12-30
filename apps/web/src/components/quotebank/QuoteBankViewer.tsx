@@ -184,8 +184,8 @@ function QuoteCard({ quote }: QuoteCardProps) {
       {/* Reference badge - clickable to copy */}
       <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
         <ReferenceCopyButton
-          reference={quote.reference}
-          quoteText={quote.text}
+          reference={quote.sectionId}
+          quoteText={quote.quote}
           source="Sydney Brenner"
         />
       </div>
@@ -202,21 +202,21 @@ function QuoteCard({ quote }: QuoteCardProps) {
             &ldquo;
           </div>
           <blockquote className="pl-3 sm:pl-4 text-[15px] sm:text-base lg:text-lg leading-relaxed text-foreground/85 italic font-serif">
-            {isExpanded || quote.text.length < 300
-              ? quote.text
-              : `${quote.text.slice(0, 300)}...`}
+            {isExpanded || quote.quote.length < 300
+              ? quote.quote
+              : `${quote.quote.slice(0, 300)}...`}
           </blockquote>
           {/* Copy button - appears on hover */}
           <div className="absolute -right-2 top-0 opacity-0 group-hover/quote:opacity-100 transition-opacity">
             <CopyButton
-              text={quote.text}
-              attribution={`— Sydney Brenner, ${quote.reference}`}
+              text={quote.quote}
+              attribution={`— Sydney Brenner, ${quote.sectionId}`}
               variant="ghost"
               size="sm"
               showPreview={true}
             />
           </div>
-          {quote.text.length >= 300 && (
+          {quote.quote.length >= 300 && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="mt-3 px-3 py-1.5 -ml-1 text-sm text-primary hover:underline active:scale-95 transition-transform touch-manipulation rounded-lg"
@@ -227,7 +227,7 @@ function QuoteCard({ quote }: QuoteCardProps) {
         </div>
 
         {/* Why it matters */}
-        {quote.whyItMatters && (
+        {quote.context && (
           <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-border/50">
             <div className="flex items-start gap-2.5 sm:gap-3">
               <div className="flex-shrink-0 size-5 sm:size-6 rounded-full bg-amber-500/10 flex items-center justify-center">
@@ -238,7 +238,7 @@ function QuoteCard({ quote }: QuoteCardProps) {
                   Why it matters
                 </div>
                 <p className="text-sm text-foreground/80 leading-relaxed">
-                  {quote.whyItMatters}
+                  {quote.context}
                 </p>
               </div>
             </div>
@@ -366,7 +366,7 @@ export function QuoteBankViewer({ data }: QuoteBankViewerProps) {
                 const quote = filteredQuotes[virtualRow.index];
                 return (
                   <div
-                    key={quote.reference}
+                    key={quote.sectionId}
                     data-index={virtualRow.index}
                     ref={virtualizer.measureElement}
                     style={{

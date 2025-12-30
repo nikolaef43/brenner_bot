@@ -114,12 +114,12 @@ describe("parseQuoteBank", () => {
   describe("quote parsing", () => {
     it("extracts quote reference (§N format)", () => {
       const result = parseQuoteBank(SIMPLE_QUOTE_BANK);
-      expect(result.quotes[0]?.reference).toBe("§42");
+      expect(result.quotes[0]?.sectionId).toBe("§42");
     });
 
     it("handles range references (§N-M format)", () => {
       const result = parseQuoteBank(SIMPLE_QUOTE_BANK);
-      expect(result.quotes[1]?.reference).toBe("§58-59");
+      expect(result.quotes[1]?.sectionId).toBe("§58-59");
     });
 
     it("extracts quote title", () => {
@@ -129,25 +129,25 @@ describe("parseQuoteBank", () => {
 
     it("extracts quote text from blockquote", () => {
       const result = parseQuoteBank(SIMPLE_QUOTE_BANK);
-      expect(result.quotes[0]?.text).toContain("The key is to find the right problem");
+      expect(result.quotes[0]?.quote).toContain("The key is to find the right problem");
     });
 
     it("joins multi-line blockquotes", () => {
       const result = parseQuoteBank(SIMPLE_QUOTE_BANK);
       // Multi-line quotes should be joined into single text
-      expect(result.quotes[0]?.text).toContain("If you have the right problem");
+      expect(result.quotes[0]?.quote).toContain("If you have the right problem");
     });
 
     it("strips markdown formatting from quote text", () => {
       const result = parseQuoteBank(SIMPLE_QUOTE_BANK);
       // Bold markers should be removed
-      expect(result.quotes[1]?.text).not.toContain("**");
-      expect(result.quotes[1]?.text).toContain("C. elegans");
+      expect(result.quotes[1]?.quote).not.toContain("**");
+      expect(result.quotes[1]?.quote).toContain("C. elegans");
     });
 
     it("extracts 'Why it matters' section", () => {
       const result = parseQuoteBank(SIMPLE_QUOTE_BANK);
-      expect(result.quotes[0]?.whyItMatters).toContain("Problem selection");
+      expect(result.quotes[0]?.context).toContain("Problem selection");
     });
 
     it("extracts tags for each quote", () => {
@@ -169,14 +169,14 @@ describe("parseQuoteBank", () => {
     it("handles single quote", () => {
       const result = parseQuoteBank(SINGLE_QUOTE);
       expect(result.quotes.length).toBe(1);
-      expect(result.quotes[0]?.reference).toBe("§1");
+      expect(result.quotes[0]?.sectionId).toBe("§1");
     });
 
     it("skips quotes without blockquote content", () => {
       const result = parseQuoteBank(MALFORMED_QUOTE_BANK);
       // Should only include the quote that has actual content
       expect(result.quotes.length).toBe(1);
-      expect(result.quotes[0]?.reference).toBe("§100");
+      expect(result.quotes[0]?.sectionId).toBe("§100");
     });
 
     it("handles quotes with missing 'Why it matters'", () => {
@@ -189,7 +189,7 @@ describe("parseQuoteBank", () => {
 Tags: \`test\`
 `;
       const result = parseQuoteBank(noWhy);
-      expect(result.quotes[0]?.whyItMatters).toBe("");
+      expect(result.quotes[0]?.context).toBe("");
     });
 
     it("handles quotes with no tags", () => {
@@ -255,7 +255,7 @@ describe("filterQuotesByTag", () => {
   it("filters by exact tag match", () => {
     const filtered = filterQuotesByTag(parsed.quotes, "problem-selection");
     expect(filtered.length).toBe(1);
-    expect(filtered[0]?.reference).toBe("§42");
+    expect(filtered[0]?.sectionId).toBe("§42");
   });
 
   it("returns empty array when tag not found", () => {
@@ -286,7 +286,7 @@ describe("searchQuotes", () => {
   it("finds quotes by text content", () => {
     const results = searchQuotes(parsed.quotes, "elegans");
     expect(results.length).toBe(1);
-    expect(results[0]?.text).toContain("elegans");
+    expect(results[0]?.quote).toContain("elegans");
   });
 
   it("finds quotes by 'why it matters' content", () => {
@@ -312,7 +312,7 @@ describe("searchQuotes", () => {
   it("matches partial words", () => {
     const results = searchQuotes(parsed.quotes, "trans");
     expect(results.length).toBe(1);
-    expect(results[0]?.text).toContain("transparent");
+    expect(results[0]?.quote).toContain("transparent");
   });
 });
 
@@ -352,14 +352,14 @@ Tags: \`scale-prison\`, \`tooling\`, \`anti-pattern\`
     expect(result.quotes.length).toBe(2);
 
     // First quote
-    expect(result.quotes[0]?.reference).toBe("§57");
+    expect(result.quotes[0]?.sectionId).toBe("§57");
     expect(result.quotes[0]?.title).toBe("The Decision Experiment");
-    expect(result.quotes[0]?.text).toContain("discriminate between hypotheses");
-    expect(result.quotes[0]?.whyItMatters).toContain("discriminative power");
+    expect(result.quotes[0]?.quote).toContain("discriminate between hypotheses");
+    expect(result.quotes[0]?.context).toContain("discriminative power");
     expect(result.quotes[0]?.tags).toContain("decision-experiment");
 
     // Second quote
-    expect(result.quotes[1]?.reference).toBe("§112-115");
+    expect(result.quotes[1]?.sectionId).toBe("§112-115");
     expect(result.quotes[1]?.title).toBe("Scale Prison Warning");
     expect(result.quotes[1]?.tags).toContain("scale-prison");
     expect(result.quotes[1]?.tags).toContain("anti-pattern");

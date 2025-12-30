@@ -175,17 +175,17 @@ function processQuoteBank(docId: string, docTitle: string, content: string): Sea
 
   let entryIndex = 0;
   for (const quote of parsed.quotes) {
-    const anchor = quote.reference.replace("§", "section-");
+    const anchor = quote.sectionId.replace("§", "section-");
 
     entries.push({
-      id: `${docId}-${entryIndex++}-${quote.reference}`,
+      id: `${docId}-${entryIndex++}-${quote.sectionId}`,
       docId,
       docTitle,
       sectionTitle: quote.title,
-      content: `${quote.text} ${quote.whyItMatters}`,
+      content: `${quote.quote} ${quote.context} ${quote.tags.join(" ")}`,
       anchor: `#${anchor}`,
       category: "quote-bank",
-      reference: quote.reference,
+      reference: quote.sectionId,
     });
   }
 

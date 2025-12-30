@@ -21,6 +21,7 @@
 
 import { CORPUS_DOCS, type CorpusDoc, readCorpusDoc } from "./corpus";
 import { parseTranscript } from "./transcriptParser";
+import { parseQuoteBank as parseQuoteBankDoc } from "./quotebank-parser";
 import type {
   DocCategory,
   SearchCategory,
@@ -89,7 +90,7 @@ async function getIndex(): Promise<IndexedChunk[]> {
         }
       } else if (doc.id === "quote-bank") {
         // Parse quote bank into individual quotes
-        const quoteChunks = parseQuoteBank(content, doc);
+        const quoteChunks = parseQuoteBankChunks(content, doc);
         chunks.push(...quoteChunks);
       } else {
         // General document - parse into sections by headers
@@ -109,38 +110,25 @@ async function getIndex(): Promise<IndexedChunk[]> {
 /**
  * Parse quote bank into searchable chunks.
  */
-function parseQuoteBank(content: string, doc: CorpusDoc): IndexedChunk[] {
+function parseQuoteBankChunks(content: string, doc: CorpusDoc): IndexedChunk[] {
   const chunks: IndexedChunk[] = [];
-  const sectionRegex = /^##\s+(§\d+(?:-\d+)?)\s*[—–-]\s*(.+)$/gm;
-  const matches = [...content.matchAll(sectionRegex)];
+  const parsed = parseQuoteBankDoc(content);
 
-  for (let i = 0; i < matches.length; i++) {
-    const match = matches[i];
-    const anchor = match[1];
-    const title = match[2].trim();
-    const startIndex = match.index! + match[0].length;
-    const endIndex = matches[i + 1]?.index ?? content.length;
-    const sectionContent = content.slice(startIndex, endIndex).trim();
-
-    // Extract quote text (blockquotes)
-    const quoteMatch = sectionContent.match(/^>\s*([^]*?)(?:\n\n|$)/m);
-    const quoteText = quoteMatch
-      ? quoteMatch[1].replace(/^>\s*/gm, "").replace(/\*\*([^*]+)\*\*/g, "$1")
-      : sectionContent.slice(0, 500);
-
+  for (const quote of parsed.quotes) {
+    const fullText = [quote.quote, quote.context, quote.tags.join(" ")].filter(Boolean).join(" ");
     chunks.push({
-      id: `${doc.id}:${anchor}`,
+      id: `${doc.id}:${quote.sectionId}`,
       docId: doc.id,
       docTitle: doc.title,
       category: doc.category,
       model: doc.model,
-      title,
-      content: quoteText,
-      contentLower: quoteText.toLowerCase(),
-      titleLower: title.toLowerCase(),
-      anchor,
-      url: `/corpus/quote-bank#${anchor}`,
-      wordCount: quoteText.split(/\s+/).length,
+      title: quote.title,
+      content: fullText,
+      contentLower: fullText.toLowerCase(),
+      titleLower: quote.title.toLowerCase(),
+      anchor: quote.sectionId,
+      url: `/corpus/quote-bank#${quote.sectionId}`,
+      wordCount: fullText.split(/\s+/).filter(Boolean).length,
     });
   }
 

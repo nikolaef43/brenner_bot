@@ -4,10 +4,10 @@
  */
 
 export interface Quote {
-  reference: string; // e.g., "§57"
+  sectionId: string; // e.g., "§57"
   title: string;
-  text: string;
-  whyItMatters: string;
+  quote: string;
+  context: string;
   tags: string[];
 }
 
@@ -21,7 +21,7 @@ export interface ParsedQuoteBank {
 /**
  * Parse a single quote section
  */
-function parseQuoteSection(content: string): Omit<Quote, "reference" | "title"> | null {
+function parseQuoteSection(content: string): Omit<Quote, "sectionId" | "title"> | null {
   // Extract quote text (blockquote) - find all lines starting with >
   const lines = content.split("\n");
   const quoteLines: string[] = [];
@@ -40,33 +40,28 @@ function parseQuoteSection(content: string): Omit<Quote, "reference" | "title"> 
 
   if (quoteLines.length === 0) return null;
 
-  const text = quoteLines
+  const quote = quoteLines
     .filter(Boolean)
     .join(" ")
     .replace(/\*\*([^*]+)\*\*/g, "$1")
-    .replace(/\*([^*]+)\*/g, "$1");
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1");
 
   // Extract "Why it matters"
-  const whyMatch = content.match(/Why it matters:\s*([^\n]+(?:\n(?!Tags:)[^\n]+)*)/);
-  const whyItMatters = whyMatch?.[1]?.trim().replace(/\n/g, " ") ?? "";
+  const whyMatch = content.match(/Why it matters:\s*([\s\S]*?)(?:\n\s*Tags:|$)/);
+  const context = whyMatch?.[1]?.trim().replace(/\s+/g, " ") ?? "";
 
   // Extract tags
-  const tagsMatch = content.match(/Tags:\s*`([^`]+)`(?:,\s*`([^`]+)`)*(?:,\s*`([^`]+)`)?/);
   const tags: string[] = [];
-  if (tagsMatch) {
-    // Extract all backtick-enclosed tags
-    const tagMatches = content.match(/`([^`]+)`/g);
-    if (tagMatches) {
-      tagMatches.forEach((t) => {
-        const tag = t.replace(/`/g, "").trim();
-        if (tag && !tags.includes(tag)) {
-          tags.push(tag);
-        }
-      });
+  const tagsLine = content.match(/^Tags:\s*(.+)$/m)?.[1];
+  if (tagsLine) {
+    for (const match of tagsLine.matchAll(/`([^`]+)`/g)) {
+      const tag = match[1]?.trim();
+      if (tag && !tags.includes(tag)) tags.push(tag);
     }
   }
 
-  return { text, whyItMatters, tags };
+  return { quote, context, tags };
 }
 
 /**
@@ -90,7 +85,7 @@ export function parseQuoteBank(markdown: string): ParsedQuoteBank {
 
   for (let i = 0; i < sectionMatches.length; i++) {
     const match = sectionMatches[i];
-    const reference = match[1]; // §57
+    const sectionId = match[1]; // §57
     const sectionTitle = match[2].trim();
 
     // Get content between this header and the next
@@ -99,12 +94,12 @@ export function parseQuoteBank(markdown: string): ParsedQuoteBank {
     const sectionContent = markdown.slice(startIndex, endIndex);
 
     const parsed = parseQuoteSection(sectionContent);
-    if (parsed && parsed.text) {
+    if (parsed && parsed.quote) {
       quotes.push({
-        reference,
+        sectionId,
         title: sectionTitle,
-        text: parsed.text,
-        whyItMatters: parsed.whyItMatters,
+        quote: parsed.quote,
+        context: parsed.context,
         tags: parsed.tags,
       });
 
@@ -136,8 +131,8 @@ export function searchQuotes(quotes: Quote[], query: string): Quote[] {
   return quotes.filter(
     (q) =>
       q.title.toLowerCase().includes(lower) ||
-      q.text.toLowerCase().includes(lower) ||
-      q.whyItMatters.toLowerCase().includes(lower) ||
+      q.quote.toLowerCase().includes(lower) ||
+      q.context.toLowerCase().includes(lower) ||
       q.tags.some((t) => t.toLowerCase().includes(lower))
   );
 }
