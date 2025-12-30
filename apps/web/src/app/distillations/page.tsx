@@ -85,6 +85,27 @@ const distillations: Distillation[] = [
   },
 ];
 
+/**
+ * Strip inline markdown formatting for clean plaintext display.
+ * Handles: bold (**), italic (*), code (`), links [text](url)
+ */
+function stripInlineMarkdown(text: string): string {
+  return text
+    // Remove bold: **text** or __text__
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/__(.+?)__/g, "$1")
+    // Remove italic: *text* or _text_ (careful not to match list items)
+    .replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, "$1")
+    .replace(/(?<!_)_([^_\n]+?)_(?!_)/g, "$1")
+    // Remove inline code: `text`
+    .replace(/`([^`]+?)`/g, "$1")
+    // Convert links [text](url) to just text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    // Clean up any double spaces
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function getExcerpt(content: string, maxLength: number = 300): string {
   // Skip any YAML frontmatter or headers at the start
   const lines = content.split("\n");
@@ -100,16 +121,19 @@ function getExcerpt(content: string, maxLength: number = 300): string {
     }
   }
 
-  // Find first meaningful paragraph (skip headers)
+  // Find first meaningful paragraph (skip headers, horizontal rules, empty lines)
   for (let i = startIdx; i < lines.length; i++) {
     const line = lines[i]?.trim() || "";
-    if (line && !line.startsWith("#") && line.length > 50) {
-      const excerpt = line.slice(0, maxLength);
-      return excerpt.length < line.length ? excerpt + "..." : excerpt;
+    // Skip headers, horizontal rules, and short lines
+    if (line && !line.startsWith("#") && !line.match(/^[-*_]{3,}$/) && line.length > 50) {
+      // Strip markdown formatting for clean display
+      const cleanLine = stripInlineMarkdown(line);
+      const excerpt = cleanLine.slice(0, maxLength);
+      return excerpt.length < cleanLine.length ? excerpt + "…" : excerpt;
     }
   }
 
-  return content.slice(0, maxLength) + "...";
+  return stripInlineMarkdown(content.slice(0, maxLength)) + "…";
 }
 
 function getWordCount(content: string): number {
