@@ -16,6 +16,7 @@ export { QueryProvider, getQueryClient, type QueryProviderProps } from "./QueryP
 import * as React from "react";
 import { QueryProvider } from "./QueryProvider";
 import { ExcerptBasketProvider } from "@/components/excerpt";
+import { SectionDataProvider } from "@/components/section-data-provider";
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -48,7 +49,9 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <QueryProvider>
-      <ExcerptBasketProvider>{children}</ExcerptBasketProvider>
+      <SectionDataProvider>
+        <ExcerptBasketProvider>{children}</ExcerptBasketProvider>
+      </SectionDataProvider>
     </QueryProvider>
   );
 }

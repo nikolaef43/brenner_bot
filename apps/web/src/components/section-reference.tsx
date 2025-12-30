@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSectionData } from "./section-data-provider";
 
 // ============================================================================
 // Icons
@@ -79,7 +80,7 @@ interface SectionReferenceProps {
  * - Mobile: Shows bottom sheet on tap
  * - Styled with dotted underline to indicate interactivity
  */
-export function SectionReference({ sectionNumber, endNumber, title, preview, className }: SectionReferenceProps) {
+export function SectionReference({ sectionNumber, endNumber, title: propsTitle, preview: propsPreview, className }: SectionReferenceProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [tooltipLayout, setTooltipLayout] = useState<{
@@ -89,6 +90,14 @@ export function SectionReference({ sectionNumber, endNumber, title, preview, cla
   const triggerRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  // Get section data from context (loads from sections.json)
+  const { getSection } = useSectionData();
+  const sectionData = getSection(sectionNumber);
+
+  // Use props if provided, otherwise fall back to context data
+  const title = propsTitle ?? sectionData?.title;
+  const preview = propsPreview ?? sectionData?.excerpt;
 
   // For ranges, link to the first section but show the range in display
   const transcriptUrl = `/corpus/transcript#section-${sectionNumber}`;
@@ -362,40 +371,48 @@ function TooltipContent({ sectionNumber, endNumber, title, preview, transcriptUr
   const isRange = endNumber !== undefined && endNumber !== sectionNumber;
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/20 text-primary">
+    <div className="space-y-3 pt-1">
+      {/* Header with section number and title */}
+      <div className="flex items-start gap-2.5">
+        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/25 to-amber-500/20 text-primary shadow-sm">
           <DocumentIcon className="h-3.5 w-3.5" />
         </div>
-        <span className="font-semibold text-foreground">{displayRef}</span>
+        <div className="min-w-0 flex-1">
+          <div className="font-semibold text-foreground">{displayRef}</div>
+          {title && (
+            <p className="text-sm font-medium text-foreground/80 leading-snug mt-0.5 line-clamp-2">
+              {title}
+            </p>
+          )}
+        </div>
       </div>
 
-      {title && (
-        <p className="text-sm font-medium text-foreground leading-snug">
-          {title}
-        </p>
-      )}
-
+      {/* Quote preview with nice styling */}
       {preview && (
-        <p className="text-xs leading-relaxed text-muted-foreground line-clamp-3">
-          {preview}
-        </p>
+        <div className="relative pl-3 border-l-2 border-quote/60 bg-quote/5 py-2 pr-2 rounded-r-lg">
+          <p className="text-xs leading-relaxed text-foreground/80 italic line-clamp-4">
+            "{preview}"
+          </p>
+        </div>
       )}
 
+      {/* Fallback when no content is available */}
       {!title && !preview && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground py-1">
           {isRange
             ? `Transcript sections ${sectionNumber} through ${endNumber}`
-            : `Transcript section ${sectionNumber}`}
+            : `View section ${sectionNumber} in the transcript`}
         </p>
       )}
 
-      <div className="flex items-center justify-end pt-1">
+      {/* Action link */}
+      <div className="flex items-center justify-between pt-1 border-t border-border/30">
+        <span className="text-[10px] text-muted-foreground/60">Brenner Transcript</span>
         <Link
           href={transcriptUrl}
-          className="group inline-flex items-center gap-1.5 text-[11px] font-medium text-primary underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
+          className="group inline-flex items-center gap-1.5 text-[11px] font-medium text-primary hover:text-primary/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm transition-colors"
         >
-          {isRange ? `Go to section ${sectionNumber}` : "Go to section"}
+          Read in context
           <ArrowRightIcon className="size-3 transition-transform group-hover:translate-x-0.5" />
         </Link>
       </div>
@@ -413,46 +430,60 @@ function SheetContent({ sectionNumber, endNumber, title, preview, transcriptUrl,
 
   return (
     <div className="space-y-5">
+      {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-amber-500/20 shadow-lg">
-          <DocumentIcon className="h-6 w-6 text-primary" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/25 to-amber-500/20 shadow-lg">
+          <DocumentIcon className="h-7 w-7 text-primary" />
         </div>
         <div>
           <h3 id={`section-ref-sheet-title-${sectionNumber}`} className="text-xl font-bold text-foreground">
             {displayRef}
           </h3>
           <p className="text-sm text-muted-foreground">
-            {isRange ? "Transcript sections" : "Transcript section"}
+            {isRange ? "Transcript sections" : "Brenner Transcript"}
           </p>
         </div>
       </div>
 
       <div className="space-y-4">
+        {/* Section title */}
         {title && (
-          <div>
-            <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Section Title
+          <div className="rounded-xl bg-muted/30 p-4">
+            <h4 className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
+              Section Topic
             </h4>
-            <p className="text-base font-medium leading-relaxed text-foreground">
+            <p className="text-base font-semibold leading-snug text-foreground">
               {title}
             </p>
           </div>
         )}
 
+        {/* Quote preview */}
         {preview && (
-          <div className="rounded-xl border border-border/50 bg-muted/30 p-4">
-            <p className="text-sm leading-relaxed text-foreground/90">
+          <div className="relative rounded-xl border-l-4 border-quote/60 bg-quote/5 p-4">
+            <div className="absolute -top-1 -left-1 text-4xl text-quote/20 font-serif leading-none">"</div>
+            <p className="text-sm leading-relaxed text-foreground/85 italic pl-4">
               {preview}
             </p>
           </div>
         )}
 
+        {/* Fallback */}
+        {!title && !preview && (
+          <p className="text-sm text-muted-foreground py-2">
+            {isRange
+              ? `View sections ${sectionNumber} through ${endNumber} in the full transcript.`
+              : `View this section in the full Brenner interview transcript.`}
+          </p>
+        )}
+
+        {/* Action button */}
         <Link
           href={transcriptUrl}
           onClick={onClose}
-          className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-primary text-primary-foreground font-medium shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] transition-all"
+          className="flex items-center justify-center gap-2.5 w-full py-3.5 px-4 rounded-xl bg-primary text-primary-foreground font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98] transition-all"
         >
-          {isRange ? `Go to Section ${sectionNumber}` : "Go to Section"}
+          Read in Full Transcript
           <ArrowRightIcon className="size-4" />
         </Link>
       </div>

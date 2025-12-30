@@ -68,6 +68,13 @@ const REPO_ROOT = resolve(__dirname, "../../..");
 const OUTPUT_DIR = resolve(__dirname, "../public/search");
 const OUTPUT_FILE = join(OUTPUT_DIR, "index.json");
 const STATS_FILE = join(OUTPUT_DIR, "stats.json");
+const SECTIONS_FILE = join(OUTPUT_DIR, "sections.json");
+
+// Section metadata for tooltips (number -> { title, excerpt })
+interface SectionMeta {
+  t: string; // title (shortened key for file size)
+  e: string; // excerpt (shortened key for file size)
+}
 
 // Documents to index (skip raw responses for cleaner search)
 const INDEXABLE_CATEGORIES: DocCategory[] = [
@@ -228,7 +235,37 @@ const processMetaprompt = (docId: string, docTitle: string, content: string): Se
 // Index Building
 // ============================================================================
 
-const buildIndex = (): { entries: SearchEntry[]; miniSearchIndex: object; stats: IndexStats; buildTimeMs: number } => {
+/**
+ * Extract first N words from content as an excerpt
+ */
+const makeExcerpt = (content: string, wordLimit = 40): string => {
+  const words = content.split(/\s+/).slice(0, wordLimit);
+  let excerpt = words.join(" ");
+  if (content.split(/\s+/).length > wordLimit) {
+    excerpt += "…";
+  }
+  return excerpt;
+};
+
+/**
+ * Build section metadata for tooltips from transcript entries
+ */
+const buildSectionsMeta = (entries: SearchEntry[]): Record<number, SectionMeta> => {
+  const sections: Record<number, SectionMeta> = {};
+
+  for (const entry of entries) {
+    if (entry.category === "transcript" && entry.sectionNumber !== undefined) {
+      sections[entry.sectionNumber] = {
+        t: entry.sectionTitle || `Section ${entry.sectionNumber}`,
+        e: makeExcerpt(entry.content, 50),
+      };
+    }
+  }
+
+  return sections;
+};
+
+const buildIndex = (): { entries: SearchEntry[]; miniSearchIndex: object; stats: IndexStats; buildTimeMs: number; sectionsMeta: Record<number, SectionMeta> } => {
   const startTime = Date.now();
   const entries: SearchEntry[] = [];
   const byCategory: Record<string, number> = {};
@@ -301,7 +338,12 @@ const buildIndex = (): { entries: SearchEntry[]; miniSearchIndex: object; stats:
   console.log(`  Index size: ${(stats.indexSizeBytes / 1024).toFixed(2)} KB`);
   console.log(`  Build time: ${buildTimeMs}ms`);
 
-  return { entries, miniSearchIndex, stats, buildTimeMs };
+  // Build section metadata for tooltips
+  console.log("\n  Building section metadata for tooltips...");
+  const sectionsMeta = buildSectionsMeta(entries);
+  console.log(`    → ${Object.keys(sectionsMeta).length} sections`);
+
+  return { entries, miniSearchIndex, stats, buildTimeMs, sectionsMeta };
 };
 
 // ============================================================================
@@ -320,7 +362,7 @@ const main = (): void => {
   }
 
   // Build the index
-  const { miniSearchIndex, stats, buildTimeMs } = buildIndex();
+  const { miniSearchIndex, stats, buildTimeMs, sectionsMeta } = buildIndex();
 
   // Write index file
   writeFileSync(OUTPUT_FILE, JSON.stringify(miniSearchIndex) + "\n");
@@ -329,6 +371,11 @@ const main = (): void => {
   // Write stats file
   writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2) + "\n");
   console.log(`✓ Stats written to: ${STATS_FILE}`);
+
+  // Write sections metadata file
+  const sectionsJson = JSON.stringify(sectionsMeta);
+  writeFileSync(SECTIONS_FILE, sectionsJson + "\n");
+  console.log(`✓ Sections written to: ${SECTIONS_FILE} (${(Buffer.byteLength(sectionsJson, "utf-8") / 1024).toFixed(2)} KB)`);
 
   // Summary
   console.log("\n╔══════════════════════════════════════════════════════════╗");

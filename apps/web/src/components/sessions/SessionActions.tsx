@@ -2,8 +2,14 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
 
 type SessionActionsProps = {
   threadId: string;
@@ -166,35 +172,34 @@ export function SessionActions({
         </div>
       </div>
 
-      <details className="group rounded-xl border border-border bg-muted/30 overflow-hidden">
-        <summary className="cursor-pointer list-none p-4 text-sm text-muted-foreground group-open:text-foreground hover:bg-muted/50 active:bg-muted/70 transition-colors touch-manipulation flex items-center justify-between">
+      <Collapsible className="group rounded-xl border border-border bg-muted/30 overflow-hidden">
+        <CollapsibleTrigger className="p-4 text-sm text-muted-foreground group-data-[state=open]:text-foreground hover:bg-muted/50 active:bg-muted/70">
           <span>Configure sender/recipients</span>
-          <svg className="size-4 text-muted-foreground transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-          </svg>
-        </summary>
-        <div className="px-4 pb-4 grid gap-4 sm:grid-cols-2">
-          <Input
-            label="Sender"
-            value={sender}
-            onChange={(e) => setSender(e.target.value)}
-            placeholder="Operator"
-            hint="Used for publish + critique requests"
-          />
-          <Input
-            label="Recipients"
-            value={recipientsText}
-            onChange={(e) => setRecipientsText(e.target.value)}
-            placeholder="Claude,Codex,Gemini"
-            hint="Comma-separated agent names"
-          />
-        </div>
-        {!hasCompiledArtifact && (
-          <p className="px-4 pb-4 text-xs text-muted-foreground">
-            Request Critique is disabled until a <span className="font-mono">COMPILED:</span> message exists in the thread.
-          </p>
-        )}
-      </details>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="px-4 pb-4 grid gap-4 sm:grid-cols-2">
+            <Input
+              label="Sender"
+              value={sender}
+              onChange={(e) => setSender(e.target.value)}
+              placeholder="Operator"
+              hint="Used for publish + critique requests"
+            />
+            <Input
+              label="Recipients"
+              value={recipientsText}
+              onChange={(e) => setRecipientsText(e.target.value)}
+              placeholder="Claude,Codex,Gemini"
+              hint="Comma-separated agent names"
+            />
+          </div>
+          {!hasCompiledArtifact && (
+            <p className="px-4 pb-4 text-xs text-muted-foreground">
+              Request Critique is disabled until a <span className="font-mono">COMPILED:</span> message exists in the thread.
+            </p>
+          )}
+        </CollapsibleContent>
+      </Collapsible>
 
       {error && (
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
@@ -208,24 +213,41 @@ export function SessionActions({
         </div>
       )}
 
-      {compilePreview && (
-        <details className="group rounded-xl border border-border bg-background overflow-hidden">
-          <summary className="cursor-pointer list-none p-4 text-sm font-medium hover:bg-muted/50 active:bg-muted/70 transition-colors touch-manipulation flex items-center justify-between gap-2">
-            <span>Preview: compiled v{compilePreview.version} (lint: {compilePreview.lint.summary.errors}e/{compilePreview.lint.summary.warnings}w)</span>
-            <svg className="size-4 text-muted-foreground flex-shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-            </svg>
-          </summary>
-          <div className="px-4 pb-4 space-y-3">
-            <div className="text-xs text-muted-foreground font-mono">
-              {compilePreview.deltaStats.deltaMessageCount} delta messages • {compilePreview.deltaStats.validBlocks}/{compilePreview.deltaStats.totalBlocks} valid blocks • applied {compilePreview.merge.applied}, skipped {compilePreview.merge.skipped}
-            </div>
-            <pre className="text-xs font-mono whitespace-pre-wrap rounded-lg border border-border bg-muted/30 p-3 overflow-auto max-h-[420px]">
-              {compilePreview.artifactMarkdown}
-            </pre>
-          </div>
-        </details>
-      )}
+      <AnimatePresence>
+        {compilePreview && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+          >
+            <Collapsible
+              defaultOpen
+              className="group rounded-xl border border-border bg-background overflow-hidden"
+            >
+              <CollapsibleTrigger className="p-4 text-sm font-medium hover:bg-muted/50 active:bg-muted/70">
+                <div className="flex items-center gap-2">
+                  <span className="size-2 rounded-full bg-success animate-pulse" />
+                  <span>Preview: compiled v{compilePreview.version}</span>
+                  <span className="text-xs font-normal text-muted-foreground">
+                    (lint: {compilePreview.lint.summary.errors}e/{compilePreview.lint.summary.warnings}w)
+                  </span>
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="px-4 pb-4 space-y-3">
+                  <div className="text-xs text-muted-foreground font-mono">
+                    {compilePreview.deltaStats.deltaMessageCount} delta messages • {compilePreview.deltaStats.validBlocks}/{compilePreview.deltaStats.totalBlocks} valid blocks • applied {compilePreview.merge.applied}, skipped {compilePreview.merge.skipped}
+                  </div>
+                  <pre className="text-xs font-mono whitespace-pre-wrap rounded-lg border border-border bg-muted/30 p-3 overflow-auto max-h-[420px]">
+                    {compilePreview.artifactMarkdown}
+                  </pre>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
