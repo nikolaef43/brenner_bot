@@ -1,12 +1,19 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+const TRUST_CF_ACCESS_ENV = "BRENNER_TRUST_CF_ACCESS_HEADERS";
+
 /**
  * Check if lab mode is enabled (duplicated here because middleware runs in Edge runtime
  * and cannot import from lib/auth.ts which may use Node.js APIs).
  */
 function isLabModeEnabled(): boolean {
   const value = (process.env.BRENNER_LAB_MODE ?? "").trim().toLowerCase();
+  return value === "1" || value === "true";
+}
+
+function shouldTrustCloudflareAccessHeaders(): boolean {
+  const value = (process.env[TRUST_CF_ACCESS_ENV] ?? "").trim().toLowerCase();
   return value === "1" || value === "true";
 }
 
@@ -71,8 +78,9 @@ export function proxy(request: NextRequest) {
       return new NextResponse("Not found", { status: 404 });
     }
 
-    // Check 2: Cloudflare Access headers OR shared secret
-    const authorized = hasCloudflareAccessHeaders(request) || hasValidLabSecret(request);
+    // Check 2: Cloudflare Access headers (only when explicitly trusted) OR shared secret
+    const authorized =
+      (shouldTrustCloudflareAccessHeaders() && hasCloudflareAccessHeaders(request)) || hasValidLabSecret(request);
     if (!authorized) {
       // Fail closed without revealing which auth layer is missing
       return new NextResponse("Not found", { status: 404 });
