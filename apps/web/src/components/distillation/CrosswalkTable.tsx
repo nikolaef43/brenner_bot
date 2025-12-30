@@ -221,7 +221,7 @@ function TableCellContent({ cell, model }: TableCellContentProps) {
       href={href}
       className={cn(
         "block px-4 py-3 h-full transition-colors",
-        "hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50",
+        "hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
         "text-sm leading-relaxed text-foreground/90"
       )}
     >
@@ -448,7 +448,7 @@ export function CrosswalkTable({ className }: CrosswalkTableProps) {
                       }
                       className={cn(
                         "px-4 py-3 text-left border-r border-border last:border-r-0 cursor-pointer select-none",
-                        "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-inset",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-inset",
                         "hover:bg-muted/70 transition-colors",
                         isConceptColumn
                           ? "sticky left-0 z-10 bg-muted/50 text-sm font-semibold text-muted-foreground uppercase tracking-wider w-32"

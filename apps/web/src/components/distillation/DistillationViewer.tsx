@@ -610,8 +610,8 @@ function renderFormattedText(text: string): ReactNode {
     tokens.push({ type: "text", content: text.slice(lastIndex) });
   }
 
-  // Return plain text if no formatting found
-  if (tokens.length === 0) return text;
+  // Return plain text with jargon detection if no formatting found
+  if (tokens.length === 0) return <JargonText>{text}</JargonText>;
 
   // Build React elements
   return tokens.map((token, i) => {

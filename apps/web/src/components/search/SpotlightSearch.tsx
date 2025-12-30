@@ -386,7 +386,7 @@ function CategoryPill({
     <button
       onClick={onClick}
       className={cn(
-        "flex-shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all",
+        "flex-shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         isActive
           ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
           : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -798,8 +798,9 @@ export function SearchTrigger({ className }: { className?: string }) {
       onClick={open}
       className={cn(
         "flex items-center gap-2 px-3 py-1.5 rounded-lg",
-        "border border-border bg-muted/50 hover:bg-muted transition-colors",
+        "border border-border bg-muted/50 hover:bg-muted transition-all",
         "text-sm text-muted-foreground hover:text-foreground",
+        "touch-manipulation active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         className
       )}
     >

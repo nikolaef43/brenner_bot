@@ -285,7 +285,7 @@ function DocCard({ doc, index }: DocCardProps) {
     >
       <Link
         href={`/corpus/${doc.id}`}
-        className="group block touch-manipulation h-full"
+        className="group block touch-manipulation h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Card hover className="h-full relative overflow-hidden active:scale-[0.98] transition-transform flex flex-col">
           {/* Hover gradient overlay */}
