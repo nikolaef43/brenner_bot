@@ -2598,6 +2598,10 @@ p, li, span, div {
   .toc-item {
     @apply block py-2 px-3 text-sm text-muted-foreground rounded-lg;
     padding-left: calc(0.75rem + var(--depth, 0) * 0.75rem);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    touch-action: manipulation;
     transition:
       color var(--duration-fast) var(--ease-out),
       background-color var(--duration-fast) var(--ease-out);

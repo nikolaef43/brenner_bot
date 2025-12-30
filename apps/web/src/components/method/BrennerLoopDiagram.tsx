@@ -69,14 +69,15 @@ export function BrennerLoopDiagram() {
   const radius = 140;
   const center = 180;
   const nodeSize = 56;
+  const svgSize = center * 2; // 360
 
   return (
     <div className="w-full">
       {/* Desktop: Interactive SVG diagram */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:block pb-4">
         <div
           className="relative mx-auto"
-          style={{ width: center * 2, height: center * 2 + 60 }}
+          style={{ width: svgSize, minHeight: svgSize + 160 }}
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => {
             setIsHovering(false);
@@ -84,8 +85,10 @@ export function BrennerLoopDiagram() {
           }}
         >
           <svg
-            viewBox={`0 0 ${center * 2} ${center * 2}`}
-            className="w-full h-full"
+            viewBox={`0 0 ${svgSize} ${svgSize}`}
+            width={svgSize}
+            height={svgSize}
+            className="block"
             style={{ overflow: "visible" }}
           >
             {/* Background glow */}
@@ -257,7 +260,7 @@ export function BrennerLoopDiagram() {
             className={`absolute left-1/2 -translate-x-1/2 w-80 transition-all duration-300 ${
               activeStage ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
             }`}
-            style={{ bottom: "-80px" }}
+            style={{ top: svgSize + 16 }}
           >
             {activeStage && (
               <div className="rounded-xl border border-border bg-card/95 backdrop-blur-sm p-4 shadow-xl">
@@ -338,16 +341,20 @@ export function BrennerLoopDiagram() {
   );
 }
 
-// Refresh icon for center
+// Refresh icon for center - centered using x/y offset
 function RefreshIcon() {
+  const iconSize = 20;
   return (
     <svg
-      className="size-5 text-muted-foreground"
-      fill="none"
+      x={-iconSize / 2}
+      y={-iconSize / 2}
+      width={iconSize}
+      height={iconSize}
       viewBox="0 0 24 24"
+      fill="none"
       stroke="currentColor"
       strokeWidth={1.5}
-      style={{ transform: "translate(-10px, -10px)" }}
+      className="text-muted-foreground"
     >
       <path
         strokeLinecap="round"
