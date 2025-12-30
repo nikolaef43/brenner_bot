@@ -284,10 +284,13 @@ Key patterns:
 
 ```bash
 cd apps/web
+bun run test         # unit tests (vitest + happy-dom)
 bun run build        # production build sanity check
 bun run lint         # lint check (if configured)
 bun run type-check   # type-check (if configured)
 ```
+
+**⚠️ CRITICAL:** Always use `bun run test`, never `bun test`. The latter runs Bun's native test runner without the DOM environment (happy-dom) configured in vitest.config.ts, causing all React component tests to fail with "document is not defined".
 
 ---
 
