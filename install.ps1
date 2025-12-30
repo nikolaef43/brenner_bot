@@ -141,16 +141,10 @@ function Read-JsonFromUrl([string]$Url) {
 
 function Resolve-ToolchainManifest([string]$Owner, [string]$Repo, [string]$Tag) {
   $tagUrl = "https://raw.githubusercontent.com/$Owner/$Repo/$Tag/specs/toolchain.manifest.json"
-  $mainUrl = "https://raw.githubusercontent.com/$Owner/$Repo/main/specs/toolchain.manifest.json"
   try {
     return Read-JsonFromUrl $tagUrl
   } catch {
-    Warn "Could not fetch toolchain manifest at $tagUrl; falling back to $mainUrl"
-    try {
-      return Read-JsonFromUrl $mainUrl
-    } catch {
-      Fail "Failed to fetch toolchain manifest from GitHub. Error: $($_.Exception.Message)"
-    }
+    Fail "Failed to fetch toolchain manifest from $tagUrl. Error: $($_.Exception.Message)"
   }
 }
 

@@ -310,6 +310,7 @@ Status legend:
 |---|---|---|
 | `--version` / `version` | Print brenner version + build metadata | ✅ |
 | `doctor [--json]` | Verify local toolchain health (for installers/CI) | ✅ |
+| `excerpt build [--sections <A,B>] [--tags <A,B>] ...` | Build a cited excerpt block (from transcript sections or quote-bank tags) | ✅ |
 | `mail health` | Check Agent Mail readiness | ✅ |
 | `mail tools` | List Agent Mail MCP tools | ✅ |
 | `mail agents --project-key <abs-path>` | List known agents for a project | ✅ |
@@ -319,7 +320,7 @@ Status legend:
 | `session status --thread-id <id> [--watch]` | Show per-role session status (and optionally wait until complete) | ✅ |
 | `mail inbox` / `mail ack` / `mail thread` | Inbox + acknowledgement + thread tooling | ✅ |
 | `session compile` / `session publish` | Compile agent deltas into a canonical artifact + publish back to thread | 🧭 (see `brenner_bot-5so.5.3`, `brenner_bot-5so.3.4`) |
-| `corpus search` / `excerpt build` | Corpus search + excerpt builder | 🧭 (see `brenner_bot-5so.5.4.1`, `brenner_bot-5so.5.4.2`) |
+| `corpus search` | Corpus search | 🧭 (see `brenner_bot-5so.5.4.1`) |
 
 #### Config precedence (contract)
 

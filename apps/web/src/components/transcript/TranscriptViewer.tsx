@@ -623,6 +623,7 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
     // Check if we're on mobile (lg breakpoint is 1024px)
     const checkIsMobile = () => window.innerWidth < 1024;
     let isMobile = checkIsMobile();
+    const container = scrollContainerRef.current;
 
     // Mobile scroll handler - uses window scroll
     const handleMobileScroll = () => {
@@ -703,7 +704,6 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
       window.addEventListener("scroll", handleMobileScroll, { passive: true });
       handleMobileScroll();
     } else {
-      const container = scrollContainerRef.current;
       if (container) {
         container.addEventListener("scroll", handleDesktopScroll, { passive: true });
         handleDesktopScroll();
@@ -715,7 +715,7 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
     return () => {
       window.removeEventListener("scroll", handleMobileScroll);
       window.removeEventListener("resize", handleResize);
-      scrollContainerRef.current?.removeEventListener("scroll", handleDesktopScroll);
+      container?.removeEventListener("scroll", handleDesktopScroll);
     };
   }, [virtualizer, savePosition, data.sections]);
 

@@ -258,8 +258,6 @@ export function computeThreadStatus(
   // Track various message types
   let kickoff: AgentMailMessage | null = null;
   let latestCompiled: AgentMailMessage | null = null;
-  const pendingAcks: AgentMailMessage[] = [];
-  const acknowledgedMessageIds = new Set<number>();
   const participants = new Set<string>();
 
   let totalDeltas = 0;
@@ -288,15 +286,6 @@ export function computeThreadStatus(
         // First KICKOFF is the session start
         if (!kickoff) {
           kickoff = msg;
-        }
-        // Track if ack is required
-        if (msg.ack_required) {
-          // Check each recipient for pending ack
-          const recipients = [...(msg.to ?? []), ...(msg.cc ?? [])];
-          for (const recipient of recipients) {
-            // We'll check later if they've acknowledged
-            pendingAcks.push(msg);
-          }
         }
         break;
 
@@ -335,11 +324,6 @@ export function computeThreadStatus(
 
       case "ack":
         totalAcks++;
-        // Track that this agent has acknowledged
-        // (In a full implementation, we'd parse which message they're acking)
-        if (msg.from) {
-          acknowledgedMessageIds.add(msg.id);
-        }
         break;
     }
   }

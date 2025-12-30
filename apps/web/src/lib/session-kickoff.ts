@@ -114,6 +114,8 @@ export interface KickoffConfig {
   context: string;
   /** Relevant transcript excerpt(s) with §n citations */
   excerpt: string;
+  /** Optional MEMORY CONTEXT (cass-memory) section markdown (include header + provenance) */
+  memoryContext?: string;
   /** List of agent names to receive kickoff */
   recipients: string[];
   /** Optional seed hypotheses */
@@ -292,6 +294,12 @@ function composeKickoffBody(config: KickoffConfig, role: RoleConfig): string {
   sections.push(config.excerpt);
   sections.push("");
 
+  // Optional: Memory context (cass-memory)
+  if (config.memoryContext) {
+    sections.push(config.memoryContext.trim());
+    sections.push("");
+  }
+
   // Optional: Initial hypotheses
   if (config.initialHypotheses) {
     sections.push("## Initial Hypotheses (Seed)");
@@ -382,6 +390,11 @@ export function composeUnifiedKickoff(config: KickoffConfig): {
   sections.push("## Transcript Excerpt");
   sections.push(config.excerpt);
   sections.push("");
+
+  if (config.memoryContext) {
+    sections.push(config.memoryContext.trim());
+    sections.push("");
+  }
 
   if (config.initialHypotheses) {
     sections.push("## Initial Hypotheses");

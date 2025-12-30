@@ -179,8 +179,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
       question: body.question?.trim(),
     });
 
-    // Ensure project exists
-    let projectSlug = projectKey;
+    // Ensure project exists (tools expect project_key to be the human_key / absolute path).
     if (projectKey.startsWith("/")) {
       const ensured = await client.toolsCall("ensure_project", { human_key: projectKey });
       const ensuredSlug = parseEnsureProjectSlug(ensured);
@@ -190,12 +189,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
           { status: 502 }
         );
       }
-      projectSlug = ensuredSlug;
     }
 
     // Register sender agent
     await client.toolsCall("register_agent", {
-      project_key: projectSlug,
+      project_key: projectKey,
       name: sender.trim(),
       program: "brenner-web",
       model: "nextjs",
@@ -204,7 +202,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
 
     // Send message
     const sendResult = await client.toolsCall("send_message", {
-      project_key: projectSlug,
+      project_key: projectKey,
       sender_name: sender.trim(),
       to: recipients.map((r) => r.trim()),
       subject,

@@ -127,7 +127,9 @@ function LockedState({ reason }: { reason: string }) {
               <h3 className="font-medium text-foreground">Cloudflare Access (Production)</h3>
             </div>
             <p className="text-sm text-muted-foreground pl-8">
-              Deploy behind Cloudflare Access. The app will automatically detect
+              Deploy behind Cloudflare Access and set{" "}
+              <code className="px-1.5 py-0.5 mx-1 rounded bg-muted font-mono text-xs">BRENNER_TRUST_CF_ACCESS_HEADERS=1</code>.
+              The app will then accept requests that include
               <code className="px-1.5 py-0.5 mx-1 rounded bg-muted font-mono text-xs">cf-access-jwt-assertion</code>
               headers.
             </p>
@@ -240,8 +242,9 @@ export default async function NewSessionPage({
     return <LockedState reason="Lab mode is disabled. Set BRENNER_LAB_MODE=1 to enable orchestration." />;
   }
 
-  // Defense-in-depth: even with BRENNER_LAB_MODE enabled, require Cloudflare Access headers
-  // or a valid shared secret before serving any orchestration UI or reading Agent Mail data.
+  // Defense-in-depth: even with BRENNER_LAB_MODE enabled, require trusted Cloudflare Access headers
+  // (BRENNER_TRUST_CF_ACCESS_HEADERS=1) or a valid shared secret before serving any orchestration UI
+  // or reading Agent Mail data.
   const reqHeaders = await headers();
   const reqCookies = await cookies();
   const pageAuth = checkOrchestrationAuth(reqHeaders, reqCookies);

@@ -81,6 +81,10 @@ curl_secure() {
     # Prefer HTTPS-only fetches when supported (curl >= 7.52).
     if curl --help all 2>/dev/null | grep -q -- '--proto'; then
       CURL_SECURE_ARGS+=(--proto '=https' --tlsv1.2)
+      # Also restrict redirect protocols when supported (curl >= 7.19.4).
+      if curl --help all 2>/dev/null | grep -q -- '--proto-redir'; then
+        CURL_SECURE_ARGS+=(--proto-redir '=https')
+      fi
     fi
     CURL_SECURE_ARGS_READY=true
   fi

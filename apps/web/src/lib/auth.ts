@@ -18,6 +18,7 @@ const LAB_SECRET_COOKIE = "brenner_lab_secret";
 
 const CF_ACCESS_JWT_HEADER = "cf-access-jwt-assertion";
 const CF_ACCESS_EMAIL_HEADER = "cf-access-authenticated-user-email";
+const TRUST_CF_ACCESS_ENV = "BRENNER_TRUST_CF_ACCESS_HEADERS";
 
 /**
  * Check if lab mode is enabled via environment variable.
@@ -25,6 +26,11 @@ const CF_ACCESS_EMAIL_HEADER = "cf-access-authenticated-user-email";
  */
 export function isLabModeEnabled(): boolean {
   const value = (process.env.BRENNER_LAB_MODE ?? "").trim().toLowerCase();
+  return value === "1" || value === "true";
+}
+
+function shouldTrustCloudflareAccessHeaders(): boolean {
+  const value = (process.env[TRUST_CF_ACCESS_ENV] ?? "").trim().toLowerCase();
   return value === "1" || value === "true";
 }
 
@@ -103,7 +109,9 @@ export function checkOrchestrationAuth(
   }
 
   // Check 2: Cloudflare Access headers OR shared secret
-  if (hasCloudflareAccessHeaders(headers)) {
+  // We only trust Cloudflare Access headers when explicitly enabled, because
+  // these headers can be spoofed if the origin is reachable directly.
+  if (shouldTrustCloudflareAccessHeaders() && hasCloudflareAccessHeaders(headers)) {
     return { authorized: true, reason: "Authorized (Cloudflare Access)" };
   }
 
@@ -111,11 +119,28 @@ export function checkOrchestrationAuth(
     return { authorized: true, reason: "Authorized (lab secret)" };
   }
 
+  if (hasCloudflareAccessHeaders(headers) && !shouldTrustCloudflareAccessHeaders()) {
+    return {
+      authorized: false,
+      reason:
+        `Cloudflare Access headers detected, but ${TRUST_CF_ACCESS_ENV} is not enabled. ` +
+        `Set ${TRUST_CF_ACCESS_ENV}=1 (only if the app is truly behind Cloudflare Access), or use BRENNER_LAB_SECRET.`,
+    };
+  }
+
   const secretConfigured = Boolean(getLabSecret());
   if (secretConfigured) {
     return {
       authorized: false,
       reason: "Invalid or missing lab secret. Provide via x-brenner-lab-secret header or brenner_lab_secret cookie.",
+    };
+  }
+
+  if (!shouldTrustCloudflareAccessHeaders()) {
+    return {
+      authorized: false,
+      reason:
+        `No BRENNER_LAB_SECRET configured. Set BRENNER_LAB_SECRET, or (if behind Cloudflare Access) set ${TRUST_CF_ACCESS_ENV}=1.`,
     };
   }
 

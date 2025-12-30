@@ -50,6 +50,20 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [activeCategory, setActiveCategory] = React.useState<SearchCategory>("all");
 
+  const navigateToResult = React.useCallback(
+    (hit: GlobalSearchHit) => {
+      // Include query param for back-to-search and multi-match navigation
+      const url = new URL(hit.url, window.location.origin);
+      const trimmed = query.trim();
+      if (trimmed) {
+        url.searchParams.set("q", trimmed);
+      }
+      router.push(url.pathname + url.search + url.hash);
+      onClose();
+    },
+    [router, onClose, query]
+  );
+
   // Reset state when opening
   React.useEffect(() => {
     if (isOpen) {
@@ -120,7 +134,7 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, results, selectedIndex, onClose]);
+  }, [isOpen, results, selectedIndex, onClose, navigateToResult]);
 
   // Scroll selected item into view
   React.useEffect(() => {
@@ -130,16 +144,6 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
     );
     selectedEl?.scrollIntoView({ block: "nearest" });
   }, [selectedIndex]);
-
-  const navigateToResult = (hit: GlobalSearchHit) => {
-    // Include query param for back-to-search and multi-match navigation
-    const url = new URL(hit.url, window.location.origin);
-    if (query.trim()) {
-      url.searchParams.set("q", query.trim());
-    }
-    router.push(url.pathname + url.search + url.hash);
-    onClose();
-  };
 
   const isLoading = isPending || isSearching;
 

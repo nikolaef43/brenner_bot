@@ -75,6 +75,7 @@ describe("help and usage", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("Usage:");
     expect(result.stdout).toContain("Commands:");
+    expect(result.stdout).toContain("excerpt");
     expect(result.stdout).toContain("memory");
     expect(result.stdout).toContain("mail");
     expect(result.stdout).toContain("prompt");
@@ -102,6 +103,7 @@ describe("help and usage", () => {
   it("usage includes all main commands", async () => {
     const result = await runCli(["--help"]);
     expect(result.stdout).toContain("version");
+    expect(result.stdout).toContain("excerpt build");
     expect(result.stdout).toContain("mail health");
     expect(result.stdout).toContain("mail tools");
     expect(result.stdout).toContain("mail send");
@@ -219,6 +221,39 @@ describe("unknown commands", () => {
     const result = await runCli(["session"]);
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("Unknown command");
+  });
+});
+
+// ============================================================================
+// Tests: Excerpt Build Command
+// ============================================================================
+
+describe("excerpt build command", () => {
+  it("builds an excerpt from transcript section IDs", async () => {
+    const result = await runCli(["excerpt", "build", "--sections", "1,2"], { timeout: 15000 });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("### Excerpt");
+    expect(result.stdout).toContain("**Sections included**:");
+    expect(result.stdout).toContain("§1");
+    expect(result.stdout).toContain("§2");
+  });
+
+  it("builds an excerpt from quote bank tags (json mode)", async () => {
+    const result = await runCli(["excerpt", "build", "--tags", "cheap-loop", "--limit", "2", "--json"], { timeout: 15000 });
+
+    expect(result.exitCode).toBe(0);
+
+    let parsed: { markdown: string; anchors: string[] };
+    try {
+      parsed = JSON.parse(result.stdout) as { markdown: string; anchors: string[] };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      throw new Error(`Expected excerpt build --json output. Parse failed: ${msg}\n\nstdout:\n${result.stdout}`);
+    }
+
+    expect(parsed.markdown).toContain("### Excerpt");
+    expect(parsed.anchors).toHaveLength(2);
   });
 });
 
