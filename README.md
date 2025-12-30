@@ -10,6 +10,8 @@ This repository integrates with **Agent Mail** (coordination + memory + workflow
 - **Codex** running **GPT‑5.2** (extra-high reasoning)
 - **Gemini CLI** running **Gemini 3**
 
+Important: Brenner Bot is designed to coordinate these tools via their **CLI subscriptions** (e.g., GPT Pro / Claude Max / Gemini Ultra) — it does **not** call vendor model APIs directly.
+
 …all coordinating via Agent Mail, using prompt templates and repeatable workflows grounded in deep study of Brenner’s method.
 
 The system includes:
@@ -272,6 +274,10 @@ The CLI is the terminal equivalent of the web “lab” flow:
 ./brenner.ts prompt compose --template metaprompt_by_gpt_52.md --excerpt-file excerpt.md
 ./brenner.ts orchestrate start --project-key "$PWD" --sender GreenCastle --to BlueMountain,RedForest --thread-id FEAT-123 --excerpt-file excerpt.md
 ```
+
+### Optional: run a multi-agent cockpit with ntm
+
+If you want to run Codex / Claude Code / Gemini CLI in parallel, we recommend using **ntm** (Named Tmux Manager): a tmux-based “agent cockpit” for spawning panes and broadcasting prompts: [Dicklesworthstone/ntm](https://github.com/Dicklesworthstone/ntm).
 
 ### Build a self-contained executable (Bun)
 

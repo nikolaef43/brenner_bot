@@ -80,7 +80,7 @@ coordinated via Agent Mail.
 
 ### B) Web app (`apps/web/`) (planned)
 - **Framework:** Next.js **16.10** (App Router) + React **19**
-- **AI:** Vercel **AI SDK** (streaming UI + route handlers)
+- **Orchestration:** **no vendor AI APIs**; coordinate **Codex CLI / Claude Code / Gemini CLI** via **Agent Mail**
 - **Runtime/Tooling:** Bun
 - **Hosting:** Vercel
 - **Purpose:** A UI to:
@@ -114,7 +114,7 @@ brenner_bot/
 # Planned (not necessarily present yet):
 #
 # apps/
-#   web/                           # Next.js 16.10 (App Router) + React 19 + Vercel AI SDK
+#   web/                           # Next.js 16.10 (App Router) + React 19
 #     app/
 #     components/
 #     lib/
@@ -262,7 +262,7 @@ Key patterns:
 - App Router: all pages in `app/` directory
 - UI components: shadcn/ui + Tailwind CSS
 - React 19 + Next.js 16.10; prefer Server Components where appropriate.
-- AI flows: use Vercel AI SDK for streaming responses and tool-calling ergonomics.
+- Orchestration: use Agent Mail + operator-run CLI agents (Codex/Claude/Gemini); do not wire up vendor AI APIs.
 
 ---
 
