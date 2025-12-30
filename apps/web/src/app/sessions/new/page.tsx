@@ -1,6 +1,5 @@
 import { resolve } from "node:path";
 import { cookies, headers } from "next/headers";
-import { notFound } from "next/navigation";
 import { AgentMailClient } from "@/lib/agentMail";
 import { isLabModeEnabled, checkOrchestrationAuth } from "@/lib/auth";
 import { SessionForm } from "@/components/sessions";
