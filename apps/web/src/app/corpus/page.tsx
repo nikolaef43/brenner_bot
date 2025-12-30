@@ -332,7 +332,7 @@ function SearchBar({ value, onChange, resultCount }: SearchBarProps) {
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Search documents..."
+          placeholder="Filter by title..."
           className="w-full h-11 sm:h-12 pl-11 sm:pl-12 pr-10 sm:pr-12 rounded-xl border border-border/50 bg-background/80 backdrop-blur-sm text-sm sm:text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all duration-200"
         />
 
@@ -347,12 +347,14 @@ function SearchBar({ value, onChange, resultCount }: SearchBarProps) {
         )}
       </div>
 
-      {/* Result count badge */}
-      {value && (
-        <div className="absolute -bottom-6 left-4 text-xs text-muted-foreground animate-fade-in">
-          {resultCount} {resultCount === 1 ? "result" : "results"} found
-        </div>
-      )}
+      {/* Result count or search hint */}
+      <div className="absolute -bottom-6 left-4 text-xs text-muted-foreground animate-fade-in">
+        {value ? (
+          <span>{resultCount} {resultCount === 1 ? "result" : "results"} found</span>
+        ) : (
+          <span>Press <kbd className="px-1 py-0.5 rounded bg-muted font-mono text-[10px]">⌘K</kbd> for full-text search</span>
+        )}
+      </div>
     </div>
   );
 }

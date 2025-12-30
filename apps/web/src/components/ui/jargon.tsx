@@ -250,7 +250,7 @@ function JargonBottomSheet({ term, open, onClose }: BottomSheetProps) {
           </h2>
           <button
             onClick={handleClose}
-            className="size-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="size-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors touch-manipulation"
             aria-label="Close"
           >
             <CloseIcon />
