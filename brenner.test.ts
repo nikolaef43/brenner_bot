@@ -93,6 +93,7 @@ describe("help and usage", () => {
 
   it("usage includes all main commands", async () => {
     const result = await runCli(["--help"]);
+    expect(result.stdout).toContain("version");
     expect(result.stdout).toContain("mail health");
     expect(result.stdout).toContain("mail tools");
     expect(result.stdout).toContain("mail send");
@@ -116,6 +117,27 @@ describe("help and usage", () => {
     const result = await runCli(["--help"]);
     expect(result.stdout).toContain("Aliases:");
     expect(result.stdout).toContain("orchestrate start");
+  });
+});
+
+// ============================================================================
+// Tests: Version Output
+// ============================================================================
+
+describe("version output", () => {
+  it("supports --version flag", async () => {
+    const result = await runCli(["--version"]);
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("brenner");
+    expect(result.stdout).toContain("git:");
+    expect(result.stdout).toContain("built:");
+    expect(result.stdout).toContain("target:");
+  });
+
+  it("supports version command", async () => {
+    const result = await runCli(["version"]);
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("brenner");
   });
 });
 

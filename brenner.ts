@@ -122,12 +122,82 @@ function readTextFile(path: string): string {
   return readFileSync(path, "utf8");
 }
 
+type BrennerBuildInfo = {
+  version: string;
+  gitSha: string | null;
+  buildDate: string | null;
+  platformTarget: string;
+};
+
+function normalizeSemverTag(tag: string): string | null {
+  const trimmed = tag.trim();
+  const withoutV = trimmed.startsWith("v") ? trimmed.slice(1) : trimmed;
+  if (/^\d+\.\d+\.\d+(-[0-9A-Za-z-.]+)?$/.test(withoutV)) return withoutV;
+  return null;
+}
+
+function tryGit(args: string[]): string | null {
+  try {
+    const proc = Bun.spawnSync(["git", ...args], { stdout: "pipe", stderr: "pipe" });
+    if (proc.exitCode !== 0) return null;
+    const out = proc.stdout.toString().trim();
+    return out.length > 0 ? out : null;
+  } catch {
+    return null;
+  }
+}
+
+function inferPlatformTarget(): string {
+  const platform = process.platform;
+  const arch = process.arch;
+
+  if (platform === "darwin") return arch === "arm64" ? "darwin-arm64" : "darwin-x64";
+  if (platform === "linux") return arch === "arm64" ? "linux-arm64" : "linux-x64";
+  if (platform === "win32") return arch === "arm64" ? "win-arm64" : "win-x64";
+
+  return `${platform}-${arch}`;
+}
+
+function getBrennerBuildInfo(): BrennerBuildInfo {
+  const envVersion = process.env.BRENNER_VERSION;
+  const envGitSha = process.env.BRENNER_GIT_SHA;
+  const envBuildDate = process.env.BRENNER_BUILD_DATE;
+  const envTarget = process.env.BRENNER_TARGET;
+
+  const gitTag = tryGit(["describe", "--tags", "--exact-match"]);
+  const normalizedGitTag = gitTag ? normalizeSemverTag(gitTag) : null;
+
+  const normalizedEnvVersion = envVersion ? normalizeSemverTag(envVersion) : null;
+
+  const version = normalizedEnvVersion ?? normalizedGitTag ?? envVersion ?? "0.0.0-dev";
+
+  const gitSha = envGitSha ?? tryGit(["rev-parse", "HEAD"]);
+  const buildDate = envBuildDate ?? tryGit(["show", "-s", "--format=%cI", "HEAD"]);
+  const platformTarget = envTarget ?? inferPlatformTarget();
+
+  return { version, gitSha, buildDate, platformTarget };
+}
+
+function formatBrennerVersionText(info: BrennerBuildInfo): string {
+  const sha = info.gitSha ? info.gitSha.slice(0, 12) : "unknown";
+  const built = info.buildDate ?? "unknown";
+
+  return [
+    `brenner ${info.version}`,
+    `git: ${sha}`,
+    `built: ${built}`,
+    `target: ${info.platformTarget}`,
+  ].join("\n");
+}
+
 function usage(): string {
   return `
 Usage:
   ./brenner.ts <command> [args] [--flags]
+  ./brenner.ts --version
 
 Commands:
+  version
   mail health
   mail tools
   mail agents --project-key <abs-path>
@@ -163,10 +233,17 @@ Agent Mail connection (env):
   AGENT_MAIL_PATH            default: /mcp/
   AGENT_MAIL_BEARER_TOKEN    optional
 
+Build metadata (for --version):
+  BRENNER_VERSION            optional (prefer semver, e.g. 0.1.0)
+  BRENNER_GIT_SHA            optional
+  BRENNER_BUILD_DATE         optional (ISO 8601)
+  BRENNER_TARGET             optional (e.g. linux-x64)
+
 Examples:
   ./brenner.ts mail tools
   ./brenner.ts mail inbox --project-key "$PWD" --agent GreenCastle --threads
   ./brenner.ts mail ack --project-key "$PWD" --agent GreenCastle --message-id 123
+  ./brenner.ts --version
   ./brenner.ts toolchain plan
   ./brenner.ts toolchain plan --platform darwin-arm64 --json
   ./brenner.ts prompt compose --template metaprompt_by_gpt_52.md --excerpt-file excerpt.md --theme "problem choice"
@@ -214,8 +291,18 @@ async function main(): Promise<void> {
   const { positional, flags } = parseArgs(process.argv.slice(2));
   const [top, sub, action] = positional;
 
+  if (asBoolFlag(flags, "version")) {
+    console.log(formatBrennerVersionText(getBrennerBuildInfo()));
+    process.exit(0);
+  }
+
   if (!top || asBoolFlag(flags, "help") || top === "help" || top === "-h") {
     console.log(usage());
+    process.exit(0);
+  }
+
+  if (top === "version") {
+    console.log(formatBrennerVersionText(getBrennerBuildInfo()));
     process.exit(0);
   }
 
