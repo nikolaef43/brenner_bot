@@ -438,8 +438,11 @@ export function QuoteBankViewer({ data }: QuoteBankViewerProps) {
         {filteredQuotes.length > 0 ? (
           <div
             ref={scrollContainerRef}
-            className="h-[calc(100vh-400px)] min-h-[400px] overflow-y-auto scroll-smooth"
-            style={{ contain: "strict" }}
+            className="h-[calc(100dvh-400px)] min-h-[400px] overflow-y-auto scroll-smooth overscroll-contain"
+            style={{
+              WebkitOverflowScrolling: "touch",
+              contain: "layout style",
+            }}
           >
             {/* Total height spacer for scroll */}
             <div
