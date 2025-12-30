@@ -258,8 +258,17 @@ export function CompareView({ distillations }: CompareViewProps) {
 
     isScrolling.current = true;
 
-    const scrollRatio = sourcePane.scrollTop / (sourcePane.scrollHeight - sourcePane.clientHeight);
-    const targetScrollTop = scrollRatio * (targetPane.scrollHeight - targetPane.clientHeight);
+    const sourceScrollableHeight = sourcePane.scrollHeight - sourcePane.clientHeight;
+    const targetScrollableHeight = targetPane.scrollHeight - targetPane.clientHeight;
+
+    // Avoid division by zero when content doesn't overflow
+    if (sourceScrollableHeight <= 0 || targetScrollableHeight <= 0) {
+      isScrolling.current = false;
+      return;
+    }
+
+    const scrollRatio = sourcePane.scrollTop / sourceScrollableHeight;
+    const targetScrollTop = scrollRatio * targetScrollableHeight;
 
     targetPane.scrollTop = targetScrollTop;
 
@@ -274,7 +283,6 @@ export function CompareView({ distillations }: CompareViewProps) {
 
   const leftModelConfig = MODELS.find((m) => m.id === leftModel)!;
   const rightModelConfig = MODELS.find((m) => m.id === rightModel)!;
-  const mobileModelConfig = MODELS.find((m) => m.id === mobileActiveModel)!;
 
   return (
     <div className="h-full flex flex-col">
