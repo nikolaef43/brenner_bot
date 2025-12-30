@@ -51,20 +51,20 @@ specs/toolchain.manifest.json
       "platforms": ["linux-x64", "linux-arm64", "darwin-arm64", "darwin-x64", "win-x64"]
     },
     "ntm": {
-      "version": "0.3.0",
+      "version": "1.2.0",
       "install_strategy": "upstream_installer",
-      "install_url": "https://raw.githubusercontent.com/anthropics/ntm/v0.3.0/install.sh",
-      "install_args": "--version 0.3.0",
-      "verify_command": "ntm version",
+      "install_url": "https://raw.githubusercontent.com/Dicklesworthstone/ntm/v1.2.0/install.sh",
+      "install_args": "--version=v1.2.0",
+      "verify_command": "ntm deps -v",
       "verify_success": "exit_code_zero",
       "platforms": ["linux-x64", "linux-arm64", "darwin-arm64", "darwin-x64"],
       "notes": "Not available on Windows (requires tmux)"
     },
     "cass": {
-      "version": "0.4.0",
+      "version": "0.1.35",
       "install_strategy": "upstream_installer",
-      "install_url": "https://raw.githubusercontent.com/anthropics/cass/v0.4.0/install.sh",
-      "install_args": "--easy-mode --verify",
+      "install_url": "https://raw.githubusercontent.com/Dicklesworthstone/coding_agent_session_search/v0.1.35/install.sh",
+      "install_args": "--version v0.1.35",
       "verify_command": "cass health",
       "verify_success": "exit_code_zero",
       "platforms": ["linux-x64", "linux-arm64", "darwin-arm64", "darwin-x64", "win-x64"]
@@ -72,8 +72,8 @@ specs/toolchain.manifest.json
     "cm": {
       "version": "0.2.0",
       "install_strategy": "upstream_installer",
-      "install_url": "https://raw.githubusercontent.com/anthropics/cass-memory/v0.2.0/install.sh",
-      "install_args": "--easy-mode --verify",
+      "install_url": "https://raw.githubusercontent.com/Dicklesworthstone/cass_memory_system/v0.2.0/install.sh",
+      "install_args": "--version v0.2.0",
       "verify_command": "cm --version",
       "verify_success": "exit_code_zero",
       "platforms": ["linux-x64", "linux-arm64", "darwin-arm64", "darwin-x64", "win-x64"]

@@ -42,9 +42,15 @@ VERIFY=false
 DRY_RUN=false
 VERBOSE=false
 SKIP_BRENNER=false
+SKIP_NTM=false
+SKIP_CASS=false
+SKIP_CM=false
 
 # Temp directory (for cleanup trap)
 TEMP_DIR=""
+
+# Resolved version cache
+RESOLVED_VERSION=""
 
 # -----------------------------------------------------------------------------
 # Logging
@@ -71,6 +77,19 @@ log_debug() {
 die() {
   log_error "$@"
   exit 1
+}
+
+# -----------------------------------------------------------------------------
+# Temp Directory Helper
+# -----------------------------------------------------------------------------
+
+ensure_temp_dir() {
+  if [[ -n "${TEMP_DIR}" ]]; then
+    return 0
+  fi
+
+  TEMP_DIR=$(mktemp -d) || die "Failed to create temp directory"
+  trap 'rm -rf "$TEMP_DIR"' EXIT
 }
 
 # -----------------------------------------------------------------------------
@@ -154,6 +173,16 @@ resolve_version() {
   fi
 }
 
+get_resolved_version() {
+  if [[ -n "${RESOLVED_VERSION}" ]]; then
+    echo "${RESOLVED_VERSION}"
+    return 0
+  fi
+
+  RESOLVED_VERSION=$(resolve_version "$VERSION")
+  echo "${RESOLVED_VERSION}"
+}
+
 # -----------------------------------------------------------------------------
 # URL Construction
 # -----------------------------------------------------------------------------
@@ -182,6 +211,162 @@ build_checksum_url() {
   artifact_name=$(get_artifact_name "$platform")
 
   echo "${GITHUB_RELEASE_BASE}/download/v${version}/${artifact_name}.sha256"
+}
+
+# -----------------------------------------------------------------------------
+# Toolchain Manifest (ntm/cass/cm pinning)
+# -----------------------------------------------------------------------------
+
+build_toolchain_manifest_url() {
+  local version="$1"
+  echo "https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/v${version}/specs/toolchain.manifest.json"
+}
+
+fetch_toolchain_manifest() {
+  if [[ -f "specs/toolchain.manifest.json" ]]; then
+    echo "specs/toolchain.manifest.json"
+    return 0
+  fi
+
+  local version manifest_url manifest_path
+  version=$(get_resolved_version)
+  manifest_url=$(build_toolchain_manifest_url "$version")
+
+  ensure_temp_dir
+  manifest_path="${TEMP_DIR}/toolchain.manifest.json"
+
+  log_debug "Fetching toolchain manifest from: ${manifest_url}"
+
+  if ! curl -fsSL -o "$manifest_path" "$manifest_url" 2>/dev/null; then
+    log_warn "Failed to fetch toolchain manifest for v${version}; falling back to main"
+    manifest_url="https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/specs/toolchain.manifest.json"
+    curl -fsSL -o "$manifest_path" "$manifest_url" || die "Failed to fetch toolchain manifest"
+  fi
+
+  echo "$manifest_path"
+}
+
+manifest_get_tool_field() {
+  local manifest="$1"
+  local tool="$2"
+  local field="$3"
+
+  sed -n "/\"$tool\": {/,/^    }/p" "$manifest" \
+    | grep -o "\"$field\": *\"[^\"]*\"" \
+    | head -1 \
+    | cut -d'"' -f4
+}
+
+install_upstream_tool() {
+  local manifest="$1"
+  local tool="$2"
+
+  local version url args
+  version=$(manifest_get_tool_field "$manifest" "$tool" "version")
+  url=$(manifest_get_tool_field "$manifest" "$tool" "install_url")
+  args=$(manifest_get_tool_field "$manifest" "$tool" "install_args")
+
+  if [[ -z "$url" ]]; then
+    die "Toolchain manifest missing tools.${tool}.install_url"
+  fi
+
+  log_info "Installing ${tool}${version:+ v${version}}..."
+
+  local -a extra_args=()
+  case "$tool" in
+    ntm)
+      extra_args+=("--dir=${DEST_DIR}")
+      if [[ "$EASY_MODE" == "true" ]]; then
+        extra_args+=(--no-shell)
+      fi
+      ;;
+    cass|cm)
+      extra_args+=(--dest "$DEST_DIR")
+      if [[ "$EASY_MODE" == "true" ]]; then
+        extra_args+=(--easy-mode)
+      fi
+      if [[ "$VERIFY" == "true" ]]; then
+        extra_args+=(--verify)
+      fi
+      ;;
+    *)
+      ;;
+  esac
+
+  if [[ "$DRY_RUN" == "true" ]]; then
+    log_info "[DRY RUN] Would run: curl -fsSL \"${url}\" | bash -s -- ${args} ${extra_args[*]}"
+    return 0
+  fi
+
+  curl -fsSL "$url" | bash -s -- $args "${extra_args[@]}"
+}
+
+install_toolchain() {
+  if [[ "$SKIP_NTM" == "true" && "$SKIP_CASS" == "true" && "$SKIP_CM" == "true" ]]; then
+    log_info "Skipping toolchain installation (--skip-ntm --skip-cass --skip-cm)"
+    return 0
+  fi
+
+  local manifest
+  manifest=$(fetch_toolchain_manifest)
+
+  if [[ ":${PATH}:" != *":${DEST_DIR}:"* ]]; then
+    export PATH="${DEST_DIR}:${PATH}"
+  fi
+
+  if [[ "$SKIP_NTM" == "true" ]]; then
+    log_info "Skipping ntm installation (--skip-ntm)"
+  else
+    install_upstream_tool "$manifest" "ntm"
+  fi
+
+  if [[ "$SKIP_CASS" == "true" ]]; then
+    log_info "Skipping cass installation (--skip-cass)"
+  else
+    install_upstream_tool "$manifest" "cass"
+  fi
+
+  if [[ "$SKIP_CM" == "true" ]]; then
+    log_info "Skipping cm installation (--skip-cm)"
+  else
+    install_upstream_tool "$manifest" "cm"
+  fi
+}
+
+verify_toolchain() {
+  if [[ "$VERIFY" != "true" ]]; then
+    return 0
+  fi
+
+  log_info "Verifying toolchain..."
+
+  verify_command() {
+    local label="$1"
+    shift
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+      log_info "[DRY RUN] Would verify ${label}: $*"
+      return 0
+    fi
+
+    if PATH="${DEST_DIR}:${PATH}" "$@" >/dev/null; then
+      log_info "Verified: ${label}"
+    else
+      die "Verification failed: ${label} ($*)"
+    fi
+  }
+
+  if [[ "$SKIP_NTM" != "true" ]]; then
+    verify_command "ntm" ntm deps -v
+  fi
+
+  if [[ "$SKIP_CASS" != "true" ]]; then
+    verify_command "cass" cass health
+  fi
+
+  if [[ "$SKIP_CM" != "true" ]]; then
+    verify_command "cm" cm --version
+  fi
 }
 
 # -----------------------------------------------------------------------------
@@ -316,7 +501,7 @@ install_brenner() {
     log_debug "Using override artifact URL: ${artifact_url}"
   else
     # Resolve version and build URL
-    version=$(resolve_version "$VERSION")
+    version=$(get_resolved_version)
     log_info "Version: ${version}"
     artifact_url=$(build_artifact_url "$version" "$platform")
   fi
@@ -343,9 +528,7 @@ install_brenner() {
     return 0
   fi
 
-  # Create temp directory
-  TEMP_DIR=$(mktemp -d) || die "Failed to create temp directory"
-  trap 'rm -rf "$TEMP_DIR"' EXIT
+  ensure_temp_dir
 
   artifact_name=$(get_artifact_name "$platform")
   temp_file="${TEMP_DIR}/${artifact_name}"
@@ -365,27 +548,31 @@ install_brenner() {
 
 # Verify installation
 verify_installation() {
-  if [[ "$VERIFY" != "true" ]]; then
+  if [[ "$VERIFY" != "true" ]] || [[ "$DRY_RUN" == "true" ]]; then
     return 0
   fi
 
   log_info "Verifying installation..."
 
-  local brenner_path="${DEST_DIR}/${TOOL_NAME}"
+  if [[ "$SKIP_BRENNER" != "true" ]]; then
+    local brenner_path="${DEST_DIR}/${TOOL_NAME}"
 
-  if [[ ! -x "$brenner_path" ]]; then
-    die "Verification failed: ${brenner_path} is not executable"
+    if [[ ! -x "$brenner_path" ]]; then
+      die "Verification failed: ${brenner_path} is not executable"
+    fi
+
+    # Try running brenner
+    if "$brenner_path" --help &>/dev/null; then
+      log_info "Verification passed: brenner --help works"
+    else
+      die "Verification failed: brenner --help failed"
+    fi
+
+    # TODO: Once brenner doctor is implemented:
+    # "$brenner_path" doctor --json || die "brenner doctor failed"
   fi
 
-  # Try running brenner
-  if "$brenner_path" --help &>/dev/null; then
-    log_info "Verification passed: brenner --help works"
-  else
-    die "Verification failed: brenner --help failed"
-  fi
-
-  # TODO: Once brenner doctor is implemented:
-  # "$brenner_path" doctor --json || die "brenner doctor failed"
+  verify_toolchain
 }
 
 # Configure PATH for easy-mode
@@ -464,6 +651,9 @@ Options:
   --dry-run            Show what would be done without doing it
   --verbose            Show debug output
   --skip-brenner       Skip brenner binary installation
+  --skip-ntm           Skip ntm installation (Unix-only tool)
+  --skip-cass          Skip cass installation
+  --skip-cm            Skip cm installation
   -h, --help           Show this help
 
 Environment:
@@ -526,6 +716,18 @@ parse_args() {
         SKIP_BRENNER=true
         shift
         ;;
+      --skip-ntm)
+        SKIP_NTM=true
+        shift
+        ;;
+      --skip-cass)
+        SKIP_CASS=true
+        shift
+        ;;
+      --skip-cm)
+        SKIP_CM=true
+        shift
+        ;;
       -h|--help)
         usage
         exit 0
@@ -553,6 +755,7 @@ main() {
   log_info "Install destination: ${DEST_DIR}"
 
   install_brenner
+  install_toolchain
   verify_installation
   configure_path
 
