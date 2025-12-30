@@ -18,7 +18,15 @@ export function ReadingProgressWidget({
   const [visible, setVisible] = React.useState(false);
   const [timeRemaining, setTimeRemaining] = React.useState<string>("");
 
+  // Cache total word count to avoid recalculating on every scroll
+  const totalWordsRef = React.useRef<number | null>(null);
+
   React.useEffect(() => {
+    // Calculate total words once on mount
+    const mainContent = document.querySelector("main");
+    const text = mainContent?.textContent ?? "";
+    totalWordsRef.current = text.split(/\s+/).filter(Boolean).length;
+
     const calculateProgress = () => {
       const scrollTop = window.scrollY;
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -28,13 +36,10 @@ export function ReadingProgressWidget({
       setProgress(clampedProgress);
       setVisible(scrollTop > 200);
 
-      // Calculate time remaining
-      if (showTimeEstimate && docHeight > 0) {
+      // Calculate time remaining using cached word count
+      if (showTimeEstimate && docHeight > 0 && totalWordsRef.current !== null) {
         const remainingPercent = 100 - clampedProgress;
-        const mainContent = document.querySelector("main");
-        const text = mainContent?.textContent ?? "";
-        const totalWords = text.split(/\s+/).filter(Boolean).length;
-        const remainingWords = Math.round((remainingPercent / 100) * totalWords);
+        const remainingWords = Math.round((remainingPercent / 100) * totalWordsRef.current);
         const minutesRemaining = Math.ceil(remainingWords / wordsPerMinute);
 
         if (minutesRemaining <= 0) {

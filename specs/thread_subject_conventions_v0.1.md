@@ -195,6 +195,36 @@ The thread ID MUST be usable as a key in all of these systems:
 | **Beads** | Issue ID (for engineering work): `bd show {thread_id}` |
 | **Compiled output** | YAML front matter: `session_id: "{thread_id}"` |
 
+### Artifact storage layout (repo)
+
+**Canonical path** (relative to repo root):
+
+- `artifacts/{thread_id}.md`
+
+**Rules**:
+
+- `{thread_id}` is used verbatim as the filename. Therefore it MUST match the validation rules above and MUST NOT contain `/` or `..`.
+- One thread/session = one artifact file. New compiled versions update the same file in place; version history lives in git and in Agent Mail `COMPILED` messages.
+- Artifacts are written only by an explicit operator action (CLI/Web lab mode). No background or surprise persistence.
+
+### ntm session naming
+
+**Recommendation**: use the thread ID verbatim as the `ntm` session name:
+
+- `ntm new {thread_id}`
+
+**Rationale**:
+
+- The thread ID is the global join key; reusing it as the session name avoids “where did we run this?” ambiguity.
+- Operators can jump from Agent Mail → tmux session → artifact file without translation.
+
+### Mapping table (examples)
+
+| Work type | `thread_id` | `ntm` session name | Artifact path |
+|-----------|-------------|--------------------|---------------|
+| Engineering (beads) | `brenner_bot-5so.3.4.2` | `brenner_bot-5so.3.4.2` | `artifacts/brenner_bot-5so.3.4.2.md` |
+| Research (Brenner Loop) | `RS-20251230-cell-fate` | `RS-20251230-cell-fate` | `artifacts/RS-20251230-cell-fate.md` |
+
 ### Example: Full Cross-Reference
 
 For research session `RS-20251230-cell-fate`:

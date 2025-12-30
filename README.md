@@ -282,7 +282,42 @@ Key routes:
 
 ### Use the CLI (local)
 
-The CLI is the terminal equivalent of the web “lab” flow:
+The CLI is the terminal equivalent of the web “lab” flow. It is **Bun-only** and runs as:
+- `./brenner.ts ...` (script)
+- `bun build --compile --outfile brenner ./brenner.ts` (single executable)
+
+#### CLI command map (contract)
+
+Status legend:
+- ✅ Implemented now
+- 🧭 Planned (tracked in Beads; don’t assume it exists yet)
+
+| Command | Purpose | Status |
+|---|---|---|
+| `mail health` | Check Agent Mail readiness | ✅ |
+| `mail tools` | List Agent Mail MCP tools | ✅ |
+| `mail agents --project-key <abs-path>` | List known agents for a project | ✅ |
+| `mail send --project-key <abs-path> ...` | Send a message to agents (optionally in a `--thread-id`) | ✅ |
+| `prompt compose --template <path> --excerpt-file <path> ...` | Render a kickoff prompt (template + excerpt injection) | ✅ |
+| `orchestrate start --project-key <abs-path> ...` | Compose + send a “kickoff” message via Agent Mail | ✅ |
+| `mail inbox` / `mail ack` / `mail thread` | Inbox + acknowledgement + thread tooling | 🧭 (see `brenner_bot-5so.5`) |
+| `orchestrate compile` / `orchestrate publish` | Compile agent deltas into a canonical artifact + publish back to thread | 🧭 (see `brenner_bot-5so.3`) |
+| `corpus search` / `corpus excerpt` | Corpus search and excerpt builder | 🧭 (see `brenner_bot-5so.4`) |
+
+#### Config precedence (contract)
+
+When the same setting is provided in multiple places, precedence is:
+
+1. **Flags** (per-command)
+2. **Environment**
+3. **Config file** (planned)
+4. **Defaults**
+
+Environment variables (current):
+- `AGENT_MAIL_BASE_URL` (default `http://127.0.0.1:8765`)
+- `AGENT_MAIL_PATH` (default `/mcp/`)
+- `AGENT_MAIL_BEARER_TOKEN` (optional; required if Agent Mail auth is enabled)
+- `AGENT_NAME` (optional default for `--sender`)
 
 ```bash
 ./brenner.ts mail tools
@@ -315,25 +350,29 @@ ntm new $THREAD_ID --layout=3-agent
   > kickoff.md
 
 # 4. Send kickoff to all agents via Agent Mail
+# Option A (compose + send in one step):
 ./brenner.ts orchestrate start \
   --project-key "$PWD" \
   --thread-id $THREAD_ID \
   --sender Operator \
   --to Claude,GPT,Gemini \
-  --kickoff-file kickoff.md
+  --excerpt-file excerpt.md
+#
+# Option B (send a pre-rendered kickoff.md):
+./brenner.ts mail send \
+  --project-key "$PWD" \
+  --sender Operator \
+  --to Claude,GPT,Gemini \
+  --thread-id $THREAD_ID \
+  --subject "[$THREAD_ID] Brenner Loop kickoff" \
+  --body-file kickoff.md
 
 # 5. Run agents in ntm panes (they post responses to Agent Mail)
 ntm broadcast $THREAD_ID "Please check your Agent Mail inbox"
 
-# 6. Fetch responses and compile artifact
-./brenner.ts orchestrate compile \
-  --thread-id $THREAD_ID \
-  --output artifacts/$THREAD_ID.md
-
-# 7. Publish compiled artifact back to thread
-./brenner.ts orchestrate publish \
-  --thread-id $THREAD_ID \
-  --artifact artifacts/$THREAD_ID.md
+# 6. Fetch/compile/publish: planned (tracked in `brenner_bot-5so.3`)
+# For now, use the Agent Mail web UI to read responses:
+#   http://127.0.0.1:8765/mail
 ```
 
 **Key insight**: Agents run in **your terminal** (via ntm), not in the cloud. You manage the sessions, review outputs, and decide when to compile. This is humans-in-the-loop orchestration.

@@ -217,6 +217,7 @@ export function CommandPalette() {
       // Navigate with arrow keys
       if (e.key === "ArrowDown") {
         e.preventDefault();
+        if (flatCommands.length === 0) return;
         setSelectedIndex((prev) =>
           prev < flatCommands.length - 1 ? prev + 1 : 0
         );
@@ -225,6 +226,7 @@ export function CommandPalette() {
 
       if (e.key === "ArrowUp") {
         e.preventDefault();
+        if (flatCommands.length === 0) return;
         setSelectedIndex((prev) =>
           prev > 0 ? prev - 1 : flatCommands.length - 1
         );

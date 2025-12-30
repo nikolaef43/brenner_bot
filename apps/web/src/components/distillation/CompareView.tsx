@@ -390,6 +390,12 @@ export function CompareView({ distillations }: CompareViewProps) {
                             ))}
                           </ul>
                         );
+                      case "code":
+                        return (
+                          <pre key={cIdx} className="bg-muted/50 rounded-lg p-3 my-3 text-xs overflow-x-auto">
+                            <code>{content.text}</code>
+                          </pre>
+                        );
                       default:
                         return null;
                     }

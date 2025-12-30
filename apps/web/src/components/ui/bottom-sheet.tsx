@@ -29,6 +29,14 @@ export function BottomSheet({
   const startY = React.useRef<number>(0);
   const currentY = React.useRef<number>(0);
 
+  const handleClose = React.useCallback(() => {
+    setExiting(true);
+    setTimeout(() => {
+      setExiting(false);
+      onClose();
+    }, 200);
+  }, [onClose]);
+
   // Handle escape key
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -46,15 +54,7 @@ export function BottomSheet({
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [open]);
-
-  const handleClose = () => {
-    setExiting(true);
-    setTimeout(() => {
-      setExiting(false);
-      onClose();
-    }, 200);
-  };
+  }, [open, handleClose]);
 
   // Touch handlers for swipe-to-dismiss
   const handleTouchStart = (e: React.TouchEvent) => {
