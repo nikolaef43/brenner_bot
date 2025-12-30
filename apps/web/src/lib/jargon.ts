@@ -2888,6 +2888,221 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     related: ["c-elegans", "model-organism", "n2", "bacteriophage"],
     category: "brenner",
   },
+
+  // ============================================================================
+  // Sixth Batch: Additional Terms from Transcript (December 2025)
+  // ============================================================================
+
+  // --- Brenner Philosophy on Ignorance ---
+
+  "spreading-ignorance": {
+    term: "Spreading Ignorance",
+    short: "Brenner's provocative idea that we should spread ignorance rather than knowledge.",
+    long:
+      "Brenner argued that too much knowledge constrains creativity. He advocated 'spreading ignorance rather than knowledge, because it's ignorance that allows you to do things.' Outsiders who haven't been 'entrained into the standard approach' make breakthroughs.",
+    why:
+      "This connects to his belief in the power of ignorance: 'people who come from the outside, who have not been entrained into the standard approach, can see things from a different way.' Transcript anchor: §63.",
+    related: ["power-of-ignorance", "productive-ignorance", "knowledge-is-dangerous"],
+    category: "brenner",
+  },
+  "knowledge-is-dangerous": {
+    term: "Knowledge Is Dangerous",
+    short: "Brenner's warning that excessive knowledge harms research creativity.",
+    long:
+      "Brenner believed that knowing too much prevents scientists from trying new things. When saturated with knowledge, you dismiss novel ideas with 'don't be silly, that'll never work.' A modicum of ignorance is essential for discovery.",
+    why:
+      "Brenner stated: 'knowledge is dangerous to research. I really think that a modicum of ignorance is absolutely essential. Because otherwise you don't try anything.' Transcript anchor: §200.",
+    related: ["spreading-ignorance", "power-of-ignorance", "productive-ignorance"],
+    category: "brenner",
+  },
+  "stay-imprisoned": {
+    term: "Stay Imprisoned",
+    short: "Brenner's principle: keep your thinking within physical constraints.",
+    long:
+      "Brenner and Crick tried to 'stay imprisoned within the physical context of everything.' This means respecting molecular scales, diffusion rates, and physical laws when imagining biological processes. Fantasy must be constrained by physics.",
+    why:
+      "Brenner noted that 'people don't teach them some scales of anything and how molecules reach things. Francis and I tried very hard to stay imprisoned within the physical context of everything.' Transcript anchor: §70.",
+    related: ["von-neumann", "machine-language-of-biology", "one-dimensional-sequence"],
+    category: "brenner",
+  },
+
+  // --- Key People ---
+
+  "gunther-stent": {
+    term: "Gunther Stent",
+    short: "Phage biologist who proclaimed molecular biology 'solved' and later wrote its obituary.",
+    long:
+      "Gunther Stent was a phage biologist at Berkeley's Virus Lab who became famous for declaring development was 'solved' by Jacob and Monod, and later writing what Brenner called 'The End of Molecular Biology.'",
+    why:
+      "Brenner used Stent as an example of vacuous theorizing: 'Gunther Stent wrote an article saying development was a solved problem... But the more general the theory the more vacuous it is.' Transcript anchor: §126.",
+    related: ["vacuous-theory", "virus-lab", "phage-group"],
+    category: "biology",
+  },
+  "arthur-kornberg": {
+    term: "Arthur Kornberg",
+    short: "Biochemist who discovered DNA polymerase and lectured Brenner on metabolism.",
+    long:
+      "Arthur Kornberg discovered DNA polymerase, for which he won the Nobel Prize. He represented the biochemist view that DNA replication was 'straightforward': DNA + polymerase + triphosphates = more DNA.",
+    why:
+      "Brenner recalled receiving 'a fatherly lecture from Arthur Kornberg, which irritated me, telling me I didn't understand intermediary metabolism.' This represented the clash between genetics and biochemistry. Transcript anchor: §104.",
+    related: ["dna", "meselson-stahl", "replication"],
+    category: "biology",
+  },
+  "erwin-chargaff": {
+    term: "Erwin Chargaff",
+    short: "Biochemist famous for base-pairing rules and acerbic wit about molecular biology.",
+    long:
+      "Erwin Chargaff discovered the base-pairing rules (A=T, G=C) that helped solve DNA structure. He was famously critical of the new molecular biologists, calling them 'people who practised biochemistry without a licence.'",
+    why:
+      "When 'messenger' was proposed for mRNA, Chargaff quipped: 'Mercury may have been the messenger of the gods, but he was also the god of the thieves.' Brenner responded: 'I think it's right to steal from nature.' Transcript anchor: §106.",
+    related: ["mrna", "biochemistry-without-license", "dna"],
+    category: "biology",
+  },
+
+  // --- Places and Institutions ---
+
+  "phage-church": {
+    term: "Phage Church",
+    short: "The tight-knit community of phage biologists centered at Cal Tech.",
+    long:
+      "The 'Phage Church' was the informal name for the community of phage biologists who gathered at Cal Tech, Cold Spring Harbor, and other centers. They shared a rigorous, quantitative approach to biology pioneered by Delbruck.",
+    why:
+      "Brenner wrote: 'We came to Cal Tech, and that brought me in direct contact with the Phage Group, the Phage Church, at which I met many people who had become lifelong friends.' Transcript anchor: §79.",
+    related: ["phage-group", "max-delbruck", "cold-spring-harbor", "bacteriophage"],
+    category: "biology",
+  },
+  "virus-lab": {
+    term: "Virus Lab",
+    short: "The Berkeley laboratory where Brenner worked with Gunther Stent.",
+    long:
+      "The Virus Laboratory at UC Berkeley was a major center for phage research. Brenner visited there after Cold Spring Harbor and Cal Tech, working with Gunther Stent on phage genetics.",
+    why:
+      "Brenner 'went up to Berkeley to see the Virus Lab where I actually started to work with Gunther Stent.' This was part of his immersion in American phage biology. Transcript anchor: §79.",
+    related: ["phage-church", "gunther-stent", "bacteriophage"],
+    category: "biology",
+  },
+  "woods-hole": {
+    term: "Woods Hole",
+    short: "Marine biology laboratory where secret developmental biology seminars were held.",
+    long:
+      "Woods Hole is a marine biology laboratory in Massachusetts. Brenner attended a 'secret seminar' there where developmental biologists debated whether differentiation was 'a state or a process.'",
+    why:
+      "Brenner recalled 'a secret seminar held in the house of one of the... of a very high class exclusive' discussing differentiation. This shows how developmental biology was grappling with fundamental questions. Transcript anchor: §153.",
+    related: ["cold-spring-harbor", "mrc-lab", "cell-lineage"],
+    category: "biology",
+  },
+
+  // --- Key Concepts and Metaphors ---
+
+  "hysterical-snakes": {
+    term: "Hysterical Snakes",
+    short: "Brenner's vivid metaphor for mRNA threading through ribosomes.",
+    long:
+      "Brenner corrected the common image of ribosomes moving along mRNA. Since ribosomes are large and diffuse slowly, 'the messengers must be moving through the cell like a lot of hysterical snakes, threading their way through the ribosomes.'",
+    why:
+      "This metaphor captures the dynamic reality of translation and Brenner's insistence on staying 'imprisoned within the physical context.' The image helps visualize molecular scales correctly. Transcript anchor: §70.",
+    related: ["mrna", "ribosome", "stay-imprisoned", "translation"],
+    category: "brenner",
+  },
+  "biochemistry-without-license": {
+    term: "Biochemistry Without a License",
+    short: "Chargaff's dismissive description of molecular biologists.",
+    long:
+      "Erwin Chargaff famously complained that 'molecular biologists were people who practised biochemistry without a licence.' This captured the tension between traditional biochemists and the new molecular geneticists.",
+    why:
+      "Brenner used this quote to illustrate how the old guard didn't understand that 'you could have a structure which is a theory, that you could go from this theory to something that was biology.' Transcript anchor: §61.",
+    related: ["erwin-chargaff", "francis-crick", "james-watson"],
+    category: "brenner",
+  },
+  "theory-of-mutagenesis": {
+    term: "Theory of Mutagenesis",
+    short: "Brenner's paper proposing two classes of mutations: substitutions and frameshifts.",
+    long:
+      "Brenner and colleagues wrote 'The Theory of Mutagenesis' proposing that mutations fell into two classes: substitution mutants (induced by base analogues) and addition/deletion mutants (induced by acridines, causing frameshifts).",
+    why:
+      "This theoretical framework was crucial: 'we showed we could induce those mutants with base analogues, but we could not induce them with acridines.' The distinction enabled the frameshift experiments. Transcript anchor: §107.",
+    related: ["frameshift", "proflavine", "base-analogue", "acridine"],
+    category: "method",
+  },
+  acridine: {
+    term: "Acridine",
+    short: "A class of mutagens that cause frameshift mutations by intercalating into DNA.",
+    long:
+      "Acridine dyes like proflavine intercalate between DNA base pairs, causing insertions or deletions during replication. Unlike base analogues that cause substitutions, acridines cause frameshifts.",
+    why:
+      "The key distinction: 'we showed we could induce those mutants with base analogues, but we could not induce them with acridines.' This proved the existence of two mutation classes. Transcript anchor: §107.",
+    related: ["proflavine", "frameshift", "theory-of-mutagenesis", "base-analogue"],
+    category: "biology",
+  },
+
+  // --- Experimental Concepts ---
+
+  "old-ribosomes-new-rna": {
+    term: "Old Ribosomes, New RNA",
+    short: "The key prediction of messenger RNA: new genetic information on pre-existing ribosomes.",
+    long:
+      "The messenger RNA hypothesis predicted that after phage infection, new RNA would appear on old ribosomes (not new ribosomes as previously thought). Brenner and Jacob designed their experiment specifically to demonstrate this.",
+    why:
+      "Brenner emphasized: 'we realise we have to show that this new RNA is on old ribosomes' and 'what we had decided to go for was a really definitive one which would demonstrate that new RNA was added to old ribosomes.' Transcript anchor: §98.",
+    related: ["mrna", "ribosome", "pajamo-experiment", "francois-jacob"],
+    category: "biology",
+  },
+  "state-or-process": {
+    term: "State or Process",
+    short: "The fundamental question: is cell differentiation a stable state or an ongoing process?",
+    long:
+      "Early developmental biologists debated whether differentiation was 'a state' (stable, self-maintaining) or 'a process' (requiring continuous signals). This question shaped thinking about gene regulation and cell fate.",
+    why:
+      "Brenner attended 'a secret seminar' at Woods Hole where 'they had discussed the question of whether differentiation was a state or a process.' Transcript anchor: §153.",
+    related: ["cell-lineage", "cell-fate", "operon", "woods-hole"],
+    category: "biology",
+  },
+
+  // --- Historical Context ---
+
+  "end-of-molecular-biology": {
+    term: "End of Molecular Biology",
+    short: "Gunther Stent's premature obituary for the field.",
+    long:
+      "Around the time molecular biology was entering its most productive phase, Gunther Stent wrote an article declaring the field essentially complete. Brenner and colleagues called it 'The End of Molecular Biology' (later part of a more general 'End of Everything').",
+    why:
+      "Brenner recalled 'Gunther Stent had written this famous paper... it used to be called by us The End of Molecular Biology.' This premature closure is a cautionary tale about declaring science finished. Transcript anchor: §178.",
+    related: ["gunther-stent", "vacuous-theory", "phage-group"],
+    category: "brenner",
+  },
+  "steal-from-nature": {
+    term: "Steal from Nature",
+    short: "Brenner's response to Chargaff's quip about Mercury being god of thieves.",
+    long:
+      "When Chargaff noted that Mercury (messenger of the gods) was also 'the god of the thieves,' Brenner responded: 'I think it's right to steal from nature.' This captures the molecular biologist's ethos of extracting nature's secrets.",
+    why:
+      "Brenner's retort shows his irreverent approach to science and willingness to take what works from any source. Transcript anchor: §106.",
+    related: ["erwin-chargaff", "mrna", "conversational-science"],
+    category: "brenner",
+  },
+
+  // --- Technical Terms ---
+
+  hydroxylamine: {
+    term: "Hydroxylamine",
+    short: "A chemical mutagen that causes specific C-to-T transitions.",
+    long:
+      "Hydroxylamine causes deamination of cytosine, leading to C-to-T (and G-to-A) transitions. Its specificity allowed Brenner to determine which DNA strand carried specific mutations.",
+    why:
+      "Brenner used hydroxylamine to decode nonsense codons: 'only by that experiment, hydroxylamine mutation, and a lot of knowledge about what amino acids these were, did we fulfil the original program of sequencing DNA.' Transcript anchor: §134.",
+    related: ["mutation", "base-analogue", "theory-of-mutagenesis", "genetic-code"],
+    category: "method",
+  },
+  "binary-code": {
+    term: "Binary Code",
+    short: "Sinsheimer's proposal that the genetic code might use only purines vs pyrimidines.",
+    long:
+      "Robert Sinsheimer proposed that the genetic code might be a 'binary code' distinguishing only purines from pyrimidines, not individual bases. This was wrong, but represented early attempts to explain why ribosomal RNA composition seemed invariant.",
+    why:
+      "Brenner noted that 'Sinsheimer did make a suggestion that essentially the code would have to be a pyrimidine purine code. That of course is wrong, but that is what we had to face.' Transcript anchor: §95.",
+    related: ["genetic-code", "codon", "diamond-code", "commaless-code"],
+    category: "biology",
+  },
 };
 
 // ============================================================================
