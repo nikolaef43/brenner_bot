@@ -35,25 +35,21 @@ export interface SearchResult {
 }
 
 // ============================================================================
-// Cache
+// Section Loading
 // ============================================================================
 
-let cachedSections: Section[] | null = null;
-let cacheTimestamp: number | null = null;
-
 /**
- * Get parsed sections, using cache if available.
- * Cache is valid for the lifetime of the serverless function.
+ * Load all transcript sections from the corpus.
+ *
+ * NOTE: This function does NOT cache internally. When using TanStack Query,
+ * caching is handled by the query client. For server-side usage, consider
+ * wrapping in a server action and using the useCorpusSearch hook.
+ *
+ * @returns Promise resolving to array of parsed sections
  */
-async function getSections(): Promise<Section[]> {
-  if (cachedSections) {
-    return cachedSections;
-  }
-
+async function loadSections(): Promise<Section[]> {
   const { content } = await readCorpusDoc("transcript");
   const { sections } = parseTranscript(content);
-  cachedSections = sections;
-  cacheTimestamp = Date.now();
   return sections;
 }
 
@@ -82,7 +78,7 @@ export async function searchCorpus(query: string, limit = 10): Promise<SearchRes
     };
   }
 
-  const sections = await getSections();
+  const sections = await loadSections();
 
   // Find matches in title and body
   const titleMatches = new Set(
@@ -256,7 +252,7 @@ function extractSnippet(text: string, query: string, maxLength = 200): string {
  * Get a specific section by anchor.
  */
 export async function getSectionByAnchor(anchor: string): Promise<Section | undefined> {
-  const sections = await getSections();
+  const sections = await loadSections();
   return sections.find((s) => s.anchor === anchor);
 }
 
@@ -264,7 +260,7 @@ export async function getSectionByAnchor(anchor: string): Promise<Section | unde
  * Get a specific section by number.
  */
 export async function getSectionByNumber(num: number): Promise<Section | undefined> {
-  const sections = await getSections();
+  const sections = await loadSections();
   return sections.find((s) => s.sectionNumber === num);
 }
 
@@ -272,15 +268,25 @@ export async function getSectionByNumber(num: number): Promise<Section | undefin
  * Get all sections (for listing/browsing).
  */
 export async function getAllSections(): Promise<Section[]> {
-  return getSections();
+  return loadSections();
 }
 
 /**
- * Get cache stats for debugging.
+ * Load all sections directly (exposed for use with TanStack Query).
+ *
+ * When using with Query, wrap this in a server action:
+ * ```typescript
+ * // In corpusActions.ts
+ * export async function fetchAllSections() {
+ *   return getAllSections();
+ * }
+ *
+ * // In hook
+ * const { data: sections } = useQuery({
+ *   queryKey: ['corpus', 'sections'],
+ *   queryFn: fetchAllSections,
+ *   staleTime: 5 * 60 * 1000, // 5 minutes
+ * });
+ * ```
  */
-export function getCacheStats(): { cached: boolean; timestamp: number | null } {
-  return {
-    cached: cachedSections !== null,
-    timestamp: cacheTimestamp,
-  };
-}
+export { loadSections };
