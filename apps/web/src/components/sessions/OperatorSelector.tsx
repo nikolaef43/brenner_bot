@@ -9,7 +9,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { AGENT_ROLES, type RoleConfig, type AgentRole } from "@/lib/session-kickoff";
+import type { AgentRole } from "@/lib/session-kickoff";
 
 // ============================================================================
 // Types
@@ -124,10 +124,11 @@ export function OperatorSelector({ value, onChange, disabled }: OperatorSelector
   };
 
   const hasCustomizations = React.useMemo(() => {
+    // Use spread to create copies before sorting to avoid mutating props/constants
     return (
-      JSON.stringify(value.hypothesis_generator.sort()) !== JSON.stringify(DEFAULT_OPERATORS.hypothesis_generator.sort()) ||
-      JSON.stringify(value.test_designer.sort()) !== JSON.stringify(DEFAULT_OPERATORS.test_designer.sort()) ||
-      JSON.stringify(value.adversarial_critic.sort()) !== JSON.stringify(DEFAULT_OPERATORS.adversarial_critic.sort())
+      JSON.stringify([...value.hypothesis_generator].sort()) !== JSON.stringify([...DEFAULT_OPERATORS.hypothesis_generator].sort()) ||
+      JSON.stringify([...value.test_designer].sort()) !== JSON.stringify([...DEFAULT_OPERATORS.test_designer].sort()) ||
+      JSON.stringify([...value.adversarial_critic].sort()) !== JSON.stringify([...DEFAULT_OPERATORS.adversarial_critic].sort())
     );
   }, [value]);
 
