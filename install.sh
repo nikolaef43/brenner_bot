@@ -75,6 +75,19 @@ log_debug() {
   fi
 }
 
+curl_secure() {
+  if [[ "${CURL_SECURE_ARGS_READY:-false}" != "true" ]]; then
+    CURL_SECURE_ARGS=(-fsSL)
+    # Prefer HTTPS-only fetches when supported (curl >= 7.52).
+    if curl --help all 2>/dev/null | grep -q -- '--proto'; then
+      CURL_SECURE_ARGS+=(--proto '=https' --tlsv1.2)
+    fi
+    CURL_SECURE_ARGS_READY=true
+  fi
+
+  curl "${CURL_SECURE_ARGS[@]}" "$@"
+}
+
 die() {
   log_error "$@"
   exit 1
@@ -145,7 +158,7 @@ get_latest_version() {
   log_debug "Fetching latest release from: ${url}"
 
   # Follow redirect to get version from URL
-  redirect_url=$(curl -fsSL -w '%{url_effective}' -o /dev/null "$url" 2>/dev/null) || {
+  redirect_url=$(curl_secure -w '%{url_effective}' -o /dev/null "$url" 2>/dev/null) || {
     die "Failed to fetch latest release from GitHub"
   }
 
@@ -238,11 +251,8 @@ fetch_toolchain_manifest() {
 
   log_debug "Fetching toolchain manifest from: ${manifest_url}"
 
-  if ! curl -fsSL -o "$manifest_path" "$manifest_url" 2>/dev/null; then
-    log_warn "Failed to fetch toolchain manifest for v${version}; falling back to main"
-    manifest_url="https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/specs/toolchain.manifest.json"
-    curl -fsSL -o "$manifest_path" "$manifest_url" || die "Failed to fetch toolchain manifest"
-  fi
+  curl_secure -o "$manifest_path" "$manifest_url" 2>/dev/null \
+    || die "Failed to fetch toolchain manifest: ${manifest_url}"
 
   echo "$manifest_path"
 }
@@ -272,6 +282,7 @@ install_upstream_tool() {
   fi
 
   log_info "Installing ${tool}${version:+ v${version}}..."
+  log_info "Source: ${url}"
 
   local -a extra_args=()
   case "$tool" in
@@ -303,7 +314,91 @@ install_upstream_tool() {
     return 0
   fi
 
-  curl -fsSL "$url" | bash -s -- $args "${extra_args[@]}"
+  curl_secure "$url" | bash -s -- $args "${extra_args[@]}"
+}
+
+fetch_checksum_from_list() {
+  local list_url="$1"
+  local asset_name="$2"
+
+  local list checksum
+  list=$(curl_secure "$list_url") || die "Failed to download checksum list: ${list_url}"
+
+  checksum=$(
+    echo "$list" \
+      | awk -v asset="$asset_name" '$2 == asset {print $1}' \
+      | head -n 1
+  )
+
+  if [[ -z "$checksum" ]]; then
+    die "Checksum not found for ${asset_name} in ${list_url}"
+  fi
+
+  if ! [[ "$checksum" =~ ^[0-9a-fA-F]{64}$ ]]; then
+    die "Invalid checksum format for ${asset_name} in ${list_url}: ${checksum}"
+  fi
+
+  echo "$checksum"
+}
+
+install_ntm_release() {
+  local manifest="$1"
+
+  local raw_version version_tag platform asset_name base_url tarball_url checksum_list_url checksum
+  raw_version=$(manifest_get_tool_field "$manifest" "ntm" "version")
+  if [[ -z "$raw_version" ]]; then
+    die "Toolchain manifest missing tools.ntm.version"
+  fi
+
+  # Accept either "1.2.3" or "v1.2.3"
+  raw_version="${raw_version#v}"
+  version_tag="v${raw_version}"
+
+  platform=$(detect_platform)
+  case "$platform" in
+    linux-x64) asset_name="ntm_${raw_version}_linux_amd64.tar.gz" ;;
+    linux-arm64) asset_name="ntm_${raw_version}_linux_arm64.tar.gz" ;;
+    darwin-arm64|darwin-x64) asset_name="ntm_${raw_version}_darwin_all.tar.gz" ;;
+    *) die "Unsupported platform for ntm: ${platform}" ;;
+  esac
+
+  base_url="https://github.com/Dicklesworthstone/ntm/releases/download/${version_tag}"
+  tarball_url="${base_url}/${asset_name}"
+  checksum_list_url="${base_url}/checksums.txt"
+
+  log_info "Installing ntm v${raw_version}..."
+  log_info "Source: ${tarball_url}"
+  log_info "Checksums: ${checksum_list_url}"
+
+  if [[ "$DRY_RUN" == "true" ]]; then
+    log_info "[DRY RUN] Would download: ${tarball_url}"
+    log_info "[DRY RUN] Would verify checksum from: ${checksum_list_url}"
+    log_info "[DRY RUN] Would install to: ${DEST_DIR}/ntm"
+    return 0
+  fi
+
+  if ! command -v tar &>/dev/null; then
+    die "tar is required to install ntm from release artifacts"
+  fi
+
+  ensure_temp_dir
+  local tarball_path extract_dir bin_path
+  tarball_path="${TEMP_DIR}/${asset_name}"
+  extract_dir="${TEMP_DIR}/ntm-extract"
+
+  download_file "$tarball_url" "$tarball_path"
+  checksum=$(fetch_checksum_from_list "$checksum_list_url" "$asset_name")
+  verify_checksum "$tarball_path" "$checksum" || die "Checksum verification failed for ntm"
+
+  mkdir -p "$extract_dir"
+  tar -xzf "$tarball_path" -C "$extract_dir" || die "Failed to extract ntm tarball"
+
+  bin_path=$(find "$extract_dir" -type f -name ntm -perm -111 | head -n 1)
+  if [[ -z "$bin_path" ]]; then
+    die "Could not find ntm binary in extracted archive"
+  fi
+
+  atomic_install "$bin_path" "$DEST_DIR" "ntm"
 }
 
 install_toolchain() {
@@ -322,7 +417,7 @@ install_toolchain() {
   if [[ "$SKIP_NTM" == "true" ]]; then
     log_info "Skipping ntm installation (--skip-ntm)"
   else
-    install_upstream_tool "$manifest" "ntm"
+    install_ntm_release "$manifest"
   fi
 
   if [[ "$SKIP_CASS" == "true" ]]; then
@@ -420,7 +515,7 @@ fetch_checksum() {
 
   log_debug "Fetching checksum from: ${url}"
 
-  checksum_content=$(curl -fsSL "$url") || {
+  checksum_content=$(curl_secure "$url") || {
     die "Failed to download checksum from: ${url}"
   }
 
@@ -453,7 +548,7 @@ download_file() {
     local local_path="${url#file://}"
     cp "$local_path" "$dest" || die "Failed to copy from ${local_path}"
   else
-    curl -fsSL -o "$dest" "$url" || die "Failed to download from ${url}"
+    curl_secure -o "$dest" "$url" || die "Failed to download from ${url}"
   fi
 }
 
@@ -521,12 +616,14 @@ install_brenner() {
   if [[ -n "$ARTIFACT_URL" ]]; then
     # Use override URL
     artifact_url="$ARTIFACT_URL"
+    log_info "Artifact URL: ${artifact_url}"
     log_debug "Using override artifact URL: ${artifact_url}"
   else
     # Resolve version and build URL
     version=$(get_resolved_version)
     log_info "Version: ${version}"
     artifact_url=$(build_artifact_url "$version" "$platform")
+    log_info "Artifact URL: ${artifact_url}"
   fi
 
   # Determine checksum
