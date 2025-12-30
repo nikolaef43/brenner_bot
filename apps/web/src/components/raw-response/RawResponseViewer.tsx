@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef, type ReactNode } from "react";
-import Link from "next/link";
 
 // ============================================================================
 // TYPES
@@ -26,7 +25,6 @@ interface RawResponseData {
 
 interface RawResponseViewerProps {
   data: RawResponseData;
-  docId: string;
 }
 
 // ============================================================================
@@ -127,6 +125,27 @@ function ChevronUpIcon({ className = "size-4" }: { className?: string }) {
 // INLINE MARKDOWN RENDERER
 // ============================================================================
 
+function normalizeMarkdownHref(rawHref: string): { href: string; external: boolean } | null {
+  const href = rawHref.trim();
+  if (!href) return null;
+
+  // Allow same-page anchors and same-origin paths.
+  if (href.startsWith("#")) return { href, external: false };
+  if (href.startsWith("/") && !href.startsWith("//")) return { href, external: false };
+
+  // Allow only safe external protocols.
+  try {
+    const url = new URL(href);
+    if (url.protocol === "http:" || url.protocol === "https:" || url.protocol === "mailto:") {
+      return { href: url.toString(), external: true };
+    }
+  } catch {
+    // ignore invalid URLs
+  }
+
+  return null;
+}
+
 function renderInlineMarkdown(text: string): ReactNode {
   // Parse inline formatting and return React elements
   const parts: ReactNode[] = [];
@@ -170,16 +189,23 @@ function renderInlineMarkdown(text: string): ReactNode {
       continue;
     }
 
-    // Link: [text](url) - simplified, just render as text for now
+    // Link: [text](url)
     const linkMatch = remaining.match(/^\[([^\]]+)\]\(([^)]+)\)/);
     if (linkMatch) {
+      const normalized = normalizeMarkdownHref(linkMatch[2]);
+      if (!normalized) {
+        parts.push(linkMatch[1]);
+        remaining = remaining.slice(linkMatch[0].length);
+        continue;
+      }
+
       parts.push(
         <a
           key={key++}
-          href={linkMatch[2]}
+          href={normalized.href}
           className="text-primary underline underline-offset-2 hover:text-primary/80 transition-colors"
-          target="_blank"
-          rel="noopener noreferrer"
+          target={normalized.external ? "_blank" : undefined}
+          rel={normalized.external ? "noopener noreferrer" : undefined}
         >
           {linkMatch[1]}
         </a>
@@ -351,7 +377,7 @@ function ContentBlockRenderer({ block }: { block: ContentBlock }) {
         6: "text-sm font-semibold mt-4 mb-1.5",
       };
       const sizeClass = sizeClasses[level] || sizeClasses[2];
-      const id = block.text?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const id = block.text?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || undefined;
       return (
         <Tag id={id} className={`${sizeClass} text-foreground scroll-mt-24`}>
           {renderInlineMarkdown(block.text || "")}
@@ -634,7 +660,7 @@ function BackToTop() {
 // MAIN COMPONENT
 // ============================================================================
 
-export function RawResponseViewer({ data, docId }: RawResponseViewerProps) {
+export function RawResponseViewer({ data }: RawResponseViewerProps) {
   const [mobileTocOpen, setMobileTocOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);

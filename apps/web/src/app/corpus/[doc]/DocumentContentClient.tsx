@@ -183,7 +183,7 @@ export const DocumentContentClient = memo(function DocumentContentClient({ docId
     }
 
     case "raw-response": {
-      return <RawResponseViewer data={parsedRawResponse!} docId={docId} />;
+      return <RawResponseViewer data={parsedRawResponse!} />;
     }
   }
 });

@@ -350,16 +350,13 @@ function TooltipContent({ term, termKey }: { term: JargonTerm; termKey: string }
         </div>
       )}
 
-      {/* Hint and link */}
-      <div className="flex items-center justify-between pt-1">
-        <p className="text-[11px] text-muted-foreground/60">
-          Hover to learn more
-        </p>
+      {/* Link to full glossary */}
+      <div className="flex items-center justify-end pt-1">
         <Link
           href={glossaryHref}
           className="text-[11px] font-medium text-primary underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
         >
-          Open in glossary
+          View full entry →
         </Link>
       </div>
     </div>

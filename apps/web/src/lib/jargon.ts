@@ -1149,6 +1149,18 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     related: ["exception-quarantine", "paradox-hunt"],
     category: "brenner",
   },
+
+  // -------------------------------------------------------------------------
+  // Alias for quote-bank (hyphenated version)
+  // -------------------------------------------------------------------------
+  "quote-bank": {
+    term: "Quote Bank",
+    short: "A curated collection of Brenner quotes organized by theme.",
+    long:
+      "The quote bank is a structured collection of excerpts from the Brenner transcript, organized by operator, theme, or principle. It serves as raw material for distillations and provides anchors for claims.",
+    related: ["anchor", "excerpt", "corpus"],
+    category: "project",
+  },
 };
 
 // ============================================================================
