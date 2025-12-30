@@ -94,16 +94,16 @@ export default async function CorpusIndexPage() {
   );
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8 sm:space-y-12">
       {/* Header */}
-      <header className="space-y-4 animate-fade-in-up">
+      <header className="space-y-3 sm:space-y-4 animate-fade-in-up">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center size-12 rounded-xl bg-primary/10 text-primary">
+          <div className="flex items-center justify-center size-10 sm:size-12 rounded-xl bg-primary/10 text-primary">
             <BookOpenIcon />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Corpus</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Corpus</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               The complete Brenner document collection
             </p>
           </div>
@@ -118,44 +118,44 @@ export default async function CorpusIndexPage() {
         if (categoryDocs.length === 0) return null;
 
         return (
-          <section key={categoryKey} className="space-y-4 animate-fade-in-up">
+          <section key={categoryKey} className="space-y-3 sm:space-y-4 animate-fade-in-up">
             <div className="flex items-center gap-2 text-muted-foreground">
               {category.icon}
-              <h2 className="text-lg font-semibold text-foreground">{category.title}</h2>
+              <h2 className="text-base sm:text-lg font-semibold text-foreground">{category.title}</h2>
             </div>
-            <p className="text-sm text-muted-foreground -mt-2 ml-7">
+            <p className="text-xs sm:text-sm text-muted-foreground -mt-1.5 sm:-mt-2 ml-7">
               {category.description}
             </p>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
               {categoryDocs.map((doc, index) => (
                 <Link
                   key={doc.id}
                   href={`/corpus/${doc.id}`}
-                  className={`group animate-fade-in-up stagger-${index + 1}`}
+                  className={`group animate-fade-in-up stagger-${index + 1} touch-manipulation`}
                 >
-                  <Card hover className="h-full">
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-1.5 flex-1">
-                          <CardTitle className="group-hover:text-primary transition-colors">
+                  <Card hover className="h-full active:scale-[0.98] transition-transform">
+                    <CardHeader className="p-4 sm:p-6">
+                      <div className="flex items-start justify-between gap-3 sm:gap-4">
+                        <div className="space-y-1 sm:space-y-1.5 flex-1 min-w-0">
+                          <CardTitle className="text-base sm:text-lg group-hover:text-primary transition-colors">
                             {doc.title}
                           </CardTitle>
                           {doc.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2">
+                            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
                               {doc.description}
                             </p>
                           )}
-                          <CardDescription className="font-mono text-xs">
+                          <CardDescription className="font-mono text-xs truncate">
                             {doc.filename}
                           </CardDescription>
                         </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                          <span>Read</span>
+                        <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground sm:opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                          <span className="hidden sm:inline">Read</span>
                           <ArrowRightIcon />
                         </div>
                       </div>
-                      <div className="flex items-center gap-4 pt-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-3 sm:gap-4 pt-2 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <ClockIcon />
                           {getReadTime(doc.id)}
@@ -171,9 +171,9 @@ export default async function CorpusIndexPage() {
       })}
 
       {/* Quick Tips */}
-      <section className="rounded-xl border bg-muted/30 p-6 space-y-3 animate-fade-in-up">
-        <h3 className="font-semibold">Reading Tips</h3>
-        <ul className="text-sm text-muted-foreground space-y-2">
+      <section className="rounded-xl border bg-muted/30 p-4 sm:p-6 space-y-2 sm:space-y-3 animate-fade-in-up">
+        <h3 className="text-sm sm:text-base font-semibold">Reading Tips</h3>
+        <ul className="text-xs sm:text-sm text-muted-foreground space-y-1.5 sm:space-y-2">
           <li className="flex items-start gap-2">
             <span className="text-primary mt-0.5 font-semibold">1.</span>
             <span>Start with a <strong>Distillation</strong> for a structured overview of Brenner&apos;s methodology.</span>

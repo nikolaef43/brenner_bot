@@ -64,14 +64,14 @@ export default function Home() {
   const labModeEnabled = labModeValue === "1" || labModeValue === "true";
 
   return (
-    <div className="space-y-16 lg:space-y-24">
+    <div className="space-y-12 sm:space-y-16 lg:space-y-24">
       {/* Hero Section */}
       <section className="relative">
         {/* Background gradient */}
-        <div className="absolute inset-0 -z-10 hero-gradient opacity-50 rounded-3xl" />
+        <div className="absolute inset-0 -z-10 hero-gradient opacity-50 rounded-2xl sm:rounded-3xl" />
 
-        <div className="py-12 lg:py-20 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium animate-fade-in">
+        <div className="py-10 sm:py-12 lg:py-20 text-center space-y-4 sm:space-y-6 px-4 sm:px-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-medium animate-fade-in">
             <span className="relative flex size-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full size-2 bg-primary"></span>
@@ -79,11 +79,11 @@ export default function Home() {
             Research in progress
           </div>
 
-          <h1 className="text-4xl lg:text-6xl font-bold tracking-tight animate-fade-in-up stagger-1">
+          <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold tracking-tight animate-fade-in-up stagger-1">
             <span className="text-gradient-primary">BrennerBot</span>
           </h1>
 
-          <p className="max-w-2xl mx-auto text-lg lg:text-xl text-muted-foreground leading-relaxed animate-fade-in-up stagger-2">
+          <p className="max-w-2xl mx-auto text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed animate-fade-in-up stagger-2">
             Operationalizing Sydney Brenner&apos;s scientific methodology through multi-agent collaboration.
             Extract wisdom from the master, apply it to your domain.
           </p>
@@ -108,36 +108,36 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="space-y-8">
-        <div className="text-center space-y-3">
-          <h2 className="text-2xl lg:text-3xl font-semibold tracking-tight">
+      <section className="space-y-6 sm:space-y-8">
+        <div className="text-center space-y-2 sm:space-y-3 px-4 sm:px-0">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight">
             What&apos;s Inside
           </h2>
-          <p className="text-muted-foreground max-w-lg mx-auto">
+          <p className="text-sm sm:text-base text-muted-foreground max-w-lg mx-auto">
             A research toolkit for applying Brenner&apos;s epistemology to your own scientific questions.
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => (
-            <Link key={feature.href} href={feature.href}>
-              <FeatureCard className={`h-full animate-fade-in-up stagger-${index + 1}`}>
-                <div className="p-6 space-y-4">
-                  <div className={`inline-flex items-center justify-center size-12 rounded-xl bg-muted ${feature.accent}`}>
+            <Link key={feature.href} href={feature.href} className="touch-manipulation">
+              <FeatureCard className={`h-full animate-fade-in-up stagger-${index + 1} active:scale-[0.98] transition-transform`}>
+                <div className="p-5 sm:p-6 space-y-3 sm:space-y-4">
+                  <div className={`inline-flex items-center justify-center size-10 sm:size-12 rounded-xl bg-muted ${feature.accent}`}>
                     {feature.icon}
                   </div>
-                  <div className="space-y-2">
-                    <span className={`text-sm font-medium ${feature.accent}`}>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <span className={`text-xs sm:text-sm font-medium ${feature.accent}`}>
                       {feature.label}
                     </span>
-                    <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
+                    <h3 className="text-lg sm:text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
                       {feature.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                       {feature.description}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1 text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1 text-xs sm:text-sm font-medium text-primary sm:opacity-0 group-hover:opacity-100 transition-opacity">
                     <span>Learn more</span>
                     <ArrowRightIcon />
                   </div>
@@ -150,29 +150,29 @@ export default function Home() {
 
       {/* Lab Mode Card */}
       {labModeEnabled && (
-        <section className="animate-fade-in-up">
-          <Link href="/sessions/new">
-            <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 p-8 shadow-lg hover:shadow-xl hover:border-primary/50 transition-all group">
-              <div className="absolute top-0 right-0 -mt-4 -mr-4 size-32 bg-primary/10 rounded-full blur-3xl" />
-              <div className="absolute bottom-0 left-0 -mb-4 -ml-4 size-24 bg-accent/10 rounded-full blur-3xl" />
+        <section className="animate-fade-in-up px-4 sm:px-0">
+          <Link href="/sessions/new" className="touch-manipulation">
+            <div className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 p-5 sm:p-8 shadow-lg hover:shadow-xl hover:border-primary/50 active:scale-[0.99] transition-all group">
+              <div className="absolute top-0 right-0 -mt-4 -mr-4 size-24 sm:size-32 bg-primary/10 rounded-full blur-3xl" />
+              <div className="absolute bottom-0 left-0 -mb-4 -ml-4 size-20 sm:size-24 bg-accent/10 rounded-full blur-3xl" />
 
-              <div className="relative flex flex-col md:flex-row md:items-center gap-6">
-                <div className="flex items-center justify-center size-14 rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
+              <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                <div className="flex items-center justify-center size-12 sm:size-14 rounded-xl sm:rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
                   <PlayIcon />
                 </div>
-                <div className="flex-1 space-y-2">
+                <div className="flex-1 space-y-1.5 sm:space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-primary">Lab Mode Active</span>
+                    <span className="text-xs sm:text-sm font-medium text-primary">Lab Mode Active</span>
                     <span className="flex size-2 rounded-full bg-success animate-pulse" />
                   </div>
-                  <h3 className="text-xl font-semibold text-foreground">
+                  <h3 className="text-lg sm:text-xl font-semibold text-foreground">
                     Start a Research Session
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-sm sm:text-base text-muted-foreground">
                     Compose a Brenner Loop kickoff prompt and send it to your agent constellation via Agent Mail.
                   </p>
                 </div>
-                <div className="flex items-center gap-2 text-primary font-medium">
+                <div className="flex items-center gap-2 text-primary font-medium text-sm sm:text-base">
                   <span>Launch</span>
                   <ArrowRightIcon />
                 </div>
@@ -183,8 +183,8 @@ export default function Home() {
       )}
 
       {/* Stats/Info Section */}
-      <section className="py-8">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+      <section className="py-6 sm:py-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           {[
             { value: "236", label: "Interview Segments" },
             { value: "3", label: "Model Distillations" },
@@ -193,12 +193,12 @@ export default function Home() {
           ].map((stat, index) => (
             <div
               key={stat.label}
-              className={`text-center p-4 animate-fade-in stagger-${index + 1}`}
+              className={`text-center p-3 sm:p-4 rounded-xl bg-muted/30 sm:bg-transparent animate-fade-in stagger-${index + 1}`}
             >
-              <div className="text-3xl lg:text-4xl font-bold text-gradient-primary">
+              <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gradient-primary">
                 {stat.value}
               </div>
-              <div className="text-sm text-muted-foreground mt-1">
+              <div className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
                 {stat.label}
               </div>
             </div>
