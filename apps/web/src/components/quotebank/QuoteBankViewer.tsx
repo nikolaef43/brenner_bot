@@ -88,7 +88,7 @@ function TagCloud({ tags, selectedTag, onTagSelect, quoteCounts }: TagCloudProps
           <button
             onClick={() => onTagSelect(null)}
             className={`
-              flex-shrink-0 snap-start px-4 py-2 sm:px-3 sm:py-1.5 rounded-lg text-sm font-medium transition-all touch-manipulation
+              flex-shrink-0 snap-start px-4 py-2 sm:px-3 sm:py-1.5 rounded-lg text-sm font-medium transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
               ${
                 selectedTag === null
                   ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
@@ -103,7 +103,7 @@ function TagCloud({ tags, selectedTag, onTagSelect, quoteCounts }: TagCloudProps
               key={tag}
               onClick={() => onTagSelect(tag === selectedTag ? null : tag)}
               className={`
-                group flex-shrink-0 snap-start px-4 py-2 sm:px-3 sm:py-1.5 rounded-lg text-sm font-medium transition-all touch-manipulation
+                group flex-shrink-0 snap-start px-4 py-2 sm:px-3 sm:py-1.5 rounded-lg text-sm font-medium transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
                 ${
                   selectedTag === tag
                     ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
@@ -154,7 +154,7 @@ function Search({ value, onChange }: SearchProps) {
       {value && (
         <button
           onClick={() => onChange("")}
-          className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground active:scale-90 transition-all touch-manipulation rounded-lg"
+          className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground active:scale-90 transition-all touch-manipulation rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           aria-label="Clear search"
         >
           <XIcon />
