@@ -1,0 +1,13 @@
+# Beads local database and sockets
+.beads/
+
+# Git
+.git/
+
+# Local development files
+.DS_Store
+
+# Model response directories (not needed for web)
+opus_45_responses/
+gpt_pro_extended_reasoning_responses/
+gemini_3_deep_think_responses/

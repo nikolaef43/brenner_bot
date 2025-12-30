@@ -7,8 +7,9 @@ export type CorpusDoc = {
   filename: string;
 };
 
-const DOCS: CorpusDoc[] = [
+export const CORPUS_DOCS: CorpusDoc[] = [
   { id: "transcript", title: "Complete Transcript Collection", filename: "complete_brenner_transcript.md" },
+  { id: "quote-bank", title: "Quote Bank (Verbatim Primitives)", filename: "quote_bank_restored_primitives.md" },
   { id: "metaprompt", title: "Metaprompt (v0.2)", filename: "metaprompt_by_gpt_52.md" },
   { id: "initial-metaprompt", title: "Initial Metaprompt", filename: "initial_metaprompt.md" },
   { id: "distillation-gpt-52", title: "Final Distillation (GPT‑5.2)", filename: "final_distillation_of_brenner_method_by_gpt_52_extra_high_reasoning.md" },
@@ -42,14 +43,13 @@ async function resolveCorpusPath(filename: string): Promise<string> {
 }
 
 export async function listCorpusDocs(): Promise<CorpusDoc[]> {
-  return DOCS;
+  return CORPUS_DOCS;
 }
 
 export async function readCorpusDoc(id: string): Promise<{ doc: CorpusDoc; content: string }> {
-  const doc = DOCS.find((d) => d.id === id);
+  const doc = CORPUS_DOCS.find((d) => d.id === id);
   if (!doc) throw new Error(`Unknown doc: ${id}`);
   const absPath = await resolveCorpusPath(doc.filename);
   const content = await readFile(absPath, "utf8");
   return { doc, content };
 }
-

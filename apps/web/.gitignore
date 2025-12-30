@@ -37,9 +37,6 @@ yarn-error.log*
 # vercel
 .vercel
 
-# generated corpus files (copied at build time)
-/public/corpus/
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
