@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listCorpusDocs } from "@/lib/corpus";
+import { listCorpusDocs, isLabModeEnabled } from "@/lib/corpus";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export const runtime = "nodejs";
@@ -70,6 +70,7 @@ function getReadTime(id: string): string {
 
 export default async function CorpusIndexPage() {
   const docs = await listCorpusDocs();
+  const labModeEnabled = isLabModeEnabled();
 
   // Group by category
   const grouped = docs.reduce(
@@ -117,40 +118,59 @@ export default async function CorpusIndexPage() {
             </p>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              {categoryDocs.map((doc, index) => (
-                <Link
-                  key={doc.id}
-                  href={`/corpus/${doc.id}`}
-                  className={`group animate-fade-in-up stagger-${index + 1}`}
-                >
-                  <Card hover className="h-full">
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-1 flex-1">
-                          <CardTitle className="group-hover:text-primary transition-colors">
-                            {doc.title}
-                          </CardTitle>
-                          <CardDescription className="font-mono text-xs">
-                            {doc.filename}
-                          </CardDescription>
+              {categoryDocs.map((doc, index) => {
+                const locked = doc.access === "restricted" && !labModeEnabled;
+
+                return (
+                  <Link
+                    key={doc.id}
+                    href={`/corpus/${doc.id}`}
+                    className={`group animate-fade-in-up stagger-${index + 1}`}
+                  >
+                    <Card
+                      hover={!locked}
+                      className={`h-full ${locked ? "opacity-70 hover:opacity-90" : ""}`}
+                    >
+                      <CardHeader>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-1 flex-1">
+                            <CardTitle className="group-hover:text-primary transition-colors">
+                              {doc.title}
+                            </CardTitle>
+                            <CardDescription className="font-mono text-xs">
+                              {doc.filename}
+                            </CardDescription>
+                            {locked && (
+                              <div className="pt-2">
+                                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                                  <svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 0h10.5A2.25 2.25 0 0119.5 12.75v6A2.25 2.25 0 0117.25 21H6.75A2.25 2.25 0 014.5 18.75v-6A2.25 2.25 0 016.75 10.5z" />
+                                  </svg>
+                                  Restricted
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          {!locked && (
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                              <span>Read</span>
+                              <ArrowRightIcon />
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                          <span>Read</span>
-                          <ArrowRightIcon />
+                        <div className="flex items-center gap-4 pt-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {locked ? "Restricted" : getReadTime(doc.id)}
+                          </span>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-4 pt-2 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          {getReadTime(doc.id)}
-                        </span>
-                      </div>
-                    </CardHeader>
-                  </Card>
-                </Link>
-              ))}
+                      </CardHeader>
+                    </Card>
+                  </Link>
+                );
+              })}
             </div>
           </section>
         );
@@ -170,7 +190,13 @@ export default async function CorpusIndexPage() {
           </li>
           <li className="flex items-start gap-2">
             <span className="text-primary mt-1">3.</span>
-            <span>Dive into the full <strong>Transcript</strong> for context and nuance around specific ideas.</span>
+            <span>
+              {labModeEnabled ? (
+                <>Dive into the full <strong>Transcript</strong> for context and nuance around specific ideas.</>
+              ) : (
+                <>Use the <strong>Transcript excerpts</strong> in the Quote Bank to find anchorable primitives without reading the full corpus.</>
+              )}
+            </span>
           </li>
         </ul>
       </section>

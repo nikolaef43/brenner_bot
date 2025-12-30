@@ -72,7 +72,7 @@ export default async function CorpusDocPage({
   params: Promise<{ doc: string }>;
 }) {
   const { doc: docId } = await params;
-  const { doc, content } = await readCorpusDoc(docId);
+  const { doc, content, restricted } = await readCorpusDoc(docId);
   const { prev, next } = getNavLinks(docId);
   const wordCount = getWordCount(content);
 
@@ -96,20 +96,32 @@ export default async function CorpusDocPage({
         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground animate-fade-in-up stagger-1">
           <span className="flex items-center gap-1.5">
             <ClockIcon />
-            {getReadTime(docId)} read
+            {restricted ? "Restricted" : `${getReadTime(docId)} read`}
           </span>
-          <span className="flex items-center gap-1.5">
-            <DocumentIcon />
-            {wordCount}
-          </span>
+          {!restricted && (
+            <span className="flex items-center gap-1.5">
+              <DocumentIcon />
+              {wordCount}
+            </span>
+          )}
           <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded">
             {doc.filename}
           </span>
         </div>
       </header>
 
+      {restricted && (
+        <section className="mb-8 rounded-xl border border-border bg-muted/30 p-6 animate-fade-in-up stagger-2">
+          <h2 className="text-lg font-semibold mb-2">Restricted document</h2>
+          <p className="text-sm text-muted-foreground">
+            This document is not served in public mode. If you are running Brenner Bot locally, enable lab mode with{" "}
+            <span className="font-mono">BRENNER_LAB_MODE=true</span> and reload.
+          </p>
+        </section>
+      )}
+
       {/* Content */}
-      <div className="prose prose-wide dark:prose-invert animate-fade-in-up stagger-2">
+      <div className="prose prose-wide dark:prose-invert animate-fade-in-up stagger-3">
         <pre className="whitespace-pre-wrap break-words font-sans text-base leading-relaxed bg-transparent border-0 p-0 m-0 overflow-visible">
           {content}
         </pre>
