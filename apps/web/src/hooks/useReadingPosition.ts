@@ -23,7 +23,7 @@ interface UseReadingPositionReturn {
   save: (scrollOffset: number, activeSection: number) => void;
   /** Clear saved position for this document */
   clear: () => void;
-  /** Whether we should restore position on mount */
+  /** Whether we should restore position on mount (true only once, then becomes false) */
   shouldRestore: boolean;
 }
 
@@ -62,7 +62,16 @@ export function useReadingPosition(
 
   const position = useStore(readingStore, (state) => state.positions[docId] ?? null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hasRestoredRef = useRef(false);
+
+  // Track restoration using a keyed ref pattern (allowed by React rules)
+  // The ref contains both the docId and restoration flag, reset when docId changes
+  const restorationRef = useRef<{ docId: string; restored: boolean } | null>(null);
+
+  // Initialize or reset the restoration tracking when docId changes
+  // This pattern is allowed: checking ref.current and initializing conditionally
+  if (restorationRef.current === null || restorationRef.current.docId !== docId) {
+    restorationRef.current = { docId, restored: false };
+  }
 
   // Validate position against maxSection
   const validPosition =
@@ -102,15 +111,15 @@ export function useReadingPosition(
     };
   }, []);
 
-  // Track if we should restore (only on first mount with valid position)
-  const shouldRestore = !hasRestoredRef.current && validPosition !== null;
+  // Compute shouldRestore - true only on first render with valid position
+  // After returning shouldRestore=true once, mark as restored
+  const restorationState = restorationRef.current;
+  const shouldRestore = !restorationState.restored && validPosition !== null;
 
-  // Mark as restored after first render
-  useEffect(() => {
-    if (validPosition !== null) {
-      hasRestoredRef.current = true;
-    }
-  }, [validPosition]);
+  // Mark as restored after this render (side effect at end of render is ok for refs)
+  if (shouldRestore) {
+    restorationState.restored = true;
+  }
 
   return {
     position: validPosition,
