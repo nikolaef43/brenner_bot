@@ -142,6 +142,7 @@ export function OperatorSelector({ value, onChange, disabled }: OperatorSelector
           "w-full flex items-center justify-between p-4 rounded-xl",
           "border border-border bg-card hover:bg-muted/50 transition-all",
           "text-left touch-manipulation active:scale-[0.99]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           disabled && "opacity-50 cursor-not-allowed"
         )}
       >
@@ -173,7 +174,7 @@ export function OperatorSelector({ value, onChange, disabled }: OperatorSelector
               type="button"
               onClick={resetToDefaults}
               disabled={disabled}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 active:scale-[0.98] transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <RefreshIcon />
               Reset to defaults
@@ -239,6 +240,7 @@ function RoleCard({
               className={cn(
                 "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm",
                 "border transition-all touch-manipulation active:scale-95",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
                 isSelected
                   ? "bg-primary/10 border-primary/30 text-primary"
                   : "bg-background/50 border-border text-muted-foreground hover:border-primary/30 hover:text-foreground",

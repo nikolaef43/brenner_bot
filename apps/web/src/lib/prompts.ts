@@ -1,12 +1,21 @@
 import { readFile, access } from "node:fs/promises";
 import { resolve } from "node:path";
 
+/** Operator selection per agent role */
+export type OperatorSelection = {
+  hypothesis_generator: string[];
+  test_designer: string[];
+  adversarial_critic: string[];
+};
+
 export type ComposePromptInput = {
   templatePathFromRepoRoot: string;
   excerpt: string;
   theme?: string;
   domain?: string;
   question?: string;
+  /** Optional: custom operator selection per role (for prompt builder) */
+  operatorSelection?: OperatorSelection;
 };
 
 async function fileExists(path: string): Promise<boolean> {
@@ -34,6 +43,12 @@ async function resolveTemplatePath(filename: string): Promise<string> {
   throw new Error(`Template file not found: ${filename}`);
 }
 
+const ROLE_LABELS: Record<keyof OperatorSelection, string> = {
+  hypothesis_generator: "Hypothesis Generator (Codex / GPT)",
+  test_designer: "Test Designer (Opus / Claude)",
+  adversarial_critic: "Adversarial Critic (Gemini)",
+};
+
 export async function composePrompt(input: ComposePromptInput): Promise<string> {
   const templatePath = await resolveTemplatePath(input.templatePathFromRepoRoot);
   const template = await readFile(templatePath, "utf8");
@@ -43,6 +58,20 @@ export async function composePrompt(input: ComposePromptInput): Promise<string> 
   chunks.push("");
   chunks.push("---");
   chunks.push("");
+
+  // Include operator selection if provided (from prompt builder UI)
+  if (input.operatorSelection) {
+    chunks.push("## ROLE OPERATOR ASSIGNMENTS");
+    chunks.push("");
+    for (const [role, operators] of Object.entries(input.operatorSelection)) {
+      const label = ROLE_LABELS[role as keyof OperatorSelection];
+      if (operators.length > 0) {
+        chunks.push(`**${label}**: ${operators.join(", ")}`);
+      }
+    }
+    chunks.push("");
+  }
+
   chunks.push("## TRANSCRIPT EXCERPT(S)");
   chunks.push((input.excerpt ?? "").trim());
   chunks.push("");

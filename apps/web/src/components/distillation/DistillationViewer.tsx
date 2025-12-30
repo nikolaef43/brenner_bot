@@ -350,7 +350,7 @@ function DistillationTOC({ entries, activeSection, onSectionClick, docId }: Dist
       {/* Mobile toggle */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden w-full flex items-center justify-between px-4 py-3 rounded-xl bg-card border border-border mb-2"
+        className="lg:hidden w-full flex items-center justify-between px-4 py-3 rounded-xl bg-card border border-border mb-2 touch-manipulation active:scale-[0.99] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="text-sm font-medium text-foreground">Table of Contents</span>
         <ChevronIcon className={`size-5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
@@ -375,7 +375,8 @@ function DistillationTOC({ entries, activeSection, onSectionClick, docId }: Dist
                       setIsOpen(false);
                     }}
                     className={`
-                      w-full text-left px-3 py-2 rounded-lg text-sm transition-colors
+                      w-full text-left px-3 py-2 rounded-lg text-sm transition-all touch-manipulation active:scale-[0.98]
+                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset
                       ${isPart ? "font-semibold" : "font-normal"}
                       ${isActive
                         ? `${theme.bgSubtle} text-foreground`

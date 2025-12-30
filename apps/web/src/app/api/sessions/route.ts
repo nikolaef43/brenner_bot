@@ -11,6 +11,12 @@ export const runtime = "nodejs";
 // Types
 // ============================================================================
 
+interface OperatorSelection {
+  hypothesis_generator: string[];
+  test_designer: string[];
+  adversarial_critic: string[];
+}
+
 interface SessionKickoffRequest {
   projectKey?: string;
   sender: string;
@@ -22,6 +28,8 @@ interface SessionKickoffRequest {
   domain?: string;
   question?: string;
   ackRequired?: boolean;
+  /** Custom operator selection per role (from prompt builder UI) */
+  operatorSelection?: OperatorSelection;
 }
 
 interface SessionKickoffResponse {
@@ -194,6 +202,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
       theme: body.theme?.trim(),
       domain: body.domain?.trim(),
       question: body.question?.trim(),
+      operatorSelection: body.operatorSelection,
     });
 
     // Ensure project exists (tools expect project_key to be the human_key / absolute path).
