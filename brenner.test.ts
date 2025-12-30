@@ -722,6 +722,12 @@ describe("session write validation", () => {
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("--thread-id");
   });
+
+  it("sanitizes thread-id when using the default output path", async () => {
+    const result = await runCli(["session", "write", "--thread-id", "../evil"]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('sanitized thread id for artifact filename: "../evil" -> "evil"');
+  });
 });
 
 describe("session publish validation", () => {

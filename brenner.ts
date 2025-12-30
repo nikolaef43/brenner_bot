@@ -182,6 +182,15 @@ function stderrLine(message: string): void {
   process.stderr.write(ensureTrailingNewline(message));
 }
 
+const sanitizeThreadIdForArtifactFilename = (threadId: string): string => {
+  const trimmed = threadId.trim();
+  const withoutSeparators = trimmed.replace(/[\\/]+/g, "-");
+  const withoutUnsafe = withoutSeparators.replace(/[^A-Za-z0-9._-]+/g, "-");
+  const collapsedDashes = withoutUnsafe.replace(/-+/g, "-");
+  const strippedEdges = collapsedDashes.replace(/^[-.]+|[-.]+$/g, "");
+  return strippedEdges || "thread";
+};
+
 async function withWorkingDirectory<T>(cwd: string, fn: () => Promise<T>): Promise<T> {
   const previous = process.cwd();
   process.chdir(cwd);
@@ -656,14 +665,15 @@ function parseCassMemoryContext(raw: Json, fallbackTask: string): CassMemoryCont
 
   const degraded = raw.degraded === undefined ? null : raw.degraded;
 
-  const error = success
-    ? null
-    : {
-        ...(typeof raw.code === "string" ? { code: raw.code } : {}),
-        ...(typeof raw.error === "string" ? { message: raw.error } : {}),
-        ...(typeof raw.hint === "string" ? { hint: raw.hint } : {}),
-        ...(typeof raw.retryable === "boolean" ? { retryable: raw.retryable } : {}),
-      };
+  let error: { code?: string; message?: string; hint?: string; retryable?: boolean } | null = null;
+  if (!success) {
+    const err: { code?: string; message?: string; hint?: string; retryable?: boolean } = {};
+    if (typeof raw.code === "string") err.code = raw.code;
+    if (typeof raw.error === "string") err.message = raw.error;
+    if (typeof raw.hint === "string") err.hint = raw.hint;
+    if (typeof raw.retryable === "boolean") err.retryable = raw.retryable;
+    error = err;
+  }
 
   return {
     success,
@@ -1651,11 +1661,14 @@ async function main(): Promise<void> {
             const status = computeThreadStatusFromThread(thread);
             const totalRoleCount = Object.keys(status.roles).length;
             const respondedRoleCount = Object.values(status.roles).filter((r) => r.completed).length;
-            const artifactLabel = status.latestArtifact
-              ? status.latestArtifact.version
-                ? `v${status.latestArtifact.version}`
-                : "latest"
-              : null;
+            let artifactLabel: string | null = null;
+            if (status.latestArtifact) {
+              if (status.latestArtifact.version) {
+                artifactLabel = `v${status.latestArtifact.version}`;
+              } else {
+                artifactLabel = "latest";
+              }
+            }
 
             const summaryParts = [
               `${respondedRoleCount}/${totalRoleCount} roles`,
@@ -2218,7 +2231,12 @@ async function main(): Promise<void> {
 
     const jsonMode = asBoolFlag(flags, "json");
     const outFileRaw = asStringFlag(flags, "out-file") ?? asStringFlag(flags, "out");
-    const outFile = resolve(outFileRaw ?? join(projectKey, "artifacts", `${threadId}.md`));
+    const safeThreadId = sanitizeThreadIdForArtifactFilename(threadId);
+    const outFile = resolve(outFileRaw ?? join(projectKey, "artifacts", `${safeThreadId}.md`));
+
+    if (!outFileRaw && safeThreadId !== threadId) {
+      stderrLine(`Warning: sanitized thread id for artifact filename: "${threadId}" -> "${safeThreadId}"`);
+    }
 
     const result = await compileSessionArtifact({ client, projectKey, threadId });
     if (!result.ok) {
