@@ -21,6 +21,7 @@
  */
 
 import * as React from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
   composeExcerpt,
@@ -40,6 +41,13 @@ import {
   ChevronUp,
   AlertCircle,
 } from "lucide-react";
+
+// Animation spring config for smooth, responsive feel
+const springConfig = {
+  type: "spring" as const,
+  stiffness: 400,
+  damping: 35,
+};
 
 // ============================================================================
 // Types
@@ -224,7 +232,7 @@ export function ExcerptBasket({
     <div className={cn("rounded-lg border border-border bg-card", className)}>
       {/* Header */}
       <div
-        className="flex items-center justify-between px-4 py-3 border-b border-border/50 cursor-pointer"
+        className="flex items-center justify-between px-4 py-3 border-b border-border/50 cursor-pointer touch-manipulation active:bg-muted/30 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-2">
@@ -252,15 +260,41 @@ export function ExcerptBasket({
               <X className="size-4" />
             </Button>
           )}
-          <Button type="button" variant="ghost" size="sm" className="size-8 p-0" aria-label="Toggle excerpt basket">
-            {isExpanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-          </Button>
+          <motion.div
+            animate={{ rotate: isExpanded ? 180 : 0 }}
+            transition={springConfig}
+          >
+            <Button type="button" variant="ghost" size="sm" className="size-8 p-0" aria-label="Toggle excerpt basket">
+              <ChevronDown className="size-4" />
+            </Button>
+          </motion.div>
         </div>
       </div>
 
-      {/* Content */}
-      {isExpanded && (
-        <div className="p-4 space-y-4">
+      {/* Content - Animated expand/collapse */}
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{
+              height: "auto",
+              opacity: 1,
+              transition: {
+                height: springConfig,
+                opacity: { duration: 0.2, delay: 0.05 },
+              },
+            }}
+            exit={{
+              height: 0,
+              opacity: 0,
+              transition: {
+                height: { ...springConfig, stiffness: 500 },
+                opacity: { duration: 0.15 },
+              },
+            }}
+            className="overflow-hidden"
+          >
+            <div className="p-4 space-y-4">
           {/* Theme Input */}
           <Input
             value={excerptTheme}
@@ -353,8 +387,10 @@ export function ExcerptBasket({
               Clear
             </Button>
           </div>
-        </div>
-      )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
