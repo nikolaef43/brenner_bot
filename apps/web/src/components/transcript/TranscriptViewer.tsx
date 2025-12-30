@@ -538,12 +538,25 @@ interface TranscriptViewerProps {
 export function TranscriptViewer({ data, estimatedReadTime, wordCount }: TranscriptViewerProps) {
   const [activeSection, setActiveSection] = useState(0);
   const [readingProgress, setReadingProgress] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Reading position persistence
   const { position, save: savePosition, canRestore, markRestored } = useReadingPosition("transcript", {
     maxSection: data.sections.length - 1,
   });
+
+  // Handle search query change for highlighting
+  const handleSearchChange = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
+
+  // Convert search query to highlights array
+  const searchHighlights = useMemo(() => {
+    if (!searchQuery.trim()) return undefined;
+    // Split query into words for highlighting
+    return searchQuery.trim().split(/\s+/).filter(word => word.length > 2);
+  }, [searchQuery]);
 
   // Virtualizer for efficient rendering of large section lists
   const virtualizer = useVirtualizer({
@@ -645,17 +658,29 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
 
       {data.sections.length > 0 ? (
         <div className="lg:grid lg:grid-cols-[280px_1fr] lg:gap-8 xl:gap-12">
-          {/* Sidebar TOC (desktop) */}
+          {/* Sidebar with Search + TOC (desktop) */}
           <aside className="hidden lg:block">
-            <TableOfContents
-              sections={data.sections}
-              activeSection={activeSection}
-              onSectionClick={scrollToSection}
-            />
+            <div className="sticky top-24 z-30 space-y-4">
+              <TranscriptSearch
+                sections={data.sections}
+                onResultClick={scrollToSection}
+                onSearchChange={handleSearchChange}
+              />
+              <TableOfContents
+                sections={data.sections}
+                activeSection={activeSection}
+                onSectionClick={scrollToSection}
+              />
+            </div>
           </aside>
 
-          {/* Mobile TOC */}
-          <div className="lg:hidden mb-8">
+          {/* Mobile Search + TOC */}
+          <div className="lg:hidden mb-8 space-y-4">
+            <TranscriptSearch
+              sections={data.sections}
+              onResultClick={scrollToSection}
+              onSearchChange={handleSearchChange}
+            />
             <TableOfContents
               sections={data.sections}
               activeSection={activeSection}
@@ -696,6 +721,7 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
                     <TranscriptSection
                       section={section}
                       isActive={activeSection === virtualRow.index}
+                      searchHighlights={searchHighlights}
                     />
                   </div>
                 );
