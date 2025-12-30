@@ -572,8 +572,8 @@ function renderFormattedText(text: string): ReactNode {
   // Tokenize: find all formatting markers and section references
   const tokens: Array<{ type: "text" | "bold" | "italic" | "code" | "section-ref"; content: string }> = [];
   // Order matters: check bold (**) before italic (*) since bold uses double asterisks
-  // Also capture section references like §42, §106
-  const regex = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|§\d+)/g;
+  // Also capture section references like §42, §106, or ranges like §106-108
+  const regex = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|§\d+(?:-\d+)?)/g;
 
   let lastIndex = 0;
   let match;

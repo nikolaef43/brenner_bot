@@ -93,8 +93,7 @@ ${failuresList}
 
 function generateRolePrompt(
   role: "codex" | "opus" | "gemini",
-  operators: BrennerOperatorPaletteEntry[],
-  _allOperators: BrennerOperatorPaletteEntry[]
+  operators: BrennerOperatorPaletteEntry[]
 ): string {
   const roleName = ROLE_NAMES[role];
   const primaryOps = operators.filter(
@@ -274,9 +273,9 @@ export function generatePromptBundle(
   return {
     kickoff: generateKickoffPrompt(selectedOperators),
     roles: {
-      codex: generateRolePrompt("codex", selectedOperators, selectedOperators),
-      opus: generateRolePrompt("opus", selectedOperators, selectedOperators),
-      gemini: generateRolePrompt("gemini", selectedOperators, selectedOperators),
+      codex: generateRolePrompt("codex", selectedOperators),
+      opus: generateRolePrompt("opus", selectedOperators),
+      gemini: generateRolePrompt("gemini", selectedOperators),
     },
     selectedOperators: selectedOperators.map((op) => op.canonicalTag),
     generatedAt: new Date().toISOString(),

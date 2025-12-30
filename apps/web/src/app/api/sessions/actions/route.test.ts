@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { AgentMailThread } from "@/lib/agentMail";
 
 const readThreadMock = vi.hoisted(() =>
-  vi.fn(async (args: { projectKey: string; threadId: string; includeBodies?: boolean }) => ({
+  vi.fn(async (args: { projectKey: string; threadId: string; includeBodies?: boolean }): Promise<AgentMailThread> => ({
     project: args.projectKey,
     thread_id: args.threadId,
     messages: [],

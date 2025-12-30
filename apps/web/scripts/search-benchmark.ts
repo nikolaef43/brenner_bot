@@ -72,13 +72,6 @@ function measure<T>(name: string, fn: () => T): { result: T; time: number } {
   return { result, time };
 }
 
-async function measureAsync<T>(name: string, fn: () => Promise<T>): Promise<{ result: T; time: number }> {
-  const start = performance.now();
-  const result = await fn();
-  const time = performance.now() - start;
-  return { result, time };
-}
-
 // ============================================================================
 // Test Queries
 // ============================================================================

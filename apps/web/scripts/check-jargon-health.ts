@@ -463,9 +463,9 @@ Object.entries(categories)
   });
 
 // Coverage stats
-const withWhy = allEntries.filter(([_, t]) => t.why).length;
-const withAnalogy = allEntries.filter(([_, t]) => t.analogy).length;
-const withRelated = allEntries.filter(([_, t]) => t.related).length;
+const withWhy = allEntries.filter((entry) => entry[1].why).length;
+const withAnalogy = allEntries.filter((entry) => entry[1].analogy).length;
+const withRelated = allEntries.filter((entry) => entry[1].related).length;
 
 console.log("\n   Field coverage:");
 console.log(

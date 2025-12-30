@@ -263,36 +263,38 @@ describe("parseDistillation", () => {
   });
 
   describe("inline formatting", () => {
-    it("strips bold markers from text", () => {
+    // NOTE: Markdown markers are now preserved in content blocks.
+    // The DistillationViewer's renderFormattedText() parses and styles them at render time.
+    // This allows for proper React component rendering of bold, italic, code, and section refs.
+
+    it("preserves bold markers for rendering", () => {
       const withBold = `# Test
 ## Section
 This has **bold text** in it.
 `;
       const result = parseDistillation(withBold, "test-doc");
       const paragraphs = result.parts[0]?.sections[0]?.content.filter((c) => c.type === "paragraph");
-      expect(paragraphs?.[0]?.text).not.toContain("**");
-      expect(paragraphs?.[0]?.text).toContain("bold text");
+      expect(paragraphs?.[0]?.text).toContain("**bold text**");
     });
 
-    it("strips italic markers from text", () => {
+    it("preserves italic markers for rendering", () => {
       const withItalic = `# Test
 ## Section
 This has *italic text* in it.
 `;
       const result = parseDistillation(withItalic, "test-doc");
       const paragraphs = result.parts[0]?.sections[0]?.content.filter((c) => c.type === "paragraph");
-      expect(paragraphs?.[0]?.text).not.toMatch(/\*[^*]+\*/);
+      expect(paragraphs?.[0]?.text).toContain("*italic text*");
     });
 
-    it("strips backticks from inline code", () => {
+    it("preserves backticks for inline code rendering", () => {
       const withCode = `# Test
 ## Section
 This has \`inline code\` in it.
 `;
       const result = parseDistillation(withCode, "test-doc");
       const paragraphs = result.parts[0]?.sections[0]?.content.filter((c) => c.type === "paragraph");
-      expect(paragraphs?.[0]?.text).not.toContain("`");
-      expect(paragraphs?.[0]?.text).toContain("inline code");
+      expect(paragraphs?.[0]?.text).toContain("`inline code`");
     });
   });
 

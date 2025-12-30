@@ -102,6 +102,9 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
       return;
     }
 
+    // Track whether this effect has been superseded by a newer one
+    let cancelled = false;
+
     const search = async () => {
       setIsSearching(true);
       try {
@@ -109,16 +112,28 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
           limit: 25,
           category: activeCategory,
         });
-        setResults(result);
-        setSelectedIndex(0);
+        // Only update state if this search is still current
+        if (!cancelled) {
+          setResults(result);
+          setSelectedIndex(0);
+        }
       } catch (err) {
-        console.error("Search failed:", err);
+        if (!cancelled) {
+          console.error("Search failed:", err);
+        }
       } finally {
-        setIsSearching(false);
+        if (!cancelled) {
+          setIsSearching(false);
+        }
       }
     };
 
     search();
+
+    // Cleanup: mark this search as stale when deps change or component unmounts
+    return () => {
+      cancelled = true;
+    };
   }, [debouncedQuery, activeCategory]);
 
   // Keyboard navigation
