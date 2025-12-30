@@ -22,7 +22,6 @@ export interface ParsedTranscript {
   subtitle: string;
   totalSections: number;
   sections: TranscriptSection[];
-  rawContent?: string; // Fallback for unstructured content
 }
 
 /**
@@ -182,15 +181,11 @@ export function parseTranscript(markdown: string): ParsedTranscript {
     });
   }
 
-  // If no sections found, include raw content as fallback
-  const rawContent = sections.length === 0 ? markdown.trim() : undefined;
-
   return {
     title,
     subtitle,
     totalSections: sections.length,
     sections,
-    rawContent,
   };
 }
 

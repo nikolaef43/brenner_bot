@@ -16,7 +16,6 @@ export interface ParsedQuoteBank {
   description: string;
   quotes: Quote[];
   allTags: string[];
-  rawContent?: string; // Fallback for unstructured content
 }
 
 /**
@@ -113,15 +112,11 @@ export function parseQuoteBank(markdown: string): ParsedQuoteBank {
     }
   }
 
-  // If no quotes found, include raw content as fallback
-  const rawContent = quotes.length === 0 ? markdown.trim() : undefined;
-
   return {
     title,
     description,
     quotes,
     allTags: Array.from(allTags).sort(),
-    rawContent,
   };
 }
 
