@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { readCorpusDoc } from "@/lib/corpus";
+import { CrosswalkTable } from "@/components/distillation/CrosswalkTable";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -307,73 +308,17 @@ export default async function DistillationsPage() {
         </ul>
       </section>
 
-      {/* Quick Comparison Table - Desktop only */}
-      <section className="hidden lg:block animate-fade-in-up">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Quick Comparison</h2>
-        <div className="rounded-xl border border-border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-muted/50">
-                <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Aspect</th>
-                {distillations.map((d) => (
-                  <th key={d.model} className="px-4 py-3 text-left font-semibold">
-                    <span className={colorClasses[d.color].accent}>{d.modelShort}</span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              <tr>
-                <td className="px-4 py-3 text-muted-foreground">Primary Frame</td>
-                <td className="px-4 py-3">Axiomatic / Epistemic</td>
-                <td className="px-4 py-3">Optimization / Search</td>
-                <td className="px-4 py-3">Kernel / Operations</td>
-              </tr>
-              <tr className="bg-muted/20">
-                <td className="px-4 py-3 text-muted-foreground">Core Metaphor</td>
-                <td className="px-4 py-3">Scientific humility</td>
-                <td className="px-4 py-3">Hypothesis landscape</td>
-                <td className="px-4 py-3">Cognitive primitives</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-3 text-muted-foreground">Emphasis</td>
-                <td className="px-4 py-3">Theory-experiment dialogue</td>
-                <td className="px-4 py-3">Systematic elimination</td>
-                <td className="px-4 py-3">Minimal moves</td>
-              </tr>
-              <tr className="bg-muted/20">
-                <td className="px-4 py-3 text-muted-foreground">Read Time</td>
-                <td className="px-4 py-3">45 min</td>
-                <td className="px-4 py-3">30 min</td>
-                <td className="px-4 py-3">20 min</td>
-              </tr>
-            </tbody>
-          </table>
+      {/* Crosswalk Comparison Table */}
+      <section className="space-y-4 animate-fade-in-up">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Concept Crosswalk</h2>
+            <p className="text-sm text-muted-foreground">
+              See how each model interprets the same core concepts. Click any cell to read more.
+            </p>
+          </div>
         </div>
-      </section>
-
-      {/* Mobile Comparison Cards */}
-      <section className="lg:hidden space-y-4 animate-fade-in-up">
-        <h2 className="text-lg font-semibold text-foreground">Quick Comparison</h2>
-        <div className="space-y-4">
-          {[
-            { aspect: "Primary Frame", values: ["Axiomatic / Epistemic", "Optimization / Search", "Kernel / Operations"] },
-            { aspect: "Core Metaphor", values: ["Scientific humility", "Hypothesis landscape", "Cognitive primitives"] },
-            { aspect: "Emphasis", values: ["Theory-experiment dialogue", "Systematic elimination", "Minimal moves"] },
-          ].map((row) => (
-            <div key={row.aspect} className="rounded-xl border border-border bg-card p-4">
-              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">{row.aspect}</h3>
-              <div className="space-y-2">
-                {distillations.map((d, i) => (
-                  <div key={d.model} className="flex items-center gap-2">
-                    <span className={`w-16 text-xs font-semibold ${colorClasses[d.color].accent}`}>{d.modelShort}</span>
-                    <span className="text-sm text-foreground">{row.values[i]}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        <CrosswalkTable />
       </section>
 
       {/* Reading Guide */}

@@ -1,18 +1,20 @@
 #!/usr/bin/env bun
 /**
- * Brenner Bot CLI (single-file).
+ * Brenner Bot CLI.
  *
  * Goals (v0):
  * - Render/promote prompt templates with transcript excerpt injection.
  * - Coordinate multi-agent work via MCP Agent Mail (HTTP Streamable MCP).
  *
- * No external deps; Bun-only.
+ * Runtime: Bun-only. Local imports are bundled when compiled.
  */
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+// Shared AgentMailClient from web lib (bundled by Bun)
+import { AgentMailClient } from "./apps/web/src/lib/agentMail";
+import type { Json } from "./apps/web/src/lib/json";
 
 function isRecord(value: Json): value is { [key: string]: Json } {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -115,8 +117,11 @@ Commands:
 
   prompt compose --template <path> --excerpt-file <path> [--theme <s>] [--domain <s>] [--question <s>]
 
-  orchestrate start --project-key <abs-path> --sender <AgentName> --to <A,B> --thread-id <id> --excerpt-file <path>
-                   [--template <path>] [--theme <s>] [--domain <s>] [--question <s>] [--subject <s>] [--ack-required]
+  session start --project-key <abs-path> --sender <AgentName> --to <A,B> --thread-id <id> --excerpt-file <path>
+               [--template <path>] [--theme <s>] [--domain <s>] [--question <s>] [--subject <s>] [--ack-required]
+
+Aliases:
+  orchestrate start  (alias for: session start)
 
 Agent Mail connection (env):
   AGENT_MAIL_BASE_URL        default: http://127.0.0.1:8765
@@ -126,69 +131,9 @@ Agent Mail connection (env):
 Examples:
   ./brenner.ts mail tools
   ./brenner.ts prompt compose --template metaprompt_by_gpt_52.md --excerpt-file excerpt.md --theme "problem choice"
-  ./brenner.ts orchestrate start --project-key "$PWD" --sender GreenCastle --to BlueMountain,RedForest \\
+  ./brenner.ts session start --project-key "$PWD" --sender GreenCastle --to BlueMountain,RedForest \\
     --thread-id FEAT-123 --excerpt-file excerpt.md --question "..." --ack-required
 `.trim();
-}
-
-class AgentMailClient {
-  private readonly baseUrl: string;
-  private readonly path: string;
-  private readonly bearerToken?: string;
-
-  constructor(options?: { baseUrl?: string; path?: string; bearerToken?: string }) {
-    this.baseUrl = (options?.baseUrl ?? process.env.AGENT_MAIL_BASE_URL ?? "http://127.0.0.1:8765").replace(/\/+$/, "");
-    this.path = (options?.path ?? process.env.AGENT_MAIL_PATH ?? "/mcp/").startsWith("/")
-      ? options?.path ?? process.env.AGENT_MAIL_PATH ?? "/mcp/"
-      : `/${options?.path ?? process.env.AGENT_MAIL_PATH ?? "mcp/"}`;
-    this.bearerToken = options?.bearerToken ?? process.env.AGENT_MAIL_BEARER_TOKEN;
-  }
-
-  private endpoint(): string {
-    const p = this.path.endsWith("/") ? this.path : `${this.path}/`;
-    return `${this.baseUrl}${p}`;
-  }
-
-  async call(method: string, params?: Json): Promise<Json> {
-    const id = crypto.randomUUID();
-    const body = JSON.stringify({ jsonrpc: "2.0", id, method, params: params ?? {} });
-
-    const headers: Record<string, string> = {
-      Accept: "application/json, text/event-stream",
-      "Content-Type": "application/json",
-    };
-    if (this.bearerToken) headers.Authorization = `Bearer ${this.bearerToken}`;
-
-    const res = await fetch(this.endpoint(), { method: "POST", headers, body });
-    const text = await res.text();
-    let data: any = undefined;
-    try {
-      data = text ? JSON.parse(text) : undefined;
-    } catch {
-      // Some clients/servers may respond via SSE; keep the raw text for debugging.
-      throw new Error(`Agent Mail non-JSON response (HTTP ${res.status}): ${text.slice(0, 400)}`);
-    }
-
-    if (!res.ok) {
-      throw new Error(`Agent Mail HTTP ${res.status}: ${JSON.stringify(data)}`);
-    }
-    if (data?.error) {
-      throw new Error(`Agent Mail MCP error: ${JSON.stringify(data.error)}`);
-    }
-    return data?.result as Json;
-  }
-
-  toolsList(): Promise<Json> {
-    return this.call("tools/list", {});
-  }
-
-  toolsCall(name: string, args: Record<string, Json>): Promise<Json> {
-    return this.call("tools/call", { name, arguments: args } as any);
-  }
-
-  resourcesRead(uri: string): Promise<Json> {
-    return this.call("resources/read", { uri } as any);
-  }
 }
 
 function composePrompt(options: {
@@ -319,7 +264,9 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  if (top === "orchestrate" && sub === "start") {
+  const normalizedTop = top === "orchestrate" ? "session" : top;
+
+  if (normalizedTop === "session" && sub === "start") {
     const client = new AgentMailClient();
     const projectKey = asStringFlag(flags, "project-key") ?? process.cwd();
     const sender = asStringFlag(flags, "sender") ?? process.env.AGENT_NAME;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import { parseDistillation } from "@/lib/distillation-parser";
 import type { ParsedDistillation } from "@/lib/distillation-parser";
 

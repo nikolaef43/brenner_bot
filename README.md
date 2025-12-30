@@ -299,10 +299,10 @@ Status legend:
 | `mail agents --project-key <abs-path>` | List known agents for a project | ✅ |
 | `mail send --project-key <abs-path> ...` | Send a message to agents (optionally in a `--thread-id`) | ✅ |
 | `prompt compose --template <path> --excerpt-file <path> ...` | Render a kickoff prompt (template + excerpt injection) | ✅ |
-| `orchestrate start --project-key <abs-path> ...` | Compose + send a “kickoff” message via Agent Mail | ✅ |
-| `mail inbox` / `mail ack` / `mail thread` | Inbox + acknowledgement + thread tooling | 🧭 (see `brenner_bot-5so.5`) |
-| `orchestrate compile` / `orchestrate publish` | Compile agent deltas into a canonical artifact + publish back to thread | 🧭 (see `brenner_bot-5so.3`) |
-| `corpus search` / `corpus excerpt` | Corpus search and excerpt builder | 🧭 (see `brenner_bot-5so.4`) |
+| `session start --project-key <abs-path> ...` | Compose + send a “kickoff” message via Agent Mail (alias: `orchestrate start`) | ✅ |
+| `mail inbox` / `mail ack` / `mail thread` | Inbox + acknowledgement + thread tooling | 🧭 (see `brenner_bot-5so.5.2`) |
+| `session compile` / `session publish` | Compile agent deltas into a canonical artifact + publish back to thread | 🧭 (see `brenner_bot-5so.5.3`, `brenner_bot-5so.3.4`) |
+| `corpus search` / `excerpt build` | Corpus search + excerpt builder | 🧭 (see `brenner_bot-5so.5.4.1`, `brenner_bot-5so.5.4.2`) |
 
 #### Config precedence (contract)
 
@@ -319,10 +319,16 @@ Environment variables (current):
 - `AGENT_MAIL_BEARER_TOKEN` (optional; required if Agent Mail auth is enabled)
 - `AGENT_NAME` (optional default for `--sender`)
 
+Required flags (today’s implementation):
+- `mail agents`: `--project-key` optional (default: `"$PWD"`)
+- `mail send`: `--project-key` optional (default: `"$PWD"`), `--sender` (or `AGENT_NAME`), `--to`, `--subject`, `--body-file`
+- `prompt compose`: `--template` optional (default: `metaprompt_by_gpt_52.md`), `--excerpt-file`
+- `session start`: `--project-key` optional (default: `"$PWD"`), `--sender` (or `AGENT_NAME`), `--to`, `--thread-id`, `--excerpt-file`
+
 ```bash
 ./brenner.ts mail tools
 ./brenner.ts prompt compose --template metaprompt_by_gpt_52.md --excerpt-file excerpt.md
-./brenner.ts orchestrate start --project-key "$PWD" --sender GreenCastle --to BlueMountain,RedForest --thread-id FEAT-123 --excerpt-file excerpt.md
+./brenner.ts session start --project-key "$PWD" --sender GreenCastle --to BlueMountain,RedForest --thread-id FEAT-123 --excerpt-file excerpt.md
 ```
 
 ### Run a multi-agent session (the cockpit workflow)
@@ -351,7 +357,7 @@ ntm new $THREAD_ID --layout=3-agent
 
 # 4. Send kickoff to all agents via Agent Mail
 # Option A (compose + send in one step):
-./brenner.ts orchestrate start \
+./brenner.ts session start \
   --project-key "$PWD" \
   --thread-id $THREAD_ID \
   --sender Operator \
