@@ -368,7 +368,7 @@ function OperatorDetailSheet({
             {/* Close button */}
             <button
               onClick={onClose}
-              className="flex-shrink-0 p-2 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
+              className="flex-shrink-0 p-2 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground active:scale-90 transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Close"
             >
               <XIcon className="size-5" />
@@ -484,7 +484,7 @@ function OperatorDetailSheet({
                           {transcriptHref ? (
                             <Link
                               href={transcriptHref}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 text-xs font-bold hover:bg-primary/15 transition-colors"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 text-xs font-bold hover:bg-primary/15 active:scale-95 transition-all touch-manipulation"
                             >
                               {quote.sectionId}
                             </Link>
@@ -498,7 +498,7 @@ function OperatorDetailSheet({
                         {transcriptHref && (
                           <Link
                             href={transcriptHref}
-                            className="flex-shrink-0 text-xs text-primary hover:underline"
+                            className="flex-shrink-0 text-xs text-primary hover:underline active:scale-95 transition-all touch-manipulation"
                           >
                             Open
                           </Link>
