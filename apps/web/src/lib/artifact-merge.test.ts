@@ -3,10 +3,10 @@
  *
  * Verifies deterministic merging per artifact_delta_spec_v0.1.md
  *
- * Run with: bun test apps/web/src/lib/artifact-merge.test.ts
+ * Run with: bun run test
  */
 
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "vitest";
 import {
   createEmptyArtifact,
   mergeArtifact,

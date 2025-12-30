@@ -1,5 +1,9 @@
 ## Brenner Bot
 
+**🌐 Live at [brennerbot.org](https://brennerbot.org)**
+
+---
+
 **Brenner Bot is a research "seed crystal"**: a curated primary-source corpus (Sydney Brenner transcripts) plus multi-model syntheses, powering **collaborative scientific research conversations** that follow the "Brenner approach."
 
 ### The north star

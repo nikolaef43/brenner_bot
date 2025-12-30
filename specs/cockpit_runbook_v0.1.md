@@ -156,3 +156,47 @@ ntm send "$THREAD_ID" --all "Check Agent Mail thread: $THREAD_ID and reply with 
 
 Next steps (not covered here): compile deltas → render canonical artifact → publish `COMPILED` back to the thread → optionally persist to `artifacts/{thread_id}.md`.
 
+---
+
+## 5) Optional `.ntm/` project templates (proposal)
+
+> **Goal**: minimize copy/paste friction in the cockpit without adding lots of repo-specific scaffolding.
+
+### How `ntm` discovers templates and palette commands
+
+**Templates**
+- Project templates live at: `.ntm/templates/*.md` (highest precedence).
+- Templates can also live in: `~/.config/ntm/templates/*.md` (user-level).
+- View available templates: `ntm template list`
+
+**Command palette**
+- `ntm palette` shows commands defined in the `ntm` config file (default: `~/.config/ntm/config.toml`).
+- `ntm config project init` can initialize a project config at `.ntm/config.toml` (optional).
+
+### Proposed minimal template surface (names + purpose + location)
+
+All of these would live as markdown templates under `.ntm/templates/`:
+
+1. `brenner_check_mail.md`
+   - **Purpose**: tell the agent to check Agent Mail for the current thread, and read the latest kickoff / instructions.
+   - **Notes**: use `{{session}}` as the thread id (join-key contract: `thread_id == ntm session name`).
+
+2. `brenner_reply_delta.md`
+   - **Purpose**: request a structured `DELTA[...]` response to the current thread, following:
+     - `specs/delta_output_format_v0.1.md`
+     - `specs/artifact_delta_spec_v0.1.md`
+   - **Notes**: the template can include a reminder to ground claims in transcript `§n` anchors.
+
+3. `brenner_discriminative_tests.md`
+   - **Purpose**: request a ranked list/table of discriminative tests + potency controls (chastity vs impotence).
+   - **Notes**: “digital handles”, “across-the-room differences”, and explicit separation claims (which hypotheses each test separates).
+
+4. `brenner_adversarial_critique.md`
+   - **Purpose**: request the “third alternative” + critique: what framing assumptions could be wrong, what would falsify the whole setup.
+   - **Notes**: include exception quarantine guidance (don’t sweep anomalies under Occam’s broom).
+
+### Proposed minimal palette surface (optional)
+
+If we decide to commit a project config, add a tiny `.ntm/config.toml` with a “Brenner Loop” category mapping to the templates above, so operators can:
+- run `ntm palette` → pick “Brenner: reply with DELTA” → choose target panes → send
+- avoid remembering template names/flags
