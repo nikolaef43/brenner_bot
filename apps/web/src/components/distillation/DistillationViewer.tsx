@@ -751,7 +751,7 @@ function RawContentFallback({ content }: { content: string }) {
     <div className="max-w-none">
       {paragraphs.map((para, i) => (
         <p key={i} className="text-[15px] sm:text-base leading-[1.7] text-foreground/90 mb-3">
-          {para}
+          <JargonText>{para}</JargonText>
         </p>
       ))}
     </div>
@@ -895,7 +895,7 @@ export function DistillationViewer({ data, docId }: DistillationViewerProps) {
                     Introduction
                   </h2>
                   <p className="text-[15px] sm:text-base lg:text-lg leading-relaxed text-foreground/85">
-                    {data.preamble}
+                    <JargonText>{data.preamble}</JargonText>
                   </p>
                 </section>
               )}
@@ -916,7 +916,7 @@ export function DistillationViewer({ data, docId }: DistillationViewerProps) {
                   Introduction
                 </h2>
                 <p className="text-[15px] sm:text-base lg:text-lg leading-relaxed text-foreground/85">
-                  {data.preamble}
+                  <JargonText>{data.preamble}</JargonText>
                 </p>
               </section>
             )}

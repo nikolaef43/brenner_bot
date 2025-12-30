@@ -1254,7 +1254,7 @@ function RawContentFallback({ content }: { content: string }) {
     <div className="prose prose-lg dark:prose-invert max-w-none">
       {paragraphs.map((para, i) => (
         <p key={i} className="text-base lg:text-lg leading-relaxed text-foreground/85 mb-4">
-          {para}
+          <JargonText>{para}</JargonText>
         </p>
       ))}
     </div>
