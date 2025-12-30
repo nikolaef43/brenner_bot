@@ -1,5 +1,5 @@
 import { copyFile, mkdir, stat } from "node:fs/promises";
-import { resolve } from "node:path";
+import { resolve, dirname } from "node:path";
 import { CORPUS_DOCS } from "../src/lib/corpus";
 
 async function fileExists(path: string): Promise<boolean> {
@@ -20,6 +20,10 @@ async function main(): Promise<void> {
   for (const doc of CORPUS_DOCS) {
     const sourcePath = resolve(repoRoot, doc.filename);
     const outputPath = resolve(outputDir, doc.filename);
+
+    // Ensure the parent directory exists (for files in subdirectories)
+    const parentDir = dirname(outputPath);
+    await mkdir(parentDir, { recursive: true });
 
     // Check if the output file already exists and is not a stub
     if (await fileExists(outputPath)) {
