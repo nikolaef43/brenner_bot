@@ -1468,6 +1468,100 @@ export function lintArtifact(artifact: Artifact): LintReport {
     });
   }
 
+  // --------------------------------------------------------------------------
+  // Provenance & Citation (P) - from artifact_linter_spec_v0.1.md
+  // --------------------------------------------------------------------------
+
+  // Max section in transcript (Brenner's Web of Stories has 236 sections)
+  const MAX_TRANSCRIPT_SECTION = 236;
+
+  /**
+   * Extract §n anchor references from an anchors array.
+   * Returns array of section numbers referenced.
+   */
+  function extractAnchorRefs(anchors: string[] | undefined): number[] {
+    if (!Array.isArray(anchors)) return [];
+    const refs: number[] = [];
+    for (const anchor of anchors) {
+      // Match §42, §42-45 (range), or multiple like §42, §57
+      const matches = anchor.matchAll(/§(\d+)(?:-(\d+))?/g);
+      for (const match of matches) {
+        const start = Number.parseInt(match[1], 10);
+        const end = match[2] ? Number.parseInt(match[2], 10) : start;
+        for (let i = start; i <= end; i++) {
+          refs.push(i);
+        }
+      }
+    }
+    return refs;
+  }
+
+  /**
+   * Check if anchors contain [inference] without source context.
+   */
+  function isPureInference(anchors: string[] | undefined): boolean {
+    if (!Array.isArray(anchors)) return false;
+    return anchors.some((a) => {
+      const lower = a.toLowerCase();
+      return (
+        lower === "inference" ||
+        lower === "[inference]" ||
+        (lower.includes("[inference]") && !lower.includes("from"))
+      );
+    });
+  }
+
+  // Collect all anchor references across the artifact for EP-P01
+  const allAnchors: Array<{ section: string; id: string; refs: number[] }> = [];
+
+  // Research thread anchors
+  if (rt) {
+    allAnchors.push({ section: "research_thread", id: "RT", refs: extractAnchorRefs(rt.anchors) });
+  }
+
+  // Hypothesis anchors
+  for (const h of hypotheses) {
+    allAnchors.push({ section: "hypothesis_slate", id: h.id, refs: extractAnchorRefs(h.anchors) });
+
+    // WP-P02: Pure inference without source context
+    if (isPureInference(h.anchors)) {
+      pushViolation(violations, {
+        id: "WP-P02",
+        severity: "warning",
+        message: `${h.id} uses [inference] without source context`,
+        fix: "Use [inference] from §n to cite the evidence the inference is based on",
+      });
+    }
+  }
+
+  // EP-P01: Validate all anchor references are in range
+  for (const { id, refs } of allAnchors) {
+    for (const ref of refs) {
+      if (ref < 1 || ref > MAX_TRANSCRIPT_SECTION) {
+        pushViolation(violations, {
+          id: "EP-P01",
+          severity: "error",
+          message: `${id} references §${ref} which is out of range (valid: 1-${MAX_TRANSCRIPT_SECTION})`,
+          fix: `Update anchor to reference a valid transcript section (1-${MAX_TRANSCRIPT_SECTION})`,
+        });
+      }
+    }
+  }
+
+  // IP-P02: Potency checks should cite §50 (Brenner's chastity principle)
+  for (const t of tests) {
+    if (t.potency_check && t.potency_check.trim().length > 0) {
+      if (!t.potency_check.includes("§50") && !t.potency_check.includes("§ 50")) {
+        pushViolation(violations, {
+          id: "IP-P02",
+          severity: "info",
+          message: `${t.id} potency check doesn't cite §50 (Brenner's chastity principle)`,
+          fix: "Consider referencing §50 for the canonical statement of the chastity principle",
+        });
+      }
+    }
+  }
+
   const sorted = [...violations].sort((a, b) => {
     const sr = severityRank(a.severity) - severityRank(b.severity);
     if (sr !== 0) return sr;
@@ -1485,4 +1579,79 @@ export function lintArtifact(artifact: Artifact): LintReport {
     summary,
     violations: sorted,
   };
+}
+
+// ============================================================================
+// Lint Report Formatters
+// ============================================================================
+
+/**
+ * Format a lint report as human-readable text.
+ *
+ * Example output:
+ * ```
+ * Artifact Linter Report
+ * ======================
+ * Artifact: RS-20251230-cell-fate
+ * Status: INVALID (3 errors, 5 warnings, 2 info)
+ *
+ * Errors (must fix):
+ *   EH-003: Third alternative not explicitly labeled
+ *   ...
+ * ```
+ */
+export function formatLintReportHuman(report: LintReport, artifactName?: string): string {
+  const lines: string[] = [];
+  const name = artifactName ?? "artifact";
+
+  lines.push("Artifact Linter Report");
+  lines.push("======================");
+  lines.push(`Artifact: ${name}`);
+  lines.push(
+    `Status: ${report.valid ? "VALID" : "INVALID"} (${report.summary.errors} errors, ${report.summary.warnings} warnings, ${report.summary.info} info)`,
+  );
+  lines.push("");
+
+  if (report.summary.errors > 0) {
+    lines.push("Errors (must fix):");
+    for (const v of report.violations.filter((v) => v.severity === "error")) {
+      lines.push(`  ${v.id}: ${v.message}`);
+      if (v.fix) lines.push(`    → ${v.fix}`);
+    }
+    lines.push("");
+  }
+
+  if (report.summary.warnings > 0) {
+    lines.push("Warnings (should fix):");
+    for (const v of report.violations.filter((v) => v.severity === "warning")) {
+      lines.push(`  ${v.id}: ${v.message}`);
+      if (v.fix) lines.push(`    → ${v.fix}`);
+    }
+    lines.push("");
+  }
+
+  if (report.summary.info > 0) {
+    lines.push("Info:");
+    for (const v of report.violations.filter((v) => v.severity === "info")) {
+      lines.push(`  ${v.id}: ${v.message}`);
+    }
+    lines.push("");
+  }
+
+  return lines.join("\n");
+}
+
+/**
+ * Format a lint report as JSON.
+ *
+ * Returns a deterministic, pretty-printed JSON string.
+ */
+export function formatLintReportJson(report: LintReport, artifactName?: string): string {
+  const output = {
+    artifact: artifactName ?? "artifact",
+    valid: report.valid,
+    summary: report.summary,
+    violations: report.violations,
+  };
+  return JSON.stringify(output, null, 2);
 }
