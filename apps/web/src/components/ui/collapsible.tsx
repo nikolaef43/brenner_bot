@@ -270,7 +270,7 @@ export function CollapsibleCard({
     >
       <CollapsibleTrigger
         className={cn(
-          "p-4 hover:bg-muted/50 active:bg-muted/70",
+          "p-4 hover:bg-muted/50 active:bg-muted/70 transition-all duration-150",
           "group-data-[state=open]:border-b group-data-[state=open]:border-border/50"
         )}
       >
@@ -332,7 +332,7 @@ export function CollapsibleSection({
         className
       )}
     >
-      <CollapsibleTrigger className="p-4 hover:bg-muted/50 active:bg-muted/70">
+      <CollapsibleTrigger className="p-4 hover:bg-muted/50 active:bg-muted/70 transition-all duration-150">
         <span className="text-sm text-muted-foreground group-data-[state=open]:text-foreground transition-colors">
           {label}
         </span>

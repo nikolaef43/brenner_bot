@@ -173,7 +173,7 @@ export function SessionActions({
       </div>
 
       <Collapsible className="group rounded-xl border border-border bg-muted/30 overflow-hidden">
-        <CollapsibleTrigger className="p-4 text-sm text-muted-foreground group-data-[state=open]:text-foreground hover:bg-muted/50 active:bg-muted/70">
+        <CollapsibleTrigger className="p-4 text-sm text-muted-foreground group-data-[state=open]:text-foreground hover:bg-muted/50 active:bg-muted/70 transition-all duration-150">
           <span>Configure sender/recipients</span>
         </CollapsibleTrigger>
         <CollapsibleContent>
@@ -225,7 +225,7 @@ export function SessionActions({
               defaultOpen
               className="group rounded-xl border border-border bg-background overflow-hidden"
             >
-              <CollapsibleTrigger className="p-4 text-sm font-medium hover:bg-muted/50 active:bg-muted/70">
+              <CollapsibleTrigger className="p-4 text-sm font-medium hover:bg-muted/50 active:bg-muted/70 transition-all duration-150">
                 <div className="flex items-center gap-2">
                   <span className="size-2 rounded-full bg-success animate-pulse" />
                   <span>Preview: compiled v{compilePreview.version}</span>
