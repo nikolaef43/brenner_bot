@@ -178,6 +178,13 @@ export default async function NewSessionPage({
 }) {
   if (!isLabModeEnabled()) notFound();
 
+  // Defense-in-depth: even with BRENNER_LAB_MODE enabled, require Cloudflare Access headers
+  // or a valid shared secret before serving any orchestration UI or reading Agent Mail data.
+  const reqHeaders = await headers();
+  const reqCookies = await cookies();
+  const pageAuth = checkOrchestrationAuth(reqHeaders, reqCookies);
+  if (!pageAuth.authorized) notFound();
+
   const repoRoot = repoRootFromWebCwd();
   const { sent, thread } = await searchParams;
 

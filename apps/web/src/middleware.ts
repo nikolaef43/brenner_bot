@@ -16,8 +16,8 @@ function isLabModeEnabled(): boolean {
 function hasValidLabSecret(request: NextRequest): boolean {
   const configuredSecret = process.env.BRENNER_LAB_SECRET?.trim();
 
-  // If no secret configured, this check passes
-  if (!configuredSecret || configuredSecret.length === 0) return true;
+  // If no secret configured, this check cannot pass (use Cloudflare Access instead)
+  if (!configuredSecret || configuredSecret.length === 0) return false;
 
   // Check header
   const headerValue = request.headers.get("x-brenner-lab-secret");
@@ -26,6 +26,16 @@ function hasValidLabSecret(request: NextRequest): boolean {
   // Check cookie
   const cookieValue = request.cookies.get("brenner_lab_secret")?.value;
   if (cookieValue === configuredSecret) return true;
+
+  return false;
+}
+
+function hasCloudflareAccessHeaders(request: NextRequest): boolean {
+  const jwt = request.headers.get("cf-access-jwt-assertion");
+  if (jwt && jwt.trim().length > 0) return true;
+
+  const email = request.headers.get("cf-access-authenticated-user-email");
+  if (email && email.trim().length > 0) return true;
 
   return false;
 }
@@ -47,9 +57,11 @@ export function middleware(request: NextRequest) {
       return new NextResponse("Not found", { status: 404 });
     }
 
-    // Check 2: If secret is configured, it must be valid
-    if (!hasValidLabSecret(request)) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    // Check 2: Cloudflare Access headers OR shared secret
+    const authorized = hasCloudflareAccessHeaders(request) || hasValidLabSecret(request);
+    if (!authorized) {
+      // Fail closed without revealing which auth layer is missing
+      return new NextResponse("Not found", { status: 404 });
     }
   }
 
@@ -59,4 +71,3 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/corpus/:path*", "/sessions/:path*"],
 };
-
