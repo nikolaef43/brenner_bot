@@ -1,4 +1,4 @@
-import { isAbsolute, resolve } from "node:path";
+import { isAbsolute, resolve, win32 } from "node:path";
 import { headers, cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 import { AgentMailClient } from "@/lib/agentMail";
@@ -197,7 +197,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
     });
 
     // Ensure project exists (tools expect project_key to be the human_key / absolute path).
-    if (isAbsolute(projectKey)) {
+    // NOTE: Treat Windows absolute paths as absolute even on non-Windows runtimes.
+    const isAbsoluteProjectKey = isAbsolute(projectKey) || win32.isAbsolute(projectKey);
+    if (isAbsoluteProjectKey) {
       const ensured = await client.toolsCall("ensure_project", { human_key: projectKey });
       const ensuredSlug = parseEnsureProjectSlug(ensured);
       if (!ensuredSlug) {
