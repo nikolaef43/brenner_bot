@@ -4,23 +4,29 @@ export default function DistillationsPage() {
   const distillations = [
     {
       model: "Opus 4.5",
-      file: "final_distillation_of_brenner_method_by_opus45.md",
+      docId: "distillation-opus-45",
       color: "opus",
       description: "Frames the method through two axioms and epistemic modesty.",
     },
     {
       model: "GPT 5.2",
-      file: "final_distillation_of_brenner_method_by_gpt_52_extra_high_reasoning.md",
+      docId: "distillation-gpt-52",
       color: "gpt",
       description: "Emphasizes the objective function and optimization lens.",
     },
     {
       model: "Gemini 3",
-      file: "final_distillation_of_brenner_method_by_gemini3.md",
+      docId: "distillation-gemini-3",
       color: "gemini",
       description: "Identifies a minimal Brenner Kernel of essential moves.",
     },
   ] as const;
+
+  const badgeClassByColor = {
+    opus: "bg-opus/10 text-opus-foreground",
+    gpt: "bg-gpt/10 text-gpt-foreground",
+    gemini: "bg-gemini/10 text-gemini-foreground",
+  } as const;
 
   return (
     <div className="space-y-8">
@@ -36,11 +42,11 @@ export default function DistillationsPage() {
         {distillations.map((d) => (
           <Link
             key={d.model}
-            href={`/corpus/${encodeURIComponent(d.file)}`}
+            href={`/corpus/${d.docId}`}
             className="group rounded-xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md hover:border-primary/30"
           >
             <div
-              className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium bg-${d.color}/10 text-${d.color}-foreground`}
+              className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${badgeClassByColor[d.color]}`}
             >
               {d.model}
             </div>
