@@ -356,6 +356,9 @@ export function Jargon({ term: termKey, children, className }: JargonProps) {
   const showTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const hideTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
+  // Hover delay before showing tooltip (UX best practice: 300-500ms)
+  const HOVER_DELAY_MS = 400;
+
   // Detect mobile
   React.useEffect(() => {
     const checkMobile = () => {
@@ -383,18 +386,20 @@ export function Jargon({ term: termKey, children, className }: JargonProps) {
     if (isMobile) return;
 
     if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+    if (showTimeoutRef.current) clearTimeout(showTimeoutRef.current);
 
     showTimeoutRef.current = setTimeout(() => {
       if (triggerRef.current) {
         setTriggerRect(triggerRef.current.getBoundingClientRect());
         setIsTooltipVisible(true);
       }
-    }, 100);
+    }, HOVER_DELAY_MS);
   };
 
   const handleMouseLeave = () => {
     if (isMobile) return;
 
+    // Cancel any pending show
     if (showTimeoutRef.current) clearTimeout(showTimeoutRef.current);
 
     hideTimeoutRef.current = setTimeout(() => {

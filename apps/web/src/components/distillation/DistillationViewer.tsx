@@ -346,7 +346,7 @@ function DistillationTOC({ entries, activeSection, onSectionClick, docId }: Dist
   const theme = getModelTheme(docId);
 
   return (
-    <nav className="lg:sticky lg:top-24 lg:max-h-[calc(100dvh-8rem)] lg:overflow-y-auto">
+    <nav className="lg:sticky lg:top-24 lg:overflow-y-auto lg:toc-nav-scroll">
       {/* Mobile toggle */}
       <button
         onClick={() => setIsOpen(!isOpen)}

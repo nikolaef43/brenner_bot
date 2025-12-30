@@ -104,16 +104,23 @@ export function Jargon({ term, children, className }: JargonProps) {
   }>({ position: "top", style: {} });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const openTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  // Hover delay before showing tooltip (UX best practice: 300-500ms)
+  const HOVER_DELAY_MS = 400;
 
   const termKey = term.toLowerCase().replace(/[\s_]+/g, "-");
   const jargonData = getJargon(termKey);
 
   const portalContainer = typeof document === "undefined" ? null : document.body;
 
-  // Cleanup timeout on unmount
+  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
+      if (openTimeoutRef.current) {
+        clearTimeout(openTimeoutRef.current);
+      }
       if (closeTimeoutRef.current) {
         clearTimeout(closeTimeoutRef.current);
       }
@@ -186,14 +193,26 @@ export function Jargon({ term, children, className }: JargonProps) {
 
   const handleMouseEnter = useCallback(() => {
     if (isMobile) return;
+    // Clear any pending close
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
     }
-    setIsOpen(true);
+    // Clear any pending open (in case of rapid mouse movements)
+    if (openTimeoutRef.current) {
+      clearTimeout(openTimeoutRef.current);
+    }
+    // Delay before showing tooltip to prevent accidental triggers
+    openTimeoutRef.current = setTimeout(() => {
+      setIsOpen(true);
+    }, HOVER_DELAY_MS);
   }, [isMobile]);
 
   const handleMouseLeave = useCallback(() => {
     if (isMobile) return;
+    // Cancel any pending open
+    if (openTimeoutRef.current) {
+      clearTimeout(openTimeoutRef.current);
+    }
     closeTimeoutRef.current = setTimeout(() => {
       setIsOpen(false);
     }, 150);

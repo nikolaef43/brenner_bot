@@ -1119,7 +1119,7 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
             {/* Desktop: virtualized scroll container */}
             <div
               ref={scrollContainerRef}
-              className="hidden lg:block h-[calc(100dvh-200px)] overflow-y-auto scroll-smooth"
+              className="hidden lg:block overflow-y-auto scroll-smooth transcript-scroll"
             >
               {/* Total height spacer for virtualization */}
               <div
