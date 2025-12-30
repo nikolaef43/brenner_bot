@@ -110,7 +110,8 @@ The artifact linter validates Brenner Protocol artifacts against structural and 
 | `EH-003` | Error | Third alternative explicitly labeled | Search for "Third Alternative" (case-insensitive) |
 | `EH-004` | Error | Each hypothesis has Claim field | Check for `**Claim**:` in each H block |
 | `WH-001` | Warning | Each hypothesis has anchors | Check for `**Anchors**:` in each H block |
-| `WH-002` | Warning | Anchors use §n format or "inference" | Match `§\d+` or literal "inference" |
+| `WH-002` | Warning | Anchors use §n format or "inference" | Accept `§n` (and simple ranges/commas) optionally suffixed with `[inference]`, or literal `inference` |
+| `WH-003` | Warning | If anchors are `inference`, block is labeled `[inference]` | If `**Anchors**: inference`, require `[inference]` somewhere in the same hypothesis block |
 | `IH-001` | Info | Mechanism field present | Check for `**Mechanism**:` in each H block |
 
 **Detection Pattern (EH-003)**:
@@ -174,6 +175,144 @@ third\s+alternative
 | `WC-001` | Warning | At least one "real third alternative" | Search for alternative framing critique |
 | `WC-002` | Warning | Evidence field present | Check for `**Evidence**:` |
 | `IC-001` | Info | Current status assessment | Check for `**Current status**:` |
+
+---
+
+## Citation & Provenance Rules
+
+This section defines how claims in artifacts are traced to sources, enabling audit trails.
+
+### Provenance Categories
+
+Every claim in an artifact falls into one of these categories:
+
+| Category | Marker | Meaning | Audit Requirement |
+|----------|--------|---------|-------------------|
+| **Quote-backed** | `§n` | Direct citation from transcript | Anchor must exist in transcript |
+| **Multi-source** | `§n, §m, ...` | Synthesized from multiple sections | All anchors must exist |
+| **Inference** | `[inference]` | Agent-derived conclusion | Must follow from cited context |
+| **Inference+Source** | `[inference] from §n` | Inference with source context | Anchor must exist |
+| **External** | `[external: source]` | From non-transcript source | Source must be identified |
+| **Axiomatic** | `[axiomatic]` | Foundational assumption | No further justification needed |
+
+### Anchor Format Specification
+
+**Valid anchor patterns**:
+```
+§42           # Single section reference
+§42-45        # Section range (inclusive)
+§42, §57      # Multiple sections (comma-separated)
+§42 (quote)   # With inline excerpt marker
+```
+
+**Regex for validation**:
+```regex
+§\d+(-\d+)?(\s*\(quote\))?
+```
+
+**Anchor requirements**:
+1. All `§n` references must correspond to actual transcript section numbers
+2. Section numbers must be in range [1, max_section] for the corpus (currently 1-236)
+3. Ranges must be ascending (§42-45, not §45-42)
+
+### Provenance Checks
+
+| ID | Severity | Rule | Detection |
+|----|----------|------|-----------|
+| `EP-P01` | Error | All §n anchors must resolve | Validate against transcript section count |
+| `WP-P01` | Warning | Claims require provenance marker | Check for `**Anchors**:` with valid value |
+| `WP-P02` | Warning | `[inference]` claims need source context | If marked inference, prefer `[inference] from §n` |
+| `WP-P03` | Warning | Multi-source synthesis should explain connection | If multiple §n, check for synthesis explanation |
+| `IP-P01` | Info | Direct quotes preferred over paraphrase | Check for `>` blockquote with §n |
+| `IP-P02` | Info | Potency checks cite Brenner principle | Check for §50 reference (chastity principle) |
+
+### Valid Anchor Field Values
+
+```markdown
+**Anchors**: §42                           # Quote-backed (single source)
+**Anchors**: §42, §57, §103                # Multi-source synthesis
+**Anchors**: §42-45                        # Section range
+**Anchors**: [inference] from §42-45       # Inference with source context
+**Anchors**: [inference]                   # Pure inference (needs justification)
+**Anchors**: [axiomatic]                   # Foundational assumption
+**Anchors**: [external: Smith 2024]        # External source reference
+```
+
+### Distinguishing Quote vs Interpretation
+
+**Quote (direct citation)**:
+```markdown
+**Anchors**: §50
+
+> "You cannot do an experiment to prove that something doesn't work
+> unless you have a control that shows that the experiment itself
+> was working." — §50
+
+This establishes the chastity principle.
+```
+
+**Interpretation (inference from quote)**:
+```markdown
+**Anchors**: [inference] from §50
+
+Based on the chastity principle (§50), we require each test to include
+a potency control demonstrating the assay can detect the effect if present.
+```
+
+**Synthesis (combining multiple sources)**:
+```markdown
+**Anchors**: §42, §57, §103
+
+Combining the level-split operator (§42) with the recode principle (§57)
+and the invariant extraction pattern (§103), we derive the requirement
+for multi-level experimental design.
+```
+
+### Audit Trail Requirements
+
+An artifact is **auditable** when:
+
+1. **Traceable**: Every non-axiomatic claim has a provenance marker
+2. **Verifiable**: All §n anchors resolve to transcript sections
+3. **Distinguishable**: Quotes vs inference are explicitly marked
+4. **Contextualized**: Inferences cite the evidence they're based on
+
+### Provenance by Section
+
+| Section | Required Provenance | Notes |
+|---------|---------------------|-------|
+| Research Thread | §n recommended | Core question may be novel framing |
+| Hypothesis Slate | §n or [inference] required | Each hypothesis needs provenance |
+| Predictions Table | §n or [inference] | Derived from hypotheses |
+| Discriminative Tests | §n recommended | Potency checks should cite §50 |
+| Assumption Ledger | §n or [axiomatic] | Scale checks may be [axiomatic] physics |
+| Anomaly Register | §n required for observations | Anomalies are empirical |
+| Adversarial Critique | [inference] typical | Critiques are agent-generated |
+
+### Audit Report Format
+
+```
+Provenance Audit Report
+=======================
+Artifact: RS-20251230-cell-fate.md
+
+Claims by provenance:
+  Quote-backed (§n):        12
+  Multi-source:              3
+  Inference with context:    5
+  Pure inference:            2 (should add context)
+  Axiomatic:                 2
+  External:                  1 (Smith 2024)
+
+Anchor validation:
+  Valid anchors:      18
+  Invalid anchors:     1 (§999 - section not found)
+  Ranges validated:    2 (§42-45, §161-165)
+
+Audit status: INCOMPLETE
+  - 1 invalid anchor reference
+  - 2 pure inferences without source context
+```
 
 ---
 
@@ -301,3 +440,4 @@ When applying deltas, only re-check:
 | Version | Date | Changes |
 |---------|------|---------|
 | 0.1 | 2025-12-30 | Initial draft |
+| 0.1.1 | 2025-12-30 | Added Citation & Provenance Rules section (brenner_bot-5so.1.5.2) |
