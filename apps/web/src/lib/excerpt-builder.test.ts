@@ -3,8 +3,12 @@ import {
   composeExcerpt,
   parseExcerpt,
   extractAnchorsFromExcerpt,
+  parseSectionIds,
+  buildExcerptFromSections,
+  buildExcerptFromSearchHits,
   type ExcerptSection,
 } from "./excerpt-builder";
+import type { ParsedTranscript } from "./transcript-parser";
 
 describe("composeExcerpt", () => {
   const testSections: ExcerptSection[] = [
@@ -241,5 +245,154 @@ describe("round-trip", () => {
     expect(parsed![1].anchor).toBe(original[1].anchor);
     expect(parsed![1].quote).toBe(original[1].quote);
     expect(parsed![1].title).toBe(original[1].title);
+  });
+});
+
+// ============================================================================
+// Transcript Integration Tests
+// ============================================================================
+
+describe("parseSectionIds", () => {
+  it("parses single section with § prefix", () => {
+    expect(parseSectionIds("§42")).toEqual([42]);
+  });
+
+  it("parses single section without § prefix", () => {
+    expect(parseSectionIds("42")).toEqual([42]);
+  });
+
+  it("parses range with § prefix", () => {
+    expect(parseSectionIds("§42-45")).toEqual([42, 43, 44, 45]);
+  });
+
+  it("parses range without § prefix", () => {
+    expect(parseSectionIds("42-45")).toEqual([42, 43, 44, 45]);
+  });
+
+  it("parses array of sections", () => {
+    expect(parseSectionIds(["§42", "§45", "§100"])).toEqual([42, 45, 100]);
+  });
+
+  it("deduplicates and sorts", () => {
+    expect(parseSectionIds(["§100", "§42", "§42"])).toEqual([42, 100]);
+  });
+
+  it("handles mixed formats", () => {
+    expect(parseSectionIds(["§42", "50", "§60-62"])).toEqual([42, 50, 60, 61, 62]);
+  });
+});
+
+describe("buildExcerptFromSections", () => {
+  const mockTranscript: ParsedTranscript = {
+    title: "Test Transcript",
+    subtitle: "Test",
+    totalSections: 3,
+    sections: [
+      {
+        number: 42,
+        title: "On Discriminative Tests",
+        content: [
+          {
+            type: "brenner-quote",
+            text: "The question is not whether you can do the experiment, but whether it will tell you anything.",
+          },
+        ],
+      },
+      {
+        number: 45,
+        title: "Potency Checks",
+        content: [
+          {
+            type: "brenner-quote",
+            text: "You need a chastity control.",
+          },
+        ],
+      },
+      {
+        number: 58,
+        title: "Choice of Organism",
+        content: [
+          {
+            type: "paragraph",
+            text: "The experimental object is crucial.",
+          },
+        ],
+      },
+    ],
+  };
+
+  it("builds excerpt from section IDs", () => {
+    const result = buildExcerptFromSections(mockTranscript, ["§42", "§45"]);
+
+    expect(result.anchors).toEqual(["§42", "§45"]);
+    expect(result.markdown).toContain("**§42**");
+    expect(result.markdown).toContain("**§45**");
+    expect(result.markdown).toContain("On Discriminative Tests");
+    expect(result.markdown).toContain("Potency Checks");
+    expect(result.warnings).toHaveLength(0);
+  });
+
+  it("builds excerpt with theme", () => {
+    const result = buildExcerptFromSections(mockTranscript, ["§42"], {
+      theme: "Experimental Design",
+    });
+
+    expect(result.markdown).toContain("### Excerpt: Experimental Design");
+  });
+
+  it("warns about missing sections", () => {
+    const result = buildExcerptFromSections(mockTranscript, ["§42", "§999"]);
+
+    expect(result.anchors).toEqual(["§42"]);
+    expect(result.warnings).toContain("Sections not found: §999");
+  });
+
+  it("falls back to paragraph content when no brenner-quote", () => {
+    const result = buildExcerptFromSections(mockTranscript, ["§58"]);
+
+    expect(result.markdown).toContain("The experimental object is crucial.");
+  });
+
+  it("respects chronological ordering", () => {
+    const result = buildExcerptFromSections(mockTranscript, ["§58", "§42"], {
+      ordering: "chronological",
+    });
+
+    expect(result.anchors).toEqual(["§42", "§58"]);
+    expect(result.markdown.indexOf("§42")).toBeLessThan(
+      result.markdown.indexOf("§58")
+    );
+  });
+});
+
+describe("buildExcerptFromSearchHits", () => {
+  const mockTranscript: ParsedTranscript = {
+    title: "Test",
+    subtitle: "",
+    totalSections: 2,
+    sections: [
+      {
+        number: 42,
+        title: "Test Section",
+        content: [{ type: "brenner-quote", text: "Test quote." }],
+      },
+      {
+        number: 45,
+        title: "Another Section",
+        content: [{ type: "brenner-quote", text: "Another quote." }],
+      },
+    ],
+  };
+
+  it("builds excerpt from search hits", () => {
+    const hits = [
+      { sectionNumber: 42, snippet: "Test snippet" },
+      { sectionNumber: 45, snippet: "Another snippet" },
+    ];
+
+    const result = buildExcerptFromSearchHits(mockTranscript, hits, "Search Results");
+
+    expect(result.anchors).toEqual(["§42", "§45"]);
+    expect(result.markdown).toContain("### Excerpt: Search Results");
   });
 });

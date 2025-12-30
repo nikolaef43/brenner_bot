@@ -253,3 +253,150 @@ export function extractAnchorsFromExcerpt(markdown: string): string[] {
 
   return [...new Set(anchors)]; // Deduplicate
 }
+
+// ============================================================================
+// Transcript Integration
+// ============================================================================
+
+import type { ParsedTranscript, TranscriptSection } from "./transcript-parser";
+
+/**
+ * Extract the primary quote from a transcript section.
+ * Prefers the first brenner-quote, falls back to paragraph content.
+ */
+function extractSectionQuote(section: TranscriptSection, maxWords: number = 150): string {
+  // Find the first brenner-quote
+  const brennerQuote = section.content.find((c) => c.type === "brenner-quote");
+  if (brennerQuote) {
+    return truncateToWords(brennerQuote.text, maxWords);
+  }
+
+  // Fall back to concatenating all content
+  const allText = section.content.map((c) => c.text).join(" ");
+  return truncateToWords(allText, maxWords);
+}
+
+/**
+ * Truncate text to a maximum number of words.
+ */
+function truncateToWords(text: string, maxWords: number): string {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= maxWords) {
+    return text.trim();
+  }
+  return words.slice(0, maxWords).join(" ") + "...";
+}
+
+/**
+ * Parse section ID(s) from various formats.
+ * Accepts: "§42", "42", "§42-45", ["§42", "§45"]
+ */
+export function parseSectionIds(input: string | string[]): number[] {
+  const ids: number[] = [];
+
+  const items = Array.isArray(input) ? input : [input];
+
+  for (const item of items) {
+    // Handle range format: "§42-45" or "42-45"
+    const rangeMatch = item.match(/§?(\d+)-(\d+)/);
+    if (rangeMatch) {
+      const start = parseInt(rangeMatch[1], 10);
+      const end = parseInt(rangeMatch[2], 10);
+      for (let i = start; i <= end; i++) {
+        if (!ids.includes(i)) ids.push(i);
+      }
+      continue;
+    }
+
+    // Handle single section: "§42" or "42"
+    const singleMatch = item.match(/§?(\d+)/);
+    if (singleMatch) {
+      const id = parseInt(singleMatch[1], 10);
+      if (!ids.includes(id)) ids.push(id);
+    }
+  }
+
+  return ids.sort((a, b) => a - b);
+}
+
+/**
+ * Build an excerpt from transcript sections given section IDs.
+ *
+ * This is the primary integration point between the transcript parser
+ * and the excerpt formatter. Use this for both web and CLI.
+ *
+ * @example
+ * ```typescript
+ * import { parseTranscript } from "./transcript-parser";
+ * import { buildExcerptFromSections } from "./excerpt-builder";
+ *
+ * const transcript = parseTranscript(markdownContent);
+ * const excerpt = buildExcerptFromSections(transcript, ["§42", "§45", "§58"]);
+ * console.log(excerpt.markdown);
+ * ```
+ */
+export function buildExcerptFromSections(
+  transcript: ParsedTranscript,
+  sectionIds: string | string[],
+  options: {
+    theme?: string;
+    ordering?: "relevance" | "chronological";
+    maxTotalWords?: number;
+    maxQuoteWords?: number;
+  } = {}
+): ComposedExcerpt {
+  const {
+    theme,
+    ordering = "chronological",
+    maxTotalWords = 800,
+    maxQuoteWords = 150,
+  } = options;
+
+  // Parse section IDs
+  const ids = parseSectionIds(sectionIds);
+
+  // Build ExcerptSection array from transcript
+  const excerptSections: ExcerptSection[] = [];
+  const notFound: string[] = [];
+
+  for (const id of ids) {
+    const section = transcript.sections.find((s) => s.number === id);
+    if (section) {
+      excerptSections.push({
+        anchor: `§${section.number}`,
+        quote: extractSectionQuote(section, maxQuoteWords),
+        title: section.title,
+      });
+    } else {
+      notFound.push(`§${id}`);
+    }
+  }
+
+  // Compose the excerpt
+  const result = composeExcerpt({
+    theme,
+    sections: excerptSections,
+    ordering,
+    maxTotalWords,
+  });
+
+  // Add warnings for missing sections
+  if (notFound.length > 0) {
+    result.warnings.push(`Sections not found: ${notFound.join(", ")}`);
+  }
+
+  return result;
+}
+
+/**
+ * Build an excerpt from search results.
+ * Extracts section IDs from search hits and builds a themed excerpt.
+ */
+export function buildExcerptFromSearchHits(
+  transcript: ParsedTranscript,
+  hits: Array<{ sectionNumber: number; snippet?: string }>,
+  theme?: string
+): ComposedExcerpt {
+  const sectionIds = hits.map((h) => `§${h.sectionNumber}`);
+  return buildExcerptFromSections(transcript, sectionIds, { theme });
+}

@@ -48,7 +48,6 @@ interface IndexStats {
   totalEntries: number;
   byCategory: Record<string, number>;
   indexSizeBytes: number;
-  buildTimeMs: number;
 }
 
 // ============================================================================
@@ -222,7 +221,7 @@ function processMetaprompt(docId: string, docTitle: string, content: string): Se
 // Index Building
 // ============================================================================
 
-function buildIndex(): { entries: SearchEntry[]; miniSearchIndex: object; stats: IndexStats } {
+function buildIndex(): { entries: SearchEntry[]; miniSearchIndex: object; stats: IndexStats; buildTimeMs: number } {
   const startTime = Date.now();
   const entries: SearchEntry[] = [];
   const byCategory: Record<string, number> = {};
@@ -290,13 +289,12 @@ function buildIndex(): { entries: SearchEntry[]; miniSearchIndex: object; stats:
     totalEntries: entries.length,
     byCategory,
     indexSizeBytes: Buffer.byteLength(indexJson, "utf-8"),
-    buildTimeMs,
   };
 
   console.log(`  Index size: ${(stats.indexSizeBytes / 1024).toFixed(2)} KB`);
   console.log(`  Build time: ${buildTimeMs}ms`);
 
-  return { entries, miniSearchIndex, stats };
+  return { entries, miniSearchIndex, stats, buildTimeMs };
 }
 
 // ============================================================================
@@ -315,14 +313,14 @@ function main() {
   }
 
   // Build the index
-  const { miniSearchIndex, stats } = buildIndex();
+  const { miniSearchIndex, stats, buildTimeMs } = buildIndex();
 
   // Write index file
-  writeFileSync(OUTPUT_FILE, JSON.stringify(miniSearchIndex));
+  writeFileSync(OUTPUT_FILE, JSON.stringify(miniSearchIndex) + "\n");
   console.log(`\n✓ Index written to: ${OUTPUT_FILE}`);
 
   // Write stats file
-  writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2));
+  writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2) + "\n");
   console.log(`✓ Stats written to: ${STATS_FILE}`);
 
   // Summary
@@ -331,7 +329,7 @@ function main() {
   console.log("╠══════════════════════════════════════════════════════════╣");
   console.log(`║  Total entries: ${String(stats.totalEntries).padEnd(42)}║`);
   console.log(`║  Index size: ${((stats.indexSizeBytes / 1024).toFixed(2) + " KB").padEnd(45)}║`);
-  console.log(`║  Build time: ${(stats.buildTimeMs + "ms").padEnd(45)}║`);
+  console.log(`║  Build time: ${(buildTimeMs + "ms").padEnd(45)}║`);
   console.log("╠══════════════════════════════════════════════════════════╣");
   console.log("║  By category:                                            ║");
   for (const [category, count] of Object.entries(stats.byCategory)) {
