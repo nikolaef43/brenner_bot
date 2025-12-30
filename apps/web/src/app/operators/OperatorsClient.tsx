@@ -126,7 +126,7 @@ function OperatorCard({
           </div>
         </div>
 
-        <ChevronDownIcon className={`mt-1 flex-shrink-0 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+        <ChevronDownIcon className={`size-5 mt-1 flex-shrink-0 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
       </button>
 
       {/* Body */}
