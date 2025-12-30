@@ -2349,6 +2349,277 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     related: ["mrc-lab", "cold-spring-harbor", "phage-group"],
     category: "brenner",
   },
+
+  // ============================================================================
+  // Fourth Batch: Additional Terms from Transcript (December 2025)
+  // ============================================================================
+
+  // --- Mutation Types ---
+
+  missense: {
+    term: "Missense Mutation",
+    short: "A mutation that changes one amino acid to another.",
+    long:
+      "A missense mutation substitutes one nucleotide for another, resulting in a different amino acid in the protein. Unlike nonsense mutations (which create stop codons), missense mutations produce full-length proteins with altered function.",
+    why:
+      "The distinction between missense and nonsense was crucial for understanding the genetic code. Missense mutations proved that codons specify amino acids; nonsense mutations revealed chain termination signals. Transcript anchor: §107.",
+    related: ["nonsense-codon", "amber-mutation", "suppressor-mutation", "chain-termination"],
+    category: "biology",
+  },
+  "chain-termination": {
+    term: "Chain Termination",
+    short: "The mechanism by which protein synthesis stops at stop codons.",
+    long:
+      "Chain termination occurs when a ribosome encounters a stop codon (UAG, UAA, or UGA). Brenner hypothesized that amber mutants did not simply 'get stuck' but actively terminated chains, and that suppressor mutations allowed read-through.",
+    why:
+      "Brenner proposed 'there were two kinds of nonsense, one got stuck and one actually chain-terminated. And if this is the case, then when you suppress it, you just carry on the chain.' Transcript anchor: §132.",
+    related: ["nonsense-codon", "amber-mutation", "ochre-mutation", "suppressor-mutation"],
+    category: "biology",
+  },
+
+  // --- Bacteriophage Concepts ---
+
+  "lambda-phage": {
+    term: "Lambda Phage",
+    short: "A temperate bacteriophage that can integrate into the host chromosome.",
+    long:
+      "Lambda (λ) phage can either lyse cells or integrate into the E. coli chromosome as a prophage. Lambda became a key tool for genetic engineering, particularly through 'lambda DG' variants that carried bacterial genes picked up during excision.",
+    why:
+      "Brenner used lambda variants for 'genetic steam engineering.' Lambda DGs carrying tryptophan genes (lambda dG-trp) were particularly useful for studying nonsense suppressors. Transcript anchor: §142.",
+    related: ["bacteriophage", "lysogeny", "prophage", "transduction"],
+    category: "biology",
+  },
+  lysogeny: {
+    term: "Lysogeny",
+    short: "The integration of phage DNA into the host chromosome.",
+    long:
+      "In lysogeny, a temperate phage inserts its DNA into the bacterial chromosome, becoming a prophage. The phage genes are replicated with the host DNA and can later be induced to enter the lytic cycle.",
+    why:
+      "Understanding lysogeny was essential for using phages as genetic tools. Lambda's ability to pick up adjacent bacterial genes during excision led to specialized transduction. Transcript anchor: §142.",
+    related: ["lambda-phage", "prophage", "transduction", "bacteriophage"],
+    category: "biology",
+  },
+  prophage: {
+    term: "Prophage",
+    short: "Phage DNA integrated into the host bacterial chromosome.",
+    long:
+      "A prophage is the dormant form of a temperate phage, integrated into the host genome. It replicates with the host and can remain silent for many generations before induction triggers the lytic cycle.",
+    related: ["lysogeny", "lambda-phage", "transduction"],
+    category: "biology",
+  },
+  transduction: {
+    term: "Transduction",
+    short: "Transfer of bacterial genes from one cell to another via phage.",
+    long:
+      "Transduction occurs when a bacteriophage accidentally packages bacterial DNA and transfers it to a new host. Specialized transduction (as with lambda) transfers specific genes adjacent to the integration site.",
+    why:
+      "Transduction was a powerful tool for mapping genes and moving genetic material before modern cloning. Lambda transducing phages carrying specific genes enabled detailed biochemical analysis.",
+    related: ["lambda-phage", "lysogeny", "prophage", "bacteriophage"],
+    category: "biology",
+  },
+
+  // --- Key People ---
+
+  "jacques-monod": {
+    term: "Jacques Monod",
+    short: "Co-discoverer of the operon model and mRNA concept.",
+    long:
+      "Jacques Monod, working with Francois Jacob at the Pasteur Institute, developed the operon model of gene regulation. Their work on enzyme induction led to the concept of messenger RNA and earned them the 1965 Nobel Prize.",
+    why:
+      "Brenner's collaboration with Jacob on the messenger RNA experiment was catalyzed by the PaJaMo work. Monod's kinetic studies of enzyme induction demanded an intermediate information carrier. Transcript anchor: §96.",
+    related: ["francois-jacob", "operon", "pajamo-experiment", "mrna"],
+    category: "biology",
+  },
+  "matthew-meselson": {
+    term: "Matthew Meselson",
+    short: "Demonstrated semiconservative DNA replication with Franklin Stahl.",
+    long:
+      "Matthew Meselson and Franklin Stahl used density gradient centrifugation with heavy nitrogen (N-15) to prove DNA replicates semiconservatively. Their technique was adapted by Brenner and Jacob for the messenger RNA experiment.",
+    why:
+      "Brenner and Jacob used 'the tricks developed by Meselson and Stahl' to distinguish old ribosomes from new RNA, labeling with C-13 and N-15. Transcript anchor: §99.",
+    related: ["meselson-stahl", "density-gradient", "ultracentrifuge"],
+    category: "biology",
+  },
+
+  // --- Experimental Techniques ---
+
+  "pulse-chase": {
+    term: "Pulse-Chase",
+    short: "Labeling molecules briefly, then following their fate over time.",
+    long:
+      "In pulse-chase experiments, radioactive precursors are added briefly (pulse), then replaced with unlabeled molecules (chase). Following the labeled molecules reveals synthesis, processing, and degradation kinetics.",
+    why:
+      "Pulse-chase experiments were essential for demonstrating mRNA turnover. The messenger RNA experiment showed that newly synthesized (pulse) RNA associated with pre-existing ribosomes.",
+    related: ["autoradiography", "density-gradient", "ultracentrifuge"],
+    category: "method",
+  },
+  "sucrose-gradient": {
+    term: "Sucrose Gradient",
+    short: "A density gradient technique for separating molecules by size.",
+    long:
+      "Sucrose gradient centrifugation separates molecules based on sedimentation rate, which depends on size and shape. Ribosomes, RNA, and other macromolecules can be fractionated by layering samples on sucrose solutions.",
+    why:
+      "Brenner noted that 'there was a time that unless you had a sucrose gradient of something, you couldn't publish a paper.' The technique became ubiquitous for ribosome and RNA studies. Transcript anchor: §103.",
+    related: ["density-gradient", "ultracentrifuge", "ribosome"],
+    category: "method",
+  },
+  ultracentrifuge: {
+    term: "Ultracentrifuge",
+    short: "High-speed centrifuge for separating molecules by density or size.",
+    long:
+      "The ultracentrifuge generates forces up to 1,000,000 g, enabling separation of macromolecules by sedimentation. Analytical ultracentrifuges measure sedimentation in real-time; preparative ultracentrifuges collect fractions.",
+    why:
+      "The ultracentrifuge was essential for the messenger RNA experiment. Brenner recalls carrying the rotor through cold hallways while 'drenched from water condensation' during the critical gradient run. Transcript anchor: §101.",
+    related: ["density-gradient", "sucrose-gradient", "meselson-stahl"],
+    category: "method",
+  },
+  autoradiography: {
+    term: "Autoradiography",
+    short: "Detecting radioactive molecules by exposing photographic film.",
+    long:
+      "Autoradiography localizes radioactive isotopes by placing samples against photographic emulsion. The radiation exposes the film, revealing where labeled molecules are located. Used for both biochemical gels and tissue sections.",
+    related: ["pulse-chase", "ultracentrifuge"],
+    category: "method",
+  },
+  "gene-fusion": {
+    term: "Gene Fusion",
+    short: "Joining two genes so one's expression reports on the other.",
+    long:
+      "Gene fusions link genes together so that mutations in one affect expression of the other. Seymour Benzer invented a gene fusion trick to detect nonsense mutants: mutations in gene A could turn off gene B in the fusion.",
+    why:
+      "Brenner used gene fusions extensively: 'Seymour Benzer invented a little trick where he had a gene fusion and he could show he could turn off, in this gene fusion, the function of gene B, by some mutants in gene A.' Transcript anchor: §130.",
+    related: ["nonsense-codon", "seymour-benzer", "rii-region"],
+    category: "method",
+  },
+
+  // --- Brenner Philosophy ---
+
+  "power-of-ignorance": {
+    term: "Power of Ignorance",
+    short: "The creative advantage of not knowing too much about a field.",
+    long:
+      "Brenner believed that 'you can always know too much' and that experience in a field can curtail creativity. Fresh perspectives from outsiders often drive breakthroughs because they aren't constrained by conventional wisdom.",
+    why:
+      "Brenner advocated strategic ignorance: 'I'm a great believer in the power of ignorance. I think you can always know too much. Being an experienced scientist in a subject curtails creativity, because you know what won't work.' Transcript anchor: §63.",
+    analogy:
+      "Like a child solving a puzzle their own way because they haven't learned the 'correct' approach that gets everyone stuck.",
+    related: ["productive-ignorance", "third-alternative", "opening-game"],
+    category: "brenner",
+  },
+  "brute-force": {
+    term: "Brute Force",
+    short: "Genetic steam engineering: solving problems by exhaustive screening.",
+    long:
+      "Brute force approaches screen through thousands of mutants or variants to find rare events. Before recombinant DNA, many genetic engineering tasks required 'genetic steam engineering' with massive screens.",
+    why:
+      "Brenner called early genetic manipulation 'genetic steam engineering, because we had to do things by brute force.' The isolation of amber mutants required 'a few thousand R2 mutants to get the subset of amber mutants only.' Transcript anchor: §136.",
+    related: ["saturation-mutagenesis", "genetic-screen", "exhaustive-enumeration"],
+    category: "method",
+  },
+  "genetics-by-composition": {
+    term: "Genetics by Composition",
+    short: "Building function by adding genes rather than removing them.",
+    long:
+      "Genetics by composition adds genes to organisms (transgenics) rather than analyzing mutants that lack function. It asks: what happens when we add this gene? This complements genetics by decomposition (mutagenesis).",
+    why:
+      "Brenner coined this distinction: 'I called this genetics by composition rather than genetics by decomposition.' Transgenics are 'just a cross of a genome with a gene.' Transcript anchor: §206.",
+    related: ["transgenic", "forward-genetics", "reverse-genetics"],
+    category: "method",
+  },
+  "one-dimensional-sequence": {
+    term: "One-Dimensional Sequence",
+    short: "The insight that biological information is encoded in linear chains.",
+    long:
+      "The reduction of biology to one-dimensional sequences (DNA, RNA, protein) is the foundational insight of molecular biology. Linear sequences make copying, expression, mapping, and mutation conceptually tractable.",
+    why:
+      "Brenner emphasized 'the reduction of biology to one dimension in terms of information is the absolute crucial step. Biology had been three-dimensional... but the whole idea that you could reduce it to one dimension is a very powerful idea.' Transcript anchor: §60.",
+    analogy:
+      "Like compressing a three-dimensional sculpture into assembly instructions that can be written on a tape.",
+    related: ["genetic-code", "sequence-hypothesis", "central-dogma", "turing-machine"],
+    category: "brenner",
+  },
+
+  // --- Theoretical Influences ---
+
+  "von-neumann": {
+    term: "John von Neumann",
+    short: "Mathematician whose self-replicating automata influenced Brenner's thinking.",
+    long:
+      "Von Neumann's theory of self-replicating automata showed that a machine could contain instructions for building copies of itself. He noted that 'the instruction I is roughly effecting the functions of a gene.'",
+    why:
+      "Brenner was deeply influenced by von Neumann: 'the program has to build the machinery to execute the program.' Von Neumann's automata theory provided a conceptual framework for understanding how genes work. Transcript anchor: §47.",
+    related: ["turing-machine", "one-dimensional-sequence", "sequence-hypothesis"],
+    category: "brenner",
+  },
+  "turing-machine": {
+    term: "Turing Machine",
+    short: "Abstract computing device operating on a one-dimensional tape.",
+    long:
+      "A Turing machine is a mathematical model of computation that reads and writes symbols on an infinite tape. Turing machines process linear sequences of instructions, analogous to how ribosomes read mRNA.",
+    why:
+      "Brenner connected Turing machines to molecular biology: 'I was very much intrigued by computers and the von Neumann thing, these are one-dimensional sequences as well; tapes, the Turing machine is a one-dimensional sequence.' Transcript anchor: §60.",
+    related: ["von-neumann", "one-dimensional-sequence", "tape-rna"],
+    category: "brenner",
+  },
+
+  // --- Technical Concepts ---
+
+  auxotroph: {
+    term: "Auxotroph",
+    short: "A mutant organism requiring a specific nutrient to grow.",
+    long:
+      "An auxotroph cannot synthesize an essential nutrient (amino acid, vitamin, nucleotide) and must obtain it from the growth medium. Auxotrophs are valuable genetic markers and selection tools.",
+    why:
+      "Brenner discovered that 'some phage mutants were also tryptophan deficient' and used this connection to study biosynthesis pathways. Auxotrophic markers enabled countless genetic selections. Transcript anchor: §53.",
+    related: ["wild-type", "conditional-lethal", "genetic-screen"],
+    category: "biology",
+  },
+  "aminoacyl-trna-synthetase": {
+    term: "Aminoacyl-tRNA Synthetase",
+    short: "Enzyme that attaches the correct amino acid to its tRNA.",
+    long:
+      "Aminoacyl-tRNA synthetases charge each tRNA with its cognate amino acid. There are typically 20 synthetases, one for each amino acid. They embody half of the genetic code: matching amino acids to tRNAs.",
+    why:
+      "The synthetases are the physical implementation of Crick's adaptor hypothesis. When suppressor mutations change tRNA specificity, 'we've changed a normal transfer RNA... and allow it to read this and make a misprint.' Transcript anchor: §139.",
+    related: ["trna", "adaptor-hypothesis", "genetic-code", "wobble"],
+    category: "biology",
+  },
+
+  // --- C. elegans Specifics ---
+
+  "self-fertilizing-hermaphrodite": {
+    term: "Self-Fertilizing Hermaphrodite",
+    short: "An organism that produces both sperm and eggs and can self-cross.",
+    long:
+      "C. elegans hermaphrodites first produce sperm, then switch to producing oocytes, and fertilize themselves. This allows each animal to be 'a cross of itself with itself.'",
+    why:
+      "Brenner chose C. elegans partly because of its 'beautiful sex life... there's no better inbreeding than to cross yourselves with yourself all the time.' Self-fertilization simplifies genetics enormously. Transcript anchor: §148.",
+    related: ["c-elegans", "hermaphrodite", "n2", "isogenic"],
+    category: "biology",
+  },
+  "unc-54": {
+    term: "unc-54",
+    short: "The gene encoding the major myosin heavy chain in C. elegans muscle.",
+    long:
+      "unc-54 mutants are paralyzed because they lack functional myosin in body wall muscle. This was one of the first C. elegans genes whose protein product was identified biochemically.",
+    why:
+      "Brenner's group discovered that 'unc-54 apparently controlled a major component of the body musculature: the heavy chain of myosin.' This proved that genetic mutants corresponded to specific proteins. Transcript anchor: §163.",
+    related: ["unc-mutant", "c-elegans", "behavioral-mutant"],
+    category: "biology",
+  },
+
+  // --- Historical Context ---
+
+  "saturday-morning-coffee": {
+    term: "Saturday Morning Coffee",
+    short: "The informal LMB discussion group where ideas flowed freely.",
+    long:
+      "The Saturday morning coffee at the LMB was an informal gathering in the sterilizing kitchen where scientists discussed 'molecular structure, embryology, psychology, sometimes politics, just anything.'",
+    why:
+      "These informal discussions were crucial for cross-pollination of ideas. The open, conversational atmosphere fostered the kind of lateral thinking Brenner valued. Transcript anchor: §158.",
+    related: ["mrc-lab", "conversational-science", "kitchen-table-science"],
+    category: "brenner",
+  },
 };
 
 // ============================================================================
