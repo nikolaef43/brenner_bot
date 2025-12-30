@@ -62,9 +62,21 @@ Each delta is a JSON object with the following fields:
 | `agent` | Yes | Name of the contributing agent |
 | `operation` | Yes | One of: ADD, EDIT, KILL |
 | `target_id` | ADD: No, EDIT/KILL: Yes | The item ID being modified |
-| `section` | Yes | Which section this affects |
+| `section` | Yes | Which section this affects (see valid values below) |
 | `payload` | ADD/EDIT: Yes, KILL: Optional | The content being added or the fields being edited |
 | `rationale` | Recommended | Why this change is being made |
+
+### Valid Section Values
+
+| Section ID | Description | ID Prefix |
+|------------|-------------|-----------|
+| `research_thread` | The stable problem statement | `RT` |
+| `hypothesis_slate` | Candidate explanations | `H` |
+| `predictions_table` | Discriminative predictions | `P` |
+| `discriminative_tests` | Ranked decision experiments | `T` |
+| `assumption_ledger` | Load-bearing assumptions | `A` |
+| `anomaly_register` | Quarantined exceptions | `X` |
+| `adversarial_critique` | Attacks on the framing | `C` |
 
 ---
 
@@ -110,7 +122,8 @@ Modifies specific fields of an existing item.
 **Rules**:
 - `target_id` MUST reference an existing, non-killed item
 - Only fields in `payload` are updated; other fields remain unchanged
-- The edit is additive for array fields (anchors, labels) unless `replace: true` is specified
+- For array fields (anchors, labels), new values are merged with existing values by default
+- To replace instead of merge, include `"replace": true` in the payload alongside the array field
 
 ### KILL
 
@@ -131,7 +144,7 @@ Marks an item as logically removed.
 - `target_id` MUST reference an existing, non-killed item
 - The item is NOT removed from the artifact
 - In the rendered artifact, killed items appear with strikethrough and the kill reason
-- Killed items cannot be edited (but can be "unkilled" via a special REVIVE operation)
+- Killed items cannot be edited; to restore a killed item, create a new ADD with the same content
 
 ---
 

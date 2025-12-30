@@ -2252,12 +2252,6 @@
 
 ---
 
-## 186. Cloning viruses to make them safer to work with
-
-> The best case to take a dangerous virus is to take it and clone it; that would make it safe. And put it in *E. coli*.
-
----
-
 ## 191. Links between the Human Genome project and *Caenorhabditis elegans*
 
 > **The new genetics can be differentiated from the old genetics because here we go from the genes outwards** rather than in the old genetics we went from the phenotype inwards to look for the genes. And I had made contact with the people that were interested in starting the Human Genome Programme. In fact, when Bob Sinsheimer had his first meeting in 1984, I couldn't go to that and sent two people from the lab. But they had a repeat of that in '85 at Santa Fe and I went to that. And I simply believed that this was going to be the new way of doing biological science and it would open up enormous vistas to us. So the Human Genome Project, as it is called, became a central interest of mine.
