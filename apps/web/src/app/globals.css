@@ -2608,7 +2608,19 @@ p, li, span, div {
   }
 
   .toc-item:hover {
+
+  .toc-item:active {
+    transform: scale(0.98);
+  }
     @apply text-foreground bg-muted/50;
+
+  .toc-item:active {
+    transform: scale(0.98);
+  }
+  }
+
+  .toc-item:active {
+    transform: scale(0.98);
   }
 
   .toc-item[data-active="true"] {
