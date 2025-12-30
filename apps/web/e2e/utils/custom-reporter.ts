@@ -19,7 +19,7 @@ import { join } from "node:path";
 interface TestSummary {
   title: string;
   file: string;
-  status: "passed" | "failed" | "skipped" | "timedOut";
+  status: "passed" | "failed" | "skipped" | "timedOut" | "interrupted";
   duration: number;
   retries: number;
   errors: string[];
@@ -100,6 +100,11 @@ export default class BrennerBotReporter implements Reporter {
         statusIcon = "⏱";
         statusColor = "\x1b[33m"; // yellow
         this.summary.timedOut++;
+        break;
+      case "interrupted":
+        statusIcon = "⚡";
+        statusColor = "\x1b[35m"; // magenta
+        this.summary.failed++; // Count interrupted as failed
         break;
       default:
         statusIcon = "?";
