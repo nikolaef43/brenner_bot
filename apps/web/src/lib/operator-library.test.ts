@@ -9,7 +9,7 @@ import { describe, it, expect } from "vitest";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-import { parseOperatorLibrary, getOperatorPalette } from "./operator-library";
+import { parseOperatorLibrary, getOperatorPalette, resetOperatorPaletteCache } from "./operator-library";
 
 describe("operator-library", () => {
   it("parses core operators (canonical tag + quote-bank anchors)", async () => {
@@ -39,11 +39,12 @@ describe("operator-library", () => {
   });
 
   it("links each operator to at least one supporting quote", async () => {
+    resetOperatorPaletteCache(); // Clear any cached data from other tests
     const palette = await getOperatorPalette();
     expect(palette.length).toBeGreaterThanOrEqual(10);
 
     for (const operator of palette) {
-      expect(operator.supportingQuotes.length).toBeGreaterThan(0);
+      expect(operator.supportingQuotes.length, `Operator ${operator.canonicalTag} has no supporting quotes`).toBeGreaterThan(0);
       for (const quote of operator.supportingQuotes) {
         expect(quote.tags).toContain(operator.canonicalTag);
         expect(operator.quoteBankAnchors).toContain(quote.sectionId);

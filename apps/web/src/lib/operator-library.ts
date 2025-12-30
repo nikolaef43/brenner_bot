@@ -208,6 +208,11 @@ export function parseOperatorLibrary(markdown: string): OperatorDefinition[] {
 
 let operatorPaletteCache: OperatorWithQuotes[] | null = null;
 
+/** Reset the operator palette cache (useful for testing) */
+export function resetOperatorPaletteCache(): void {
+  operatorPaletteCache = null;
+}
+
 export async function getOperatorPalette(): Promise<OperatorWithQuotes[]> {
   if (operatorPaletteCache) return operatorPaletteCache;
 

@@ -266,10 +266,17 @@ describe("MethodPage", () => {
         screen.getByText(/interactive operator palette/i)
       ).toBeInTheDocument();
       expect(
-        screen.getByText(/bayesian crosswalk visualization/i)
-      ).toBeInTheDocument();
-      expect(
         screen.getByText(/example walkthroughs from historical/i)
+      ).toBeInTheDocument();
+    });
+
+    it("shows the Bayesian Crosswalk section (now implemented)", () => {
+      render(<MethodPage />);
+
+      // The Bayesian Crosswalk is now a fully implemented interactive component
+      expect(screen.getByText(/the bayesian crosswalk/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/implicit bayesianism/i)
       ).toBeInTheDocument();
     });
   });

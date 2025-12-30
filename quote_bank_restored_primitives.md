@@ -82,11 +82,11 @@ Tags: `co-linearity`, `gene-protein`, `bridging-levels`, `experimental-design`
 
 Takeaway: Crick realized the genetic code couldn't be derived by pure logic. There were too many possible mappings, and no theoretical reason to prefer one over another. When theory runs out, experiment takes over.
 
-Tags: `experiment-over-theory`, `measurement`, `empiricism`, `code`
+Tags: `experiment-over-theory`, `measurement`, `empiricism`, `code`, `theory-kill`
 
 ---
 
-## §85 — “Isolate chunks first” (anatomical dissection before columns)
+## §85 — "Isolate chunks first" (anatomical dissection before columns)
 
 > Now the reason to do this was simply that I thought we could just take bacteriophage apart, you know, because it was like a little thing and we could do what we called an anatomical dissection of it. Whereas all the other people said, 'No you have to treat it as a mixture of proteins and go on to columns and separate them', so **the whole idea that you could actually isolate chunks of it as a preliminary was... was certainly something that no one accepted at the time**, and this, we were able to show, could be done, and we did it in very simple ways.
 >
@@ -290,7 +290,7 @@ Tags: `borrowing`, `nature`, `Chargaff`, `messenger-RNA`
 
 Takeaway: Occam's Razor says prefer the simplest theory. Occam's Broom says prefer the theory that requires sweeping the fewest inconvenient facts under the carpet. Every theory has anomalies; the question is how many you need to hide.
 
-Tags: `Occam`, `theory-choice`, `anomalies`, `honesty`
+Tags: `Occam`, `theory-choice`, `anomalies`, `honesty`, `theory-kill`
 
 ---
 
@@ -332,7 +332,7 @@ Tags: `triplet-code`, `logic`, `genetics-as-instrument`, `proof`
 
 Takeaway: Scattered anomalies that share no pattern aren't evidence against a theory. Quarantine them in an appendix, don't hide them. If they're unrelated, they're probably noise or special cases. Return to them later once you have more tools.
 
-Tags: `exceptions`, `appendix`, `anomalies`, `honesty`
+Tags: `exceptions`, `appendix`, `anomalies`, `honesty`, `exception-quarantine`
 
 ---
 

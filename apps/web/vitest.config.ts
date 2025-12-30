@@ -59,7 +59,7 @@ export default defineConfig({
     globals: true,
 
     // Setup files for extending expect and test utilities
-    setupFiles: ["./src/test-setup.ts"],
+    setupFiles: ["./src/test-setup.tsx"],
   },
 
   resolve: {

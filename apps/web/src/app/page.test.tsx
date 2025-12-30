@@ -198,7 +198,12 @@ describe("Home Page", () => {
     it("shows quote attribution", () => {
       render(<Home />);
 
-      expect(screen.getByText("Sydney Brenner")).toBeInTheDocument();
+      // Sydney Brenner appears in multiple places (hero, quote, onboarding)
+      // Verify at least one instance exists
+      const brennerMentions = screen.getAllByText(/Sydney Brenner/);
+      expect(brennerMentions.length).toBeGreaterThan(0);
+
+      // Verify the Nobel attribution is present
       expect(
         screen.getByText(/nobel laureate.*physiology.*medicine.*2002/i)
       ).toBeInTheDocument();

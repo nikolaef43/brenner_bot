@@ -90,14 +90,6 @@ function TagCloud({ tags, selectedTag, onTagSelect, quoteCounts }: TagCloudProps
       .sort((a, b) => (quoteCounts[b] || 0) - (quoteCounts[a] || 0));
   }, [tags, quoteCounts]);
 
-  // Total quotes (for "All" button)
-  const totalQuotes = useMemo(() => {
-    // Count unique quotes, not tag occurrences
-    return tags.reduce((max, t) => Math.max(max, quoteCounts[t] || 0), 0) > 0
-      ? Object.values(quoteCounts).reduce((sum, count) => sum + count, 0) / 2 // rough estimate
-      : 0;
-  }, [tags, quoteCounts]);
-
   // Determine visible tags
   const visibleTags = isExpanded ? meaningfulTags : meaningfulTags.slice(0, INITIAL_VISIBLE);
   const hiddenCount = meaningfulTags.length - INITIAL_VISIBLE;
@@ -370,7 +362,6 @@ export function QuoteBankViewer({ data }: QuoteBankViewerProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [forceUnfiltered, setForceUnfiltered] = useState(false);
   const [highlightedSectionId, setHighlightedSectionId] = useState<string | null>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pendingScrollSectionIdRef = useRef<string | null>(null);
 
   // Debounce search query for better performance
@@ -512,7 +503,7 @@ export function QuoteBankViewer({ data }: QuoteBankViewerProps) {
 
         {/* Quote list - simple rendering with CSS containment for performance */}
         {filteredQuotes.length > 0 ? (
-          <div ref={scrollContainerRef} className="space-y-6">
+          <div className="space-y-6">
             {filteredQuotes.map((quote) => {
               const domId = quoteBankDomIdFromSectionId(quote.sectionId);
               return (
