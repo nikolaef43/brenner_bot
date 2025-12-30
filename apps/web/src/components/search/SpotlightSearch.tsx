@@ -234,8 +234,11 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
 
               {/* Category Filters */}
               {query && (
-                <div className="relative px-4 sm:px-5 py-2 border-b border-border/30 overflow-x-auto scrollbar-hide">
-                  <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="relative px-4 sm:px-5 py-2 border-b border-border/30">
+                  {/* Scroll fade indicators */}
+                  <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-card to-transparent z-10 sm:hidden" />
+                  <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-card to-transparent z-10 sm:hidden" />
+                  <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide">
                     <CategoryPill
                       category="all"
                       isActive={activeCategory === "all"}
@@ -322,7 +325,7 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
 
               {/* Initial State */}
               {!query && (
-                <InitialState />
+                <InitialState onSearch={setQuery} />
               )}
             </div>
 
@@ -594,7 +597,7 @@ function EmptyState({ query }: { query: string }) {
   );
 }
 
-function InitialState() {
+function InitialState({ onSearch }: { onSearch: (text: string) => void }) {
   return (
     <div className="px-6 py-10 sm:py-12 text-center">
       <div className="inline-flex items-center justify-center size-12 sm:size-14 rounded-2xl bg-primary/10 mb-3 sm:mb-4">
@@ -607,21 +610,24 @@ function InitialState() {
         Search across 236 transcript sections, quotes, distillations, and model responses.
       </p>
       <div className="flex flex-wrap items-center justify-center gap-2">
-        <SuggestionChip text="C. elegans" />
-        <SuggestionChip text="molecular biology" />
-        <SuggestionChip text="Sydney Brenner" />
-        <SuggestionChip text="genetics" />
+        <SuggestionChip text="C. elegans" onClick={onSearch} />
+        <SuggestionChip text="molecular biology" onClick={onSearch} />
+        <SuggestionChip text="Sydney Brenner" onClick={onSearch} />
+        <SuggestionChip text="genetics" onClick={onSearch} />
       </div>
     </div>
   );
 }
 
-function SuggestionChip({ text }: { text: string }) {
+function SuggestionChip({ text, onClick }: { text: string; onClick: (text: string) => void }) {
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted/50 text-xs text-muted-foreground">
+    <button
+      onClick={() => onClick(text)}
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary active:scale-95 transition-all touch-manipulation"
+    >
       <Search className="size-3" />
       {text}
-    </span>
+    </button>
   );
 }
 

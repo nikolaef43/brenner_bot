@@ -393,27 +393,36 @@ function BasketItemRow({
   onMoveDown: () => void;
 }) {
   return (
-    <div className="group flex items-start gap-2 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-      {/* Reorder Handle */}
-      <div className="flex flex-col gap-0.5 pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="size-6 p-0"
-          onClick={onMoveUp}
-          disabled={index === 0}
-        >
-          <ChevronUp className="size-3" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="size-6 p-0"
-          onClick={onMoveDown}
-          disabled={index === totalItems - 1}
-        >
-          <ChevronDown className="size-3" />
-        </Button>
+    <div className="group flex items-start gap-2 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors border border-transparent hover:border-border/50">
+      {/* Position indicator + Reorder controls */}
+      <div className="flex flex-col items-center gap-0.5 pt-0.5">
+        {/* Position number badge - always visible */}
+        <span className="flex items-center justify-center size-6 rounded-md bg-primary/10 text-primary text-xs font-semibold">
+          {index + 1}
+        </span>
+        {/* Reorder buttons - always visible on touch, hover on desktop */}
+        <div className="flex flex-col gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="size-6 p-0 touch-manipulation active:scale-90"
+            onClick={onMoveUp}
+            disabled={index === 0}
+            aria-label="Move up"
+          >
+            <ChevronUp className="size-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="size-6 p-0 touch-manipulation active:scale-90"
+            onClick={onMoveDown}
+            disabled={index === totalItems - 1}
+            aria-label="Move down"
+          >
+            <ChevronDown className="size-3.5" />
+          </Button>
+        </div>
       </div>
 
       {/* Content */}
@@ -428,17 +437,18 @@ function BasketItemRow({
             </span>
           )}
         </div>
-        <p className="text-sm text-muted-foreground line-clamp-2">
+        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
           {item.quote}
         </p>
       </div>
 
-      {/* Remove Button */}
+      {/* Remove Button - always visible on touch, hover on desktop */}
       <Button
         variant="ghost"
         size="sm"
-        className="size-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+        className="size-8 p-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10 touch-manipulation active:scale-90"
         onClick={onRemove}
+        aria-label="Remove from basket"
       >
         <X className="size-4" />
       </Button>
