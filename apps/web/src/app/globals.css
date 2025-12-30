@@ -2511,11 +2511,13 @@ p, li, span, div {
   }
 
   .bottom-nav-item {
-    @apply flex flex-col items-center justify-center gap-1 py-2 px-3 text-muted-foreground;
+    @apply relative flex flex-col items-center justify-center gap-1 py-2 px-3 text-muted-foreground;
     min-width: 64px;
     min-height: 48px;
-    transition: color var(--duration-fast) var(--ease-out),
-                transform var(--duration-fast) var(--ease-out);
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out),
+      background var(--duration-fast) var(--ease-out);
   }
 
   .bottom-nav-item:hover {
@@ -2526,17 +2528,24 @@ p, li, span, div {
     @apply text-primary font-medium;
   }
 
-  .bottom-nav-item:active {
-    transform: scale(0.95);
+  /* Subtle background pill on active */
+  .bottom-nav-item[data-active="true"]::before {
+    content: "";
+    @apply absolute inset-x-2 inset-y-1 rounded-lg -z-10;
+    background: var(--primary);
+    opacity: 0.1;
   }
 
-  /* Active indicator dot */
+  .bottom-nav-item:active {
+    transform: scale(0.92);
+  }
+
+  /* Active indicator line - more prominent than a dot */
   .bottom-nav-item[data-active="true"]::after {
     content: "";
-    @apply absolute -bottom-0.5 left-1/2 -translate-x-1/2;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
+    @apply absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full;
+    width: 20px;
+    height: 3px;
     background: var(--primary);
   }
 
@@ -2545,29 +2554,48 @@ p, li, span, div {
      ======================================================================== */
 
   .back-to-top {
-    @apply fixed z-40 rounded-full bg-primary text-primary-foreground p-3;
-    @apply opacity-0 translate-y-4 pointer-events-none;
+    @apply fixed z-40 rounded-full bg-primary text-primary-foreground;
+    @apply opacity-0 scale-75 pointer-events-none;
     right: 1rem;
     /* Mobile: account for bottom nav (64px) + safe area + spacing */
     bottom: calc(4rem + 1.5rem + env(safe-area-inset-bottom, 0px));
-    box-shadow: var(--elevation-lg);
+    padding: 0.875rem;
+    box-shadow:
+      var(--elevation-lg),
+      0 0 0 0 oklch(var(--primary-oklch) / 0.4);
     transition:
-      opacity var(--duration-normal) var(--ease-out),
-      transform var(--duration-normal) var(--ease-out),
-      box-shadow var(--duration-normal) var(--ease-out);
+      opacity 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+      transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 0.2s var(--ease-out);
   }
 
   .back-to-top.visible {
-    @apply opacity-100 translate-y-0 pointer-events-auto;
+    @apply opacity-100 scale-100 pointer-events-auto;
+    /* Subtle pulse animation on first appearance */
+    animation: back-to-top-pulse 2s ease-out 0.3s;
+  }
+
+  @keyframes back-to-top-pulse {
+    0%, 100% {
+      box-shadow:
+        var(--elevation-lg),
+        0 0 0 0 oklch(var(--primary-oklch) / 0.4);
+    }
+    50% {
+      box-shadow:
+        var(--elevation-lg),
+        0 0 0 8px oklch(var(--primary-oklch) / 0);
+    }
   }
 
   .back-to-top:hover {
     box-shadow: var(--elevation-xl), var(--glow-primary);
-    transform: translateY(-4px);
+    transform: translateY(-3px) scale(1.05);
   }
 
   .back-to-top:active {
     transform: scale(0.92);
+    box-shadow: var(--elevation-md);
   }
 
   /* Desktop: no bottom nav, use normal spacing */

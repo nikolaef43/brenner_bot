@@ -27,9 +27,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
-        <div className="relative">
+        <div className="relative group/input">
           {hasIcon && iconPosition === "left" && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within/input:text-primary transition-colors duration-150">
               {icon}
             </div>
           )}
@@ -37,14 +37,17 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             type={type}
             id={inputId}
             className={cn(
-              "flex h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm",
+              // Base styles with touch-friendly height on mobile (44px), standard on desktop (40px)
+              "flex h-11 sm:h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-base sm:text-sm",
               "transition-all duration-150 ease-out",
-              "placeholder:text-muted-foreground",
+              "placeholder:text-muted-foreground/70",
               "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background focus:border-primary",
-              "disabled:cursor-not-allowed disabled:opacity-50",
-              "file:border-0 file:bg-transparent file:text-sm file:font-medium",
+              "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted/50",
+              "file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-primary",
+              // Icon padding
               hasIcon && iconPosition === "left" && "pl-10",
               hasIcon && iconPosition === "right" && "pr-10",
+              // Error state
               error && "border-destructive focus:ring-destructive/50",
               className
             )}
@@ -54,7 +57,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {hasIcon && iconPosition === "right" && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within/input:text-primary transition-colors duration-150">
               {icon}
             </div>
           )}
