@@ -222,13 +222,10 @@ export function CollapsibleContent({
         >
           {/* Inner wrapper with slide-up animation for premium feel */}
           <motion.div
-            initial={{ y: 8, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -4, opacity: 0 }}
-            transition={{
-              ...contentSpring,
-              opacity: { duration: 0.2 },
-            }}
+            initial={{ y: 8 }}
+            animate={{ y: 0 }}
+            exit={{ y: -4 }}
+            transition={contentSpring}
           >
             {children}
           </motion.div>
