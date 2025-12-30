@@ -290,6 +290,16 @@ The CLI is the terminal equivalent of the web “lab” flow. It is **Bun-only**
 - `./brenner.ts ...` (script)
 - `bun build --compile --outfile brenner ./brenner.ts` (single executable)
 
+#### Install from a pinned release (recommended)
+
+For a safer, reproducible install, pin to a tag (avoid installing from `main`):
+
+```bash
+export VERSION="0.1.0" # example
+curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/brenner_bot/v${VERSION}/install.sh" \
+  | bash -s -- --version "${VERSION}" --verify
+```
+
 #### CLI command map (contract)
 
 Status legend:
