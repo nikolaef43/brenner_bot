@@ -137,88 +137,60 @@ The idea is to turn those into **prompt templates + structured research protocol
 > **Key insight**: This is a **CLI-based** architecture. We do NOT call AI APIs. Instead, CLI tools (claude code, codex-cli, gemini-cli) run in terminal sessions via **ntm** (Named Tmux Manager), coordinating through **Agent Mail**. The web app is a human interface for browsing—not agent execution.
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {
-  'primaryColor': '#e3f2fd',
-  'primaryTextColor': '#1a1a2e',
-  'primaryBorderColor': '#90caf9',
-  'lineColor': '#78909c',
-  'secondaryColor': '#e8f5e9',
-  'tertiaryColor': '#fff8e1',
-  'background': '#fafafa',
-  'fontSize': '14px'
-}}}%%
-
 flowchart TB
-    subgraph HUMAN["<b>HUMAN INTERFACES</b>"]
-        direction LR
-        WEB["🌐 Web App<br/><i>corpus · sessions</i>"]
-        BCLI["⌨️ brenner CLI<br/><i>terminal workflows</i>"]
+    subgraph HUMAN[" 👤 HUMAN INTERFACES "]
+        WEB["🌐 Web App"]
+        BCLI["⌨️ brenner CLI"]
     end
 
-    subgraph SOURCES["<b>PRIMARY SOURCES</b>"]
-        direction LR
-        T["📄 Transcripts<br/><i>236 §-anchored</i>"]
-        Q["📚 Quote Bank<br/><i>primitives</i>"]
+    subgraph SOURCES[" 📚 PRIMARY SOURCES "]
+        T["Transcripts · 236 sections"]
+        Q["Quote Bank · primitives"]
     end
 
-    subgraph KERNEL["<b>PROTOCOL KERNEL</b>"]
-        direction LR
-        S["⚙️ Schema<br/><i>+ Guardrails</i>"]
-        P["📝 Prompts<br/><i>role deltas</i>"]
+    subgraph KERNEL[" ⚙️ PROTOCOL KERNEL "]
+        S["Schema + Guardrails"]
+        P["Role Prompts"]
     end
 
-    subgraph BUS["<b>COORDINATION BUS</b>"]
-        AM["📬 Agent Mail<br/><i>threads · acks · join-key</i>"]
+    subgraph BUS[" 📬 COORDINATION BUS "]
+        AM["Agent Mail · threads · acks"]
     end
 
-    subgraph COCKPIT["<b>COCKPIT RUNTIME</b>"]
-        direction TB
-        NTM["🖥️ ntm<br/><i>tmux sessions</i>"]
-
-        subgraph AGENTS["<b>CLI Agents</b>"]
-            direction LR
-            C["🟣 claude code<br/><i>Max</i>"]
-            G["🟢 codex-cli<br/><i>Pro</i>"]
-            M["🔵 gemini-cli<br/><i>Ultra</i>"]
-        end
-
-        AC["🔧 Compiler<br/><i>merge + lint</i>"]
-
-        NTM --> AGENTS
-        AGENTS --> AC
+    subgraph COCKPIT[" 🖥️ COCKPIT RUNTIME "]
+        NTM["ntm · tmux sessions"]
+        C["🟣 claude code"]
+        G["🟢 codex-cli"]
+        M["🔵 gemini-cli"]
+        AC["🔧 Artifact Compiler"]
+        NTM --> C & G & M --> AC
     end
 
-    subgraph ARTIFACTS["<b>DURABLE ARTIFACTS</b>"]
-        direction LR
-        H["Hypothesis<br/>Slates"]
-        D["Tests"]
-        A["Ledgers"]
-        X["Critiques"]
+    subgraph ARTIFACTS[" 📋 DURABLE ARTIFACTS "]
+        H["Hypothesis Slates"]
+        D["Discriminative Tests"]
+        A["Assumption Ledgers"]
+        X["Adversarial Critiques"]
     end
 
-    subgraph MEMORY["<b>MEMORY</b> <i>(optional)</i>"]
-        direction LR
-        CASS["🔍 cass<br/><i>session search</i>"]
-        CM["🧠 cm<br/><i>rules + patterns</i>"]
+    subgraph MEMORY[" 🧠 MEMORY · optional "]
+        CASS["cass · session search"]
+        CM["cm · rules + patterns"]
     end
 
-    HUMAN --> SOURCES
-    HUMAN --> BUS
-    SOURCES --> KERNEL
-    KERNEL --> BUS
-    BUS <--> COCKPIT
-    COCKPIT --> ARTIFACTS
-    ARTIFACTS -.->|"feedback"| SOURCES
-    MEMORY -.->|"augment"| KERNEL
+    HUMAN --> SOURCES & BUS
+    SOURCES --> KERNEL --> BUS
+    BUS <--> COCKPIT --> ARTIFACTS
+    ARTIFACTS -.->|feedback| SOURCES
+    MEMORY -.->|augment| KERNEL
 
-    style HUMAN fill:#e8eaf6,stroke:#7986cb,stroke-width:2px,color:#3949ab
-    style SOURCES fill:#e3f2fd,stroke:#64b5f6,stroke-width:2px,color:#1565c0
-    style KERNEL fill:#e8f5e9,stroke:#81c784,stroke-width:2px,color:#2e7d32
-    style BUS fill:#fff3e0,stroke:#ffb74d,stroke-width:2px,color:#ef6c00
-    style COCKPIT fill:#f3e5f5,stroke:#ba68c8,stroke-width:2px,color:#7b1fa2
-    style AGENTS fill:#fce4ec,stroke:#f48fb1,stroke-width:1px,color:#880e4f
-    style ARTIFACTS fill:#fff8e1,stroke:#ffd54f,stroke-width:2px,color:#f57f17
-    style MEMORY fill:#eceff1,stroke:#90a4ae,stroke-width:1px,color:#546e7a
+    style HUMAN fill:#e8eaf6,stroke:#5c6bc0
+    style SOURCES fill:#e3f2fd,stroke:#42a5f5
+    style KERNEL fill:#e8f5e9,stroke:#66bb6a
+    style BUS fill:#fff3e0,stroke:#ffa726
+    style COCKPIT fill:#f3e5f5,stroke:#ab47bc
+    style ARTIFACTS fill:#fff8e1,stroke:#ffca28
+    style MEMORY fill:#eceff1,stroke:#78909c
 ```
 
 ### The join-key contract
