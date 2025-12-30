@@ -1,5 +1,6 @@
 import { readFile, access } from "node:fs/promises";
 import { resolve } from "node:path";
+import { headers } from "next/headers";
 
 /**
  * Document category type.
@@ -170,15 +171,46 @@ async function fileExists(path: string): Promise<boolean> {
   }
 }
 
-async function resolveCorpusPath(filename: string): Promise<string> {
+/**
+ * Try to read a corpus file from the filesystem.
+ * Returns null if file is not accessible (e.g., in Vercel serverless).
+ */
+async function tryReadFromFilesystem(filename: string): Promise<string | null> {
   const publicPath = resolve(process.cwd(), "public/corpus", filename);
   const repoRootPath = resolve(process.cwd(), "../..", filename);
 
-  // Prefer public/corpus/ for deployment, fallback to repo root for local dev.
-  if (await fileExists(publicPath)) return publicPath;
-  if (await fileExists(repoRootPath)) return repoRootPath;
+  // Try public/corpus/ first (local dev after copy-corpus)
+  if (await fileExists(publicPath)) {
+    return readFile(publicPath, "utf8");
+  }
 
-  throw new Error(`Corpus file not found: ${filename}`);
+  // Try repo root (local dev without copy-corpus)
+  if (await fileExists(repoRootPath)) {
+    return readFile(repoRootPath, "utf8");
+  }
+
+  return null;
+}
+
+/**
+ * Fetch a corpus file via HTTP from the public URL.
+ * Used when filesystem access is not available (Vercel serverless).
+ */
+async function fetchFromPublicUrl(filename: string): Promise<string> {
+  // Get the host from request headers to construct the URL
+  const headersList = await headers();
+  const host = headersList.get("host") || "brennerbot.org";
+  const protocol = headersList.get("x-forwarded-proto") || "https";
+  const baseUrl = `${protocol}://${host}`;
+
+  const url = `${baseUrl}/corpus/${filename}`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch corpus file: ${filename} (${response.status})`);
+  }
+
+  return response.text();
 }
 
 export async function listCorpusDocs(): Promise<CorpusDoc[]> {
@@ -189,7 +221,13 @@ export async function readCorpusDoc(id: string): Promise<{ doc: CorpusDoc; conte
   const doc = CORPUS_DOCS.find((d) => d.id === id);
   if (!doc) throw new Error(`Unknown doc: ${id}`);
 
-  const absPath = await resolveCorpusPath(doc.filename);
-  const content = await readFile(absPath, "utf8");
+  // Try filesystem first (works in dev and during build)
+  let content = await tryReadFromFilesystem(doc.filename);
+
+  // Fall back to HTTP fetch (works in Vercel serverless)
+  if (content === null) {
+    content = await fetchFromPublicUrl(doc.filename);
+  }
+
   return { doc, content };
 }

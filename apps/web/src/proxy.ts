@@ -54,7 +54,7 @@ function hasCloudflareAccessHeaders(request: NextRequest): boolean {
   return false;
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Never serve raw markdown files directly from `public/corpus/`.
