@@ -52,6 +52,25 @@ const springSnappy = {
   damping: 25,
 };
 
+// Stagger configuration for child elements
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.1,
+    },
+  },
+  exit: { opacity: 0 },
+};
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0, transition: springSnappy },
+  exit: { opacity: 0, y: -4, transition: { duration: 0.1 } },
+};
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -232,8 +251,9 @@ export function Jargon({ term, children, className }: JargonProps) {
           "relative inline cursor-help",
           "decoration-[2px] underline underline-offset-[3px]",
           "decoration-primary/50 decoration-dotted",
-          "transition-all duration-150",
+          "transition-all duration-200",
           "hover:decoration-primary hover:text-primary hover:decoration-solid",
+          "active:scale-[0.98]",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm",
           className,
         ].filter(Boolean).join(" ")}
@@ -341,34 +361,41 @@ function TooltipContent({ term, termKey }: { term: JargonTerm; termKey: string }
   const glossaryHref = `/glossary#${encodeURIComponent(termKey)}`;
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
+    <motion.div
+      className="space-y-2"
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+    >
+      <motion.div variants={staggerItem} className="flex items-center gap-2">
         <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/20 text-primary">
           <LightbulbIcon className="h-3.5 w-3.5" />
         </div>
         <span className="font-semibold text-foreground">{term.term}</span>
-      </div>
+      </motion.div>
 
-      <p className="text-sm leading-relaxed text-muted-foreground">
+      <motion.p variants={staggerItem} className="text-sm leading-relaxed text-muted-foreground">
         {term.short}
-      </p>
+      </motion.p>
 
       {term.analogy && (
-        <div className="rounded-lg bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+        <motion.div variants={staggerItem} className="rounded-lg bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
           <span className="font-medium text-primary">Think of it like:</span>{" "}
           {term.analogy}
-        </div>
+        </motion.div>
       )}
 
-      <div className="flex items-center justify-end pt-1">
+      <motion.div variants={staggerItem} className="flex items-center justify-end pt-1">
         <Link
           href={glossaryHref}
-          className="text-[11px] font-medium text-primary underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
+          className="group inline-flex items-center gap-1 text-[11px] font-medium text-primary underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
         >
-          View full entry →
+          View full entry
+          <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5">→</span>
         </Link>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -376,12 +403,51 @@ function TooltipContent({ term, termKey }: { term: JargonTerm; termKey: string }
 // Sheet Content (Mobile)
 // ============================================================================
 
+// Sheet stagger config (slower for mobile, more dramatic)
+const sheetStaggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.15,
+    },
+  },
+};
+
+const sheetStaggerItem = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: springSmooth },
+};
+
+// Chip stagger for related terms
+const chipContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const chipItem = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: { opacity: 1, scale: 1, transition: springSnappy },
+};
+
 function SheetContent({ term, termKey }: { term: JargonTerm; termKey: string }) {
   const glossaryHref = `/glossary#${encodeURIComponent(termKey)}`;
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center gap-3">
+    <motion.div
+      className="space-y-5"
+      variants={sheetStaggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div variants={sheetStaggerItem} className="flex items-center gap-3">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 shadow-lg">
           <LightbulbIcon className="h-6 w-6 text-primary" />
         </div>
@@ -391,31 +457,31 @@ function SheetContent({ term, termKey }: { term: JargonTerm; termKey: string }) 
             {term.short}
           </p>
         </div>
-      </div>
+      </motion.div>
 
       <div className="space-y-4">
-        <div>
+        <motion.div variants={sheetStaggerItem}>
           <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
             What is it?
           </h4>
           <p className="text-sm leading-relaxed text-foreground">
             {term.long}
           </p>
-        </div>
+        </motion.div>
 
         {term.why && (
-          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+          <motion.div variants={sheetStaggerItem} className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
             <p className="mb-1 text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
               Why it matters
             </p>
             <p className="text-sm leading-relaxed text-foreground">
               {term.why}
             </p>
-          </div>
+          </motion.div>
         )}
 
         {term.analogy && (
-          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+          <motion.div variants={sheetStaggerItem} className="rounded-xl border border-primary/20 bg-primary/5 p-4">
             <div className="flex items-center gap-2 mb-1">
               <SparklesIcon className="size-4 text-primary" />
               <p className="text-xs font-bold uppercase tracking-wider text-primary">
@@ -425,37 +491,44 @@ function SheetContent({ term, termKey }: { term: JargonTerm; termKey: string }) 
             <p className="text-sm leading-relaxed text-foreground">
               {term.analogy}
             </p>
-          </div>
+          </motion.div>
         )}
 
         {term.related && term.related.length > 0 && (
-          <div>
+          <motion.div variants={sheetStaggerItem}>
             <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Related Terms
             </h4>
-            <div className="flex flex-wrap gap-2">
+            <motion.div
+              className="flex flex-wrap gap-2"
+              variants={chipContainer}
+              initial="hidden"
+              animate="visible"
+            >
               {term.related.map((relatedTerm) => (
-                <span
+                <motion.span
                   key={relatedTerm}
+                  variants={chipItem}
                   className="rounded-full border border-border/50 bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground"
                 >
                   {relatedTerm}
-                </span>
+                </motion.span>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
 
-        <div className="pt-2">
+        <motion.div variants={sheetStaggerItem} className="pt-2">
           <Link
             href={glossaryHref}
-            className="inline-block text-sm font-medium text-primary underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
+            className="group inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
           >
             View in glossary
+            <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5">→</span>
           </Link>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
