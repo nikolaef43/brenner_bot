@@ -264,10 +264,10 @@ Don't sweep anomalies under the carpet—but don't let them destroy good framewo
 
 **Failure mode to avoid**: Making excuses for failing theories
 
-### ⊕ Real Third Alternative
+### Real Third Alternative (applying ⊕ Cross-Domain)
 Not just "both wrong"—propose a specific alternative framing.
 - "Both could be wrong" (§103) is the starting point
-- The real work is proposing WHAT ELSE could be true
+- Apply ⊕ Cross-Domain to find what ELSE could be true
 - Look for assumption failures that would invalidate all hypotheses
 
 **Failure mode to avoid**: Vague skepticism without constructive alternatives
