@@ -26,15 +26,22 @@ interface CliResult {
 /**
  * Run the brenner CLI with given arguments and return output.
  */
-async function runCli(args: string[], timeout = 5000): Promise<CliResult> {
+async function runCli(
+  args: string[],
+  options?: { timeout?: number; env?: Record<string, string> }
+): Promise<CliResult> {
+  const timeout = options?.timeout ?? 5000;
+  const env = {
+    ...process.env,
+    // Disable Agent Mail for most tests
+    AGENT_MAIL_BASE_URL: "http://127.0.0.1:59999", // Non-existent port
+    ...(options?.env ?? {}),
+  };
+
   return new Promise((resolve, reject) => {
-    const proc = spawn("bun", ["run", CLI_PATH, ...args], {
+    const proc = spawn(process.execPath, ["run", CLI_PATH, ...args], {
       timeout,
-      env: {
-        ...process.env,
-        // Disable Agent Mail for most tests
-        AGENT_MAIL_BASE_URL: "http://127.0.0.1:59999", // Non-existent port
-      },
+      env,
     });
 
     let stdout = "";
@@ -68,6 +75,7 @@ describe("help and usage", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("Usage:");
     expect(result.stdout).toContain("Commands:");
+    expect(result.stdout).toContain("memory");
     expect(result.stdout).toContain("mail");
     expect(result.stdout).toContain("prompt");
     expect(result.stdout).toContain("session");
@@ -102,6 +110,7 @@ describe("help and usage", () => {
     expect(result.stdout).toContain("mail ack");
     expect(result.stdout).toContain("mail thread");
     expect(result.stdout).toContain("prompt compose");
+    expect(result.stdout).toContain("memory context");
     expect(result.stdout).toContain("session start");
     expect(result.stdout).toContain("session status");
   });
@@ -111,6 +120,9 @@ describe("help and usage", () => {
     expect(result.stdout).toContain("AGENT_MAIL_BASE_URL");
     expect(result.stdout).toContain("AGENT_MAIL_PATH");
     expect(result.stdout).toContain("AGENT_MAIL_BEARER_TOKEN");
+    expect(result.stdout).toContain("CM_MCP_BASE_URL");
+    expect(result.stdout).toContain("CM_MCP_PATH");
+    expect(result.stdout).toContain("CM_MCP_BEARER_TOKEN");
   });
 
   it("usage includes aliases", async () => {
@@ -207,6 +219,44 @@ describe("unknown commands", () => {
     const result = await runCli(["session"]);
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("Unknown command");
+  });
+});
+
+// ============================================================================
+// Tests: Memory Context Command
+// ============================================================================
+
+describe("memory context command", () => {
+  it("fails softly when cm is missing", async () => {
+    const result = await runCli(["memory", "context", "test task"], {
+      env: {
+        PATH: process.platform === "win32" ? "C:\\__brenner_test_empty_path__" : "/__brenner_test_empty_path__",
+      },
+    });
+
+    expect(result.exitCode).toBe(1);
+
+    let parsed: {
+      ok: boolean;
+      context: unknown;
+      provenance: { mode: string; errors: string[] };
+    };
+
+    try {
+      parsed = JSON.parse(result.stdout) as {
+        ok: boolean;
+        context: unknown;
+        provenance: { mode: string; errors: string[] };
+      };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      throw new Error(`Expected brenner memory context JSON output. Parse failed: ${msg}\n\nstdout:\n${result.stdout}`);
+    }
+
+    expect(parsed.ok).toBe(false);
+    expect(parsed.context).toBeNull();
+    expect(parsed.provenance.mode).toBe("none");
+    expect(parsed.provenance.errors.join(" ")).toContain("cm not found");
   });
 });
 

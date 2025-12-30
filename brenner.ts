@@ -285,6 +285,296 @@ function runCommand(command: string): { exitCode: number; stdout: string; stderr
   }
 }
 
+type CassMemoryContextBullet = {
+  id: string | null;
+  content: string;
+  raw: Json;
+};
+
+type CassMemoryContextHistorySnippet = {
+  snippet: string;
+  raw: Json;
+};
+
+type CassMemoryContextNormalized = {
+  success: boolean;
+  task: string;
+  relevantBullets: CassMemoryContextBullet[];
+  antiPatterns: CassMemoryContextBullet[];
+  historySnippets: CassMemoryContextHistorySnippet[];
+  suggestedCassQueries: string[];
+  degraded: Json | null;
+  error: { code?: string; message?: string; hint?: string; retryable?: boolean } | null;
+  raw: Json;
+};
+
+type CassMemoryContextOptions = {
+  workspace?: string;
+  top?: number;
+  history?: number;
+  days?: number;
+  logContext?: boolean;
+  sessionId?: string;
+};
+
+type CassMemoryContextProvenance = {
+  mode: "mcp" | "cli" | "none";
+  startedAt: string;
+  durationMs: number;
+  mcp?: { baseUrl: string; path: string; tool: string; args: Record<string, Json> };
+  cli?: { argv: string[]; exitCode: number; stderr: string };
+  errors: string[];
+};
+
+type CassMemoryContextResult = {
+  ok: boolean;
+  context: CassMemoryContextNormalized | null;
+  provenance: CassMemoryContextProvenance;
+};
+
+function normalizeCassMemoryBullet(item: Json): CassMemoryContextBullet {
+  if (typeof item === "string") return { id: null, content: item, raw: item };
+
+  if (isRecord(item)) {
+    const content = typeof item.content === "string" ? item.content : JSON.stringify(item);
+    const id = typeof item.id === "string" && item.id.length > 0 ? item.id : null;
+    return { id, content, raw: item };
+  }
+
+  return { id: null, content: JSON.stringify(item), raw: item };
+}
+
+function normalizeCassMemoryHistorySnippet(item: Json): CassMemoryContextHistorySnippet {
+  if (typeof item === "string") return { snippet: item, raw: item };
+
+  if (isRecord(item)) {
+    const snippet = typeof item.snippet === "string" ? item.snippet : JSON.stringify(item);
+    return { snippet, raw: item };
+  }
+
+  return { snippet: JSON.stringify(item), raw: item };
+}
+
+function normalizeCassMemoryStringArray(value: Json | undefined): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string" && item.length > 0);
+}
+
+function parseCassMemoryContext(raw: Json, fallbackTask: string): CassMemoryContextNormalized {
+  if (!isRecord(raw)) {
+    return {
+      success: false,
+      task: fallbackTask,
+      relevantBullets: [],
+      antiPatterns: [],
+      historySnippets: [],
+      suggestedCassQueries: [],
+      degraded: null,
+      error: { message: "Malformed cm context JSON (expected object)" },
+      raw,
+    };
+  }
+
+  const success = raw.success === true;
+  const task = typeof raw.task === "string" && raw.task.length > 0 ? raw.task : fallbackTask;
+
+  const relevantBullets = Array.isArray(raw.relevantBullets)
+    ? raw.relevantBullets.map((item) => normalizeCassMemoryBullet(item))
+    : [];
+
+  const antiPatterns = Array.isArray(raw.antiPatterns) ? raw.antiPatterns.map((item) => normalizeCassMemoryBullet(item)) : [];
+
+  const historySnippets = Array.isArray(raw.historySnippets)
+    ? raw.historySnippets.map((item) => normalizeCassMemoryHistorySnippet(item))
+    : [];
+
+  const suggestedCassQueries = normalizeCassMemoryStringArray(raw.suggestedCassQueries);
+
+  const degraded = raw.degraded === undefined ? null : raw.degraded;
+
+  const error = success
+    ? null
+    : {
+        ...(typeof raw.code === "string" ? { code: raw.code } : {}),
+        ...(typeof raw.error === "string" ? { message: raw.error } : {}),
+        ...(typeof raw.hint === "string" ? { hint: raw.hint } : {}),
+        ...(typeof raw.retryable === "boolean" ? { retryable: raw.retryable } : {}),
+      };
+
+  return {
+    success,
+    task,
+    relevantBullets,
+    antiPatterns,
+    historySnippets,
+    suggestedCassQueries,
+    degraded,
+    error,
+    raw,
+  };
+}
+
+function extractMcpToolPayload(result: Json): Json | null {
+  if (!isRecord(result)) return null;
+
+  const structured = result.structuredContent;
+  if (isRecord(structured)) {
+    if (typeof structured.success === "boolean") return structured;
+    if (isRecord(structured.result) && typeof structured.result.success === "boolean") return structured.result;
+  }
+
+  const content = result.content;
+  if (Array.isArray(content) && content.length > 0) {
+    const first = content[0];
+    if (isRecord(first) && typeof first.text === "string") {
+      try {
+        return JSON.parse(first.text) as Json;
+      } catch {
+        return null;
+      }
+    }
+  }
+
+  return null;
+}
+
+async function getCassMemoryContext(task: string, options: CassMemoryContextOptions = {}): Promise<CassMemoryContextResult> {
+  const startedAt = new Date().toISOString();
+  const startMs = Date.now();
+  const errors: string[] = [];
+
+  let mcpContext: CassMemoryContextNormalized | null = null;
+  let mcpProvenance: CassMemoryContextProvenance["mcp"] | undefined = undefined;
+
+  const mcpBaseUrl = process.env.CM_MCP_BASE_URL?.trim();
+  const mcpPath = (process.env.CM_MCP_PATH ?? "/mcp/").trim() || "/mcp/";
+  const mcpBearerToken = process.env.CM_MCP_BEARER_TOKEN?.trim();
+
+  const toolArgs: Record<string, Json> = { task };
+  if (options.workspace) toolArgs.workspace = options.workspace;
+  if (options.top !== undefined) toolArgs.top = options.top;
+  if (options.history !== undefined) toolArgs.history = options.history;
+  if (options.days !== undefined) toolArgs.days = options.days;
+  if (options.logContext) toolArgs.log_context = true;
+  if (options.sessionId) toolArgs.session = options.sessionId;
+
+  if (mcpBaseUrl) {
+    try {
+      const mcpClient = new AgentMailClient({ baseUrl: mcpBaseUrl, path: mcpPath, bearerToken: mcpBearerToken });
+      mcpProvenance = { baseUrl: mcpBaseUrl, path: mcpPath, tool: "cm_context", args: toolArgs };
+      const toolResult = await mcpClient.toolsCall("cm_context", toolArgs);
+      if (isToolError(toolResult)) {
+        errors.push(`mcp cm_context: ${JSON.stringify(toolResult)}`);
+      } else {
+        const payload = extractMcpToolPayload(toolResult);
+        if (!payload) {
+          errors.push("mcp cm_context: could not parse tool payload");
+        } else {
+          const parsed = parseCassMemoryContext(payload, task);
+          const durationMs = Date.now() - startMs;
+          if (parsed.success) {
+            return {
+              ok: true,
+              context: parsed,
+              provenance: {
+                mode: "mcp",
+                startedAt,
+                durationMs,
+                mcp: mcpProvenance,
+                errors,
+              },
+            };
+          }
+
+          mcpContext = parsed;
+          errors.push(
+            `mcp cm_context: success=false${parsed.error?.message ? ` (${parsed.error.message})` : ""}${parsed.error?.hint ? ` — ${parsed.error.hint}` : ""}`
+          );
+        }
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      errors.push(`mcp cm_context: ${msg}`);
+    }
+  }
+
+  const cmPath = Bun.which("cm");
+  if (!cmPath) {
+    const durationMs = Date.now() - startMs;
+    const allErrors = [...errors, "cm not found"];
+    if (mcpContext) {
+      return { ok: false, context: mcpContext, provenance: { mode: "mcp", startedAt, durationMs, mcp: mcpProvenance, errors: allErrors } };
+    }
+    return { ok: false, context: null, provenance: { mode: "none", startedAt, durationMs, errors: allErrors } };
+  }
+
+  const argv: string[] = [cmPath, "context", task, "--json"];
+  if (options.workspace) argv.push("--workspace", options.workspace);
+  if (options.top !== undefined) argv.push("--top", String(options.top));
+  if (options.history !== undefined) argv.push("--history", String(options.history));
+  if (options.days !== undefined) argv.push("--days", String(options.days));
+  if (options.logContext) argv.push("--log-context");
+  if (options.sessionId) argv.push("--session", options.sessionId);
+
+  try {
+    const proc = Bun.spawnSync(argv, { stdout: "pipe", stderr: "pipe" });
+    const stdout = proc.stdout.toString();
+    const stderr = proc.stderr.toString();
+    const exitCode = proc.exitCode ?? 1;
+
+    const durationMs = Date.now() - startMs;
+
+    if (exitCode !== 0) {
+      errors.push(`cm context exited ${exitCode}: ${stderr.trim() || "(no stderr)"}`);
+      const cli = { argv, exitCode, stderr };
+      if (mcpContext) {
+        return { ok: false, context: mcpContext, provenance: { mode: "mcp", startedAt, durationMs, mcp: mcpProvenance, cli, errors } };
+      }
+      return { ok: false, context: null, provenance: { mode: "cli", startedAt, durationMs, cli, errors } };
+    }
+
+    let payload: Json;
+    try {
+      payload = JSON.parse(stdout) as Json;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      errors.push(`cm context returned non-JSON stdout: ${msg}`);
+      const cli = { argv, exitCode, stderr };
+      if (mcpContext) {
+        return { ok: false, context: mcpContext, provenance: { mode: "mcp", startedAt, durationMs, mcp: mcpProvenance, cli, errors } };
+      }
+      return { ok: false, context: null, provenance: { mode: "cli", startedAt, durationMs, cli, errors } };
+    }
+
+    const parsed = parseCassMemoryContext(payload, task);
+
+    if (!parsed.success) {
+      errors.push(
+        `cm context: success=false${parsed.error?.message ? ` (${parsed.error.message})` : ""}${parsed.error?.hint ? ` — ${parsed.error.hint}` : ""}`
+      );
+      return {
+        ok: false,
+        context: parsed,
+        provenance: { mode: "cli", startedAt, durationMs, cli: { argv, exitCode, stderr }, errors },
+      };
+    }
+
+    return {
+      ok: true,
+      context: parsed,
+      provenance: { mode: "cli", startedAt, durationMs, cli: { argv, exitCode, stderr }, errors },
+    };
+  } catch (e) {
+    const durationMs = Date.now() - startMs;
+    const msg = e instanceof Error ? e.message : String(e);
+    errors.push(`cm context spawn error: ${msg}`);
+    if (mcpContext) {
+      return { ok: false, context: mcpContext, provenance: { mode: "mcp", startedAt, durationMs, mcp: mcpProvenance, errors } };
+    }
+    return { ok: false, context: null, provenance: { mode: "cli", startedAt, durationMs, errors } };
+  }
+}
+
 function formatDoctorHuman(summary: {
   brenner: BrennerBuildInfo;
   checks: Record<string, DoctorCheck>;
@@ -326,6 +616,7 @@ Usage:
 Commands:
   version
   doctor [--json] [--manifest <path>] [--agent-mail] [--skip-ntm] [--skip-cass] [--skip-cm]
+  memory context <task> [--top <n>] [--history <n>] [--days <n>] [--workspace <path>] [--log-context] [--session <id>]
   mail health
   mail tools
   mail agents --project-key <abs-path>
@@ -360,6 +651,11 @@ Agent Mail connection (env):
   AGENT_MAIL_BASE_URL        default: http://127.0.0.1:8765
   AGENT_MAIL_PATH            default: /mcp/
   AGENT_MAIL_BEARER_TOKEN    optional
+
+Cass Memory MCP connection (env):
+  CM_MCP_BASE_URL            optional (enables MCP mode; e.g. http://127.0.0.1:3001)
+  CM_MCP_PATH                default: /mcp/
+  CM_MCP_BEARER_TOKEN        optional
 
 Build metadata (for --version):
   BRENNER_VERSION            optional (prefer semver, e.g. 0.1.0)
@@ -872,6 +1168,24 @@ async function main(): Promise<void> {
     });
     process.stdout.write(out);
     process.exit(0);
+  }
+
+  if (top === "memory" && sub === "context") {
+    const positionalTask = positional.slice(2).join(" ").trim();
+    const task = positionalTask || asStringFlag(flags, "task");
+    if (!task) throw new Error("Missing task. Usage: ./brenner.ts memory context \"...\" (or --task \"...\").");
+
+    const result = await getCassMemoryContext(task, {
+      workspace: asStringFlag(flags, "workspace"),
+      top: asIntFlag(flags, "top"),
+      history: asIntFlag(flags, "history"),
+      days: asIntFlag(flags, "days"),
+      logContext: asBoolFlag(flags, "log-context"),
+      sessionId: asStringFlag(flags, "session"),
+    });
+
+    console.log(JSON.stringify(result, null, 2));
+    process.exit(result.ok ? 0 : 1);
   }
 
   const normalizedTop = top === "orchestrate" ? "session" : top;
