@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react";
 
 /**
  * Hook for persisting state to localStorage with SSR safety.
@@ -17,6 +17,8 @@ export function useLocalStorage<T>(
 ): [T, (value: T | ((prev: T) => T)) => void, () => void] {
   const { debounceMs = 300 } = options;
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Track latest value for use in cleanup (avoids stale closure bug)
+  const latestValueRef: MutableRefObject<T | null> = useRef<T | null>(null);
 
   // Initialize state with value from localStorage or initial value
   const [storedValue, setStoredValue] = useState<T>(() => {
@@ -84,19 +86,29 @@ export function useLocalStorage<T>(
     }
   }, [key, initialValue]);
 
+  // Keep latestValueRef in sync (for use in cleanup without stale closure)
+  useEffect(() => {
+    latestValueRef.current = storedValue;
+  }, [storedValue]);
+
   // Persist on unmount if there's a pending debounce
+  // NOTE: Only depends on `key`, NOT `storedValue` - we use latestValueRef to avoid
+  // the stale closure bug where cleanup would write old values on every state change
   useEffect(() => {
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
-        try {
-          window.localStorage.setItem(key, JSON.stringify(storedValue));
-        } catch {
-          // Ignore errors on cleanup
+        // Use ref to get the actual latest value, not a stale closure
+        if (latestValueRef.current !== null) {
+          try {
+            window.localStorage.setItem(key, JSON.stringify(latestValueRef.current));
+          } catch {
+            // Ignore errors on cleanup
+          }
         }
       }
     };
-  }, [key, storedValue]);
+  }, [key]);
 
   // Sync across tabs
   useEffect(() => {
