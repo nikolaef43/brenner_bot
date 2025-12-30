@@ -31,6 +31,27 @@ p, li, span, div {
 }
 
 /* ============================================================================
+   iOS SAFARI SCROLL FIXES
+   Improves scroll behavior on iOS Safari where nested scroll containers
+   and dynamic viewport can cause janky/broken feeling scroll
+   ============================================================================ */
+
+/* Enable momentum scrolling on iOS for all scrollable containers */
+@supports (-webkit-touch-callout: none) {
+  /* iOS only */
+  [style*="overflow"] {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .overflow-y-auto,
+  .overflow-y-scroll,
+  .overflow-auto,
+  .overflow-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ============================================================================
    BRENNER BOT - WORLD-CLASS DESIGN SYSTEM v2.0
    Inspired by Stripe, Apple, Linear, Vercel - optimized for reading experience
    ============================================================================ */
@@ -2616,8 +2637,9 @@ p, li, span, div {
      ======================================================================== */
 
   .toc {
-    @apply sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto;
+    @apply sticky top-24 max-h-[calc(100dvh-8rem)] overflow-y-auto;
     scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
   }
 
   .toc-wrapper {
@@ -3119,7 +3141,7 @@ p, li, span, div {
 
   .comparison-pane {
     @apply rounded-xl border bg-card overflow-hidden;
-    max-height: calc(100vh - 12rem);
+    max-height: calc(100dvh - 12rem);
   }
 
   .comparison-header {
@@ -3128,7 +3150,8 @@ p, li, span, div {
 
   .comparison-content {
     @apply p-4 overflow-y-auto;
-    max-height: calc(100vh - 16rem);
+    max-height: calc(100dvh - 16rem);
+    -webkit-overflow-scrolling: touch;
   }
 
   .comparison-sync-indicator {

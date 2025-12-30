@@ -537,7 +537,7 @@ function TableOfContents({ sections, activeId }: TOCProps) {
   if (topLevelSections.length === 0) return null;
 
   return (
-    <nav className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto pr-4 -mr-4">
+    <nav className="sticky top-24 max-h-[calc(100dvh-8rem)] overflow-y-auto pr-4 -mr-4">
       <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
         On this page
       </h3>
