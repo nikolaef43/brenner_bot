@@ -2216,6 +2216,12 @@
 
 ---
 
+## 186. Cloning viruses to make them safer to work with
+
+> The best case to take a dangerous virus is to take it and clone it; that would make it safe. And put it in *E. coli*.
+
+---
+
 ## 187. A big danger in genetic manipulation: Shiga toxin and *E. coli*
 
 > Another remarkable lesson that emerged was, don't worry, **if you can think of something dangerous, nature's probably done it**. And one of the most dangerous things we could think of, because the idea was think of something that's practically dangerous and then see how you would deal with it. So I surmised of taking cholera toxin and putting it in *E. coli* (*Escherichia coli*) so that delivers the toxin to the right place, in a vector that can infect other bacteria, and that I considered a dangerous experiment, and then showed how one would cope with this.
