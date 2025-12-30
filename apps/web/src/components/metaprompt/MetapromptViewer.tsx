@@ -258,6 +258,22 @@ function ContentPart({ part }: { part: ContentPart }) {
 }
 
 // ============================================================================
+// RAW CONTENT (for unstructured files)
+// ============================================================================
+
+function RawContent({ content }: { content: string }) {
+  const contentParts = parseContent(content);
+
+  return (
+    <div className="space-y-4">
+      {contentParts.map((part, i) => (
+        <ContentPart key={i} part={part} />
+      ))}
+    </div>
+  );
+}
+
+// ============================================================================
 // MAIN VIEWER
 // ============================================================================
 
@@ -275,9 +291,13 @@ export function MetapromptViewer({ data }: MetapromptViewerProps) {
       />
 
       <div className="max-w-3xl mx-auto">
-        {data.sections.map((section, i) => (
-          <Section key={i} section={section} />
-        ))}
+        {data.sections.length > 0 ? (
+          data.sections.map((section, i) => (
+            <Section key={i} section={section} />
+          ))
+        ) : data.rawContent ? (
+          <RawContent content={data.rawContent} />
+        ) : null}
       </div>
     </>
   );

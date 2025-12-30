@@ -13,6 +13,7 @@ export interface ParsedMetaprompt {
   title: string;
   description?: string;
   sections: MetapromptSection[];
+  rawContent?: string;
   wordCount: number;
 }
 
@@ -53,10 +54,13 @@ export function parseMetaprompt(markdown: string): ParsedMetaprompt {
     });
   }
 
+  const rawContent = sections.length === 0 ? markdown.trim() : undefined;
+
   return {
     title,
     description,
     sections,
+    rawContent,
     wordCount,
   };
 }
