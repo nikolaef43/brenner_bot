@@ -140,12 +140,12 @@ describe("GlossaryPage", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(/no terms found matching your search/i)
+          screen.getByText(/no terms found/i)
         ).toBeInTheDocument();
       });
     });
 
-    it("shows Clear filters button when no matches", async () => {
+    it("shows Clear all filters button when no matches", async () => {
       const user = userEvent.setup();
       render(<GlossaryPage />);
 
@@ -154,12 +154,12 @@ describe("GlossaryPage", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByRole("button", { name: /clear filters/i })
+          screen.getByRole("button", { name: /clear all filters/i })
         ).toBeInTheDocument();
       });
     });
 
-    it("clears search when Clear filters is clicked", async () => {
+    it("clears search when Clear all filters is clicked", async () => {
       const user = userEvent.setup();
       render(<GlossaryPage />);
 
@@ -172,7 +172,7 @@ describe("GlossaryPage", () => {
         ).toBeInTheDocument();
       });
 
-      const clearButton = screen.getByRole("button", { name: /clear filters/i });
+      const clearButton = screen.getByRole("button", { name: /clear all filters/i });
       await user.click(clearButton);
 
       await waitFor(() => {
