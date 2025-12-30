@@ -7,7 +7,8 @@
 # Local development files
 .DS_Store
 
-# Model response directories (not needed for web)
-opus_45_responses/
-gpt_pro_extended_reasoning_responses/
-gemini_3_deep_think_responses/
+# Model response directories at repo root (not needed for web)
+# Use absolute paths to avoid ignoring files in apps/web/public/_corpus/
+/opus_45_responses/
+/gpt_pro_extended_reasoning_responses/
+/gemini_3_deep_think_responses/
