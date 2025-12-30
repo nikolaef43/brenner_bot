@@ -101,18 +101,28 @@ export function useCorpusSearch(
   options?: SearchOptions & Omit<UseCorpusSearchOptions, "query" | "searchOptions">
 ) {
   const { limit, category, model, ...queryOptions } = options ?? {};
-  const searchOptions: SearchOptions = { limit, category, model };
+  // Build searchOptions without undefined values to ensure consistent cache keys
+  // (e.g., {} should match {} not { limit: undefined, category: undefined, model: undefined })
+  const searchOptions: SearchOptions = {
+    ...(limit !== undefined && { limit }),
+    ...(category !== undefined && { category }),
+    ...(model !== undefined && { model }),
+  };
+
+  // User can only make enabled MORE restrictive, not less
+  const userEnabled = queryOptions?.enabled ?? true;
 
   return useQuery({
+    // User options first (as defaults)
+    ...queryOptions,
+    // Required settings that must not be overridden
     queryKey: corpusSearchKeys.query(query, searchOptions),
     queryFn: () => searchAction(query, searchOptions),
-    // Only run search if query is non-empty (at least 2 chars)
-    enabled: query.length >= 2,
-    // Search results can become stale faster than static docs
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    // Keep previous data while fetching new results
-    placeholderData: (previousData) => previousData,
-    ...queryOptions,
+    // Only run search if query is non-empty (at least 2 chars) AND user hasn't disabled
+    enabled: query.length >= 2 && userEnabled,
+    // Customizable defaults
+    staleTime: queryOptions?.staleTime ?? 2 * 60 * 1000, // 2 minutes default
+    placeholderData: queryOptions?.placeholderData ?? ((previousData) => previousData),
   });
 }
 
@@ -130,7 +140,12 @@ export function useCorpusSearchInstant(
   options?: SearchOptions
 ) {
   const { limit, category, model } = options ?? {};
-  const searchOptions: SearchOptions = { limit, category, model };
+  // Build searchOptions without undefined values to ensure consistent cache keys
+  const searchOptions: SearchOptions = {
+    ...(limit !== undefined && { limit }),
+    ...(category !== undefined && { category }),
+    ...(model !== undefined && { model }),
+  };
 
   return useQuery({
     queryKey: corpusSearchKeys.query(query, searchOptions),

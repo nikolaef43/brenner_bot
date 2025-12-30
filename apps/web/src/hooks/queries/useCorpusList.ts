@@ -35,7 +35,7 @@ import type { CorpusDoc, DocCategory } from "@/lib/corpus";
 export interface UseCorpusListOptions
   extends Omit<
     UseQueryOptions<CorpusDoc[], Error, CorpusDoc[], readonly ["corpus", "list"]>,
-    "queryKey" | "queryFn"
+    "queryKey" | "queryFn" | "select"
   > {
   /** Filter by category (optional) */
   category?: DocCategory;
@@ -75,11 +75,14 @@ export function useCorpusList(options?: UseCorpusListOptions) {
   const { category, model, ...queryOptions } = options ?? {};
 
   return useQuery({
+    // User options first (can be overridden by our required settings)
+    ...queryOptions,
+    // Required settings that should not be overridden
     queryKey: corpusListKeys.all,
     queryFn: fetchCorpusList,
     // List changes less frequently than individual docs
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    // Apply client-side filtering via select
+    staleTime: queryOptions?.staleTime ?? 10 * 60 * 1000, // 10 minutes default
+    // Apply client-side filtering via select (not user-overridable)
     select: (data) => {
       let filtered = data;
       if (category) {
@@ -90,7 +93,6 @@ export function useCorpusList(options?: UseCorpusListOptions) {
       }
       return filtered;
     },
-    ...queryOptions,
   });
 }
 

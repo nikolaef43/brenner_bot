@@ -72,12 +72,17 @@ export const corpusDocKeys = {
  * @returns Query result with doc metadata and content
  */
 export function useCorpusDoc(id: string, options?: Omit<UseCorpusDocOptions, "id">) {
+  // User can only make enabled MORE restrictive, not less
+  const userEnabled = options?.enabled ?? true;
+
   return useQuery({
+    // User options first (as defaults)
+    ...options,
+    // Required settings that must not be overridden
     queryKey: corpusDocKeys.detail(id),
     queryFn: () => fetchCorpusDoc(id),
-    // Enable query only if id is provided
-    enabled: Boolean(id),
-    ...options,
+    // Enable query only if id is provided AND user hasn't disabled
+    enabled: Boolean(id) && userEnabled,
   });
 }
 
