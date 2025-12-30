@@ -194,13 +194,17 @@ function substituteUrl(
     .replace(/\$\{ARCH\}/g, arch);
 
   // Windows .exe handling per spec
-  if (os === "win" && !isChecksum && !url.endsWith(".exe")) {
-    url += ".exe";
-  }
-  if (os === "win" && isChecksum && !url.endsWith(".sha256")) {
-    // Checksum file for Windows binary: brenner-win-x64.exe.sha256
-    const baseUrl = url.replace(/\.sha256$/, "");
-    url = baseUrl + ".exe.sha256";
+  if (os === "win") {
+    if (isChecksum) {
+      // Checksum file for Windows binary: brenner-win-x64.exe.sha256
+      // The template produces: brenner-win-x64.sha256
+      // We need: brenner-win-x64.exe.sha256
+      if (url.endsWith(".sha256")) {
+        url = url.replace(/\.sha256$/, ".exe.sha256");
+      }
+    } else if (!url.endsWith(".exe")) {
+      url += ".exe";
+    }
   }
 
   return url;
