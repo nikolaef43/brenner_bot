@@ -308,7 +308,8 @@ export function CommandPalette() {
                   <button
                     key={item.id}
                     className={cn(
-                      "command-palette-item w-full text-left",
+                      "command-palette-item w-full text-left touch-manipulation active:scale-[0.98] transition-transform",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
                       isSelected && "bg-muted"
                     )}
                     onClick={() => {

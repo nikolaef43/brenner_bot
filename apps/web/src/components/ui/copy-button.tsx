@@ -190,7 +190,7 @@ export function CopyButton({
       type="button"
       onClick={handleCopy}
       className={cn(
-        "touch-manipulation",
+        "touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         variantClasses[variant],
         copied && "text-success",
         className

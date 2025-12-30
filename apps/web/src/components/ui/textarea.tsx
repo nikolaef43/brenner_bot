@@ -51,7 +51,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             "flex min-h-[120px] w-full rounded-lg border border-border bg-background px-3 py-3 text-base sm:text-sm",
             "transition-all duration-150 ease-out",
             "placeholder:text-muted-foreground/70",
-            "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background focus:border-primary",
+            "focus:outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted/50",
             // Touch-friendly: prevent zoom on focus in iOS
             "touch-manipulation",

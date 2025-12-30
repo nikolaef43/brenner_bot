@@ -24,6 +24,13 @@ const springConfig = {
   mass: 0.8,
 };
 
+// Content slide-in animation
+const contentSpring = {
+  type: "spring" as const,
+  stiffness: 300,
+  damping: 30,
+};
+
 interface CollapsibleContextValue {
   isOpen: boolean;
   toggle: () => void;
@@ -213,8 +220,18 @@ export function CollapsibleContent({
           }}
           className={cn("overflow-hidden", className)}
         >
-          {/* Inner wrapper to preserve padding during animation */}
-          <div>{children}</div>
+          {/* Inner wrapper with slide-up animation for premium feel */}
+          <motion.div
+            initial={{ y: 8, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -4, opacity: 0 }}
+            transition={{
+              ...contentSpring,
+              opacity: { duration: 0.2 },
+            }}
+          >
+            {children}
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
@@ -264,7 +281,8 @@ export function CollapsibleCard({
       className={cn(
         "group rounded-xl border border-border bg-card overflow-hidden",
         "transition-all duration-200",
-        "hover:border-border-hover",
+        "hover:border-border-hover hover:shadow-sm",
+        "data-[state=open]:border-primary/30 data-[state=open]:shadow-lg data-[state=open]:shadow-primary/5",
         className
       )}
     >
@@ -329,6 +347,9 @@ export function CollapsibleSection({
       onOpenChange={onOpenChange}
       className={cn(
         "group rounded-xl border border-border bg-muted/30 overflow-hidden",
+        "transition-all duration-200",
+        "hover:border-border-hover",
+        "data-[state=open]:border-primary/20 data-[state=open]:bg-muted/50",
         className
       )}
     >
