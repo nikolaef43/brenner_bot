@@ -424,41 +424,42 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
         wordCount={wordCount}
       />
 
-      <div className="lg:grid lg:grid-cols-[280px_1fr] lg:gap-8 xl:gap-12">
-        {/* Sidebar TOC (desktop) */}
-        <aside className="hidden lg:block">
-          <TableOfContents
-            sections={data.sections}
-            activeSection={activeSection}
-            onSectionClick={scrollToSection}
-          />
-        </aside>
+      {data.sections.length > 0 && (
+        <div className="lg:grid lg:grid-cols-[280px_1fr] lg:gap-8 xl:gap-12">
+          {/* Sidebar TOC (desktop) */}
+          <aside className="hidden lg:block">
+            <TableOfContents
+              sections={data.sections}
+              activeSection={activeSection}
+              onSectionClick={scrollToSection}
+            />
+          </aside>
 
-        {/* Mobile TOC */}
-        <div className="lg:hidden mb-8">
-          <TableOfContents
-            sections={data.sections}
-            activeSection={activeSection}
-            onSectionClick={scrollToSection}
-          />
+          {/* Mobile TOC */}
+          <div className="lg:hidden mb-8">
+            <TableOfContents
+              sections={data.sections}
+              activeSection={activeSection}
+              onSectionClick={scrollToSection}
+            />
+          </div>
+
+          {/* Main content */}
+          <main>
+            {data.sections.map((section, index) => (
+              <div
+                key={section.number}
+                ref={(el) => {
+                  sectionRefs.current[index] = el;
+                }}
+                data-index={index}
+              >
+                <TranscriptSection section={section} isActive={activeSection === index} />
+              </div>
+            ))}
+          </main>
         </div>
-
-        {/* Main content */}
-        <main>
-          {data.sections.map((section, index) => (
-            <div
-              key={section.number}
-              ref={(el) => { sectionRefs.current[index] = el; }}
-              data-index={index}
-            >
-              <TranscriptSection
-                section={section}
-                isActive={activeSection === index}
-              />
-            </div>
-          ))}
-        </main>
-      </div>
+      )}
 
       <BackToTop />
     </>
@@ -508,3 +509,4 @@ function ArrowUpIcon() {
     </svg>
   );
 }
+
