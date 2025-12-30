@@ -36,6 +36,25 @@ This is a compact, stable tag set intended for UI/search filtering. Use these ta
 - `chastity-vs-impotence`
 - `out-of-phase`
 
+### Coverage audit (operators)
+
+Lightweight sanity check: each canonical operator tag has at least one supporting `§n` quote.
+
+- `level-split` → §95, §99, §105, §132, §205
+- `recode` → §78, §81, §90, §107, §205
+- `invariant-extract` → §90, §100, §109, §224
+- `exclusion-test` → §90, §98, §103, §120, §215
+- `object-transpose` → §87, §127, §221
+- `amplify` → §94
+- `cross-domain` → §86, §99, §105, §230
+- `paradox-hunt` → §95, §163
+- `exception-quarantine` → §110
+- `dephase` → §79, §210, §231
+- `theory-kill` → §83, §106
+- `materialize` → §117, §228
+- `diy` → §77, §102, §114
+- `scale-check` → §100, §164, §218
+
 ---
 
 ## §57 — “Don’t Worry” hypothesis (latent‑mechanism placeholder)
@@ -56,7 +75,7 @@ Tags: `dont-worry`, `latent-mechanism`, `anti-premature-rejection`
 
 Why it matters: Convert vague dread into concrete failure-mode coverage; protect the experiment (or trip) against the small set of catastrophic bottlenecks.
 
-Tags: `risk-management`, `failure-modes`, `logistics`, `cheap-loop`
+Tags: `risk-management`, `failure-modes`, `logistics`, `cheap-loop`, `diy`
 
 ---
 
@@ -76,7 +95,7 @@ Tags: `anti-planning`, `bias-to-experiment`, `cheap-loop`
 
 Why it matters: Use genetics as an information‑extraction instrument when direct measurement (sequencing) is unavailable.
 
-Tags: `digital-handle`, `information-extraction`, `constraints-first`
+Tags: `digital-handle`, `information-extraction`, `constraints-first`, `recode`
 
 ---
 
@@ -86,7 +105,7 @@ Tags: `digital-handle`, `information-extraction`, `constraints-first`
 
 Why it matters: High‑leverage work often begins as “implausible”; expect social lag between a true idea and field uptake.
 
-Tags: `out-of-phase`, `social-reality`, `timing`
+Tags: `out-of-phase`, `social-reality`, `timing`, `dephase`
 
 ---
 
@@ -106,7 +125,7 @@ Tags: `cheap-loop`, `loop-time`, `infrastructure`
 
 Why it matters: Choose a question whose answer *forces* a mapping between representation layers (genetic order ↔ chemical order).
 
-Tags: `representation-change`, `mapping`, `digital-handle`
+Tags: `representation-change`, `mapping`, `digital-handle`, `recode`
 
 ---
 
@@ -116,7 +135,7 @@ Tags: `representation-change`, `mapping`, `digital-handle`
 
 Why it matters: When first‑principles deduction is underdetermined, switch to discriminative experiments.
 
-Tags: `anti-armchair`, `decision-experiment`, `constraints-first`
+Tags: `anti-armchair`, `decision-experiment`, `constraints-first`, `theory-kill`
 
 ---
 
@@ -152,7 +171,7 @@ Tags: `democratize`, `tooling`, `cross-domain`, `pattern-recognition`
 
 Why it matters: The explanatory object is macromolecular assemblies and interactions; method follows from choosing the right level of description.
 
-Tags: `assemblies`, `mechanism`, `open-the-box`
+Tags: `assemblies`, `mechanism`, `open-the-box`, `object-transpose`
 
 ---
 
@@ -182,7 +201,7 @@ Tags: `phase-breaking`, `perturbation`, `instrumentation`
 
 Why it matters: Use a *spectrum* (pattern over many mutants) to type causal mechanisms and constrain the code.
 
-Tags: `spectra`, `typing`, `mechanism`
+Tags: `spectra`, `typing`, `mechanism`, `recode`
 
 ---
 
@@ -192,7 +211,7 @@ Tags: `spectra`, `typing`, `mechanism`
 
 Why it matters: Partition phenomena into equivalence classes by reversible transforms; the partition often *is* the mechanism.
 
-Tags: `classification`, `invariants`, `exclusion`
+Tags: `classification`, `invariants`, `exclusion`, `invariant-extract`, `exclusion-test`
 
 ---
 
@@ -212,7 +231,7 @@ Tags: `abundance`, `amplify`, `digital-handle`
 
 Why it matters: Treat contradictions as discriminative constraints; paradox forces a representation change (a separate message layer).
 
-Tags: `paradox`, `constraints-first`, `level-split`, `decision-experiment`
+Tags: `paradox`, `constraints-first`, `level-split`, `decision-experiment`, `paradox-hunt`
 
 ---
 
@@ -222,7 +241,7 @@ Tags: `paradox`, `constraints-first`, `level-split`, `decision-experiment`
 
 Why it matters: Design the one experiment that directly distinguishes the competing causal stories, even if it’s technically harder.
 
-Tags: `decision-experiment`, `discrimination`, `old-vs-new`
+Tags: `decision-experiment`, `discrimination`, `old-vs-new`, `exclusion-test`
 
 ---
 
@@ -254,7 +273,7 @@ Tags: `representation-change`, `cross-domain`, `humor`, `level-split`
 
 Why it matters: Identify the single stabilizer/competitor controlling failure and push it hard—often this beats a year of “boring conditions” exploration.
 
-Tags: `dominant-variable`, `physics`, `scale-check`, `cheap-loop`
+Tags: `dominant-variable`, `physics`, `scale-check`, `cheap-loop`, `invariant-extract`
 
 ---
 
@@ -264,7 +283,7 @@ Tags: `dominant-variable`, `physics`, `scale-check`, `cheap-loop`
 
 Why it matters: Stay objective‑function focused (root connection DNA ↔ protein), not method‑identity focused.
 
-Tags: `ends-over-means`, `tool-agnostic`, `objective-function`
+Tags: `ends-over-means`, `tool-agnostic`, `objective-function`, `diy`
 
 ---
 
@@ -274,7 +293,7 @@ Tags: `ends-over-means`, `tool-agnostic`, `objective-function`
 
 Why it matters: Prefer the discriminative, logically deep experiment over the quicker “suggestive” one—especially when the field is confused.
 
-Tags: `definitive`, `decision-experiment`, `likelihood-ratio`
+Tags: `definitive`, `decision-experiment`, `likelihood-ratio`, `exclusion-test`
 
 ---
 
@@ -324,7 +343,7 @@ Tags: `steal-from-nature`, `cross-domain`, `ontology`
 
 Why it matters: A practical model-selection heuristic: prefer theories that don’t require hiding lots of contradictory facts via ad hoc patches.
 
-Tags: `occams-broom`, `model-selection`, `anti-overfit`
+Tags: `occams-broom`, `model-selection`, `anti-overfit`, `theory-kill`
 
 ---
 
@@ -334,7 +353,7 @@ Tags: `occams-broom`, `model-selection`, `anti-overfit`
 
 Why it matters: When existing mechanism classes can’t explain the partitions you see, expand the hypothesis space in the minimum way that resolves the paradox.
 
-Tags: `hypothesis-expansion`, `representation-change`, `frame-shift`
+Tags: `hypothesis-expansion`, `representation-change`, `frame-shift`, `recode`
 
 ---
 
@@ -356,7 +375,7 @@ Tags: `phase-problem`, `parsing`, `topology/algebra`
 
 Why it matters: You can infer structure from invariants/topology without seeing molecular details; design tests that yield discrete outputs (+/−) with high leverage.
 
-Tags: `topology/algebra`, `invariants`, `digital-handle`, `decision-experiment`
+Tags: `topology/algebra`, `invariants`, `digital-handle`, `decision-experiment`, `invariant-extract`
 
 ---
 
@@ -376,7 +395,7 @@ Tags: `exception-quarantine`, `dont-worry`, `epistemic-hygiene`
 
 Why it matters: Progress is constrained by access to materials/instrumentation; “build the kit” is often the decisive move.
 
-Tags: `tooling`, `infrastructure`, `DIY`
+Tags: `tooling`, `infrastructure`, `diy`
 
 ---
 
@@ -386,7 +405,7 @@ Tags: `tooling`, `infrastructure`, `DIY`
 
 Why it matters: Mechanistic transparency matters; I/O behavior alone can’t determine the generative grammar.
 
-Tags: `open-the-box`, `mechanism`, `generative-grammar`
+Tags: `open-the-box`, `mechanism`, `generative-grammar`, `materialize`
 
 ---
 
@@ -406,7 +425,7 @@ Tags: `grammar`, `construction`, `machine-language`
 
 Why it matters: Beware “paper understanding”; talk to (or become) the builder of the measurement/structure/tool.
 
-Tags: `tacit-knowledge`, `builders`, `tooling`
+Tags: `tacit-knowledge`, `builders`, `tooling`, `materialize`
 
 ---
 
@@ -416,7 +435,7 @@ Tags: `tacit-knowledge`, `builders`, `tooling`
 
 Why it matters: Find the controllable transition (initiation) rather than attacking the stable regime (continuation).
 
-Tags: `control-points`, `initiation`, `decision-experiment`
+Tags: `control-points`, `initiation`, `decision-experiment`, `exclusion-test`
 
 ---
 
@@ -446,7 +465,7 @@ Tags: `self-assembly`, `reconstitution`, `mechanism`
 
 Why it matters: Pick organisms/systems where the desired variable is exaggerated, isolated, or directly measurable.
 
-Tags: `organism-selection`, `special-exemplar`, `object-choice`
+Tags: `organism-selection`, `special-exemplar`, `object-choice`, `object-transpose`
 
 ---
 
@@ -466,7 +485,7 @@ Tags: `level-split`, `construction-vs-function`, `generative-grammar`
 
 Why it matters: Choose the right computational frame for development: lineage (history) vs neighborhood (spatial context).
 
-Tags: `representation-change`, `lineage`, `spatial-computation`
+Tags: `representation-change`, `lineage`, `spatial-computation`, `recode`
 
 ---
 
@@ -486,7 +505,7 @@ Tags: `mechanism`, `machine-language`, `anti-handwave`
 
 Why it matters: When the space of possible targets is astronomically large, the mechanism must be generative/combinatorial (not enumerative).
 
-Tags: `combinatorics`, `constraints-first`, `representation-change`
+Tags: `combinatorics`, `constraints-first`, `representation-change`, `paradox-hunt`
 
 ---
 
@@ -546,7 +565,7 @@ Tags: `construction-vs-function`, `level-split`, `open-the-box`
 
 Why it matters: Choose the right computational frame for development (continuous field variables vs discrete lineage/state).
 
-Tags: `representation-change`, `lineage`, `digital-handle`
+Tags: `representation-change`, `lineage`, `digital-handle`, `recode`
 
 ---
 
@@ -566,7 +585,7 @@ Tags: `gedanken-organism`, `reconstruction`, `machine-language`
 
 Why it matters: “Mopping up” isn’t just boring; it creates new paradoxes—so don’t confuse “outline solved” with “finished.”
 
-Tags: `heroic-vs-classical`, `out-of-phase`, `problem-choice`
+Tags: `heroic-vs-classical`, `out-of-phase`, `problem-choice`, `dephase`
 
 ---
 
@@ -576,7 +595,7 @@ Tags: `heroic-vs-classical`, `out-of-phase`, `problem-choice`
 
 Why it matters: In genetics, function is proven by loss/perturbation; mutants are the instrument that makes the invisible gene legible.
 
-Tags: `digital-handle`, `genetic-dissection`, `exclusion`
+Tags: `digital-handle`, `genetic-dissection`, `exclusion`, `exclusion-test`
 
 ---
 
@@ -596,7 +615,7 @@ Tags: `tooling`, `cheap-loop`, `organism-selection`
 
 Why it matters: Some scientific tasks are decomposable labor plus good instrumentation; “big science” can be made legible by the right workflow framing.
 
-Tags: `tooling`, `infrastructure`, `democratize`
+Tags: `tooling`, `infrastructure`, `democratize`, `scale-check`
 
 ---
 
@@ -606,7 +625,7 @@ Tags: `tooling`, `infrastructure`, `democratize`
 
 Why it matters: Change the object to change the denominator (cost/time); organism choice can substitute for “tenfold tech.”
 
-Tags: `organism-selection`, `representation-change`, `tooling`
+Tags: `organism-selection`, `representation-change`, `tooling`, `object-transpose`
 
 ---
 
@@ -626,7 +645,7 @@ Tags: `cheap-loop`, `tooling`, `digital-handle`
 
 Why it matters: Evolution often reuses machinery with new deployment/constraints; search for invariants in parts and variation in control.
 
-Tags: `invariants`, `open-the-box`, `construction-vs-function`
+Tags: `invariants`, `open-the-box`, `construction-vs-function`, `invariant-extract`
 
 ---
 
@@ -656,7 +675,7 @@ Tags: `productive-ignorance`, `cross-domain`, `plausibility`
 
 Why it matters: Default practices harden; method requires periodically rejecting “standard parts” and re-deriving the loop from first principles.
 
-Tags: `out-of-phase`, `anti-ritual`, `problem-choice`
+Tags: `out-of-phase`, `anti-ritual`, `problem-choice`, `dephase`
 
 ---
 
