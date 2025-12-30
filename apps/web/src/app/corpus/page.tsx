@@ -24,7 +24,7 @@ export default async function CorpusIndexPage() {
             >
               <div className="font-semibold">{doc.title}</div>
               <div className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
-                {doc.relativePathFromRepoRoot}
+                {doc.filename}
               </div>
             </Link>
           </li>
