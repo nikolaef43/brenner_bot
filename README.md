@@ -378,7 +378,7 @@ ntm new $THREAD_ID --layout=3-agent
   --sender Operator \
   --to Claude,GPT,Gemini \
   --thread-id $THREAD_ID \
-  --subject "[$THREAD_ID] Brenner Loop kickoff" \
+  --subject "KICKOFF: [$THREAD_ID] Brenner Loop kickoff" \
   --body-file kickoff.md
 
 # 5. Run agents in ntm panes (they post responses to Agent Mail)

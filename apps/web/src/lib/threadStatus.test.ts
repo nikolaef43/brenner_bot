@@ -46,6 +46,11 @@ describe("parseSubjectType", () => {
     expect(result.role).toBeUndefined();
   });
 
+  it("treats legacy bracketed kickoff subjects as kickoff", () => {
+    const result = parseSubjectType("[RS-20251230-test] Brenner Loop kickoff");
+    expect(result.type).toBe("kickoff");
+  });
+
   it("parses DELTA[opus] as test_designer", () => {
     const result = parseSubjectType("DELTA[opus]: Added H3 third alternative");
     expect(result.type).toBe("delta");
@@ -181,6 +186,22 @@ describe("computeThreadStatus", () => {
     expect(status.acks.awaitingFrom).toContain("Codex");
     expect(status.acks.awaitingFrom).toContain("Opus");
     expect(status.acks.awaitingFrom).toContain("Gemini");
+  });
+
+  it("detects awaiting_responses after legacy bracketed kickoff subject", () => {
+    const messages: AgentMailMessage[] = [
+      createMessage({
+        subject: "[RS-20251230-test] Brenner Loop kickoff",
+        from: "Operator",
+        to: ["Codex", "Opus", "Gemini"],
+        ack_required: true,
+        created_ts: "2025-12-30T10:00:00Z",
+      }),
+    ];
+
+    const status = computeThreadStatus(messages);
+    expect(status.phase).toBe("awaiting_responses");
+    expect(status.kickoff).toBeTruthy();
   });
 
   it("tracks role completion from DELTA messages", () => {

@@ -134,7 +134,7 @@ const ROLE_SHORTHAND_MAP: Record<string, BrennerRole> = {
 
 /** Regex patterns for parsing subject lines */
 const SUBJECT_PATTERNS = {
-  kickoff: /^KICKOFF:/i,
+  kickoff: /^(KICKOFF:|\[[^\]]+\]\s+Brenner Loop kickoff\b)/i,
   delta: /^DELTA\[([^\]]+)\]:/i,
   compiled: /^COMPILED:/i,
   critique: /^CRITIQUE:/i,
