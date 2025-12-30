@@ -258,13 +258,13 @@ describe("hasValidLabSecret", () => {
     });
 
     it("handles undefined headers gracefully", () => {
-      withEnv({ BRENNER_LAB_SECRET: SECRET }, () => {
+      withEnv({ BRENNER_LAB_SECRET: TEST_LAB_VALUE }, () => {
         expect(hasValidLabSecret(undefined)).toBe(false);
       });
     });
 
     it("handles undefined cookies gracefully", () => {
-      withEnv({ BRENNER_LAB_SECRET: SECRET }, () => {
+      withEnv({ BRENNER_LAB_SECRET: TEST_LAB_VALUE }, () => {
         expect(hasValidLabSecret(makeHeaders({}), undefined)).toBe(false);
       });
     });

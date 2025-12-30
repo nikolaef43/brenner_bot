@@ -48,7 +48,8 @@ jobs:
             local meta_target="$3"
             echo "==> Building ${outfile} (${target})"
             BRENNER_BUILD_DATE="${BUILD_DATE}" BRENNER_TARGET="${meta_target}" \
-              bun build --compile --minify --target="${target}" --outfile="dist/${outfile}" ./brenner.ts
+              bun build --compile --minify --env=BRENNER_* \
+                --target="${target}" --outfile="dist/${outfile}" ./brenner.ts
           }
 
           build bun-linux-x64-baseline brenner-linux-x64 linux-x64
@@ -58,7 +59,7 @@ jobs:
 
           echo "==> Building brenner-win-x64.exe (bun-windows-x64-baseline)"
           BRENNER_BUILD_DATE="${BUILD_DATE}" BRENNER_TARGET="win-x64" \
-            bun build --compile --minify --target=bun-windows-x64-baseline \
+            bun build --compile --minify --env=BRENNER_* --target=bun-windows-x64-baseline \
               --outfile="dist/brenner-win-x64.exe" --windows-hide-console ./brenner.ts
 
           cd dist
