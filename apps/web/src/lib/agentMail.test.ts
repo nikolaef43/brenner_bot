@@ -10,7 +10,7 @@
  */
 
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
-import { AgentMailClient, AgentMailConfig, AgentMailInbox, AgentMailMessage } from "./agentMail";
+import { AgentMailClient, AgentMailInbox, AgentMailMessage } from "./agentMail";
 
 // ============================================================================
 // Test Helpers

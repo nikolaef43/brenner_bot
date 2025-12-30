@@ -16,7 +16,6 @@ import {
   jargonDictionary,
   getTermCount,
   getCategoryCounts,
-  searchJargon,
 } from "@/lib/jargon";
 
 // Mock next/link for testing
@@ -80,7 +79,7 @@ describe("GlossaryPage", () => {
       render(<GlossaryPage />);
 
       const categoryCounts = getCategoryCounts();
-      for (const [category, count] of categoryCounts) {
+      for (const [category, _count] of categoryCounts) {
         // Look for button containing category name - use getAllByRole to handle duplicates
         const categoryButtons = screen.getAllByRole("button", {
           name: new RegExp(category, "i"),
@@ -193,8 +192,7 @@ describe("GlossaryPage", () => {
       await user.type(searchInput, "genetic");
 
       await waitFor(() => {
-        // Should show fewer than all terms
-        const totalCount = getTermCount();
+        // Should show fewer than all terms (getTermCount() would give total)
         // Verify filtered results are shown
         expect(
           screen.getByText(/matching "genetic"/i)

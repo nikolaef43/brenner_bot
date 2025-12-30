@@ -422,7 +422,7 @@ export function CrosswalkTable({ className }: CrosswalkTableProps) {
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className="bg-muted/50">
-                {headerGroup.headers.map((header, headerIndex) => {
+                {headerGroup.headers.map((header, _headerIndex) => {
                   const isConceptColumn = header.id === "concept";
                   const modelKey = header.id as keyof typeof MODEL_CONFIGS;
                   const config = !isConceptColumn ? MODEL_CONFIGS[modelKey] : null;

@@ -1,5 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "import", "react", "react-hooks", "nextjs", "vitest"],
   "env": {
     "browser": true,
     "node": true,
@@ -13,15 +14,39 @@
       "rootDir": "."
     }
   },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
   "rules": {
     "no-console": "off",
+    "no-await-in-loop": "off",
+    "no-constant-binary-expression": "off",
     "eqeqeq": ["error", "smart"],
 
     "typescript/no-explicit-any": "warn",
     "typescript/prefer-ts-expect-error": "error",
 
     "react/react-in-jsx-scope": "off",
-    "react/no-array-index-key": "off"
+    "react/no-array-index-key": "off",
+
+    "unicorn/no-array-sort": "off",
+    "unicorn/consistent-function-scoping": "off",
+    "unicorn/no-instanceof-builtins": "off",
+
+    "jest/no-conditional-expect": "off",
+    "jest/valid-expect": "off",
+    "jest/no-disabled-tests": "off",
+    "jest/no-standalone-expect": "off",
+    "jest/require-to-throw-message": "off",
+    "vitest/no-conditional-expect": "off",
+    "vitest/valid-expect": "off",
+
+    "import/no-unassigned-import": "off",
+    "import/no-named-as-default": "off",
+
+    "nextjs/no-html-link-for-pages": "off"
   },
   "ignorePatterns": [
     ".next/**",

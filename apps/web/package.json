@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "lint:ox": "oxlint -c oxlintrc.json --tsconfig tsconfig.json --import-plugin --react-plugin --nextjs-plugin --vitest-plugin -D suspicious -D perf -A react-in-jsx-scope -A no-array-index-key src/",
+    "lint:ox": "oxlint -c oxlintrc.json --tsconfig tsconfig.json src/",
     "lint:all": "bun run lint && bun run lint:ox",
     "test": "vitest run",
     "test:watch": "vitest",

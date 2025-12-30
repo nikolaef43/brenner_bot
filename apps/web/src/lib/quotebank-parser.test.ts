@@ -10,8 +10,6 @@ import {
   parseQuoteBank,
   filterQuotesByTag,
   searchQuotes,
-  type Quote,
-  type ParsedQuoteBank,
 } from "./quotebank-parser";
 
 // ============================================================================

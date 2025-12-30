@@ -69,7 +69,7 @@ export function assertLength<T>(array: T[], expected: number, description = "arr
 export function assertContains(actual: string, expected: string, description = "string"): void {
   if (!actual.includes(expected)) {
     throw new Error(
-      `Expected ${description} to contain "${expected}"\n` + `Actual: "${actual.slice(0, 200)}${actual.length > 200 ? "..." : ""}"`,
+      `Expected ${description} to contain "${expected}"\nActual: "${actual.slice(0, 200)}${actual.length > 200 ? "..." : ""}"`,
     );
   }
 }

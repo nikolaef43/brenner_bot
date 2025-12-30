@@ -215,7 +215,7 @@ function renderInlineMarkdown(text: string): ReactNode {
     }
 
     // Find next special character or end
-    const nextSpecial = remaining.search(/[\*`\[]/);
+    const nextSpecial = remaining.search(/[*`[]/);
     if (nextSpecial === -1) {
       parts.push(remaining);
       break;

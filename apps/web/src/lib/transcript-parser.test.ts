@@ -10,8 +10,6 @@ import {
   parseTranscript,
   getTranscriptSections,
   searchTranscript,
-  type ParsedTranscript,
-  type TranscriptSection,
 } from "./transcript-parser";
 
 // ============================================================================

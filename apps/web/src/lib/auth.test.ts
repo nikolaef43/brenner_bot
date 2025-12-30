@@ -7,7 +7,7 @@
  * Run with: cd apps/web && bun run test -- src/lib/auth.test.ts
  */
 
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   isLabModeEnabled,
   hasValidLabSecret,

@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { parseMetaprompt, type ParsedMetaprompt } from "./metaprompt-parser";
+import { parseMetaprompt } from "./metaprompt-parser";
 
 // ============================================================================
 // Test Fixtures

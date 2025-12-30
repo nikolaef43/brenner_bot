@@ -9,7 +9,7 @@
  */
 
 import { describe, expect, test } from "vitest";
-import { lintArtifact, formatLintReportJson, type Artifact, type LintReport } from "./artifact-merge";
+import { lintArtifact, formatLintReportJson, type Artifact } from "./artifact-merge";
 import { readFileSync } from "fs";
 import { join } from "path";
 

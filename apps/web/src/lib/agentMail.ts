@@ -117,6 +117,7 @@ async function readJsonRpcEnvelopeFromSse(res: Response): Promise<unknown> {
   };
 
   try {
+    // oxlint-disable-next-line no-await-in-loop -- Intentional streaming read loop
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
