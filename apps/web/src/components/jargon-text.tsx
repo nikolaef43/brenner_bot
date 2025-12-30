@@ -100,12 +100,16 @@ function segmentText(
 
   // Mark highlight positions
   if (highlights && highlights.length > 0) {
-    const pattern = highlights.map(escapeRegex).join("|");
-    const regex = new RegExp(`(${pattern})`, "gi");
-    let match: RegExpExecArray | null;
-    while ((match = regex.exec(text)) !== null) {
-      for (let i = match.index; i < match.index + match[0].length; i++) {
-        annotations[i] = { ...annotations[i], isHighlight: true };
+    // Filter out empty/whitespace strings to prevent infinite regex matches
+    const validHighlights = highlights.filter(h => h.trim().length > 0);
+    if (validHighlights.length > 0) {
+      const pattern = validHighlights.map(escapeRegex).join("|");
+      const regex = new RegExp(`(${pattern})`, "gi");
+      let match: RegExpExecArray | null;
+      while ((match = regex.exec(text)) !== null) {
+        for (let i = match.index; i < match.index + match[0].length; i++) {
+          annotations[i] = { ...annotations[i], isHighlight: true };
+        }
       }
     }
   }
