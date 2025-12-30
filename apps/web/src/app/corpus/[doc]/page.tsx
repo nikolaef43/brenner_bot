@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { readCorpusDoc, CORPUS_DOCS } from "@/lib/corpus";
-import { MarkdownRenderer } from "@/components/ui/markdown";
+import { parseTranscript } from "@/lib/transcript-parser";
+import { parseDistillation } from "@/lib/distillation-parser";
+import { parseQuoteBank } from "@/lib/quotebank-parser";
+import { parseMetaprompt } from "@/lib/metaprompt-parser";
+import { TranscriptViewer } from "@/components/transcript/TranscriptViewer";
+import { DistillationViewer } from "@/components/distillation/DistillationViewer";
+import { QuoteBankViewer } from "@/components/quotebank/QuoteBankViewer";
+import { MetapromptViewer } from "@/components/metaprompt/MetapromptViewer";
 import type { Metadata } from "next";
 
 export const runtime = "nodejs";
@@ -24,18 +31,6 @@ export async function generateMetadata({
 const ChevronRightIcon = () => (
   <svg className="size-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-  </svg>
-);
-
-const ClockIcon = () => (
-  <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
-
-const DocumentIcon = () => (
-  <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
   </svg>
 );
 
@@ -67,9 +62,9 @@ function getReadTime(id: string): string {
 function getWordCount(content: string): string {
   const words = content.split(/\s+/).filter(Boolean).length;
   if (words >= 1000) {
-    return `${Math.round(words / 1000)}k words`;
+    return `${Math.round(words / 1000)}k`;
   }
-  return `${words} words`;
+  return `${words}`;
 }
 
 function getNavLinks(currentId: string) {
@@ -77,6 +72,53 @@ function getNavLinks(currentId: string) {
   const prev = currentIndex > 0 ? CORPUS_DOCS[currentIndex - 1] : null;
   const next = currentIndex < CORPUS_DOCS.length - 1 ? CORPUS_DOCS[currentIndex + 1] : null;
   return { prev, next };
+}
+
+/**
+ * Determine document type from ID
+ */
+function getDocType(id: string): "transcript" | "distillation" | "quote-bank" | "metaprompt" {
+  if (id === "transcript") return "transcript";
+  if (id === "quote-bank") return "quote-bank";
+  if (id.startsWith("distillation")) return "distillation";
+  return "metaprompt";
+}
+
+/**
+ * Render the appropriate viewer based on document type
+ */
+function DocumentContent({ docId, content }: { docId: string; content: string }) {
+  const docType = getDocType(docId);
+  const readTime = getReadTime(docId);
+  const wordCount = getWordCount(content);
+
+  switch (docType) {
+    case "transcript": {
+      const parsed = parseTranscript(content);
+      return (
+        <TranscriptViewer
+          data={parsed}
+          estimatedReadTime={readTime}
+          wordCount={wordCount}
+        />
+      );
+    }
+
+    case "distillation": {
+      const parsed = parseDistillation(content, docId);
+      return <DistillationViewer data={parsed} docId={docId} />;
+    }
+
+    case "quote-bank": {
+      const parsed = parseQuoteBank(content);
+      return <QuoteBankViewer data={parsed} />;
+    }
+
+    case "metaprompt": {
+      const parsed = parseMetaprompt(content);
+      return <MetapromptViewer data={parsed} />;
+    }
+  }
 }
 
 export default async function CorpusDocPage({
@@ -87,12 +129,11 @@ export default async function CorpusDocPage({
   const { doc: docId } = await params;
   const { doc, content } = await readCorpusDoc(docId);
   const { prev, next } = getNavLinks(docId);
-  const wordCount = getWordCount(content);
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1 text-sm text-muted-foreground mb-6 animate-fade-in" aria-label="Breadcrumb">
+      <nav className="flex items-center gap-1 text-sm text-muted-foreground mb-8 animate-fade-in" aria-label="Breadcrumb">
         <Link href="/corpus" className="hover:text-foreground transition-colors link-underline">
           Corpus
         </Link>
@@ -100,52 +141,25 @@ export default async function CorpusDocPage({
         <span className="text-foreground font-medium truncate">{doc.title}</span>
       </nav>
 
-      {/* Header */}
-      <header className="mb-10 pb-8 border-b border-border animate-fade-in-up">
-        <h1 className="text-3xl lg:text-4xl font-bold tracking-tight mb-4">
-          {doc.title}
-        </h1>
-
-        {doc.description && (
-          <p className="text-lg text-muted-foreground mb-4 max-w-2xl">
-            {doc.description}
-          </p>
-        )}
-
-        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted border border-border/50">
-            <ClockIcon />
-            {getReadTime(docId)} read
-          </span>
-          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted border border-border/50">
-            <DocumentIcon />
-            {wordCount}
-          </span>
-          <span className="font-mono text-xs px-3 py-1.5 rounded-full bg-muted border border-border/50">
-            {doc.filename}
-          </span>
-        </div>
-      </header>
-
-      {/* Content - Beautiful Markdown Rendering */}
-      <div className="animate-fade-in-up stagger-1">
-        <MarkdownRenderer content={content} />
+      {/* Document Content with Type-Specific Viewer */}
+      <div className="animate-fade-in-up">
+        <DocumentContent docId={docId} content={content} />
       </div>
 
       {/* Navigation */}
-      <nav className="mt-16 pt-8 border-t border-border animate-fade-in-up">
+      <nav className="mt-20 pt-10 border-t border-border animate-fade-in-up">
         <div className="grid gap-4 sm:grid-cols-2">
           {prev ? (
             <Link
               href={`/corpus/${prev.id}`}
-              className="group flex items-center gap-4 p-4 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 transition-all"
+              className="group flex items-center gap-4 p-5 rounded-2xl border bg-card hover:bg-muted/50 hover:border-primary/30 transition-all"
             >
-              <div className="flex items-center justify-center size-10 rounded-lg bg-muted text-muted-foreground group-hover:text-primary transition-colors">
+              <div className="flex items-center justify-center size-12 rounded-xl bg-muted text-muted-foreground group-hover:text-primary transition-colors">
                 <ArrowLeftIcon />
               </div>
               <div className="flex-1 min-w-0">
-                <span className="text-xs text-muted-foreground">Previous</span>
-                <div className="font-medium group-hover:text-primary transition-colors truncate">
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">Previous</span>
+                <div className="font-semibold group-hover:text-primary transition-colors truncate">
                   {prev.title}
                 </div>
               </div>
@@ -157,14 +171,14 @@ export default async function CorpusDocPage({
           {next ? (
             <Link
               href={`/corpus/${next.id}`}
-              className="group flex items-center gap-4 p-4 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 transition-all text-right sm:flex-row-reverse"
+              className="group flex items-center gap-4 p-5 rounded-2xl border bg-card hover:bg-muted/50 hover:border-primary/30 transition-all text-right sm:flex-row-reverse"
             >
-              <div className="flex items-center justify-center size-10 rounded-lg bg-muted text-muted-foreground group-hover:text-primary transition-colors">
+              <div className="flex items-center justify-center size-12 rounded-xl bg-muted text-muted-foreground group-hover:text-primary transition-colors">
                 <ArrowRightIcon />
               </div>
               <div className="flex-1 min-w-0">
-                <span className="text-xs text-muted-foreground">Next</span>
-                <div className="font-medium group-hover:text-primary transition-colors truncate">
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">Next</span>
+                <div className="font-semibold group-hover:text-primary transition-colors truncate">
                   {next.title}
                 </div>
               </div>
@@ -174,10 +188,10 @@ export default async function CorpusDocPage({
           )}
         </div>
 
-        <div className="mt-8 text-center">
+        <div className="mt-10 text-center">
           <Link
             href="/corpus"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all"
           >
             <ArrowLeftIcon />
             Back to Corpus

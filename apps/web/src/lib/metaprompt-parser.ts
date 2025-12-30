@@ -27,7 +27,7 @@ export function parseMetaprompt(markdown: string): ParsedMetaprompt {
   const title = titleMatch?.[1] ?? "Metaprompt";
 
   // Extract description (first paragraph after title)
-  const descMatch = markdown.match(/^#\s+.+\n+([^#\n].+?)(?=\n\n)/s);
+  const descMatch = markdown.match(/^#\s+.+\n+([^#\n][^\n]+)/m);
   const description = descMatch?.[1]?.trim();
 
   // Word count
