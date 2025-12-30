@@ -1720,12 +1720,59 @@ async function main(): Promise<void> {
       const messageId = asIntFlag(flags, "message-id");
       if (!messageId) throw new Error("Missing --message-id.");
 
-      const result = await client.toolsCall("mark_message_read", {
+      // Fetch the message (with bodies) so `mail read` actually shows content.
+      // Agent Mail doesn't currently expose a direct "get message by id" tool,
+      // so we scan the agent's inbox for the requested message_id.
+      const inbox = await client.toolsCall("fetch_inbox", {
+        project_key: projectKey,
+        agent_name: agentName,
+        limit: 200,
+        urgent_only: false,
+        include_bodies: true,
+        since_ts: null,
+      });
+
+      if (isToolError(inbox)) {
+        stderrLine(JSON.stringify(inbox, null, 2));
+        process.exit(1);
+      }
+
+      const messages: Array<Record<string, Json>> = [];
+      if (isRecord(inbox) && isRecord(inbox.structuredContent)) {
+        const structured = inbox.structuredContent.result;
+        if (Array.isArray(structured)) {
+          for (const item of structured) {
+            if (isRecord(item)) messages.push(item);
+          }
+        }
+      } else if (isRecord(inbox) && Array.isArray(inbox.content) && inbox.content.length > 0) {
+        const first = inbox.content[0];
+        if (isRecord(first) && typeof first.text === "string") {
+          try {
+            const parsed = JSON.parse(first.text) as Json;
+            if (Array.isArray(parsed)) {
+              for (const item of parsed) {
+                if (isRecord(item)) messages.push(item);
+              }
+            }
+          } catch {
+            // ignore
+          }
+        }
+      }
+
+      const message = messages.find((m) => m.id === messageId);
+      if (!message) {
+        throw new Error(`Message ${messageId} not found in ${agentName} inbox (limit=200).`);
+      }
+
+      const markRead = await client.toolsCall("mark_message_read", {
         project_key: projectKey,
         agent_name: agentName,
         message_id: messageId,
       });
-      stdoutLine(JSON.stringify(result, null, 2));
+
+      stdoutLine(JSON.stringify({ message, mark_read: markRead }, null, 2));
       process.exit(0);
     }
 
