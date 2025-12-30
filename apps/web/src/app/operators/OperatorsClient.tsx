@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import type { BrennerOperatorPaletteEntry } from "@/lib/operators";
 import { Jargon } from "@/components/jargon";
-import { generatePromptBundle, type PromptBundle } from "@/lib/prompt-builder";
 
 // ============================================================================
 // CONSTANTS
