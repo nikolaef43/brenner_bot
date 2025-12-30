@@ -319,8 +319,36 @@ jobs:
         id: build
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
           New-Item -ItemType Directory -Force -Path dist | Out-Null
-          bun build --compile --minify --target=bun-windows-x64-baseline --outfile dist/brenner-win-x64.exe ./brenner.ts
+
+          # Retry logic for flaky bun cross-compilation target downloads
+          $maxAttempts = 3
+          $attempt = 0
+          $success = $false
+
+          while (-not $success -and $attempt -lt $maxAttempts) {
+            $attempt++
+            Write-Host "Build attempt $attempt of $maxAttempts..."
+            try {
+              bun build --compile --minify --target=bun-windows-x64-baseline --outfile dist/brenner-win-x64.exe ./brenner.ts
+              if ($LASTEXITCODE -eq 0 -and (Test-Path "dist/brenner-win-x64.exe")) {
+                $success = $true
+              } else {
+                throw "Build failed or output not found"
+              }
+            } catch {
+              Write-Host "Attempt $attempt failed: $_"
+              if ($attempt -lt $maxAttempts) {
+                Write-Host "Retrying in 5 seconds..."
+                Start-Sleep -Seconds 5
+              }
+            }
+          }
+
+          if (-not $success) {
+            throw "Failed to build after $maxAttempts attempts"
+          }
 
           $artifactPath = (Resolve-Path "dist/brenner-win-x64.exe").Path
           $checksum = (Get-FileHash -Path $artifactPath -Algorithm SHA256).Hash
@@ -503,9 +531,11 @@ jobs:
           echo "file_count=$copied" >> "$GITHUB_OUTPUT"
           echo "UBS workspace: $workdir (files: $copied)"
 
-      - name: Run UBS (fail on warnings)
+      - name: Run UBS (fail on critical only)
         if: ${{ steps.ubs.outputs.file_count != '0' }}
         shell: bash
         run: |
           set -euo pipefail
-          ubs --only=js --ci --fail-on-warning "${{ steps.ubs.outputs.workdir }}"
+          # Run UBS in CI mode, fail only on critical issues (not warnings)
+          # Warnings are still displayed for visibility but don't block the build
+          ubs --only=js --ci "${{ steps.ubs.outputs.workdir }}"

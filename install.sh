@@ -318,6 +318,7 @@ install_upstream_tool() {
     return 0
   fi
 
+  # shellcheck disable=SC2086  # args is intentionally unquoted for word splitting
   curl_secure "$url" | bash -s -- $args "${extra_args[@]}"
 }
 
@@ -781,9 +782,11 @@ configure_path() {
   if grep -qF "$DEST_DIR" "$config_file" 2>/dev/null; then
     log_debug "PATH entry already in ${config_file}"
   else
-    echo "" >> "$config_file"
-    echo "# Added by brenner installer" >> "$config_file"
-    echo "$path_line" >> "$config_file"
+    {
+      echo ""
+      echo "# Added by brenner installer"
+      echo "$path_line"
+    } >> "$config_file"
     log_info "Added to ${config_file}: ${path_line}"
     log_info "Run: source ${config_file}"
   fi
