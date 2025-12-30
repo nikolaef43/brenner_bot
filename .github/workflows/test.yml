@@ -163,6 +163,35 @@ jobs:
         run: bun test brenner.test.ts
         continue-on-error: true
 
+  brenner-compile:
+    name: Brenner Compile (standalone)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies (apps/web)
+        working-directory: apps/web
+        run: bun install --frozen-lockfile
+
+      - name: Compile brenner
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          bun build --compile --minify --target=bun-linux-x64-baseline --outfile dist/brenner ./brenner.ts
+
+      - name: Run brenner smoke commands
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./dist/brenner help >/dev/null
+          ./dist/brenner doctor --json --skip-ntm --skip-cass --skip-cm >/dev/null
+
   installer-smoke-unix:
     name: Installer Smoke (bash)
     runs-on: ${{ matrix.os }}
