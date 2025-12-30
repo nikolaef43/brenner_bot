@@ -291,6 +291,9 @@ describe("GlossaryPage", () => {
       const user = userEvent.setup();
       render(<GlossaryPage />);
 
+      const term = jargonDictionary["level-split"];
+      if (!term) throw new Error("Expected jargonDictionary to contain level-split");
+
       // Find the card by its ID and get the button inside it
       const card = document.getElementById("level-split");
       expect(card).toBeInTheDocument();
@@ -299,15 +302,16 @@ describe("GlossaryPage", () => {
 
       // Wait for expanded content
       await waitFor(() => {
-        // Should show full explanation
-        const term = jargonDictionary["level-split"];
-        expect(screen.getByText(term?.long ?? "")).toBeInTheDocument();
+        expect(screen.getByText(term.long)).toBeInTheDocument();
       });
     });
 
     it("collapses term card when clicked again", async () => {
       const user = userEvent.setup();
       render(<GlossaryPage />);
+
+      const term = jargonDictionary["level-split"];
+      if (!term) throw new Error("Expected jargonDictionary to contain level-split");
 
       const card = document.getElementById("level-split");
       const button = within(card as HTMLElement).getByRole("button");
@@ -316,16 +320,14 @@ describe("GlossaryPage", () => {
       await user.click(button);
 
       await waitFor(() => {
-        const term = jargonDictionary["level-split"];
-        expect(screen.getByText(term?.long ?? "")).toBeInTheDocument();
+        expect(screen.getByText(term.long)).toBeInTheDocument();
       });
 
       // Collapse
       await user.click(button);
 
       await waitFor(() => {
-        const term = jargonDictionary["level-split"];
-        expect(screen.queryByText(term?.long ?? "")).not.toBeInTheDocument();
+        expect(screen.queryByText(term.long)).not.toBeInTheDocument();
       });
     });
 
@@ -335,7 +337,8 @@ describe("GlossaryPage", () => {
 
       // Use level-split which has a why field
       const term = jargonDictionary["level-split"];
-      expect(term?.why).toBeTruthy();
+      if (!term) throw new Error("Expected jargonDictionary to contain level-split");
+      expect(term.why).toBeTruthy();
 
       // Find the card by ID and click its button
       const card = document.getElementById("level-split");
@@ -353,7 +356,8 @@ describe("GlossaryPage", () => {
 
       // Use level-split which has an analogy field
       const term = jargonDictionary["level-split"];
-      expect(term?.analogy).toBeTruthy();
+      if (!term) throw new Error("Expected jargonDictionary to contain level-split");
+      expect(term.analogy).toBeTruthy();
 
       // Find the card by ID and click its button
       const card = document.getElementById("level-split");
@@ -365,7 +369,7 @@ describe("GlossaryPage", () => {
       await waitFor(
         () => {
           // Check that the long explanation is visible (proves expansion worked)
-          expect(screen.getByText(term?.long ?? "")).toBeInTheDocument();
+          expect(screen.getByText(term.long)).toBeInTheDocument();
         },
         { timeout: 1000 }
       );
@@ -385,7 +389,8 @@ describe("GlossaryPage", () => {
 
       // Use level-split which has related terms
       const term = jargonDictionary["level-split"];
-      expect(term?.related?.length).toBeGreaterThan(0);
+      if (!term) throw new Error("Expected jargonDictionary to contain level-split");
+      expect(term.related?.length).toBeGreaterThan(0);
 
       // Find the card by ID and click its button
       const card = document.getElementById("level-split");
@@ -403,7 +408,14 @@ describe("GlossaryPage", () => {
 
       // Use level-split which has related terms
       const term = jargonDictionary["level-split"];
-      expect(term?.related?.length).toBeGreaterThan(0);
+      if (!term) throw new Error("Expected jargonDictionary to contain level-split");
+      expect(term.related?.length).toBeGreaterThan(0);
+
+      const firstRelatedKey = term.related?.[0];
+      if (!firstRelatedKey) throw new Error("Expected level-split to have at least one related term");
+
+      const relatedTerm = jargonDictionary[firstRelatedKey];
+      if (!relatedTerm) throw new Error(`Expected jargonDictionary to contain related term: ${firstRelatedKey}`);
 
       // Find the card by ID and click its button
       const card = document.getElementById("level-split");
@@ -411,14 +423,10 @@ describe("GlossaryPage", () => {
       await user.click(button);
 
       await waitFor(() => {
-        const firstRelatedKey = term.related?.[0] ?? "";
-        const relatedTerm = jargonDictionary[firstRelatedKey];
-        if (relatedTerm) {
-          const link = screen.getByRole("link", {
-            name: relatedTerm.term,
-          });
-          expect(link).toHaveAttribute("href", `#${firstRelatedKey}`);
-        }
+        const link = screen.getByRole("link", {
+          name: relatedTerm.term,
+        });
+        expect(link).toHaveAttribute("href", `#${firstRelatedKey}`);
       });
     });
   });
@@ -428,13 +436,15 @@ describe("GlossaryPage", () => {
       // Set hash before render
       window.location.hash = "level-split";
 
+      const term = jargonDictionary["level-split"];
+      if (!term) throw new Error("Expected jargonDictionary to contain level-split");
+
       render(<GlossaryPage />);
 
       await waitFor(
         () => {
-          const term = jargonDictionary["level-split"];
           // Should auto-expand the term
-          expect(screen.getByText(term?.long ?? "")).toBeInTheDocument();
+          expect(screen.getByText(term.long)).toBeInTheDocument();
         },
         { timeout: 500 }
       );
