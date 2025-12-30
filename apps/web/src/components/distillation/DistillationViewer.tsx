@@ -167,8 +167,6 @@ interface SectionProps {
 }
 
 function Section({ section, docId }: SectionProps) {
-  const model = getModelFromId(docId);
-
   const HeadingTag = `h${section.level + 1}` as "h2" | "h3" | "h4";
   const headingClasses = {
     1: "text-2xl lg:text-3xl font-bold mb-6 mt-12 first:mt-0",

@@ -186,7 +186,6 @@ function parseContentBlocks(lines: string[]): DistillationContent[] {
  * Parse the distillation markdown
  */
 export function parseDistillation(markdown: string, docId: string): ParsedDistillation {
-  const lines = markdown.split("\n");
   const model = getModelFromId(docId);
 
   // Extract title (first H1)

@@ -199,7 +199,7 @@ export function TranscriptSection({ section, index, isActive }: TranscriptSectio
       </div>
 
       {/* Section Content */}
-      <div className="space-y-6 pl-0 lg:pl-18">
+      <div className="space-y-6 pl-0 lg:pl-[4.5rem]">
         {section.content.map((content, i) => (
           <ContentBlock key={i} content={content} />
         ))}
@@ -242,44 +242,6 @@ interface BrennerQuoteProps {
 }
 
 function BrennerQuote({ text, highlights }: BrennerQuoteProps) {
-  // Highlight important terms in the quote
-  const renderText = () => {
-    if (!highlights || highlights.length === 0) {
-      return text;
-    }
-
-    let result = text;
-    highlights.forEach((highlight) => {
-      const regex = new RegExp(`(${escapeRegex(highlight)})`, "gi");
-      result = result.replace(regex, "<<<HIGHLIGHT>>>$1<<<ENDHIGHLIGHT>>>");
-    });
-
-    const parts = result.split(/(<<<HIGHLIGHT>>>|<<<ENDHIGHLIGHT>>>)/);
-    let inHighlight = false;
-
-    return parts.map((part, i) => {
-      if (part === "<<<HIGHLIGHT>>>") {
-        inHighlight = true;
-        return null;
-      }
-      if (part === "<<<ENDHIGHLIGHT>>>") {
-        inHighlight = false;
-        return null;
-      }
-      if (inHighlight) {
-        return (
-          <span
-            key={i}
-            className="font-semibold text-primary bg-primary/10 px-1 rounded"
-          >
-            {part}
-          </span>
-        );
-      }
-      return <span key={i}>{part}</span>;
-    });
-  };
-
   // Split into paragraphs
   const paragraphs = text.split(/\n\n+/);
 

@@ -147,8 +147,6 @@ function parseSectionContent(lines: string[]): TranscriptContent[] {
  * Parse the complete transcript markdown into structured data
  */
 export function parseTranscript(markdown: string): ParsedTranscript {
-  const lines = markdown.split("\n");
-
   // Extract title (first H1)
   const titleMatch = markdown.match(/^#\s+(.+)$/m);
   const title = titleMatch?.[1] ?? "Sydney Brenner Transcript";

@@ -20,8 +20,6 @@ export interface ParsedMetaprompt {
  * Parse metaprompt markdown
  */
 export function parseMetaprompt(markdown: string): ParsedMetaprompt {
-  const lines = markdown.split("\n");
-
   // Extract title (first H1)
   const titleMatch = markdown.match(/^#\s+(.+)$/m);
   const title = titleMatch?.[1] ?? "Metaprompt";
