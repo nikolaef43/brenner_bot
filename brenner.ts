@@ -826,17 +826,17 @@ Commands:
   mail health
   mail tools
   mail agents [--project-key <abs-path>]
-  mail send [--project-key <abs-path>] --sender <AgentName> --to <A,B> --subject <s> --body-file <path> [--thread-id <id>] [--ack-required]
-  mail inbox [--project-key <abs-path>] --agent <AgentName> [--limit <n>] [--since <iso>] [--urgent-only] [--include-bodies] [--threads]
-  mail read [--project-key <abs-path>] --agent <AgentName> --message-id <n>
-  mail ack [--project-key <abs-path>] --agent <AgentName> --message-id <n>
+  mail send [--project-key <abs-path>] [--sender <AgentName>] --to <A,B> --subject <s> --body-file <path> [--thread-id <id>] [--ack-required]
+  mail inbox [--project-key <abs-path>] [--agent <AgentName>] [--limit <n>] [--since <iso>] [--urgent-only] [--include-bodies] [--threads]
+  mail read [--project-key <abs-path>] [--agent <AgentName>] --message-id <n>
+  mail ack [--project-key <abs-path>] [--agent <AgentName>] --message-id <n>
   mail thread [--project-key <abs-path>] --thread-id <id> [--include-examples] [--llm]
 
   toolchain plan [--manifest <path>] [--platform <p>] [--json]
 
   prompt compose --excerpt-file <path> [--template <path>] [--theme <s>] [--domain <s>] [--question <s>]
 
-  session start [--project-key <abs-path>] --sender <AgentName> --to <A,B> --thread-id <id>
+  session start [--project-key <abs-path>] [--sender <AgentName>] --to <A,B> --thread-id <id>
                --excerpt-file <path> --question <s> [--context <s>]
                [--hypotheses <s>] [--constraints <s>] [--outputs <s>]
                [--with-memory] [--unified] [--template <path>] [--theme <s>] [--domain <s>]
@@ -855,8 +855,12 @@ Aliases:
 
 Config file (JSON):
   --config <path>             optional (or set BRENNER_CONFIG_PATH)
+  Precedence                  flags > env > config > defaults
   Default (POSIX)             ~/.config/brenner/config.json (or $XDG_CONFIG_HOME/brenner/config.json)
   Default (Windows)           %APPDATA%\\brenner\\config.json
+
+Agent identity (env):
+  AGENT_NAME                 optional (default for --sender / --agent)
 
 Agent Mail connection (env):
   AGENT_MAIL_BASE_URL        default: http://127.0.0.1:8765
@@ -875,16 +879,27 @@ Build metadata (for --version):
   BRENNER_TARGET             optional (e.g. linux-x64)
 
 Examples:
-  ./brenner.ts mail tools
-  ./brenner.ts mail inbox --project-key "$PWD" --agent GreenCastle --threads
-  ./brenner.ts mail ack --project-key "$PWD" --agent GreenCastle --message-id 123
   ./brenner.ts --version
-  ./brenner.ts doctor --json --skip-ntm --skip-cass --skip-cm
-  ./brenner.ts toolchain plan
-  ./brenner.ts toolchain plan --platform darwin-arm64 --json
-  ./brenner.ts prompt compose --template metaprompt_by_gpt_52.md --excerpt-file excerpt.md --theme "problem choice"
-  ./brenner.ts session start --project-key "$PWD" --sender GreenCastle --to BlueMountain,RedForest \\
-    --thread-id FEAT-123 --excerpt-file excerpt.md --question "..." --ack-required
+  ./brenner.ts doctor --agent-mail
+
+  export AGENT_NAME=GreenCastle
+
+  # Build an excerpt (stdout -> file)
+  ./brenner.ts excerpt build --sections "§12,§13" --ordering chronological > excerpt.md
+
+  # Start a session (role-specific prompts) + watch status
+  ./brenner.ts session start --project-key "$PWD" --to PurplePond,PurpleCat \\
+    --thread-id RS-20251230-example --excerpt-file excerpt.md --question "..." --with-memory
+  ./brenner.ts session status --project-key "$PWD" --thread-id RS-20251230-example --watch
+
+  # Work the inbox (threads -> read -> ack)
+  ./brenner.ts mail inbox --project-key "$PWD" --threads
+  ./brenner.ts mail read --project-key "$PWD" --message-id 123
+  ./brenner.ts mail ack --project-key "$PWD" --message-id 123
+
+  # Send a message (markdown file -> Agent Mail)
+  ./brenner.ts mail send --project-key "$PWD" --to PurplePond \\
+    --subject "FYI: ..." --body-file message.md --thread-id COORD-20251230-team
 `.trim();
 }
 
