@@ -1,6 +1,8 @@
 import { resolve } from "node:path";
+import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { AgentMailClient } from "@/lib/agentMail";
+import { isLabModeEnabled, checkOrchestrationAuth } from "@/lib/auth";
 import { composePrompt } from "@/lib/prompts";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -47,11 +49,6 @@ type AgentDirectory = {
 
 function repoRootFromWebCwd(): string {
   return resolve(process.cwd(), "../..");
-}
-
-function isLabModeEnabled(): boolean {
-  const value = (process.env.BRENNER_LAB_MODE ?? "").trim().toLowerCase();
-  return value === "1" || value === "true";
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -110,7 +107,14 @@ function splitCsv(raw: string): string[] {
 async function sendKickoff(formData: FormData): Promise<void> {
   "use server";
 
-  if (!isLabModeEnabled()) notFound();
+  // Fail-closed: check both lab mode AND optional secret
+  const reqHeaders = await headers();
+  const reqCookies = await cookies();
+  const authResult = checkOrchestrationAuth(reqHeaders, reqCookies);
+  if (!authResult.authorized) {
+    // Return 404 to avoid leaking that this route exists
+    notFound();
+  }
 
   const projectKey = String(formData.get("projectKey") || repoRootFromWebCwd());
   const sender = String(formData.get("sender") || "").trim();
