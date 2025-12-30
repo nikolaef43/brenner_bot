@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useCallback, useEffect, useState, useMemo, useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { ParsedQuoteBank, Quote } from "@/lib/quotebank-parser";
 import { filterQuotesByTag, searchQuotes } from "@/lib/quotebank-parser";
+import { quoteBankDomIdFromSectionId, quoteBankSectionIdFromDomId } from "@/lib/anchors";
 import { ReferenceCopyButton, CopyButton } from "@/components/ui/copy-button";
 import { useDebounce } from "@/hooks/useDebounce";
 
@@ -168,9 +169,10 @@ function Search({ value, onChange }: SearchProps) {
 
 interface QuoteCardProps {
   quote: Quote;
+  isHighlighted?: boolean;
 }
 
-function QuoteCard({ quote }: QuoteCardProps) {
+function QuoteCard({ quote, isHighlighted }: QuoteCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -179,6 +181,7 @@ function QuoteCard({ quote }: QuoteCardProps) {
         group relative rounded-2xl border border-border bg-card overflow-hidden
         hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5
         active:scale-[0.995] transition-all duration-300
+        ${isHighlighted ? "ring-2 ring-primary/40 bg-primary/5" : ""}
       `}
     >
       {/* Reference badge - clickable to copy */}
@@ -276,7 +279,10 @@ interface QuoteBankViewerProps {
 export function QuoteBankViewer({ data }: QuoteBankViewerProps) {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [forceUnfiltered, setForceUnfiltered] = useState(false);
+  const [highlightedSectionId, setHighlightedSectionId] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const pendingScrollSectionIdRef = useRef<string | null>(null);
 
   // Debounce search query for better performance
   const [debouncedQuery] = useDebounce(searchQuery, 200);
@@ -292,17 +298,22 @@ export function QuoteBankViewer({ data }: QuoteBankViewerProps) {
     return counts;
   }, [data.quotes]);
 
+  const quoteSectionIdSet = useMemo(() => {
+    return new Set(data.quotes.map((q) => q.sectionId));
+  }, [data.quotes]);
+
   // Filter and search (using debounced query)
   const filteredQuotes = useMemo(() => {
     let result = data.quotes;
     if (selectedTag) {
       result = filterQuotesByTag(result, selectedTag);
     }
-    if (debouncedQuery.trim()) {
-      result = searchQuotes(result, debouncedQuery);
+    const effectiveQuery = forceUnfiltered ? "" : debouncedQuery;
+    if (effectiveQuery.trim()) {
+      result = searchQuotes(result, effectiveQuery);
     }
     return result;
-  }, [data.quotes, selectedTag, debouncedQuery]);
+  }, [data.quotes, selectedTag, debouncedQuery, forceUnfiltered]);
 
   // Virtualizer for efficient rendering of quote cards
   const virtualizer = useVirtualizer({
@@ -316,6 +327,79 @@ export function QuoteBankViewer({ data }: QuoteBankViewerProps) {
 
   // Get virtual items
   const virtualItems = virtualizer.getVirtualItems();
+
+  const scheduleScrollToSectionId = useCallback((sectionId: string) => {
+    pendingScrollSectionIdRef.current = sectionId;
+    setForceUnfiltered(true);
+    setSelectedTag(null);
+    setSearchQuery("");
+  }, []);
+
+  // Handle URL hash navigation (supports both "#section-N" and legacy "#§N")
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const parseTargetFromHash = (hash: string): string | null => {
+      if (!hash.startsWith("#")) return null;
+      let decoded: string;
+      try {
+        decoded = decodeURIComponent(hash.slice(1));
+      } catch {
+        return null;
+      }
+      if (!decoded) return null;
+      if (decoded.startsWith("section-")) {
+        try {
+          return quoteBankSectionIdFromDomId(decoded);
+        } catch {
+          return null;
+        }
+      }
+      if (decoded.startsWith("§")) return decoded;
+      return null;
+    };
+
+    const handleHash = () => {
+      const target = parseTargetFromHash(window.location.hash);
+      if (!target) return;
+      if (!quoteSectionIdSet.has(target)) return;
+      scheduleScrollToSectionId(target);
+    };
+
+    handleHash();
+    window.addEventListener("hashchange", handleHash);
+    return () => window.removeEventListener("hashchange", handleHash);
+  }, [scheduleScrollToSectionId, quoteSectionIdSet]);
+
+  // Perform pending scroll once the target exists in the current filtered list.
+  useEffect(() => {
+    const targetSectionId = pendingScrollSectionIdRef.current;
+    if (!targetSectionId) return;
+
+    const index = filteredQuotes.findIndex((q) => q.sectionId === targetSectionId);
+    if (index < 0) {
+      if (forceUnfiltered) {
+        pendingScrollSectionIdRef.current = null;
+        setForceUnfiltered(false);
+      }
+      return;
+    }
+
+    pendingScrollSectionIdRef.current = null;
+    setForceUnfiltered(false);
+
+    requestAnimationFrame(() => {
+      virtualizer.scrollToIndex(index, { align: "start", behavior: "smooth" });
+      try {
+        const domId = quoteBankDomIdFromSectionId(targetSectionId);
+        window.history.replaceState(null, "", `#${domId}`);
+      } catch {
+        // ignore
+      }
+      setHighlightedSectionId(targetSectionId);
+      window.setTimeout(() => setHighlightedSectionId(null), 3000);
+    });
+  }, [filteredQuotes, virtualizer, forceUnfiltered]);
 
   return (
     <>
@@ -364,9 +448,11 @@ export function QuoteBankViewer({ data }: QuoteBankViewerProps) {
               {/* Only render visible quote cards */}
               {virtualItems.map((virtualRow) => {
                 const quote = filteredQuotes[virtualRow.index];
+                const domId = quoteBankDomIdFromSectionId(quote.sectionId);
                 return (
                   <div
                     key={quote.sectionId}
+                    id={domId}
                     data-index={virtualRow.index}
                     ref={virtualizer.measureElement}
                     style={{
@@ -379,7 +465,7 @@ export function QuoteBankViewer({ data }: QuoteBankViewerProps) {
                   >
                     {/* Add spacing between cards */}
                     <div className="pb-6">
-                      <QuoteCard quote={quote} />
+                      <QuoteCard quote={quote} isHighlighted={highlightedSectionId === quote.sectionId} />
                     </div>
                   </div>
                 );

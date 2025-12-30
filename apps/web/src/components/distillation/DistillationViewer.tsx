@@ -9,6 +9,7 @@ import type {
   DistillationContent,
 } from "@/lib/distillation-parser";
 import { getDistillationMeta } from "@/lib/distillation-parser";
+import { makeDistillationSectionDomId } from "@/lib/anchors";
 import { ReferenceCopyButton, CopyButton } from "@/components/ui/copy-button";
 
 // ============================================================================
@@ -298,17 +299,7 @@ function formatNumber(n: number): string {
 }
 
 function generateAnchorId(title: string, partNumber?: number, index?: number): string {
-  const slug = title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-
-  // Fallback for empty slugs (e.g., symbol-only titles)
-  const safeSlug = slug || `section-${index ?? 0}`;
-
-  return partNumber ? `part-${partNumber}-${safeSlug}` : safeSlug;
+  return makeDistillationSectionDomId({ title, partNumber, index });
 }
 
 // ============================================================================
@@ -326,6 +317,14 @@ interface TocEntry {
 function extractTocEntries(data: ParsedDistillation): TocEntry[] {
   const entries: TocEntry[] = [];
   let sectionIndex = 0;
+
+  if (data.preamble) {
+    entries.push({
+      id: "introduction",
+      title: "Introduction",
+      level: 1,
+    });
+  }
 
   for (const part of data.parts) {
     // Add part as entry if multiple parts
@@ -783,6 +782,7 @@ export function DistillationViewer({ data, docId }: DistillationViewerProps) {
   const [progress, setProgress] = useState(0);
   const [activeSection, setActiveSection] = useState("");
   const theme = getModelTheme(docId);
+  const includePartPrefix = data.parts.length > 1;
 
   // Extract TOC entries
   const tocEntries = useMemo(() => extractTocEntries(data), [data]);
@@ -796,13 +796,15 @@ export function DistillationViewer({ data, docId }: DistillationViewerProps) {
       setProgress(Math.min(100, Math.max(0, scrollPercent)));
 
       // Find active section based on scroll position
-      const sections = tocEntries.map(e => document.getElementById(e.id)).filter(Boolean) as HTMLElement[];
+      const sections = tocEntries
+        .map((entry) => ({ id: entry.id, el: document.getElementById(entry.id) }))
+        .filter((item): item is { id: string; el: HTMLElement } => Boolean(item.el));
       const viewportCenter = scrollTop + window.innerHeight * 0.3;
 
       for (let i = sections.length - 1; i >= 0; i--) {
         const section = sections[i];
-        if (section.offsetTop <= viewportCenter) {
-          setActiveSection(tocEntries[i].id);
+        if (section.el.offsetTop <= viewportCenter) {
+          setActiveSection(section.id);
           break;
         }
       }
@@ -839,6 +841,23 @@ export function DistillationViewer({ data, docId }: DistillationViewerProps) {
 
   // Check if we have enough sections for a TOC
   const showTOC = tocEntries.length > 3;
+
+  let sectionIndexForRender = 0;
+  const renderPartSections = (part: DistillationPart) => {
+    return part.sections.map((section) => {
+      const sectionIndex = sectionIndexForRender++;
+      const sectionId = generateAnchorId(section.title, includePartPrefix ? part.number : undefined, sectionIndex);
+
+      return (
+        <Section
+          key={`${sectionId}:${sectionIndex}`}
+          section={section}
+          docId={docId}
+          sectionId={sectionId}
+        />
+      );
+    });
+  };
 
   return (
     <>
@@ -881,36 +900,42 @@ export function DistillationViewer({ data, docId }: DistillationViewerProps) {
 
             {/* Main content */}
             <main className="max-w-3xl">
+              {data.preamble && (
+                <section id="introduction" className="scroll-mt-24 mb-12">
+                  <h2 className="text-2xl lg:text-3xl font-bold text-foreground tracking-tight mb-4">
+                    Introduction
+                  </h2>
+                  <p className="text-[15px] sm:text-base lg:text-lg leading-relaxed text-foreground/85">
+                    {data.preamble}
+                  </p>
+                </section>
+              )}
               {data.parts.map((part) => (
                 <div key={part.number} id={data.parts.length > 1 ? `part-${part.number}` : undefined}>
                   {data.parts.length > 1 && <PartHeader part={part} docId={docId} />}
 
-                  {part.sections.map((section) => (
-                    <Section
-                      key={section.title}
-                      section={section}
-                      docId={docId}
-                      sectionId={generateAnchorId(section.title, data.parts.length > 1 ? part.number : undefined)}
-                    />
-                  ))}
+                  {renderPartSections(part)}
                 </div>
               ))}
             </main>
           </div>
         ) : (
           <div className="max-w-3xl mx-auto">
+            {data.preamble && (
+              <section id="introduction" className="scroll-mt-24 mb-12">
+                <h2 className="text-2xl lg:text-3xl font-bold text-foreground tracking-tight mb-4">
+                  Introduction
+                </h2>
+                <p className="text-[15px] sm:text-base lg:text-lg leading-relaxed text-foreground/85">
+                  {data.preamble}
+                </p>
+              </section>
+            )}
             {data.parts.map((part) => (
-              <div key={part.number}>
+              <div key={part.number} id={data.parts.length > 1 ? `part-${part.number}` : undefined}>
                 {data.parts.length > 1 && <PartHeader part={part} docId={docId} />}
 
-                {part.sections.map((section) => (
-                  <Section
-                    key={section.title}
-                    section={section}
-                    docId={docId}
-                    sectionId={generateAnchorId(section.title, data.parts.length > 1 ? part.number : undefined)}
-                  />
-                ))}
+                {renderPartSections(part)}
               </div>
             ))}
           </div>

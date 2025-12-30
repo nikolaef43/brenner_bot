@@ -138,8 +138,8 @@ function OperatorCard({
               When to use
             </div>
             <ul className="space-y-1.5 text-sm text-foreground/85">
-              {operator.whenToUseTriggers.map((trigger) => (
-                <li key={trigger} className="flex gap-2">
+              {operator.whenToUseTriggers.map((trigger, index) => (
+                <li key={`${operator.canonicalTag}:trigger:${index}`} className="flex gap-2">
                   <span className="mt-2 size-1.5 rounded-full bg-primary/40 flex-shrink-0" />
                   <span>{trigger}</span>
                 </li>
@@ -153,8 +153,8 @@ function OperatorCard({
               Failure modes
             </div>
             <ul className="space-y-1.5 text-sm text-foreground/85">
-              {operator.failureModes.map((mode) => (
-                <li key={mode} className="flex gap-2">
+              {operator.failureModes.map((mode, index) => (
+                <li key={`${operator.canonicalTag}:failure:${index}`} className="flex gap-2">
                   <span className="mt-2 size-1.5 rounded-full bg-destructive/40 flex-shrink-0" />
                   <span>{mode}</span>
                 </li>
@@ -232,9 +232,9 @@ function OperatorCard({
 
                     {quote.tags.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-1.5">
-                        {quote.tags.slice(0, 10).map((tag) => (
+                        {quote.tags.slice(0, 10).map((tag, index) => (
                           <span
-                            key={tag}
+                            key={`${operator.canonicalTag}:${quote.sectionId}:${quote.title}:tag:${index}`}
                             className="px-2 py-0.5 text-xs rounded-full border border-border/60 bg-muted/30 text-muted-foreground"
                           >
                             {tag}
@@ -399,4 +399,3 @@ export function OperatorsClient({ operators }: { operators: BrennerOperatorPalet
     </div>
   );
 }
-

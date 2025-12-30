@@ -13,11 +13,17 @@ import { join, resolve } from "node:path";
 import MiniSearch from "minisearch";
 
 // Import parsers - use relative paths for build script
-import { parseTranscript, type TranscriptSection } from "../src/lib/transcript-parser";
-import { parseDistillation, type DistillationPart } from "../src/lib/distillation-parser";
-import { parseQuoteBank, type Quote } from "../src/lib/quotebank-parser";
-import { parseMetaprompt, type MetapromptSection } from "../src/lib/metaprompt-parser";
+import { parseTranscript } from "../src/lib/transcript-parser";
+import { parseDistillation } from "../src/lib/distillation-parser";
+import { parseQuoteBank } from "../src/lib/quotebank-parser";
+import { parseMetaprompt } from "../src/lib/metaprompt-parser";
 import { CORPUS_DOCS, type DocCategory } from "../src/lib/corpus";
+import {
+  makeDistillationSectionDomId,
+  makeTranscriptSectionDomId,
+  quoteBankDomIdFromSectionId,
+  slugifyHeadingForAnchor,
+} from "../src/lib/anchors";
 
 // ============================================================================
 // Types
@@ -106,7 +112,7 @@ function processTranscript(docId: string, docTitle: string, content: string): Se
       docTitle,
       sectionTitle: section.title,
       content: textParts.join(" "),
-      anchor: `#section-${section.number}`,
+      anchor: `#${makeTranscriptSectionDomId(section.number)}`,
       category: "transcript",
       sectionNumber: section.number,
     });
@@ -118,6 +124,7 @@ function processTranscript(docId: string, docTitle: string, content: string): Se
 function processDistillation(docId: string, docTitle: string, content: string): SearchEntry[] {
   const entries: SearchEntry[] = [];
   const parsed = parseDistillation(content, docId);
+  const includePartPrefix = parsed.parts.length > 1;
 
   let entryIndex = 0;
   for (const part of parsed.parts) {
@@ -136,10 +143,11 @@ function processDistillation(docId: string, docTitle: string, content: string): 
         }
       }
 
-      const sectionAnchor = section.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "");
+      const domId = makeDistillationSectionDomId({
+        title: section.title,
+        partNumber: includePartPrefix ? part.number : undefined,
+        index: entryIndex,
+      });
 
       entries.push({
         id: `${docId}-section-${entryIndex++}`,
@@ -147,7 +155,7 @@ function processDistillation(docId: string, docTitle: string, content: string): 
         docTitle,
         sectionTitle: section.title,
         content: textParts.join(" "),
-        anchor: `#${sectionAnchor}`,
+        anchor: `#${domId}`,
         category: "distillation",
       });
     }
@@ -175,7 +183,7 @@ function processQuoteBank(docId: string, docTitle: string, content: string): Sea
 
   let entryIndex = 0;
   for (const quote of parsed.quotes) {
-    const anchor = quote.sectionId.replace("§", "section-");
+    const domId = quoteBankDomIdFromSectionId(quote.sectionId);
 
     entries.push({
       id: `${docId}-${entryIndex++}-${quote.sectionId}`,
@@ -183,7 +191,7 @@ function processQuoteBank(docId: string, docTitle: string, content: string): Sea
       docTitle,
       sectionTitle: quote.title,
       content: `${quote.quote} ${quote.context} ${quote.tags.join(" ")}`,
-      anchor: `#${anchor}`,
+      anchor: `#${domId}`,
       category: "quote-bank",
       reference: quote.sectionId,
     });
@@ -198,10 +206,7 @@ function processMetaprompt(docId: string, docTitle: string, content: string): Se
 
   let entryIndex = 0;
   for (const section of parsed.sections) {
-    const sectionAnchor = section.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
+    const sectionAnchor = slugifyHeadingForAnchor(section.title) || `section-${entryIndex}`;
 
     entries.push({
       id: `${docId}-section-${entryIndex++}`,

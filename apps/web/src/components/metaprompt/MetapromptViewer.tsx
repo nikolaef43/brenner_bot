@@ -1,6 +1,7 @@
 "use client";
 
 import type { ParsedMetaprompt, MetapromptSection } from "@/lib/metaprompt-parser";
+import { slugifyHeadingForAnchor } from "@/lib/anchors";
 
 // ============================================================================
 // HERO
@@ -65,9 +66,10 @@ function MetapromptHero({ title, description, wordCount }: MetapromptHeroProps) 
 
 interface SectionProps {
   section: MetapromptSection;
+  sectionId: string;
 }
 
-function Section({ section }: SectionProps) {
+function Section({ section, sectionId }: SectionProps) {
   const HeadingTag = `h${section.level + 1}` as "h2" | "h3" | "h4";
   const headingClasses = {
     1: "text-xl sm:text-2xl lg:text-3xl font-bold mb-3 sm:mb-4 mt-8 sm:mt-10 first:mt-0 text-foreground",
@@ -79,7 +81,7 @@ function Section({ section }: SectionProps) {
   const contentParts = parseContent(section.content);
 
   return (
-    <section className="scroll-mt-20 sm:scroll-mt-24">
+    <section id={sectionId} className="scroll-mt-20 sm:scroll-mt-24">
       <HeadingTag className={headingClasses[section.level as 1 | 2 | 3] || headingClasses[3]}>
         {section.title}
       </HeadingTag>
@@ -293,7 +295,7 @@ export function MetapromptViewer({ data }: MetapromptViewerProps) {
       <div className="max-w-3xl mx-auto">
         {data.sections.length > 0 ? (
           data.sections.map((section, i) => (
-            <Section key={i} section={section} />
+            <Section key={i} section={section} sectionId={slugifyHeadingForAnchor(section.title) || `section-${i}`} />
           ))
         ) : data.rawContent ? (
           <RawContent content={data.rawContent} />

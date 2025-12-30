@@ -839,6 +839,46 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
     }
   }, [data.sections, virtualizer, canRestore, position, markRestored, mobileSectionsLoaded]);
 
+  // Handle hash navigation while staying on the transcript page (desktop uses a scroll container,
+  // so native anchor scrolling does not work reliably).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (!hash.startsWith("#section-")) return;
+
+      const sectionNum = parseInt(hash.replace("#section-", ""), 10);
+      if (!Number.isFinite(sectionNum)) return;
+
+      const sectionIndex = data.sections.findIndex((s) => s.number === sectionNum);
+      if (sectionIndex < 0) return;
+
+      const isMobile = window.innerWidth < 1024;
+
+      if (isMobile) {
+        if (sectionIndex >= mobileSectionsLoaded) {
+          setMobileSectionsLoaded(Math.min(sectionIndex + MOBILE_LOAD_INCREMENT, data.sections.length));
+        }
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const el = document.getElementById(`section-${sectionNum}`);
+            el?.scrollIntoView({ behavior: "smooth", block: "start" });
+          });
+        });
+      } else {
+        virtualizer.scrollToIndex(sectionIndex, { align: "start", behavior: "smooth" });
+      }
+
+      setHighlightedSection(sectionIndex);
+      setTimeout(() => setHighlightedSection(null), 3000);
+    };
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, [data.sections, mobileSectionsLoaded, virtualizer]);
+
   // Scroll to section from TOC
   // Mobile: scroll element into view, Desktop: use virtualizer
   const scrollToSection = useCallback(

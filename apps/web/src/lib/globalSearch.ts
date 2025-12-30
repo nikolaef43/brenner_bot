@@ -21,7 +21,14 @@
 
 import { CORPUS_DOCS, type CorpusDoc, readCorpusDoc } from "./corpus";
 import { parseTranscript } from "./transcriptParser";
+import { parseDistillation } from "./distillation-parser";
 import { parseQuoteBank as parseQuoteBankDoc } from "./quotebank-parser";
+import {
+  makeDistillationSectionDomId,
+  makeTranscriptSectionDomId,
+  quoteBankDomIdFromSectionId,
+  slugifyHeadingForAnchor,
+} from "./anchors";
 import type {
   DocCategory,
   SearchCategory,
@@ -73,6 +80,7 @@ async function getIndex(): Promise<IndexedChunk[]> {
         // Parse transcript into sections
         const { sections } = parseTranscript(content);
         for (const section of sections) {
+          const domId = makeTranscriptSectionDomId(section.sectionNumber);
           chunks.push({
             id: `${doc.id}:${section.anchor}`,
             docId: doc.id,
@@ -84,7 +92,7 @@ async function getIndex(): Promise<IndexedChunk[]> {
             contentLower: section.plainText.toLowerCase(),
             titleLower: section.title.toLowerCase(),
             anchor: section.anchor,
-            url: `/corpus/transcript#${section.anchor}`,
+            url: `/corpus/transcript#${domId}`,
             wordCount: section.wordCount,
           });
         }
@@ -92,6 +100,9 @@ async function getIndex(): Promise<IndexedChunk[]> {
         // Parse quote bank into individual quotes
         const quoteChunks = parseQuoteBankChunks(content, doc);
         chunks.push(...quoteChunks);
+      } else if (doc.category === "distillation") {
+        const distillationChunks = parseDistillationChunks(content, doc);
+        chunks.push(...distillationChunks);
       } else {
         // General document - parse into sections by headers
         const docChunks = parseDocumentSections(content, doc);
@@ -116,6 +127,7 @@ function parseQuoteBankChunks(content: string, doc: CorpusDoc): IndexedChunk[] {
 
   for (const quote of parsed.quotes) {
     const fullText = [quote.quote, quote.context, quote.tags.join(" ")].filter(Boolean).join(" ");
+    const domId = quoteBankDomIdFromSectionId(quote.sectionId);
     chunks.push({
       id: `${doc.id}:${quote.sectionId}`,
       docId: doc.id,
@@ -127,9 +139,82 @@ function parseQuoteBankChunks(content: string, doc: CorpusDoc): IndexedChunk[] {
       contentLower: fullText.toLowerCase(),
       titleLower: quote.title.toLowerCase(),
       anchor: quote.sectionId,
-      url: `/corpus/quote-bank#${quote.sectionId}`,
+      url: `/corpus/quote-bank#${domId}`,
       wordCount: fullText.split(/\s+/).filter(Boolean).length,
     });
+  }
+
+  return chunks;
+}
+
+/**
+ * Parse distillation docs into searchable chunks that match viewer DOM ids.
+ */
+function parseDistillationChunks(content: string, doc: CorpusDoc): IndexedChunk[] {
+  const chunks: IndexedChunk[] = [];
+  const parsed = parseDistillation(content, doc.id);
+  const includePartPrefix = parsed.parts.length > 1;
+
+  let sectionIndex = 0;
+  for (const part of parsed.parts) {
+    for (const section of part.sections) {
+      const textParts: string[] = [];
+      for (const block of section.content) {
+        switch (block.type) {
+          case "paragraph":
+          case "quote":
+          case "emphasis":
+          case "code":
+            textParts.push(block.text);
+            break;
+          case "list":
+            textParts.push(block.items.join(" "));
+            break;
+        }
+      }
+
+      const fullText = textParts.join(" ").trim();
+      const domId = makeDistillationSectionDomId({
+        title: section.title,
+        partNumber: includePartPrefix ? part.number : undefined,
+        index: sectionIndex++,
+      });
+
+      chunks.push({
+        id: `${doc.id}:${domId}`,
+        docId: doc.id,
+        docTitle: doc.title,
+        category: doc.category,
+        model: doc.model,
+        title: section.title,
+        content: fullText,
+        contentLower: fullText.toLowerCase(),
+        titleLower: section.title.toLowerCase(),
+        anchor: domId,
+        url: `${getDocUrl(doc)}#${domId}`,
+        wordCount: fullText.split(/\s+/).filter(Boolean).length,
+      });
+    }
+  }
+
+  if (parsed.preamble) {
+    const fullText = parsed.preamble.trim();
+    if (fullText) {
+      chunks.push({
+        id: `${doc.id}:introduction`,
+        docId: doc.id,
+        docTitle: doc.title,
+        category: doc.category,
+        model: doc.model,
+        title: "Introduction",
+        content: fullText,
+        contentLower: fullText.toLowerCase(),
+        titleLower: "introduction",
+        anchor: "introduction",
+        url: `${getDocUrl(doc)}#introduction`,
+        wordCount: fullText.split(/\s+/).filter(Boolean).length,
+      });
+    }
   }
 
   return chunks;
@@ -181,7 +266,7 @@ function parseDocumentSections(content: string, doc: CorpusDoc): IndexedChunk[] 
         .replace(/`([^`]+)`/g, "$1")
         .slice(0, 3000);
 
-      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const slug = slugifyHeadingForAnchor(title) || `section-${i}`;
 
       chunks.push({
         id: `${doc.id}:${slug}`,
@@ -260,7 +345,7 @@ export async function globalSearch(
       hits: [],
       totalMatches: 0,
       searchTimeMs: 0,
-      categories: emptyCategories,
+      categories: { ...emptyCategories },
     };
   }
 
@@ -275,7 +360,7 @@ export async function globalSearch(
       hits: [],
       totalMatches: 0,
       searchTimeMs: Math.round(endTime - startTime),
-      categories: emptyCategories,
+      categories: { ...emptyCategories },
     };
   }
 
