@@ -230,10 +230,10 @@ export function Jargon({ term, children, className }: JargonProps) {
         onBlur={handleBlur}
         className={[
           "relative inline cursor-help",
-          "decoration-[1.5px] underline underline-offset-[3px]",
-          "decoration-primary/30 decoration-dotted",
-          "transition-colors duration-150",
-          "hover:decoration-primary/60 hover:text-primary/90",
+          "decoration-[2px] underline underline-offset-[3px]",
+          "decoration-primary/50 decoration-dotted",
+          "transition-all duration-150",
+          "hover:decoration-primary hover:text-primary hover:decoration-solid",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm",
           className,
         ].filter(Boolean).join(" ")}
@@ -246,7 +246,7 @@ export function Jargon({ term, children, className }: JargonProps) {
       {/* Desktop Tooltip */}
       {portalContainer && createPortal(
         <AnimatePresence>
-          {isOpen && !isMobile && (
+          {isOpen && !isMobile && Object.keys(tooltipLayout.style).length > 0 && (
             <motion.div
               ref={tooltipRef}
               initial={{ opacity: 0, y: tooltipLayout.position === "top" ? 8 : -8, scale: 0.95 }}
