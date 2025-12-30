@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
 import { searchAction } from "@/lib/globalSearchAction";
+import { createBasketItem, useExcerptBasket } from "@/components/excerpt";
 import {
   type GlobalSearchResult,
   type GlobalSearchHit,
@@ -23,6 +24,7 @@ import {
   ArrowRight,
   Command,
   CornerDownLeft,
+  Plus,
 } from "lucide-react";
 
 // ============================================================================
@@ -40,6 +42,7 @@ interface SpotlightSearchProps {
 
 export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
   const router = useRouter();
+  const { addItem } = useExcerptBasket();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const resultsRef = React.useRef<HTMLDivElement>(null);
 
@@ -62,6 +65,21 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
       onClose();
     },
     [router, onClose, query]
+  );
+
+  const canAddHitToExcerpt = React.useCallback((hit: GlobalSearchHit): boolean => {
+    if (hit.category !== "transcript" && hit.category !== "quote-bank") return false;
+    if (!hit.anchor || !hit.snippet) return false;
+    return /^§\d+$/.test(hit.anchor);
+  }, []);
+
+  const addHitToExcerpt = React.useCallback(
+    (hit: GlobalSearchHit) => {
+      if (!canAddHitToExcerpt(hit)) return;
+      addItem(createBasketItem(hit));
+      onClose();
+    },
+    [addItem, onClose, canAddHitToExcerpt]
   );
 
   // Reset state when opening
@@ -128,13 +146,18 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
         );
       } else if (e.key === "Enter" && results.hits[selectedIndex]) {
         e.preventDefault();
-        navigateToResult(results.hits[selectedIndex]);
+        const hit = results.hits[selectedIndex];
+        if (e.shiftKey && canAddHitToExcerpt(hit)) {
+          addHitToExcerpt(hit);
+          return;
+        }
+        navigateToResult(hit);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, results, selectedIndex, onClose, navigateToResult]);
+  }, [isOpen, results, selectedIndex, onClose, navigateToResult, addHitToExcerpt, canAddHitToExcerpt]);
 
   // Scroll selected item into view
   React.useEffect(() => {
@@ -285,6 +308,7 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
                         index={index}
                         onClick={() => navigateToResult(hit)}
                         onMouseEnter={() => setSelectedIndex(index)}
+                        onAddToExcerpt={() => addHitToExcerpt(hit)}
                       />
                     ))}
                   </div>
@@ -314,6 +338,11 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
                   <span className="flex items-center gap-1">
                     <kbd className="kbd"><CornerDownLeft className="size-3" /></kbd>
                     <span className="ml-1 hidden sm:inline">Open</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <kbd className="kbd">⇧</kbd>
+                    <kbd className="kbd"><CornerDownLeft className="size-3" /></kbd>
+                    <span className="ml-1 hidden sm:inline">Add to Excerpt</span>
                   </span>
                   <span className="flex items-center gap-1">
                     <kbd className="kbd">Esc</kbd>
@@ -380,6 +409,7 @@ function SearchResultItem({
   index,
   onClick,
   onMouseEnter,
+  onAddToExcerpt,
 }: {
   hit: GlobalSearchHit;
   query: string;
@@ -387,8 +417,13 @@ function SearchResultItem({
   index: number;
   onClick: () => void;
   onMouseEnter: () => void;
+  onAddToExcerpt: () => void;
 }) {
   const categoryInfo = getCategoryInfo(hit.category);
+  const canAddToExcerpt =
+    (hit.category === "transcript" || hit.category === "quote-bank") &&
+    typeof hit.anchor === "string" &&
+    /^§\d+$/.test(hit.anchor);
 
   return (
     <button
@@ -443,6 +478,29 @@ function SearchResultItem({
           )}
         </div>
       </div>
+
+      {/* Actions */}
+      {canAddToExcerpt && (
+        <div className="flex-shrink-0 self-center">
+          <span
+            className={cn(
+              "inline-flex items-center justify-center size-8 rounded-lg",
+              "text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
+              "cursor-pointer"
+            )}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onAddToExcerpt();
+            }}
+            aria-label="Add to excerpt basket"
+            title="Add to excerpt basket"
+          >
+            <Plus className="size-4" />
+          </span>
+        </div>
+      )}
 
       {/* Arrow */}
       <div className={cn(

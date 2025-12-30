@@ -1,8 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-const TRUST_CF_ACCESS_ENV = "BRENNER_TRUST_CF_ACCESS_HEADERS";
-
 /**
  * Check if lab mode is enabled (duplicated here because middleware runs in Edge runtime
  * and cannot import from lib/auth.ts which may use Node.js APIs).
@@ -13,7 +11,7 @@ function isLabModeEnabled(): boolean {
 }
 
 function shouldTrustCloudflareAccessHeaders(): boolean {
-  const value = (process.env[TRUST_CF_ACCESS_ENV] ?? "").trim().toLowerCase();
+  const value = (process.env.BRENNER_TRUST_CF_ACCESS_HEADERS ?? "").trim().toLowerCase();
   return value === "1" || value === "true";
 }
 

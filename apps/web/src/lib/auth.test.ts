@@ -4,7 +4,7 @@
  * Tests the Lab Mode authentication and authorization system.
  * Philosophy: NO mocks - test real behavior with real env manipulation.
  *
- * Run with: bun test apps/web/src/lib/auth.test.ts
+ * Run with: cd apps/web && bun run test -- src/lib/auth.test.ts
  */
 
 import { describe, expect, it, beforeEach, afterEach } from "vitest";

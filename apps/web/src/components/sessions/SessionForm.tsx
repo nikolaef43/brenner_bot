@@ -14,7 +14,7 @@
  */
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -78,6 +78,10 @@ interface SessionFormProps {
   defaultProjectKey?: string;
 }
 
+const SESSION_PREFILL_KEY = "brenner-session-excerpt-prefill";
+const SESSION_PREFILL_PARAM = "prefill";
+const SESSION_PREFILL_VALUE = "excerpt-basket";
+
 // ============================================================================
 // Field Error Component
 // ============================================================================
@@ -99,6 +103,7 @@ function FieldError({ errors }: { errors: string[] }) {
 
 export function SessionForm({ defaultSender = "", defaultProjectKey = "" }: SessionFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const mutation = useSessionMutation();
 
   const form = useForm({
@@ -141,6 +146,24 @@ export function SessionForm({ defaultSender = "", defaultProjectKey = "" }: Sess
       );
     },
   });
+
+  // Prefill excerpt from localStorage when explicitly requested (e.g. from Excerpt Basket export).
+  React.useEffect(() => {
+    const prefill = searchParams.get(SESSION_PREFILL_PARAM);
+    if (prefill !== SESSION_PREFILL_VALUE) return;
+
+    let draft: string | null = null;
+    try {
+      draft = window.localStorage.getItem(SESSION_PREFILL_KEY);
+      window.localStorage.removeItem(SESSION_PREFILL_KEY);
+    } catch {
+      draft = null;
+    }
+
+    if (draft && !(form.state.values.excerpt ?? "").trim()) {
+      form.setFieldValue("excerpt", draft);
+    }
+  }, [form, searchParams]);
 
   return (
     <form

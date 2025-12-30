@@ -142,6 +142,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
     );
   }
 
+  const cleanSender = sender.trim();
+
   if (!threadId?.trim()) {
     return NextResponse.json(
       { success: false, error: "Missing thread ID", code: "VALIDATION_ERROR" },
@@ -152,6 +154,21 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
   const cleanThreadId = threadId.trim();
 
   if (!Array.isArray(recipients) || recipients.length === 0) {
+    return NextResponse.json(
+      { success: false, error: "Missing recipients", code: "VALIDATION_ERROR" },
+      { status: 400 }
+    );
+  }
+
+  const normalizedRecipients = Array.from(
+    new Set(
+      recipients
+        .map((r) => (typeof r === "string" ? r.trim() : ""))
+        .filter((r) => r.length > 0)
+    )
+  );
+
+  if (normalizedRecipients.length === 0) {
     return NextResponse.json(
       { success: false, error: "Missing recipients", code: "VALIDATION_ERROR" },
       { status: 400 }
@@ -194,7 +211,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
     // Register sender agent
     await client.toolsCall("register_agent", {
       project_key: projectKey,
-      name: sender.trim(),
+      name: cleanSender,
       program: "brenner-web",
       model: "nextjs",
       task_description: `Brenner Bot session: ${cleanThreadId}`,
@@ -203,8 +220,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
     // Send message
     const sendResult = await client.toolsCall("send_message", {
       project_key: projectKey,
-      sender_name: sender.trim(),
-      to: recipients.map((r) => r.trim()),
+      sender_name: cleanSender,
+      to: normalizedRecipients,
       subject,
       body_md: composedBody,
       thread_id: cleanThreadId,

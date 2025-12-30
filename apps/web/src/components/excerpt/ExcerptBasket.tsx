@@ -57,10 +57,14 @@ export interface BasketItem {
 interface ExcerptBasketProps {
   /** Callback when user exports the excerpt */
   onExport?: (markdown: string, excerpt: ComposedExcerpt) => void;
+  /** Optional label for the export button (default: "Export") */
+  exportLabel?: string;
   /** Optional theme for the excerpt header */
   theme?: string;
   /** Class name for container */
   className?: string;
+  /** Optional callback to close the basket when used in a drawer/modal */
+  onClose?: () => void;
   /**
    * Controlled mode: items managed externally (e.g., by ExcerptBasketProvider).
    * When provided, the component won't use localStorage.
@@ -118,8 +122,10 @@ function useLocalStorage<T>(key: string, initialValue: T) {
 
 export function ExcerptBasket({
   onExport,
+  exportLabel,
   theme,
   className,
+  onClose,
   items: controlledItems,
   onItemsChange,
 }: ExcerptBasketProps) {
@@ -229,13 +235,27 @@ export function ExcerptBasket({
             </span>
           )}
         </div>
-        <Button variant="ghost" size="sm" className="size-8 p-0">
-          {isExpanded ? (
-            <ChevronUp className="size-4" />
-          ) : (
-            <ChevronDown className="size-4" />
+        <div className="flex items-center gap-1">
+          {onClose && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="size-8 p-0"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onClose();
+              }}
+              aria-label="Close excerpt basket"
+            >
+              <X className="size-4" />
+            </Button>
           )}
-        </Button>
+          <Button type="button" variant="ghost" size="sm" className="size-8 p-0" aria-label="Toggle excerpt basket">
+            {isExpanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+          </Button>
+        </div>
       </div>
 
       {/* Content */}
@@ -318,7 +338,7 @@ export function ExcerptBasket({
                 className="gap-2"
               >
                 <Download className="size-4" />
-                Export
+                {exportLabel ?? "Export"}
               </Button>
             )}
             <div className="flex-1" />
@@ -351,7 +371,7 @@ function EmptyState() {
       </div>
       <h4 className="text-sm font-medium text-foreground mb-1">No selections yet</h4>
       <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-        Use the search (Cmd+K) to find transcript sections, then add them to your excerpt basket.
+        Use search (Cmd+K) to find transcript sections/quotes, then click the + icon (or press ⇧ + Enter) to add them here.
       </p>
     </div>
   );

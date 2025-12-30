@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { QueryClient, HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { readCorpusDoc, CORPUS_DOCS } from "@/lib/corpus";
 import { corpusDocKeys } from "@/hooks/queries/keys";
@@ -55,6 +56,9 @@ export default async function CorpusDocPage({
   params: Promise<{ doc: string }>;
 }) {
   const { doc: docId } = await params;
+  const doc = CORPUS_DOCS.find((d) => d.id === docId);
+
+  if (!doc) notFound();
 
   // Prefetch document for client hydration (enables navigation caching)
   const queryClient = new QueryClient();
@@ -63,8 +67,6 @@ export default async function CorpusDocPage({
     queryFn: () => readCorpusDoc(docId),
   });
 
-  // Get doc metadata for breadcrumb (from static list, not re-fetching)
-  const doc = CORPUS_DOCS.find((d) => d.id === docId);
   const { prev, next } = getNavLinks(docId);
 
   return (

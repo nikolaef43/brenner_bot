@@ -256,8 +256,16 @@ function loadBrennerConfig(flags: ParsedArgs["flags"]): BrennerLoadedConfig {
     return { path: null, config: {} };
   }
 
-  const raw = readTextFile(path);
-  return { path, config: parseBrennerConfigJson(raw, path) };
+  try {
+    const raw = readTextFile(path);
+    return { path, config: parseBrennerConfigJson(raw, path) };
+  } catch (e) {
+    if (explicit) throw e;
+
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(`Warning: ignoring invalid config at ${path}: ${msg}`);
+    return { path: null, config: {} };
+  }
 }
 
 function resolveBrennerRuntimeConfig(loaded: BrennerLoadedConfig): BrennerRuntimeConfig {

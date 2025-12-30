@@ -10,7 +10,7 @@
 import { describe, expect, it } from "bun:test";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -23,6 +23,12 @@ const CLI_PATH = resolve(__dirname, "brenner.ts");
 function writeTempConfig(config: unknown): string {
   const configPath = join(tmpdir(), `brenner-test-config-${randomUUID()}.json`);
   writeFileSync(configPath, JSON.stringify(config, null, 2), "utf8");
+  return configPath;
+}
+
+function writeTempConfigText(text: string): string {
+  const configPath = join(tmpdir(), `brenner-test-config-${randomUUID()}.json`);
+  writeFileSync(configPath, text, "utf8");
   return configPath;
 }
 
@@ -982,6 +988,32 @@ describe("config file defaults", () => {
 
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("Config file not found");
+  });
+
+  it("ignores invalid implicit config file", async () => {
+    const base = join(tmpdir(), `brenner-test-xdg-${randomUUID()}`);
+    const configDir = join(base, "brenner");
+    mkdirSync(configDir, { recursive: true });
+    writeFileSync(join(configDir, "config.json"), "{ not-json", "utf8");
+
+    const env = process.platform === "win32" ? { APPDATA: base } : { XDG_CONFIG_HOME: base };
+
+    const result = await runCli(["prompt", "compose", "--excerpt-file", "README.md"], {
+      env: { ...env, BRENNER_CONFIG_PATH: "" },
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout.length).toBeGreaterThan(0);
+  });
+
+  it("fails on invalid explicit config file", async () => {
+    const configPath = writeTempConfigText("{ not-json");
+    const result = await runCli(["--config", configPath, "prompt", "compose", "--excerpt-file", "README.md"], {
+      env: { BRENNER_CONFIG_PATH: "" },
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("Failed to parse config JSON");
   });
 });
 

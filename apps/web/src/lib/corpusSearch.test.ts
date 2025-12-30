@@ -4,7 +4,7 @@
  * Tests the corpus search API with real corpus data.
  * Philosophy: NO mocks - test real behavior with real data.
  *
- * Run with: bun test apps/web/src/lib/corpusSearch.test.ts
+ * Run with: cd apps/web && bun run test -- src/lib/corpusSearch.test.ts
  */
 
 import { describe, expect, it, beforeAll } from "vitest";

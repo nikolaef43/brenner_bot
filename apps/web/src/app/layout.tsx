@@ -6,6 +6,7 @@ import { HeaderNav, BottomNav, ReadingProgress, BackToTop, ThemeToggle } from "@
 import { Button } from "@/components/ui/button";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { SearchProvider, SearchTrigger } from "@/components/search";
+import { ExcerptBasketTrigger } from "@/components/excerpt";
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/toast";
 
@@ -143,7 +144,8 @@ export default function RootLayout({
                   <HeaderNav />
 
                   {/* Global Search */}
-                  <SearchTrigger className="hidden md:flex" />
+                  <SearchTrigger className="flex" />
+                  <ExcerptBasketTrigger className="flex" />
 
                   {labModeEnabled && (
                     <Button asChild size="sm" className="hidden lg:inline-flex ml-2">

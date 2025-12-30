@@ -3,8 +3,7 @@
  *
  * Verifies deterministic merging per artifact_delta_spec_v0.1.md
  *
- * Run with: bun test apps/web/src/lib/artifact-merge.test.ts
- * (Uses bun's vitest-compatible test runner)
+ * Run with: cd apps/web && bun run test -- src/lib/artifact-merge.test.ts
  */
 
 import { describe, expect, test } from "vitest";

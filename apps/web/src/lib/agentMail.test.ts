@@ -6,7 +6,7 @@
  *
  * Philosophy: NO mocks - test real behavior with real data structures.
  *
- * Run with: bun test apps/web/src/lib/agentMail.test.ts
+ * Run with: cd apps/web && bun run test -- src/lib/agentMail.test.ts
  */
 
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
