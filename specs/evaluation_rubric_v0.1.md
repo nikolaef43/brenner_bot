@@ -240,6 +240,22 @@ Does the critique propose a constructive alternative?
 
 ## Composite Scoring
 
+### Handling Conditional Criteria
+
+Some criteria are marked as conditional or optional:
+
+| Criterion | Applies When |
+|-----------|--------------|
+| 6. Paradox Exploitation | Hypothesis Generator only; score 0 if no paradox context |
+| 9. Object Transposition | Test Designer only; score 0 if not applicable |
+| 10. Score Calibration | Test Designer only; score 0 if no test score included |
+| 13. Theory Kill Justification | Adversarial Critic ONLY when using KILL operation |
+
+**For conditional criteria**:
+- If the criterion doesn't apply (e.g., Kill-Justify for an ADD operation), **exclude it from the denominator**
+- Recalculate max score without the excluded criterion
+- This prevents penalizing contributions for not doing something that wasn't relevant
+
 ### Per-Contribution Score
 
 Calculate a weighted composite for each delta:
@@ -263,9 +279,12 @@ Max = 3 + 3 + 1.5 + 6 + 6 + 1 + 1 = 21.5 points
 **Adversarial Critic (Gemini)**:
 ```
 Score = (Structural × 1.0) + (Citation × 1.0) + (Rationale × 0.5) +
-        (Scale × 1.5) + (Quarantine × 1.5) + (Kill-Justify × 1.5) + (Real-Third × 1.5)
+        (Scale × 1.5) + (Quarantine × 1.5) + [Kill-Justify × 1.5]* + (Real-Third × 1.5)
 
-Max = 3 + 3 + 1.5 + 4.5 + 4.5 + 4.5 + 4.5 = 25.5 points
+*Kill-Justify only applies for KILL operations; omit for ADD/EDIT
+
+Max (with KILL) = 3 + 3 + 1.5 + 4.5 + 4.5 + 4.5 + 4.5 = 25.5 points
+Max (ADD/EDIT)  = 3 + 3 + 1.5 + 4.5 + 4.5 + 4.5 = 21 points
 ```
 
 ### Session-Level Aggregation
