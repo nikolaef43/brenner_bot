@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { SectionReference } from "@/components/section-reference";
+import { JargonText } from "@/components/jargon-text";
 
 // ============================================================================
 // TYPES
@@ -231,14 +232,16 @@ function renderInlineMarkdown(text: string): ReactNode {
     // Find next special character or end
     const nextSpecial = remaining.search(/[*`[§]/);
     if (nextSpecial === -1) {
-      parts.push(remaining);
+      // Apply jargon detection to remaining text
+      parts.push(<JargonText key={key++}>{remaining}</JargonText>);
       break;
     } else if (nextSpecial === 0) {
       // Special char at start but didn't match patterns above - treat as literal
       parts.push(remaining[0]);
       remaining = remaining.slice(1);
     } else {
-      parts.push(remaining.slice(0, nextSpecial));
+      // Apply jargon detection to text segment
+      parts.push(<JargonText key={key++}>{remaining.slice(0, nextSpecial)}</JargonText>);
       remaining = remaining.slice(nextSpecial);
     }
   }

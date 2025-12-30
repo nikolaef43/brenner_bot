@@ -12,6 +12,7 @@ import { getDistillationMeta } from "@/lib/distillation-parser";
 import { makeDistillationSectionDomId } from "@/lib/anchors";
 import { ReferenceCopyButton, CopyButton } from "@/components/ui/copy-button";
 import { SectionReference } from "@/components/section-reference";
+import { JargonText } from "@/components/jargon-text";
 
 // ============================================================================
 // MODEL THEME SYSTEM - Stripe-level color consistency
@@ -618,13 +619,13 @@ function renderFormattedText(text: string): ReactNode {
       case "bold":
         return (
           <strong key={i} className="font-semibold text-foreground">
-            {token.content}
+            <JargonText>{token.content}</JargonText>
           </strong>
         );
       case "italic":
         return (
           <em key={i} className="italic text-foreground/95">
-            {token.content}
+            <JargonText>{token.content}</JargonText>
           </em>
         );
       case "code":
@@ -641,7 +642,8 @@ function renderFormattedText(text: string): ReactNode {
           />
         );
       default:
-        return <span key={i}>{token.content}</span>;
+        // Apply jargon detection to plain text segments
+        return <JargonText key={i}>{token.content}</JargonText>;
     }
   });
 }

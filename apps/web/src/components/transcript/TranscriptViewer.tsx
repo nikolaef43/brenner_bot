@@ -586,38 +586,6 @@ function BrennerQuote({ text, highlights }: BrennerQuoteProps) {
   );
 }
 
-function renderTextWithHighlights(text: string, highlights: string[]): React.ReactNode {
-  if (!highlights || highlights.length === 0) {
-    return text;
-  }
-
-  // Create a regex pattern for all highlights
-  const pattern = highlights.map(escapeRegex).join("|");
-  const regex = new RegExp(`(${pattern})`, "gi");
-  const parts = text.split(regex);
-
-  return parts.map((part, i) => {
-    const isHighlight = highlights.some(
-      (h) => h.toLowerCase() === part.toLowerCase()
-    );
-    if (isHighlight) {
-      return (
-        <span
-          key={i}
-          className="font-semibold text-primary bg-primary/10 px-1 rounded"
-        >
-          {part}
-        </span>
-      );
-    }
-    return <span key={i}>{part}</span>;
-  });
-}
-
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 // ============================================================================
 // INTERVIEWER QUESTION
 // ============================================================================

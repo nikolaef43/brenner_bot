@@ -7,6 +7,7 @@ import { filterQuotesByTag, searchQuotes } from "@/lib/quotebank-parser";
 import { quoteBankDomIdFromSectionId, quoteBankSectionIdFromDomId } from "@/lib/anchors";
 import { ReferenceCopyButton, CopyButton } from "@/components/ui/copy-button";
 import { useDebounce } from "@/hooks/useDebounce";
+import { JargonText } from "@/components/jargon-text";
 
 // ============================================================================
 // HERO
@@ -205,9 +206,11 @@ function QuoteCard({ quote, isHighlighted }: QuoteCardProps) {
             &ldquo;
           </div>
           <blockquote className="pl-3 sm:pl-4 text-[15px] sm:text-base lg:text-lg leading-relaxed text-foreground/85 italic font-serif">
-            {isExpanded || quote.quote.length < 300
-              ? quote.quote
-              : `${quote.quote.slice(0, 300)}...`}
+            <JargonText>
+              {isExpanded || quote.quote.length < 300
+                ? quote.quote
+                : `${quote.quote.slice(0, 300)}...`}
+            </JargonText>
           </blockquote>
           {/* Copy button - appears on hover */}
           <div className="absolute -right-2 top-0 opacity-0 group-hover/quote:opacity-100 transition-opacity">
@@ -241,7 +244,7 @@ function QuoteCard({ quote, isHighlighted }: QuoteCardProps) {
                   Why it matters
                 </div>
                 <p className="text-sm text-foreground/80 leading-relaxed">
-                  {quote.context}
+                  <JargonText>{quote.context}</JargonText>
                 </p>
               </div>
             </div>

@@ -89,7 +89,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "The operator 𝓛 transforms data or problems into a different representation where the answer becomes obvious. What's hidden in one encoding may be obvious in another. Especially powerful: reduce dimensionality from 3D to 1D when possible.",
     analogy:
-      "Think of it like switching from Roman numerals to Arabic numerals—suddenly multiplication becomes easy.",
+      "The shift from Roman to Arabic numerals made arithmetic tractable; the shift from chemistry to information theory made the genetic code tractable.",
     why:
       "Brenner solved the genetic code by recoding the problem from chemistry to information theory. Transcript anchors: §34 (wordplay as alternative interpretations), §58 (dimensional reduction: 'reduction to one dimension... absolute crucial step'), §147 (machine language constraint), §161 (European vs American plan), §175 (junk vs garbage definitional cleanup), §197 (digital/analogue sanity), §205 (gradients vs lineage), §208 (machine language of development).",
     related: ["level-split", "invariant-extract", "digital-handle"],
@@ -101,7 +101,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "The operator ≡ identifies properties that remain constant despite changes. These invariants are often the key to understanding a system. Find what survives coarse operations, what must hold regardless of specifics.",
     analogy:
-      "Think of it like noticing that no matter how you shuffle a deck, there are always 52 cards.",
+      "Noether's theorem: every symmetry implies a conservation law. Find the symmetries and you find the invariants.",
     why:
       "Brenner used invariants to identify the essential features of genetic systems that any solution must preserve. Transcript anchors: §66 (scale constraints), §88-89 (phase problem), §100 (dominant-variable rescue: magnesium vs caesium), §109 (topology-level inference), §134 (topological proof of co-linearity), §163 (combinatorial constraints), §178 (feasibility units).",
     related: ["level-split", "recode", "scale-prison"],
@@ -113,9 +113,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "The operator ✂ focuses on what can be eliminated. A discriminative experiment asks: 'What result would prove this hypothesis wrong?' If you can't answer that, the experiment is impotent. Derive what patterns are forbidden under each hypothesis, then design cheap tests that probe those forbidden patterns.",
     analogy:
-      "Think of it like a murder mystery where you look for alibis that rule suspects out, not evidence that could fit anyone.",
+      "Sherlock Holmes: 'When you have eliminated the impossible, whatever remains, however improbable, must be the truth.' Exclusion is stronger than confirmation.",
     why:
-      "Brenner insisted on 'potent' experiments that could actually falsify theories, not just add confirming data. Transcript anchors: §69 (overlapping code elimination via forbidden amino-acid pairs), §103 ('Both could be wrong'—the third alternative), §147 ('Exclusion is always a tremendously good thing in science').",
+      "Brenner insisted on 'potent' experiments that could actually falsify theories, not just add confirming data. Transcript anchors: §69 (overlapping code elimination via forbidden amino-acid pairs), §103 ('Both could be wrong'; the third alternative), §147 ('Exclusion is always a tremendously good thing in science').",
     related: ["potency", "forbidden-pattern", "theory-kill", "potency-check"],
     category: "operators",
   },
@@ -123,9 +123,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Object Transpose",
     short: "Switch which entity you're experimenting on (⟂).",
     long:
-      "The operator ⟂ changes what counts as the experimental object. Sometimes the organism isn't what you should vary—it might be the environment, the tool, or the question itself. Treat the Tree of Life as a component library to be raided.",
+      "The operator ⟂ changes what counts as the experimental object. Sometimes the organism isn't what you should vary; it might be the environment, the tool, or the question itself. Treat the Tree of Life as a component library to be raided.",
     analogy:
-      "Think of it like realizing you should test different fishing spots, not different fish.",
+      "Darwin studied barnacles, not humans, to understand evolution. The right object makes intractable questions tractable.",
     why:
       "Brenner chose C. elegans specifically because its properties as an object (small, fast, transparent) enabled experiments impossible in other organisms. Transcript anchors: §91 ('choice of the experimental object remains one of the most important things'), §128-129 (C. elegans specification), §145-146 (EM window forcing function), §191 ('kitchen table' genome mapping), §199 ('Somewhere there is the ideal organism'), §221-222 (Fugu as discount genome).",
     related: ["level-split", "scale-prison", "c-elegans"],
@@ -137,7 +137,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "The operator ↑ uses biological amplification mechanisms (selection, replication, dominance, abundance) to make signals large and robust. Let biology do the work rather than fighting noise with statistics.",
     analogy:
-      "Think of it like using a stethoscope to hear a heartbeat you couldn't detect with your bare ear.",
+      "PCR amplifies DNA exponentially; genetics amplifies molecular events to organismal phenotypes. Nature provides gain if you know where to find it.",
     why:
       "Brenner's genetics work required amplifying molecular effects to organism-level phenotypes that could be scored by eye. Transcript anchors: §62 ('genetics is digital; it's all or none... a thousand times, a million times'), §94 (abundance trick: 'single protein accounted for 70% of all protein synthesis'), §138 (abundance dominates background), §154 (selection for rare worm mutants via tracks).",
     related: ["digital-handle", "abundance-trick"],
@@ -147,11 +147,11 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Democratize",
     short: "Make expensive techniques cheap and accessible (⇓).",
     long:
-      "The operator ⇓ spreads capability. Technology that only a few labs can do is less valuable than technology any lab can use. Related to DIY—build simple tools that others can replicate.",
+      "The operator ⇓ spreads capability. Technology that only a few labs can do is less valuable than technology any lab can use. Related to DIY: build simple tools that others can replicate.",
     analogy:
-      "Think of it like making smartphones—cameras that once required professional equipment became available to everyone.",
+      "Negative staining democratized electron microscopy. PCR democratized molecular biology. Cheap methods compound faster than expensive ones.",
     why:
-      "Brenner valued methods that could be adopted by the whole field, not just elite labs with special equipment. Transcript anchor: §86 (negative staining democratizes EM—'now anybody could do it').",
+      "Brenner valued methods that could be adopted by the whole field, not just elite labs with special equipment. Transcript anchor: §86 (negative staining democratizes EM: 'now anybody could do it').",
     related: ["diy", "abundance-trick"],
     category: "operators",
   },
@@ -159,9 +159,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Exception Quarantine",
     short: "Isolate anomalies so they don't corrupt the main theory (ΔE).",
     long:
-      "The operator ΔE acknowledges that some observations don't fit current theory, but rather than abandoning the theory, you quarantine the exceptions for later investigation. Preserve a high-coherence core model while isolating anomalies—put them in an appendix and resolve them later.",
+      "The operator ΔE acknowledges that some observations don't fit current theory, but rather than abandoning the theory, you quarantine the exceptions for later investigation. Preserve a high-coherence core model while isolating anomalies; put them in an appendix and resolve them later.",
     analogy:
-      "Think of it like a hospital's isolation ward—you don't shut down the whole hospital because of a few unusual cases.",
+      "Mendeleev left gaps in the periodic table for undiscovered elements. Quarantine the anomalies; let the pattern stand.",
     why:
       "Brenner understood that exceptions often reveal deeper truths, but only after the main theory is solid enough to define what counts as exceptional. Transcript anchors: §57 ('Don't Worry hypothesis'), §106, §229 (Occam's broom: 'minimize swept-under-the-carpet facts'), §110 ('we didn't conceal them; we put them in an appendix'), §111 ('house of cards... all or nothing theory').",
     related: ["forbidden-pattern", "exclusion-test", "occams-broom"],
@@ -173,7 +173,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "The operator ∿ means working half a wavelength ahead or behind the crowd. Avoid crowded priors and industrialized midgames. The 'opening game' has tremendous freedom of choice.",
     analogy:
-      "Think of it like the opening in chess—you develop pieces and control space before launching a specific attack.",
+      "Brenner entered molecular biology before it was a field. By the time crowds arrived, he had moved on to neuroscience.",
     why:
       "Brenner warns against fighting crowded competitions. Transcript anchors: §143 ('the best thing in science is to work out of phase'), §192 ('opening game... tremendous freedom of choice'), §210 (heroic → classical transition).",
     related: ["productive-ignorance", "paradox-hunt", "cross-domain-import"],
@@ -183,9 +183,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Unentrain",
     short: "Deliberately ignore conventional wisdom to see fresh (⊙).",
     long:
-      "The operator ⊙ involves productive ignorance—not knowing the 'standard' approach lets you see possibilities experts miss. The best people to push a science forward often come from outside it.",
+      "The operator ⊙ involves productive ignorance: not knowing the 'standard' approach lets you see possibilities experts miss. The best people to push a science forward often come from outside it.",
     analogy:
-      "Think of it like a child asking 'why?' about things adults take for granted.",
+      "Feynman solved physics problems by inventing his own notation. Fresh formalism reveals hidden structure.",
     why:
       "Brenner's outsider status gave him advantages. Transcript anchors: §63 ('spreading ignorance rather than knowledge'), §65 ('Don't equip yourself'), §157 ('the émigrés are always the best people'), §192 ('strong believer in the value of ignorance').",
     related: ["dephase", "productive-ignorance", "cross-domain-import"],
@@ -197,7 +197,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "The operator ⊕ transfers ideas across disciplinary boundaries. Solutions in one field may already exist in another. Import patterns from unrelated fields; maintain 'fresh eyes' by resisting expert entrainment.",
     analogy:
-      "Think of it like how assembly line manufacturing was inspired by meatpacking plants.",
+      "Shannon imported Boolean algebra into circuit design. Brenner imported information theory into genetics. The borrowed tool often works better than the native one.",
     why:
       "Brenner imported information theory from engineering to crack the genetic code. Transcript anchors: §86 (cross-domain pattern: syphilis staining → negative staining), §200 (paper triage to protect bandwidth), §230 (move fields while carrying invariants).",
     related: ["recode", "level-split", "unentrain", "productive-ignorance"],
@@ -205,11 +205,11 @@ export const jargonDictionary: Record<string, JargonTerm> = {
   },
   "paradox-hunt": {
     term: "Paradox Hunt",
-    short: "Actively seek contradictions—they mark discovery zones (◊).",
+    short: "Actively seek contradictions; they mark discovery zones (◊).",
     long:
-      "The operator ◊ treats paradoxes as valuable. Where your theory predicts one thing and reality shows another, there's something important to learn. Paradox is not a nuisance—it's a beacon pointing to missing production rules.",
+      "The operator ◊ treats paradoxes as valuable. Where your theory predicts one thing and reality shows another, there's something important to learn. Paradox is not a nuisance; it's a beacon pointing to missing production rules.",
     analogy:
-      "Think of it like a detective who gets excited when the alibi doesn't match—contradictions are clues.",
+      "The UV catastrophe led to quantum mechanics. The perihelion of Mercury led to general relativity. Paradoxes are not bugs but features.",
     why:
       "Brenner actively sought paradoxes. Transcript anchors: §95 (paradox of prodigious synthesis rate → led to messenger RNA discovery), §106 ('how can these two things exist and not be explained').",
     related: ["forbidden-pattern", "exception-quarantine"],
@@ -221,7 +221,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "The operator † requires trying to falsify your own ideas before publishing. If you can't kill your theory, maybe it's true. If you can, better to find out now. Don't fall in love with theories.",
     analogy:
-      "Think of it like stress-testing a bridge before letting traffic on it.",
+      "Feynman: 'The first principle is that you must not fool yourself, and you are the easiest person to fool.' Kill your darlings.",
     why:
       "Brenner's harsh self-criticism prevented him from publishing weak ideas. Transcript anchor: §229 ('When they go ugly, kill them. Get rid of them').",
     related: ["exclusion-test", "potency", "forbidden-pattern"],
@@ -231,9 +231,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Materialize",
     short: "Turn abstract theory into concrete, testable predictions (⌂).",
     long:
-      "The operator ⌂ grounds speculation in reality. A theory that can't be materialized into experiments isn't science—it's philosophy. Ask: 'If this were true, what would I see?'",
+      "The operator ⌂ grounds speculation in reality. A theory that can't be materialized into experiments isn't science; it's philosophy. Ask: 'If this were true, what would I see?'",
     analogy:
-      "Think of it like an architect who can't just draw pretty pictures but must specify actual materials and measurements.",
+      "Einstein's equivalence principle predicted gravitational light bending. Materialize the abstraction into a measurable prediction.",
     why:
       "Brenner despised armchair theorizing. Transcript anchors: §42 ('Let the imagination go... but... direct it by experiment'), §66 ('Materialise the question').",
     related: ["scale-prison", "potency", "quickie"],
@@ -245,7 +245,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "The operator 🔧 means building custom equipment or methods. Sometimes the right tool doesn't exist, so you make it. Don't let missing tools define your pace.",
     analogy:
-      "Think of it like a chef who forges their own knives because nothing on the market suits their technique.",
+      "Galileo ground his own lenses. Brenner built his own ultracentrifuge components. The tool is part of the discovery.",
     why:
       "Brenner and colleagues built custom equipment. Transcript anchors: §23 (build Warburg manometer), §37, §41 (heliostat), §51 ('This is something you can always do... open to you'), §86 (negative staining democratizes EM).",
     related: ["democratize", "abundance-trick"],
@@ -255,9 +255,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Scale Prison",
     short: "Physics constrains what's possible at each size (⊞).",
     long:
-      "The operator ⊞ reminds us that scale matters. Diffusion, surface area, heat—everything changes with size. What works at one scale may be impossible at another. Calculate actual numbers.",
+      "The operator ⊞ reminds us that scale matters. Diffusion, surface area, heat: everything changes with size. What works at one scale may be impossible at another. Calculate actual numbers.",
     analogy:
-      "Think of it like how ants can carry 50x their weight, but if you scaled an ant to human size it would collapse.",
+      "A flea can jump 100x its body length; a human cannot. Reynolds number determines whether viscosity or inertia dominates. Scale changes the rules.",
     why:
       "Brenner emphasized that biological imagination must be 'imprisoned by physics'. Transcript anchor: §66 ('get the scale of everything right... the DNA in a bacterium is 1mm long... folded up a thousand times').",
     related: ["level-split", "materialize", "invariant-extract"],
@@ -273,19 +273,19 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "The operator ⚡ asks: before investing months in the flagship experiment, can you run a cheap pilot that would kill the key alternative? De-risk before committing major resources.",
     analogy:
-      "Think of it like checking if a restaurant is open before driving across town for dinner.",
+      "Check whether the restaurant is open before driving across town. The cost of a phone call is negligible compared to the cost of a wasted trip.",
     why:
-      "Brenner's approach valued efficiency—why commit months of work when a quick test could rule out the hypothesis? Transcript anchor: §99 ('I'll do a quickie').",
+      "Brenner valued efficiency: why commit months of work when a quick test could rule out the hypothesis? Transcript anchor: §99 ('I'll do a quickie').",
     related: ["materialize", "exclusion-test", "potency"],
     category: "operators",
   },
   hal: {
     term: "HAL",
-    short: "Have A Look—directly observe before elaborate inference (👁).",
+    short: "Have A Look: directly observe before elaborate inference (👁).",
     long:
       "The operator 👁 (HAL = Have A Look) says: before doing complex analysis, consider if you could just look. Each link in an inference chain has error probability; direct observation is often faster.",
     analogy:
-      "Think of it like peeking inside a box instead of weighing it, shaking it, and running statistical tests on the sounds.",
+      "Open the box instead of weighing it, shaking it, and running statistical tests on the sounds. Direct observation trumps indirect inference.",
     why:
       "Brenner preferred direct observation over elaborate inference when possible. Transcript anchor: §198 ('I had invented something called HAL biology. HAL... stood for Have A Look biology').",
     related: ["materialize", "amplify", "quickie"],
@@ -297,7 +297,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "The operator 🎭 distinguishes 'won't' from 'can't'. Before concluding a hypothesis is wrong based on a negative result, verify that your intervention actually worked. Chaste vs impotent.",
     analogy:
-      "Think of it like checking if the light switch is connected before concluding the bulb is burned out.",
+      "Check whether the light switch is connected before concluding the bulb is burned out. Negative results require positive controls.",
     why:
       "Brenner emphasized that negative results only mean something if you've verified the positive control. Transcript anchor: §50 (chastity vs impotence: same outcome, different reasons).",
     related: ["exclusion-test", "potency", "decision-experiment"],
@@ -311,7 +311,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Brenner Move",
     short: "A strategic intervention that transforms a stuck problem into a tractable one.",
     long:
-      "A Brenner move isn't just clever—it reframes the entire problem space so that what was intractable becomes solvable. It often involves changing levels, representations, or experimental objects.",
+      "A Brenner move isn't just clever; it reframes the entire problem space so that what was intractable becomes solvable. It often involves changing levels, representations, or experimental objects.",
     why:
       "The goal of BrennerBot is to help researchers recognize and execute these moves.",
     related: ["level-split", "recode", "object-transpose"],
@@ -321,9 +321,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Decision Experiment",
     short: "An experiment whose result forces a choice between hypotheses.",
     long:
-      "A decision experiment is designed to discriminate—it produces different results depending on which hypothesis is true. Impotent experiments confirm everything; decision experiments decide.",
+      "A decision experiment is designed to discriminate: it produces different results depending on which hypothesis is true. Impotent experiments confirm everything; decision experiments decide.",
     analogy:
-      "Think of it like a fork in the road where the signs point clearly in different directions.",
+      "A fork in the road where the signs point clearly in different directions. Each outcome rules something out.",
     why:
       "Brenner insisted experiments should make decisions, not just collect data.",
     related: ["potency", "exclusion-test", "forbidden-pattern"],
@@ -333,9 +333,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Digital Handle",
     short: "Discrete, countable markers that make a system tractable.",
     long:
-      "Genetics provides digital handles—mutations, genes, markers—that turn continuous biology into discrete problems. Without digital handles, you're measuring gradients; with them, you can count.",
+      "Genetics provides digital handles: mutations, genes, markers that turn continuous biology into discrete problems. Without digital handles, you're measuring gradients; with them, you can count.",
     analogy:
-      "Think of it like serial numbers that let you track individual items instead of measuring bulk properties.",
+      "Serial numbers let you track individual items instead of measuring bulk properties. Discrete beats continuous for experimental tractability.",
     why:
       "Brenner's choice of genetics over biochemistry was partly because genetics gave digital handles to molecular problems.",
     related: ["amplify", "recode", "abundance-trick"],
@@ -347,7 +347,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Potency measures whether an experiment can actually distinguish between competing ideas. A potent experiment has results that would differ depending on which hypothesis is correct. An impotent experiment gives the same result no matter what's true.",
     analogy:
-      "Think of it like the difference between asking someone's name versus asking if they're human—one discriminates, one doesn't.",
+      "Asking someone's name discriminates identity; asking if they're human does not. Design for discrimination.",
     why:
       "Brenner repeatedly criticized 'impotent' experiments that couldn't falsify anything.",
     related: ["decision-experiment", "exclusion-test", "theory-kill"],
@@ -369,7 +369,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "A forbidden pattern is what a theory rules out. If you observe a forbidden pattern, the theory is wrong. Good theories make bold forbidden predictions; weak theories forbid nothing.",
     analogy:
-      "Think of it like a dietary law—if someone claims to be vegetarian, seeing them eat meat is a forbidden pattern that falsifies the claim.",
+      "A vegetarian eating meat falsifies the claim. Theories gain power from what they forbid, not from what they allow.",
     why:
       "Brenner designed experiments around what should be impossible, not just what should happen.",
     related: ["exclusion-test", "potency", "theory-kill"],
@@ -381,7 +381,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "A representation change transforms a problem from one language or framework to another where the solution becomes more tractable. What's hard in chemistry might be obvious in information theory; what's confusing in 3D might be simple in 1D.",
     analogy:
-      "Think of it like rotating a 3D object to see its shadow—some angles reveal the structure, others hide it.",
+      "Rotating a 3D object reveals its shadow; some projections reveal structure, others hide it. Choose the right representation.",
     why:
       "Brenner's shift from thinking about the genetic code as chemistry to thinking about it as information was a pivotal representation change.",
     related: ["recode", "level-split", "brenner-move"],
@@ -391,9 +391,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Assumption Ledger",
     short: "Explicit list of load-bearing assumptions and what would break them.",
     long:
-      "An assumption ledger makes hidden premises visible. Every theory rests on assumptions—some explicit, most implicit. Listing them and identifying tests that would break each one turns vague theories into falsifiable claims.",
+      "An assumption ledger makes hidden premises visible. Every theory rests on assumptions, some explicit, most implicit. Listing them and identifying tests that would break each one turns vague theories into falsifiable claims.",
     analogy:
-      "Think of it like an engineering stress test—you don't just hope the bridge holds, you know exactly which joints are load-bearing and at what weight they fail.",
+      "An engineering stress test identifies which joints are load-bearing and at what weight they fail. Know your theory's failure modes.",
     why:
       "Brenner insisted on surfacing assumptions that are usually hidden inside theoretical frameworks.",
     related: ["forbidden-pattern", "theory-kill", "potency"],
@@ -405,7 +405,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "The third alternative reminds us that when two theories compete, we shouldn't assume one must be right. Often both are wrong, or the question itself is malformed. The real answer may require reframing the problem entirely.",
     analogy:
-      "Think of it like being asked 'Is light a wave or a particle?' The third alternative is 'The question assumes classical categories that don't apply.'",
+      "'Is light a wave or a particle?' The third alternative: the question assumes classical categories that don't apply.",
     why:
       "Brenner repeatedly warned against false dichotomies and premature theory commitment.",
     related: ["decision-experiment", "representation-change", "productive-ignorance"],
@@ -421,7 +421,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Caenorhabditis elegans is a nematode with exactly 959 somatic cells (302 neurons). Its transparency, fast reproduction (3 days), and simple nervous system made it ideal for Brenner's developmental genetics work.",
     why:
-      "Brenner chose this organism because its properties matched the experiments he wanted to do—an example of object-transpose thinking.",
+      "Brenner chose this organism because its properties matched the experiments he wanted to do, an example of object-transpose thinking.",
     related: ["object-transpose", "model-organism", "scale-prison"],
     category: "biology",
   },
@@ -431,9 +431,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Model organisms (E. coli, yeast, flies, worms, mice) are chosen not because they're interesting in themselves, but because they enable experiments impossible in other species. The choice of model is itself a research decision.",
     analogy:
-      "Think of it like picking a testing ground—you don't need the tallest mountain to study climbing, you need one that's accessible.",
+      "You don't need the tallest mountain to study climbing, you need one that's accessible. The right model organism makes intractable problems tractable.",
     why:
-      "Brenner's choice of C. elegans was strategic—the organism's properties determined what experiments became possible.",
+      "Brenner's choice of C. elegans was strategic: the organism's properties determined what experiments became possible.",
     related: ["c-elegans", "object-transpose"],
     category: "biology",
   },
@@ -443,13 +443,13 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "The genetic code translates 64 possible three-letter DNA words into 20 amino acids (plus stop signals). Brenner helped prove that the code uses non-overlapping triplets and identify the reading frame.",
     why:
-      "Cracking the genetic code was Brenner's first major achievement—done through clever genetics, not sequencing.",
+      "Cracking the genetic code was Brenner's first major achievement, done through clever genetics rather than sequencing.",
     related: ["recode", "digital-handle", "mrna"],
     category: "biology",
   },
   mrna: {
     term: "mRNA",
-    short: "Messenger RNA—the intermediate that carries genetic information from DNA to ribosomes.",
+    short: "Messenger RNA: the intermediate that carries genetic information from DNA to ribosomes.",
     long:
       "mRNA (messenger RNA) is copied from DNA and carries instructions to ribosomes for protein synthesis. Brenner co-discovered mRNA, proving that genetic information flows through an unstable intermediate.",
     why:
@@ -469,9 +469,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Phenotype",
     short: "The observable characteristics of an organism.",
     long:
-      "A phenotype is what you can see or measure—behavior, color, size, disease. Genetics works by linking phenotypes to genotypes (DNA sequences). Brenner chose C. elegans partly because behavioral phenotypes were easy to score.",
+      "A phenotype is what you can see or measure: behavior, color, size, disease. Genetics works by linking phenotypes to genotypes (DNA sequences). Brenner chose C. elegans partly because behavioral phenotypes were easy to score.",
     analogy:
-      "Think of it like the symptoms of a condition versus its underlying cause.",
+      "Symptoms versus underlying cause. Phenotype is the readout; genotype is the program.",
     related: ["genotype", "digital-handle"],
     category: "biology",
   },
@@ -479,7 +479,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Genotype",
     short: "The genetic makeup (DNA sequence) of an organism.",
     long:
-      "A genotype is the DNA sequence information—what's actually in the genes. Connecting genotype to phenotype is the central problem of genetics.",
+      "A genotype is the DNA sequence information, what's actually encoded in the genes. Connecting genotype to phenotype is the central problem of genetics.",
     related: ["phenotype", "genetic-code"],
     category: "biology",
   },
@@ -489,7 +489,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Mutagenesis uses chemicals, radiation, or other methods to create random mutations. By studying what breaks when genes are mutated, geneticists infer what those genes normally do.",
     analogy:
-      "Think of it like understanding a machine by breaking parts and seeing what stops working.",
+      "Understand a machine by breaking parts and seeing what stops working. Genetics as reverse engineering.",
     why:
       "Brenner used mutagenesis extensively in C. elegans to map the genes controlling development and behavior.",
     related: ["phenotype", "genetic-code", "c-elegans"],
@@ -501,7 +501,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Alleles are alternative forms of the same gene. Most genes have a 'wild-type' (normal) allele and various mutant alleles. An organism can be homozygous (two identical alleles) or heterozygous (two different alleles).",
     analogy:
-      "Think of it like different editions of the same book—same story, slightly different text.",
+      "Different editions of the same book: same story, different typos or corrections.",
     related: ["gene", "wild-type", "homozygous", "heterozygous"],
     category: "biology",
   },
@@ -511,13 +511,13 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Genes are the fundamental units of heredity. Each gene contains instructions for making one or more proteins. Mutations in genes alter protein function, producing phenotypic changes that geneticists can study.",
     analogy:
-      "Think of it like a recipe in a cookbook—DNA is the cookbook, genes are individual recipes.",
+      "A recipe in a cookbook. DNA is the cookbook, genes are individual recipes.",
     related: ["allele", "genetic-code", "phenotype", "genotype"],
     category: "biology",
   },
   dna: {
     term: "DNA",
-    short: "Deoxyribonucleic acid—the molecule that stores genetic information.",
+    short: "Deoxyribonucleic acid: the molecule that stores genetic information.",
     long:
       "DNA is a double-helix molecule made of four nucleotide bases (A, T, G, C). The sequence of bases encodes all genetic information. DNA is transcribed to RNA and ultimately translated into proteins.",
     why:
@@ -527,7 +527,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
   },
   rna: {
     term: "RNA",
-    short: "Ribonucleic acid—single-stranded molecule that carries and implements genetic information.",
+    short: "Ribonucleic acid: single-stranded molecule that carries and implements genetic information.",
     long:
       "RNA comes in several forms: mRNA carries genetic messages, tRNA brings amino acids to ribosomes, rRNA forms the ribosome structure. RNA is the intermediary between DNA and proteins.",
     related: ["dna", "mrna", "ribosome"],
@@ -545,7 +545,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
   },
   "amino-acid": {
     term: "Amino Acid",
-    short: "The building blocks of proteins—20 standard types coded by DNA.",
+    short: "The building blocks of proteins: 20 standard types coded by DNA.",
     long:
       "Amino acids are linked together to form proteins. The sequence of amino acids determines the protein's 3D structure and function. The genetic code maps 64 codons to 20 amino acids plus stop signals.",
     related: ["codon", "genetic-code", "protein"],
@@ -557,7 +557,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Proteins are chains of amino acids folded into specific 3D shapes. They catalyze reactions (enzymes), provide structure, transport molecules, and send signals. Most genes encode proteins.",
     analogy:
-      "Think of it like a tool—the amino acid sequence is the blueprint, the folded protein is the working tool.",
+      "The amino acid sequence is blueprint; the folded protein is the working machine. Sequence determines function through structure.",
     related: ["amino-acid", "gene", "ribosome"],
     category: "biology",
   },
@@ -583,7 +583,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Mutations can be insertions, deletions, or substitutions of nucleotides. Some mutations are harmless, others cause loss or gain of function. Forward genetics uses mutations to understand gene function.",
     analogy:
-      "Think of it like a typo—some typos are unnoticeable, others completely change meaning.",
+      "A typo in code: some are silent, others crash the program, a few accidentally improve it. Context determines consequence.",
     related: ["mutagenesis", "allele", "phenotype"],
     category: "biology",
   },
@@ -617,7 +617,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "A dominant allele produces its phenotype whether there's one copy or two. Dominant mutations often represent gain-of-function or interference with normal protein.",
     analogy:
-      "Think of it like a loud voice that's heard even when quieter voices are present.",
+      "One broken copy poisons the whole system. Gain-of-function or dominant-negative interference.",
     related: ["recessive", "heterozygous", "allele"],
     category: "biology",
   },
@@ -625,9 +625,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Recessive",
     short: "An allele whose phenotype only shows when homozygous.",
     long:
-      "A recessive allele is masked by a dominant allele in heterozygotes. Recessive mutations typically represent loss-of-function—both copies must be non-functional to show the phenotype.",
+      "A recessive allele is masked by a dominant allele in heterozygotes. Recessive mutations typically represent loss-of-function: both copies must be non-functional to show the phenotype.",
     analogy:
-      "Think of it like a quiet voice drowned out by louder ones until it's the only voice speaking.",
+      "One working copy suffices. Both must fail before the system breaks. Classic loss-of-function pattern.",
     related: ["dominant", "homozygous", "allele"],
     category: "biology",
   },
@@ -635,7 +635,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Cell Lineage",
     short: "The complete ancestral history of a cell, tracing back to the fertilized egg.",
     long:
-      "Cell lineage maps show which cells divide to produce which daughter cells throughout development. In C. elegans, the entire lineage of all 959 cells is known—a major achievement enabled by the worm's transparency.",
+      "Cell lineage maps show which cells divide to produce which daughter cells throughout development. In C. elegans, the entire lineage of all 959 cells is known, a major achievement enabled by the worm's transparency.",
     why:
       "Brenner chose C. elegans partly because its invariant cell lineage made developmental genetics tractable.",
     related: ["c-elegans", "apoptosis", "neuron"],
@@ -643,7 +643,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
   },
   apoptosis: {
     term: "Apoptosis",
-    short: "Programmed cell death—cells that deliberately kill themselves.",
+    short: "Programmed cell death: cells that deliberately kill themselves.",
     long:
       "Apoptosis is controlled suicide of cells. In C. elegans, exactly 131 cells die during development. The genes controlling apoptosis (ced genes) were discovered in C. elegans and are conserved in humans.",
     why:
@@ -683,15 +683,15 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Hermaphrodite",
     short: "An organism with both male and female reproductive organs.",
     long:
-      "C. elegans hermaphrodites can self-fertilize, producing genetically identical offspring. This makes genetics simpler—you can maintain pure genetic lines without crossing. Males exist but are rare (0.1%).",
+      "C. elegans hermaphrodites can self-fertilize, producing genetically identical offspring. This makes genetics simpler: you can maintain pure genetic lines without crossing. Males exist but are rare (0.1%).",
     why:
-      "Self-fertilization was key to Brenner's choice of C. elegans—it simplified maintaining and crossing genetic strains.",
+      "Self-fertilization was key to Brenner's choice of C. elegans. It simplified maintaining and crossing genetic strains.",
     related: ["c-elegans", "wild-type"],
     category: "biology",
   },
   ems: {
     term: "EMS",
-    short: "Ethyl methanesulfonate—a chemical mutagen widely used in genetics.",
+    short: "Ethyl methanesulfonate: a chemical mutagen widely used in genetics.",
     long:
       "EMS causes point mutations by modifying guanine bases. It's the workhorse mutagen for forward genetic screens because it produces many single-nucleotide changes distributed across the genome.",
     why:
@@ -709,7 +709,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "In Bayesian reasoning, the prior represents what you believed before the experiment. It gets updated by evidence to produce the posterior (your new belief).",
     analogy:
-      "Think of it like your initial suspicion about who committed a crime before the investigation begins.",
+      "The starting point of inference. Your prior encodes everything you knew before the current experiment.",
     related: ["posterior", "likelihood-ratio", "bayesian-update"],
     category: "bayesian",
   },
@@ -719,7 +719,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "The posterior is what you believe after incorporating new evidence. It combines your prior beliefs with the likelihood of the evidence under each hypothesis.",
     analogy:
-      "Think of it like your revised suspicion after hearing an alibi.",
+      "The endpoint of inference. Prior × likelihood ratio = posterior odds. Learning is updating.",
     related: ["prior", "likelihood-ratio", "bayesian-update"],
     category: "bayesian",
   },
@@ -729,7 +729,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "The likelihood ratio compares P(evidence|H1) to P(evidence|H2). A ratio of 10 means the evidence is 10x more likely if H1 is true. This is the discriminative power of an experiment.",
     why:
-      "Brenner's 'potent' experiments have high likelihood ratios—they strongly favor one hypothesis over another.",
+      "Brenner's 'potent' experiments have high likelihood ratios: they strongly favor one hypothesis over another.",
     related: ["potency", "decision-experiment", "bayesian-update"],
     category: "bayesian",
   },
@@ -739,7 +739,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Bayesian updating multiplies your prior odds by the likelihood ratio to get posterior odds. It's the mathematically correct way to learn from evidence.",
     analogy:
-      "Think of it like adjusting your bet after seeing some cards revealed.",
+      "Prior odds × likelihood ratio = posterior odds. The multiplication rule of rational belief revision.",
     related: ["prior", "posterior", "likelihood-ratio"],
     category: "bayesian",
   },
@@ -749,7 +749,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Kullback-Leibler divergence quantifies the information lost when approximating one distribution with another. It's used to measure how much an experiment could teach you.",
     analogy:
-      "Think of it like measuring how surprised you'd be if reality differed from your expectations.",
+      "The expected surprise when reality follows one distribution but you predicted another. Asymmetric: KL(P||Q) ≠ KL(Q||P).",
     related: ["likelihood-ratio", "prior", "posterior"],
     category: "bayesian",
   },
@@ -759,7 +759,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Odds express probability differently: if probability is 75%, odds are 3:1 (three times more likely to happen than not). Bayesian updating is often cleaner using odds than probabilities.",
     analogy:
-      "Think of it like betting—'3 to 1 odds' means you'd bet $3 to win $1.",
+      "Probability 0.75 = odds 3:1. Odds multiply cleanly under Bayes; probabilities require normalization.",
     related: ["prior", "posterior", "bayesian-update"],
     category: "bayesian",
   },
@@ -769,7 +769,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "The Bayes factor is the likelihood ratio integrated over parameter uncertainty. A Bayes factor of 10 means the data are 10 times more likely under one hypothesis. It's used for model comparison.",
     why:
-      "Bayes factors quantify 'potency' in statistical terms—how much the data should shift beliefs.",
+      "Bayes factors quantify 'potency' in statistical terms: how much the data should shift beliefs.",
     related: ["likelihood-ratio", "potency", "decision-experiment"],
     category: "bayesian",
   },
@@ -777,9 +777,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Base Rate",
     short: "The prior probability of something in a population before specific evidence.",
     long:
-      "The base rate is how common something is overall. Ignoring base rates leads to bad inferences—a positive medical test doesn't mean disease if the disease is rare (base rate neglect).",
+      "The base rate is how common something is overall. Ignoring base rates leads to bad inferences: a positive medical test doesn't mean disease if the disease is rare (base rate neglect).",
     analogy:
-      "Think of it like knowing that only 1 in 10,000 people have a disease before interpreting a positive test.",
+      "If 1 in 10,000 have a disease, even a 99% accurate test yields mostly false positives. Base rates dominate.",
     why:
       "Brenner's emphasis on priors aligns with paying attention to base rates when interpreting experiments.",
     related: ["prior", "posterior", "bayesian-update"],
@@ -799,7 +799,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Specificity (true negative rate) measures how often a test correctly identifies negatives. High specificity means few false positives. A specific test rules out with confidence.",
     analogy:
-      "Think of it like a bouncer who only lets the right people in—high specificity means few gate-crashers.",
+      "High specificity = few false alarms. When the test says no, believe it. Exclusion with confidence.",
     related: ["sensitivity", "likelihood-ratio"],
     category: "bayesian",
   },
@@ -815,7 +815,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Information Gain",
     short: "How much an experiment reduces uncertainty about a question.",
     long:
-      "Information gain measures the expected reduction in entropy (uncertainty) from an observation. High information gain experiments are 'potent'—they teach you a lot regardless of outcome.",
+      "Information gain measures the expected reduction in entropy (uncertainty) from an observation. High information gain experiments are 'potent': they teach you a lot regardless of outcome.",
     why:
       "Brenner's discriminative experiments maximize information gain by having different predictions under each hypothesis.",
     related: ["kl-divergence", "potency", "decision-experiment"],
@@ -827,7 +827,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "A hypothesis is a specific, testable claim about how something works. Good hypotheses make predictions that could be falsified. Experiments arbitrate between competing hypotheses.",
     analogy:
-      "Think of it like a suspect in a murder investigation—you gather evidence to convict or exonerate.",
+      "A hypothesis is the defendant; evidence is testimony; the experiment is the trial. Verdict: supported or refuted.",
     related: ["falsification", "exclusion-test", "decision-experiment"],
     category: "bayesian",
   },
@@ -849,9 +849,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Null Hypothesis",
     short: "The default assumption that there's no effect or difference.",
     long:
-      "The null hypothesis states that nothing interesting is happening—no treatment effect, no correlation, no difference between groups. Experiments try to reject the null.",
+      "The null hypothesis states that nothing interesting is happening: no treatment effect, no correlation, no difference between groups. Experiments try to reject the null.",
     analogy:
-      "Think of it like 'innocent until proven guilty' in statistics.",
+      "Innocent until proven guilty. The burden of proof lies on the alternative hypothesis.",
     related: ["falsification", "potency"],
     category: "method",
   },
@@ -861,7 +861,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "A control group or condition is identical to the experimental condition except for the variable being tested. Without proper controls, you can't attribute results to your manipulation.",
     why:
-      "Brenner emphasized 'chastity controls'—controls that verify your assay actually works.",
+      "Brenner emphasized 'chastity controls,' controls that verify your assay actually works.",
     related: ["potency", "null-hypothesis"],
     category: "method",
   },
@@ -869,7 +869,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Replication",
     short: "Repeating an experiment to verify results are real.",
     long:
-      "Replication means getting the same results when an experiment is repeated. Results that don't replicate are likely spurious—noise, error, or fraud.",
+      "Replication means getting the same results when an experiment is repeated. Results that don't replicate are likely spurious: noise, error, or fraud.",
     related: ["control", "null-hypothesis"],
     category: "method",
   },
@@ -879,7 +879,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "A paradigm (in Kuhn's sense) is the shared worldview of a scientific community. It determines what counts as a good question, valid evidence, and acceptable explanation. Paradigm shifts revolutionize fields.",
     analogy:
-      "Think of it like a lens—different paradigms make different things visible and hide others.",
+      "A lens that makes certain things visible while hiding others. Different paradigms reveal different phenomena.",
     why:
       "Brenner operated across paradigms (biochemistry, information theory, genetics), importing methods between them.",
     related: ["representation-change", "cross-domain-import"],
@@ -891,7 +891,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Induction moves from particular instances to general rules. Observing many white swans leads to 'all swans are white' (until you see a black one). Induction is fallible but essential for discovery.",
     analogy:
-      "Think of it like noticing a pattern and guessing it will continue.",
+      "Pattern recognition elevated to principle. Powerful but defeasible: one black swan refutes the generalization.",
     related: ["hypothesis", "falsification"],
     category: "method",
   },
@@ -901,7 +901,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Deduction moves from general rules to specific predictions. If all DNA is made of ATGC, then this DNA must be made of ATGC. Deduction is logically certain if premises are true.",
     analogy:
-      "Think of it like applying a rule you already know to a new case.",
+      "If the premises are true, the conclusion must follow. Certainty purchased by assuming the general rule.",
     related: ["hypothesis", "falsification", "induction"],
     category: "method",
   },
@@ -919,7 +919,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Blind Experiment",
     short: "A design where the experimenter doesn't know treatment assignments.",
     long:
-      "In a blind experiment, the person measuring outcomes doesn't know which subjects got which treatment. This prevents unconscious bias in measurement or interpretation.",
+      "A blind experiment hides treatment assignment from the experimenter. This prevents unconscious bias in measurement or interpretation.",
     related: ["control", "double-blind"],
     category: "method",
   },
@@ -929,7 +929,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Double-blind designs hide treatment assignment from both experimenters and subjects. This prevents both unconscious experimenter bias and placebo effects in subjects.",
     analogy:
-      "Think of it like a taste test where even the person pouring doesn't know which cup is which.",
+      "Neither the taster nor the pourer knows which cup is which. Maximum protection against bias.",
     related: ["blind-experiment", "control"],
     category: "method",
   },
@@ -939,7 +939,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "A confound is something that changes along with your manipulation, making it impossible to know which caused the effect. Good experimental design eliminates or controls for confounds.",
     analogy:
-      "Think of it like testing whether exercise improves mood while only studying people who exercise outdoors—is it the exercise or the sunlight?",
+      "Testing whether exercise improves mood while only studying outdoor exercisers confounds exercise with sunlight exposure. You cannot attribute the effect.",
+    why:
+      "Brenner's experimental designs were careful to isolate variables. A confounded experiment is impotent.",
     related: ["control", "replication"],
     category: "method",
   },
@@ -957,7 +959,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Reproducibility",
     short: "Whether results can be obtained again using the same methods.",
     long:
-      "Reproducibility means another lab can get the same results following your protocol. Irreproducible results are a crisis in science—they may reflect error, fraud, or insufficient detail in methods.",
+      "Reproducibility means another lab can get the same results following your protocol. Irreproducible results are a crisis in science: they may reflect error, fraud, or insufficient detail in methods.",
     related: ["replication", "operationalization"],
     category: "method",
   },
@@ -967,7 +969,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Forward genetics screens for mutants with interesting phenotypes, then identifies which genes are affected. This is the classical approach Brenner used in C. elegans.",
     why:
-      "Brenner's C. elegans screens exemplify forward genetics—start with behavior, find mutations, map genes.",
+      "Brenner's C. elegans screens exemplify forward genetics: start with behavior, find mutations, map genes.",
     related: ["mutagenesis", "phenotype", "c-elegans"],
     category: "method",
   },
@@ -1013,7 +1015,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Artifact",
     short: "A structured output from a research session (hypotheses, tests, etc.).",
     long:
-      "Artifacts are the tangible outputs of research sessions—hypothesis slates, discriminative tests, assumption ledgers. They follow a canonical schema and can be compiled from agent deltas.",
+      "Artifacts are the tangible outputs of research sessions: hypothesis slates, discriminative tests, assumption ledgers. They follow a canonical schema and can be compiled from agent deltas.",
     related: ["thread", "kickoff", "delta"],
     category: "project",
   },
@@ -1062,14 +1064,14 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     short: "A curated collection of quotable passages from the Brenner corpus.",
     long:
       "The quote bank organizes memorable passages from Brenner's transcript by theme, operator, or concept. It enables quick access to relevant quotes for research sessions and UI display.",
-    related: ["corpus", "excerpt", "anchor"],
+    related: ["anchor", "excerpt", "corpus"],
     category: "project",
   },
   distillation: {
     term: "Distillation",
     short: "A processed, structured summary derived from the raw corpus.",
     long:
-      "Distillations extract and organize key insights from Brenner's transcript—operator definitions, methodology principles, and thematic summaries. They make the corpus more accessible.",
+      "Distillations extract and organize key insights from Brenner's transcript: operator definitions, methodology principles, and thematic summaries. They make the corpus more accessible.",
     related: ["corpus", "excerpt"],
     category: "project",
   },
@@ -1131,9 +1133,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Gedanken Organism",
     short: "An imaginary organism designed to think through what's possible.",
     long:
-      "A Gedanken organism is a thought experiment—a hypothetical creature with exactly the properties needed to answer your question. It clarifies what you're really asking.",
+      "A Gedanken organism is a thought experiment, a hypothetical creature with exactly the properties needed to answer your question. It clarifies what you're really asking.",
     analogy:
-      "Think of it like a physicist's frictionless pulley—a simplified model that isolates the key variables.",
+      "The physicist's frictionless pulley or spherical cow. Simplify to isolate the essential question.",
     why:
       "Brenner used Gedanken organisms to reason about what properties an ideal experimental system would need.",
     related: ["object-transpose", "model-organism"],
@@ -1171,7 +1173,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "The Brenner Loop is the core research methodology: generate competing hypotheses, design experiments that discriminate between them, run the simplest adequate test, and update beliefs based on results. It operationalizes Brenner's emphasis on potent, discriminative experiments.",
     analogy:
-      "Think of it like the scientific method, but optimized for maximum information gain per experiment.",
+      "The scientific method optimized for maximum information gain per experiment. Each iteration should discriminate.",
     why:
       "BrennerBot sessions follow this loop structure to ensure research stays focused on discriminative tests rather than confirmation-seeking.",
     related: ["discriminative-test", "hypothesis-slate", "potency", "bayesian-update"],
@@ -1191,7 +1193,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Operators",
     short: "Reusable cognitive moves for transforming stuck problems into tractable ones.",
     long:
-      "Brenner operators are named patterns of scientific reasoning—like level-split (⊘), recode (𝓛), and exclusion-test (✂)—that can be composed to tackle complex problems. They form the 'operator algebra' of scientific methodology.",
+      "Brenner operators are named patterns of scientific reasoning, such as level-split (⊘), recode (𝓛), and exclusion-test (✂), that can be composed to tackle complex problems. They form the 'operator algebra' of scientific methodology.",
     related: ["level-split", "recode", "exclusion-test", "operator-library"],
     category: "brenner",
   },
@@ -1281,11 +1283,11 @@ export const jargonDictionary: Record<string, JargonTerm> = {
   },
   satisficing: {
     term: "Satisficing",
-    short: "Evolution satisfies constraints rather than optimizing—good enough beats best.",
+    short: "Evolution satisfies constraints rather than optimizing: good enough beats best.",
     long:
-      "A key insight from Herbert Simon applied to biology: evolution doesn't find optimal solutions, it finds solutions that satisfy the relevant constraints. 'Function precedes mechanism'—what matters is that something works, not that it works optimally. This explains why biological systems often look 'messy' rather than elegant.",
+      "A key insight from Herbert Simon applied to biology: evolution doesn't find optimal solutions, it finds solutions that satisfy the relevant constraints. 'Function precedes mechanism': what matters is that something works, not that it works optimally. This explains why biological systems often look 'messy' rather than elegant.",
     analogy:
-      "Like buying the first apartment that meets your requirements rather than viewing every apartment in the city to find the absolute best.",
+      "Buy the first apartment that meets your requirements rather than viewing every apartment in the city. Evolution is a satisficer, not an optimizer.",
     why:
       "This axiom liberates thinking from teleological optimization assumptions. Evolution tinkers; it doesn't engineer. Transcript anchors: Part I distillation (Axiom 1 discussion).",
     related: ["two-axioms", "generative-grammar", "gedanken-organism"],
@@ -1295,7 +1297,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Imprisoned Imagination",
     short: "Constrain theorizing by physical reality—calculate before speculating.",
     long:
-      "Stay 'imprisoned within the physical context of everything.' Before theorizing, get the scale right. The DNA in a bacterium is 1mm long, folded up a thousand times in a 1μ cell. Ribosomes are packed so tightly that messengers thread through them 'like hysterical snakes.' Pictures showing a bacterium with 'a little circle in it are ridiculous.'",
+      "Stay 'imprisoned within the physical context of everything.' Before theorizing, get the scale right. The DNA in a bacterium is 1mm long, folded up a thousand times in a 1μ cell. Ribosomes are packed so tightly that messengers thread through them 'like hysterical snakes.' Pictures showing a bacterium with 'a little circle in it' are ridiculous.",
     analogy:
       "Like an architect who can't just draw pretty pictures but must specify actual materials and loads—imagination constrained by physics becomes powerful.",
     why:
@@ -1305,13 +1307,13 @@ export const jargonDictionary: Record<string, JargonTerm> = {
   },
   "conversational-science": {
     term: "Conversational Science",
-    short: "Thinking out loud as cognitive technology—externalize half-formed ideas.",
+    short: "Thinking out loud as cognitive technology: externalize half-formed ideas.",
     long:
       "Never restrain yourself; say it, even if it's completely stupid and ridiculous and wrong. Uttering an idea gets it into the open where others can pick up something from it. Ideas are 'at least 50% wrong the first time' they appear. Speaking externalizes thought, enabling self-correction, combinatorial recombination with other minds, and creation of an 'extended cognitive system.'",
     analogy:
-      "Like pair programming where two minds catch errors that one would miss—the blackboard discussions weren't social niceties but thinking technology.",
+      "Pair programming catches errors that solo coding misses. The blackboard discussions weren't social niceties but thinking technology.",
     why:
-      "The 20 years sharing an office with Crick, the Talmudic readings of textbooks aloud, the late nights talking science till 4am—these were research methods, not recreation. Transcript anchors: §167, §319-332.",
+      "The 20 years sharing an office with Crick, the Talmudic readings of textbooks aloud, the late nights talking science till 4am were research methods, not recreation. Transcript anchors: §167, §319-332.",
     related: ["productive-ignorance", "cross-domain-import", "brenner-loop"],
     category: "brenner",
   },
@@ -1321,11 +1323,11 @@ export const jargonDictionary: Record<string, JargonTerm> = {
   // -------------------------------------------------------------------------
   "machine-language": {
     term: "Machine Language",
-    short: "The primitives a system actually computes with—not metaphors, but real operations.",
+    short: "The primitives a system actually computes with, not metaphors but real operations.",
     long:
       "Every system computes in its own primitives. For genetics: genes, alleles, recombination events. For development: cells, divisions, recognition proteins. For behavior: neurons, synapses, connection strengths. If your explanation uses vocabulary the system cannot 'execute,' you have made a category error.",
     analogy:
-      "Like the difference between describing what a program does in English versus the actual CPU instructions it runs—only the instructions are what the machine actually executes.",
+      "Describing what a program does in English is not the same as the actual CPU instructions. Only the instructions are what the machine executes.",
     why:
       "'The machine language of development is in terms of cells and the recognition proteins they carry... not gradients and not differential equations' (§208). Brenner insisted explanations must be expressible in the system's actual primitives.",
     related: ["level-split", "generative-grammar", "two-axioms", "recode"],
@@ -1337,7 +1339,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "A technique that 'took electron microscopy out of the hands of the elite and gave it to the people.' Instead of staining the object, you surround it with dense stain so it appears light against a dark background. Brenner recognized this from medical training (viewing syphilis spirochetes) and applied it to electron microscopy.",
     analogy:
-      "Like seeing a shadow—you don't illuminate the object, you illuminate everything around it so the object stands out as an absence.",
+      "Think of it like seeing a shadow—you don't illuminate the object, you illuminate everything around it so the object stands out as an absence.",
     why:
       "'Now anybody could do it' (§86). This exemplifies the democratize operator—breaking infrastructure monopolies by turning elite craft into cheap, teachable procedures via cross-domain pattern recognition.",
     related: ["democratize", "cross-domain-import", "diy", "cheap-loop"],
@@ -1347,9 +1349,9 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Opening Game",
     short: "Early research phase with maximum freedom—develop position before committing.",
     long:
-      "Chess metaphor for early-stage research. In the opening, you have 'tremendous freedom of choice'—you develop pieces and control space before launching a specific attack. Avoid crowded priors and industrialized midgames. The opening game is where strategic choices matter most.",
+      "The operator ∿ means working half a wavelength ahead or behind the crowd. Avoid crowded priors and industrialized midgames. The 'opening game' has tremendous freedom of choice.",
     analogy:
-      "Like the first moves in chess—establish control and flexibility before the tactical battles begin.",
+      "Think of it like the opening in chess—you develop pieces and control space before launching a specific attack.",
     why:
       "'The opening game... tremendous freedom of choice' (§192). Brenner warned against jumping into crowded competitions. Work 'out of phase' with fashion to find open territory.",
     related: ["dephase", "productive-ignorance", "cheap-loop"],
@@ -1375,8 +1377,8 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     analogy:
       "Like the difference between 'THE CAT ATE' and 'HEC ATA TE'—same letters, completely different meaning depending on where you start grouping.",
     why:
-      "Brenner's frameshift experiments (§109) proved the code was triplet and non-overlapping by showing that +1 and -1 frameshifts could cancel each other out, restoring function.",
-    related: ["frameshift", "genetic-code", "co-linearity", "codon"],
+      "Brenner's frameshift experiments (§109) proved the code was triplet and non-overlapping by showing that +1 and -1 frameshifts could cancel out and restore function.",
+    related: ["frameshift", "genetic-code", "mutation", "codon"],
     category: "biology",
   },
   frameshift: {
@@ -1387,7 +1389,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     analogy:
       "Like accidentally deleting one space in a sentence—everything after the deletion becomes gibberish until you add another space to 'fix' the frame.",
     why:
-      "Frameshift analysis was central to proving the triplet code (§109). If code were doublet, frameshifts would behave differently. The logic is purely topological—you can infer the code structure from pattern alone.",
+      "Frameshift analysis was central to proving the triplet code (§90). Though ultimately superseded by direct methods, it exemplifies the Brenner approach of extracting maximum information from pattern.",
     related: ["reading-frame", "genetic-code", "mutation", "codon"],
     category: "biology",
   },
@@ -1397,7 +1399,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     long:
       "Instead of treating a complex structure as 'a mixture of proteins to go on columns and separate,' first isolate gross anatomical chunks. Make structure legible before investing in 'proper' purification. Brenner could isolate bacteriophage parts by simple pH tricks before others could by column chromatography.",
     analogy:
-      "Like separating a car into engine, chassis, and body before analyzing individual bolts—gross structure guides fine analysis.",
+      "Think of it like separating a car into engine, chassis, and body before analyzing individual bolts—gross structure guides fine analysis.",
     why:
       "'The whole idea that you could actually isolate chunks as a preliminary was something no one accepted at the time' (§85). This prototype-first approach enabled faster progress with simpler tools.",
     related: ["diy", "cheap-loop", "level-split"],
@@ -1433,7 +1435,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     term: "Transcript",
     short: "The raw 236-section Brenner interview—the primary source material.",
     long:
-      "The complete transcript of Sydney Brenner's oral history interviews, organized into 236 numbered sections. This is the authoritative source from which all distillations, operators, and quote-bank entries derive. Section references use the §n format (e.g., §57, §109).",
+      "The complete transcript of Sydney Brenner's oral history interviews, organized into 236 numbered sections. This is the authoritative source from which all distillations, operators, and quote-bank entries derive. Section references use the §n format (e.g., §57, §86).",
     why:
       "Every claim about Brenner's method should be traceable to specific transcript sections. The §n anchors ensure distillations remain grounded in primary evidence rather than drifting into interpretation.",
     related: ["section", "corpus", "anchor", "quote-bank"],
@@ -1447,7 +1449,7 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     analogy:
       "Like verse numbers in a sacred text—allowing precise citation and cross-referencing regardless of page layout or edition.",
     why:
-      "Section numbers enable granular references that survive reformatting. When a definition cites '§109,' you can locate the exact passage in the transcript.",
+      "Section numbers enable granular references that survive reformatting. When a definition cites '§57,' you can locate the exact passage in the transcript.",
     related: ["transcript", "anchor", "quote-bank"],
     category: "project",
   },
@@ -1587,10 +1589,10 @@ function buildJargonMatcher(): { regex: RegExp; termMap: Map<string, string> } {
     // Add common variations
     const termLower = term.term.toLowerCase();
 
-    // Handle "C. elegans" -> "c elegans", "c. elegans"
+    // Handle "C. elegans" variations: "c elegans", "c.elegans"
     if (termLower.includes(". ")) {
-      termMap.set(termLower.replace(/\. /g, " "), key);
-      termMap.set(termLower.replace(/\. /g, ". "), key);
+      termMap.set(termLower.replace(/\. /g, " "), key);   // "c elegans"
+      termMap.set(termLower.replace(/\. /g, "."), key);   // "c.elegans" (no space)
     }
 
     // Handle hyphenated terms: "level-split" -> "level split"

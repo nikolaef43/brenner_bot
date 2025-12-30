@@ -2,6 +2,7 @@
 
 import type { ParsedMetaprompt, MetapromptSection } from "@/lib/metaprompt-parser";
 import { slugifyHeadingForAnchor } from "@/lib/anchors";
+import { JargonText } from "@/components/jargon-text";
 
 // ============================================================================
 // HERO
@@ -210,14 +211,14 @@ function ContentPart({ part }: { part: ContentPart }) {
     case "paragraph":
       return (
         <p className="text-[15px] sm:text-base lg:text-lg leading-relaxed text-foreground/85">
-          {part.text}
+          <JargonText>{part.text}</JargonText>
         </p>
       );
 
     case "blockquote":
       return (
         <blockquote className="pl-4 sm:pl-6 py-2.5 sm:py-3 border-l-4 border-primary/40 bg-primary/5 rounded-r-lg sm:rounded-r-xl italic text-foreground/80 text-[15px] sm:text-base">
-          {part.text}
+          <JargonText>{part.text}</JargonText>
         </blockquote>
       );
 
@@ -230,7 +231,7 @@ function ContentPart({ part }: { part: ContentPart }) {
                 <span className="flex-shrink-0 size-5 sm:size-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] sm:text-xs font-bold mt-0.5">
                   {i + 1}
                 </span>
-                <span className="leading-relaxed">{item}</span>
+                <span className="leading-relaxed"><JargonText>{item}</JargonText></span>
               </li>
             ))}
           </ol>
@@ -241,7 +242,7 @@ function ContentPart({ part }: { part: ContentPart }) {
           {part.items.map((item, i) => (
             <li key={i} className="flex items-start gap-2 sm:gap-3 text-[15px] sm:text-base lg:text-lg text-foreground/85">
               <span className="flex-shrink-0 size-1.5 rounded-full bg-primary mt-2" />
-              <span className="leading-relaxed">{item}</span>
+              <span className="leading-relaxed"><JargonText>{item}</JargonText></span>
             </li>
           ))}
         </ul>
