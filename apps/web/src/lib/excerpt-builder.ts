@@ -280,9 +280,10 @@ function extractSectionQuote(section: TranscriptSection, maxWords: number = 150)
  * Truncate text to a maximum number of words.
  */
 function truncateToWords(text: string, maxWords: number): string {
-  const words = text.trim().split(/\s+/);
+  const normalized = text.replace(/\s+/g, " ").trim().replaceAll("\"", "'");
+  const words = normalized.split(/\s+/);
   if (words.length <= maxWords) {
-    return text.trim();
+    return normalized;
   }
   return words.slice(0, maxWords).join(" ") + "...";
 }
@@ -293,30 +294,51 @@ function truncateToWords(text: string, maxWords: number): string {
  */
 export function parseSectionIds(input: string | string[]): number[] {
   const ids: number[] = [];
-
+  const seen = new Set<number>();
   const items = Array.isArray(input) ? input : [input];
 
-  for (const item of items) {
+  for (const rawItem of items) {
+    const item = rawItem.trim();
+    if (!item) continue;
+
     // Handle range format: "§42-45" or "42-45"
-    const rangeMatch = item.match(/§?(\d+)-(\d+)/);
+    const rangeMatch = item.match(/^§?(\d+)\s*-\s*(\d+)$/);
     if (rangeMatch) {
-      const start = parseInt(rangeMatch[1], 10);
-      const end = parseInt(rangeMatch[2], 10);
+      const startRaw = parseInt(rangeMatch[1], 10);
+      const endRaw = parseInt(rangeMatch[2], 10);
+      if (!Number.isFinite(startRaw) || !Number.isFinite(endRaw)) continue;
+
+      const [start, end] = startRaw <= endRaw ? [startRaw, endRaw] : [endRaw, startRaw];
       for (let i = start; i <= end; i++) {
-        if (!ids.includes(i)) ids.push(i);
+        if (seen.has(i)) continue;
+        seen.add(i);
+        ids.push(i);
       }
       continue;
     }
 
     // Handle single section: "§42" or "42"
-    const singleMatch = item.match(/§?(\d+)/);
+    const singleMatch = item.match(/^§?(\d+)$/);
     if (singleMatch) {
       const id = parseInt(singleMatch[1], 10);
-      if (!ids.includes(id)) ids.push(id);
+      if (!Number.isFinite(id)) continue;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      ids.push(id);
+      continue;
     }
+
+    // Forgiving fallback: first number found
+    const firstNumber = item.match(/(\d+)/)?.[1];
+    if (!firstNumber) continue;
+    const id = parseInt(firstNumber, 10);
+    if (!Number.isFinite(id)) continue;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    ids.push(id);
   }
 
-  return ids.sort((a, b) => a - b);
+  return ids;
 }
 
 /**
@@ -347,7 +369,7 @@ export function buildExcerptFromSections(
 ): ComposedExcerpt {
   const {
     theme,
-    ordering = "chronological",
+    ordering = "relevance",
     maxTotalWords = 800,
     maxQuoteWords = 150,
   } = options;
@@ -397,6 +419,39 @@ export function buildExcerptFromSearchHits(
   hits: Array<{ sectionNumber: number; snippet?: string }>,
   theme?: string
 ): ComposedExcerpt {
-  const sectionIds = hits.map((h) => `§${h.sectionNumber}`);
-  return buildExcerptFromSections(transcript, sectionIds, { theme });
+  const excerptSections: ExcerptSection[] = [];
+  const notFound: string[] = [];
+  const seen = new Set<number>();
+
+  for (const hit of hits) {
+    if (seen.has(hit.sectionNumber)) continue;
+    seen.add(hit.sectionNumber);
+
+    const section = transcript.sections.find((s) => s.number === hit.sectionNumber);
+    if (!section) {
+      notFound.push(`§${hit.sectionNumber}`);
+      continue;
+    }
+
+    const quoteSource = hit.snippet && hit.snippet.trim().length > 0 ? hit.snippet : extractSectionQuote(section, 150);
+
+    excerptSections.push({
+      anchor: `§${section.number}`,
+      quote: truncateToWords(quoteSource, 150),
+      title: section.title,
+    });
+  }
+
+  const result = composeExcerpt({
+    theme,
+    sections: excerptSections,
+    ordering: "relevance",
+    maxTotalWords: 800,
+  });
+
+  if (notFound.length > 0) {
+    result.warnings.push(`Sections not found: ${notFound.join(", ")}`);
+  }
+
+  return result;
 }

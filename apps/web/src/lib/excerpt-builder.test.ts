@@ -273,8 +273,8 @@ describe("parseSectionIds", () => {
     expect(parseSectionIds(["§42", "§45", "§100"])).toEqual([42, 45, 100]);
   });
 
-  it("deduplicates and sorts", () => {
-    expect(parseSectionIds(["§100", "§42", "§42"])).toEqual([42, 100]);
+  it("deduplicates and preserves order", () => {
+    expect(parseSectionIds(["§100", "§42", "§42"])).toEqual([100, 42]);
   });
 
   it("handles mixed formats", () => {
