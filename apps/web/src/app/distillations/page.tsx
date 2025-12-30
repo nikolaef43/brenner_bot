@@ -22,6 +22,12 @@ const ArrowRightIcon = () => (
   </svg>
 );
 
+const CompareIcon = () => (
+  <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+  </svg>
+);
+
 const CheckIcon = () => (
   <svg className="size-4 text-success shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -185,6 +191,25 @@ export default async function DistillationsPage() {
           Each model analyzed the same Brenner transcript and distilled its own interpretation
           of the scientific methodology. Compare their perspectives to build a richer understanding.
         </p>
+
+        {/* Compare CTA */}
+        <Link
+          href="/distillations/compare"
+          className="group inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 transition-all"
+        >
+          <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 text-primary">
+            <CompareIcon />
+          </div>
+          <div className="text-left">
+            <div className="font-semibold text-foreground group-hover:text-primary transition-colors">
+              Side-by-Side Compare
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Read two models in synchronized split view
+            </div>
+          </div>
+          <ArrowRightIcon />
+        </Link>
       </header>
 
       {/* Model Cards - Side by side on desktop, stacked on mobile */}
