@@ -9,6 +9,10 @@ This document defines the **Brenner operators**—reusable cognitive moves that 
 
 For verbatim grounding, see `quote_bank_restored_primitives.md` (anchors like `§62` refer to `complete_brenner_transcript.md`).
 
+For UI/search alignment, each core operator also lists:
+- **Canonical tag**: the stable operator tag string from Tag taxonomy v0.1
+- **Quote-bank anchors**: a few `§n` entries in `quote_bank_restored_primitives.md` tagged with that operator
+
 ---
 
 ## Core Operators
@@ -27,6 +31,10 @@ For verbatim grounding, see `quote_bank_restored_primitives.md` (anchors like `�
 - Arguing inside a blended category without separating what would distinguish alternatives
 - Jumping logical levels (e.g., gene → behavior without the nervous system construction step)
 - Confusing descriptive imitation with generative explanation
+
+**Canonical tag**: `level-split`
+
+**Quote-bank anchors**: §95, §99, §105, §132, §205
 
 **Transcript Anchors**: §45-46 (Von Neumann insight), §50 (chastity vs impotence), §59 (logic vs machinery), §105 (message vs machine), §147 (proper vs improper simulation), §205 (construction vs performance)
 
@@ -49,6 +57,10 @@ For verbatim grounding, see `quote_bank_restored_primitives.md` (anchors like `�
 - Using descriptive fit (sin θ, cos θ) instead of machine language (neurons, connections)
 - Confusing "digital program" metaphors with the fact that cells do strong analogue computation
 
+**Canonical tag**: `recode`
+
+**Quote-bank anchors**: §78, §81, §90, §107, §205
+
 **Transcript Anchors**: §34 (wordplay as alternative interpretations), §58 (dimensional reduction: "reduction to one dimension... absolute crucial step"), §147 (machine language constraint), §161 (European vs American plan), §175 (junk vs garbage definitional cleanup), §197 (digital/analogue sanity), §205 (gradients vs lineage), §208 (machine language of development)
 
 **Sources**: Opus (Dimensional reduction), GPT-5.2 (§3.2), Gemini (§1.3)
@@ -68,6 +80,10 @@ For verbatim grounding, see `quote_bank_restored_primitives.md` (anchors like `�
 - Staying in rhetorical questions without specifying the shortest path to a discriminative observation
 - Theorizing without calculating what you'd actually measure
 - Designing experiments that "add interesting data" rather than kill models
+
+**Canonical tag**: `materialize`
+
+**Quote-bank anchors**: §117, §228
 
 **Transcript Anchors**: §42 ("Let the imagination go... but... direct it by experiment"), §66 ("Materialise the question... if it is like this, how would you go about doing anything about it?")
 
@@ -89,6 +105,10 @@ For verbatim grounding, see `quote_bank_restored_primitives.md` (anchors like `�
 - Ignoring combinatorial constraints (e.g., the Beilstein paradox)
 - Measuring 3rd decimal places when the order-of-magnitude variable matters
 
+**Canonical tag**: `invariant-extract`
+
+**Quote-bank anchors**: §90, §100, §109, §224
+
 **Transcript Anchors**: §66 ("get the scale of everything right... stay imprisoned within the physical context"), §88-89 (phase problem), §100 (dominant-variable rescue: magnesium vs caesium), §109 (topology-level inference), §134 (topological proof of co-linearity), §163 (combinatorial constraints), §178 (feasibility units)
 
 **Sources**: Opus (Topological reasoning), GPT-5.2 (§3.4), Gemini (§5.2)
@@ -108,6 +128,10 @@ For verbatim grounding, see `quote_bank_restored_primitives.md` (anchors like `�
 - Running "supportive experiments" that raise confidence without pruning alternatives
 - Accepting false dichotomies (forgetting "both could be wrong")
 - Designing experiments with weak likelihood ratios
+
+**Canonical tag**: `exclusion-test`
+
+**Quote-bank anchors**: §90, §98, §103, §120, §215
 
 **Transcript Anchors**: §69 (overlapping code elimination via forbidden amino-acid pairs), §103 ("Both could be wrong"—the third alternative), §147 ("Exclusion is always a tremendously good thing in science")
 
@@ -129,6 +153,10 @@ For verbatim grounding, see `quote_bank_restored_primitives.md` (anchors like `�
 - Choosing systems for convenience rather than discriminative power
 - Ignoring "discount" organisms (like Fugu) that offer the same information cheaper
 
+**Canonical tag**: `object-transpose`
+
+**Quote-bank anchors**: §87, §127, §221
+
 **Transcript Anchors**: §91 ("choice of the experimental object remains one of the most important things"), §128-129 (C. elegans specification), §145-146 (EM window forcing function), §191 ("kitchen table" genome mapping), §199 ("Somewhere there is the ideal organism"), §221-222 (Fugu as discount genome)
 
 **Sources**: Opus (Grammar is substrate-independent), GPT-5.2 (§3.6), Gemini (§2.1, §2.2)
@@ -148,6 +176,10 @@ For verbatim grounding, see `quote_bank_restored_primitives.md` (anchors like `�
 - Measuring subtle analog effects when a selection/threshold readout is available
 - Fighting noise with statistics rather than with better system design
 - Ignoring abundance tricks (e.g., phage infection where one protein is 70% of synthesis)
+
+**Canonical tag**: `amplify`
+
+**Quote-bank anchors**: §94
 
 **Transcript Anchors**: §62 ("genetics is digital; it's all or none... a thousand times, a million times"), §94 (abundance trick: "single protein accounted for 70% of all protein synthesis"), §138 (abundance dominates background), §154 (selection for rare worm mutants via tracks)
 
@@ -169,6 +201,10 @@ For verbatim grounding, see `quote_bank_restored_primitives.md` (anchors like `�
 - Waiting indefinitely for the "right" tool when a crude version would suffice
 - Letting infrastructure become the bottleneck
 
+**Canonical tag**: `diy`
+
+**Quote-bank anchors**: §77, §102, §114
+
 **Transcript Anchors**: §23 (build Warburg manometer), §37, §41 (heliostat for illumination; cell-as-ultracentrifuge), §51 ("This is something you can always do... it's open to you. There's no magic in this"), §86 (negative staining democratizes EM)
 
 **Sources**: Opus (Bricolage approach), GPT-5.2 (§3.8 ⇓ Democratize tools), Gemini (§5.1)
@@ -188,6 +224,10 @@ For verbatim grounding, see `quote_bank_restored_primitives.md` (anchors like `�
 - Confusing ignorance with lack of taste/rigor (the point is wide priors, not no priors)
 - Forcing analogies that don't fit
 - Staying ignorant when you need specific technical knowledge
+
+**Canonical tag**: `cross-domain`
+
+**Quote-bank anchors**: §86, §99, §105, §230
 
 **Transcript Anchors**: §63 ("spreading ignorance rather than knowledge"), §65 ("Don't equip yourself"), §86 (cross-domain pattern: syphilis staining → negative staining), §157 ("the émigrés are always the best people to make the new discoveries"), §192 ("strong believer in the value of ignorance"), §200 (paper triage to protect bandwidth), §230 (move fields while carrying invariants)
 
@@ -209,6 +249,10 @@ For verbatim grounding, see `quote_bank_restored_primitives.md` (anchors like `�
 - Ignoring contradictions by keeping them in separate mental compartments
 - Missing the paradox because you've normalized the inconsistency
 
+**Canonical tag**: `paradox-hunt`
+
+**Quote-bank anchors**: §95, §163
+
 **Transcript Anchors**: §95 (paradox of prodigious synthesis rate → messenger RNA), §106 ("how can these two things exist and not be explained")
 
 **Sources**: Opus (Contradictions reveal missing rules), GPT-5.2 (§2.0 Step 0), Gemini (§6.3)
@@ -228,6 +272,10 @@ For verbatim grounding, see `quote_bank_restored_primitives.md` (anchors like `�
 - Sweeping anomalies under the carpet forever (Occam's broom abuse)
 - Discarding a coherent "house of cards" framework too early
 - Letting noisy exceptions destroy a high-compression theory
+
+**Canonical tag**: `exception-quarantine`
+
+**Quote-bank anchors**: §110
 
 **Transcript Anchors**: §57 ("Don't Worry hypothesis"), §106, §229 (Occam's broom: "minimize swept-under-the-carpet facts"), §110 ("we didn't conceal them; we put them in an appendix"), §111 ("house of cards... all or nothing theory")
 
@@ -249,6 +297,10 @@ For verbatim grounding, see `quote_bank_restored_primitives.md` (anchors like `�
 - Being out of phase in a direction that's just noise (not an emerging/neglected field)
 - Abandoning productive work purely for novelty
 
+**Canonical tag**: `dephase`
+
+**Quote-bank anchors**: §79, §210, §231
+
 **Transcript Anchors**: §143 ("the best thing in science is to work out of phase"), §192 ("opening game... tremendous freedom of choice"), §210 (heroic → classical transition)
 
 **Sources**: Opus (Phase structure), GPT-5.2 (§3.9), Gemini (§6.2)
@@ -269,6 +321,10 @@ For verbatim grounding, see `quote_bank_restored_primitives.md` (anchors like `�
 - Killing theories too early before giving them a fair test
 - Never finishing anything because you kill prematurely
 
+**Canonical tag**: `theory-kill`
+
+**Quote-bank anchors**: §83, §106
+
 **Transcript Anchors**: §229 ("When they go ugly, kill them. Get rid of them")
 
 **Sources**: Opus (Required contradictions), GPT-5.2 (§4 guardrails), Gemini (§3.2)
@@ -288,6 +344,10 @@ For verbatim grounding, see `quote_bank_restored_primitives.md` (anchors like `�
 - Building beautiful theories that violate diffusion rates, packing limits, or molecular counts
 - Ignoring that DNA in bacteria is folded 1000x
 - Using cartoons that look good but can't work physically
+
+**Canonical tag**: `scale-check`
+
+**Quote-bank anchors**: §100, §164, §218
 
 **Transcript Anchors**: §66 ("get the scale of everything right... the DNA in a bacterium is 1mm long. And it's in a bacterium that's 1μ. So the DNA has been folded up a thousand times")
 
