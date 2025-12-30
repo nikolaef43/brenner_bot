@@ -46,7 +46,14 @@ function makeRequest(args: {
   return {
     nextUrl: { pathname: args.pathname },
     headers: { get: (name: string) => headerMap.get(name.toLowerCase()) ?? null },
-    cookies: { get: (name: string) => (cookieMap.has(name) ? { value: cookieMap.get(name) ?? "" } : undefined) },
+    cookies: {
+      get: (name: string) => {
+        if (!cookieMap.has(name)) return undefined;
+        const value = cookieMap.get(name);
+        if (value === undefined) return undefined;
+        return { value };
+      },
+    },
   } as unknown as NextRequest;
 }
 

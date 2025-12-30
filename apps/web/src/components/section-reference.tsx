@@ -102,7 +102,6 @@ export function SectionReference({ sectionNumber, endNumber, title: propsTitle, 
   // For ranges, link to the first section but show the range in display
   const transcriptUrl = `/corpus/transcript#section-${sectionNumber}`;
   const displayText = endNumber ? `§${sectionNumber}-${endNumber}` : `§${sectionNumber}`;
-  const _isRange = endNumber !== undefined && endNumber !== sectionNumber;
 
   const portalContainer = typeof document === "undefined" ? null : document.body;
 
@@ -391,7 +390,7 @@ function TooltipContent({ sectionNumber, endNumber, title, preview, transcriptUr
       {preview && (
         <div className="relative pl-3 border-l-2 border-quote/60 bg-quote/5 py-2 pr-2 rounded-r-lg">
           <p className="text-xs leading-relaxed text-foreground/80 italic line-clamp-4">
-            "{preview}"
+            &ldquo;{preview}&rdquo;
           </p>
         </div>
       )}
@@ -461,7 +460,12 @@ function SheetContent({ sectionNumber, endNumber, title, preview, transcriptUrl,
         {/* Quote preview */}
         {preview && (
           <div className="relative rounded-xl border-l-4 border-quote/60 bg-quote/5 p-4">
-            <div className="absolute -top-1 -left-1 text-4xl text-quote/20 font-serif leading-none">"</div>
+            <div
+              aria-hidden="true"
+              className="absolute -top-1 -left-1 text-4xl text-quote/20 font-serif leading-none"
+            >
+              &ldquo;
+            </div>
             <p className="text-sm leading-relaxed text-foreground/85 italic pl-4">
               {preview}
             </p>

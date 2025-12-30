@@ -283,7 +283,9 @@ describe("CorpusIndexPage", () => {
       const primaryButtons = screen.getAllByRole("button", {
         name: /primary sources/i,
       });
-      await user.click(primaryButtons[0] ?? document.body);
+      const primaryButton = primaryButtons[0];
+      if (!primaryButton) throw new Error("Expected primary sources filter button");
+      await user.click(primaryButton);
 
       await waitFor(() => {
         // Primary sources should be visible
@@ -304,7 +306,9 @@ describe("CorpusIndexPage", () => {
       const distButtons = screen.getAllByRole("button", {
         name: /model distillations/i,
       });
-      await user.click(distButtons[0] ?? document.body);
+      const distButton = distButtons[0];
+      if (!distButton) throw new Error("Expected model distillations filter button");
+      await user.click(distButton);
 
       await waitFor(() => {
         // Distillations should be visible
@@ -326,7 +330,9 @@ describe("CorpusIndexPage", () => {
       const promptsButtons = screen.getAllByRole("button", {
         name: /metaprompts/i,
       });
-      await user.click(promptsButtons[0] ?? document.body);
+      const promptsButton = promptsButtons[0];
+      if (!promptsButton) throw new Error("Expected metaprompts filter button");
+      await user.click(promptsButton);
 
       await waitFor(() => {
         expect(screen.getByText("Metaprompt Template")).toBeInTheDocument();
@@ -343,11 +349,15 @@ describe("CorpusIndexPage", () => {
       const distButtons = screen.getAllByRole("button", {
         name: /model distillations/i,
       });
-      await user.click(distButtons[0] ?? document.body);
+      const distButton = distButtons[0];
+      if (!distButton) throw new Error("Expected model distillations filter button");
+      await user.click(distButton);
 
       // Then click All
       const allButtons = screen.getAllByRole("button", { name: /all/i });
-      await user.click(allButtons[0] ?? document.body);
+      const allButton = allButtons[0];
+      if (!allButton) throw new Error("Expected All filter button");
+      await user.click(allButton);
 
       await waitFor(() => {
         expect(screen.getByText("Complete Brenner Transcript")).toBeInTheDocument();
@@ -364,7 +374,9 @@ describe("CorpusIndexPage", () => {
       const distButtons = screen.getAllByRole("button", {
         name: /model distillations/i,
       });
-      await user.click(distButtons[0] ?? document.body);
+      const distButton = distButtons[0];
+      if (!distButton) throw new Error("Expected model distillations filter button");
+      await user.click(distButton);
 
       // Then search within
       const searchInput = screen.getByPlaceholderText(/filter by title/i);
@@ -425,7 +437,9 @@ describe("CorpusIndexPage", () => {
       const distButtons = screen.getAllByRole("button", {
         name: /model distillations/i,
       });
-      await user.click(distButtons[0] ?? document.body);
+      const distButton = distButtons[0];
+      if (!distButton) throw new Error("Expected model distillations filter button");
+      await user.click(distButton);
 
       await waitFor(() => {
         expect(screen.queryByText("Reading Tips")).not.toBeInTheDocument();

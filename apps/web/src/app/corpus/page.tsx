@@ -329,8 +329,8 @@ function DocCard({ doc, index }: DocCardProps) {
               </div>
 
               {/* Arrow indicator */}
-              <div className="flex items-center justify-center size-8 sm:size-10 rounded-xl bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-all duration-200 shrink-0 group-hover:translate-x-0.5">
-                <ArrowRightIcon className="size-4 sm:size-5 transition-transform group-hover:translate-x-0.5" />
+              <div className="flex items-center justify-center size-8 sm:size-10 rounded-xl bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary group-active:bg-primary/10 group-active:text-primary transition-all duration-200 shrink-0 group-hover:translate-x-0.5 group-active:translate-x-0.5">
+                <ArrowRightIcon className="size-4 sm:size-5 transition-transform group-hover:translate-x-0.5 group-active:translate-x-0.5" />
               </div>
             </div>
           </CardHeader>
@@ -757,31 +757,35 @@ function CategoryPills({ activeCategory, onChange, counts }: CategoryPillsProps)
   const allCategories: (CategoryKey | "all")[] = ["all", "primary", "distillations", "raw-responses", "prompts"];
 
   return (
-    <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
-      {allCategories.map((cat) => {
-        const isActive = activeCategory === cat;
-        const label = cat === "all" ? "All" : categories[cat].title;
-        const count = counts[cat];
+    <div className="relative -mx-4 sm:mx-0">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide px-4 sm:px-0">
+        {allCategories.map((cat) => {
+          const isActive = activeCategory === cat;
+          const label = cat === "all" ? "All" : categories[cat].title;
+          const count = counts[cat];
 
-        return (
-          <button
-            key={cat}
-            onClick={() => onChange(cat)}
-            className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
-              isActive
-                ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-            }`}
-          >
-            <span>{label}</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs ${
-              isActive ? "bg-primary-foreground/20" : "bg-background/50"
-            }`}>
-              {count}
-            </span>
-          </button>
-        );
-      })}
+          return (
+            <button
+              key={cat}
+              onClick={() => onChange(cat)}
+              className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 touch-manipulation active:scale-[0.97] ${
+                isActive
+                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80"
+              }`}
+            >
+              <span>{label}</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs ${
+                isActive ? "bg-primary-foreground/20" : "bg-background/50"
+              }`}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      {/* Fade hint on mobile */}
+      <div className="absolute right-0 top-0 bottom-1 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none sm:hidden" />
     </div>
   );
 }

@@ -1161,6 +1161,48 @@ export const jargonDictionary: Record<string, JargonTerm> = {
     related: ["anchor", "excerpt", "corpus"],
     category: "project",
   },
+
+  // -------------------------------------------------------------------------
+  // Additional aliases and missing terms
+  // -------------------------------------------------------------------------
+  "brenner-loop": {
+    term: "Brenner Loop",
+    short: "The iterative research cycle: hypothesize, design discriminative test, run, update.",
+    long:
+      "The Brenner Loop is the core research methodology: generate competing hypotheses, design experiments that discriminate between them, run the simplest adequate test, and update beliefs based on results. It operationalizes Brenner's emphasis on potent, discriminative experiments.",
+    analogy:
+      "Think of it like the scientific method, but optimized for maximum information gain per experiment.",
+    why:
+      "BrennerBot sessions follow this loop structure to ensure research stays focused on discriminative tests rather than confirmation-seeking.",
+    related: ["discriminative-test", "hypothesis-slate", "potency", "bayesian-update"],
+    category: "brenner",
+  },
+  "brenner-method": {
+    term: "Brenner Method",
+    short: "Sydney Brenner's approach to scientific research: function before mechanism.",
+    long:
+      "The Brenner method prioritizes understanding what a system does (function) before how it does it (mechanism). It emphasizes choosing the right experimental object, designing discriminative tests, and maintaining productive ignorance of conventional approaches.",
+    why:
+      "The entire BrennerBot project aims to make this methodology accessible and teachable.",
+    related: ["brenner-loop", "object-transpose", "productive-ignorance", "discriminative-test"],
+    category: "brenner",
+  },
+  operators: {
+    term: "Operators",
+    short: "Reusable cognitive moves for transforming stuck problems into tractable ones.",
+    long:
+      "Brenner operators are named patterns of scientific reasoning—like level-split (⊘), recode (𝓛), and exclusion-test (✂)—that can be composed to tackle complex problems. They form the 'operator algebra' of scientific methodology.",
+    related: ["level-split", "recode", "exclusion-test", "operator-library"],
+    category: "brenner",
+  },
+  "discriminative-experiment": {
+    term: "Discriminative Experiment",
+    short: "An experiment designed to distinguish between competing hypotheses.",
+    long:
+      "A discriminative experiment gives different results depending on which hypothesis is true. It's the opposite of an 'impotent' experiment that confirms everything. Designing discriminative experiments is the core skill Brenner emphasized.",
+    related: ["discriminative-test", "potency", "exclusion-test", "decision-experiment"],
+    category: "brenner",
+  },
 };
 
 // ============================================================================

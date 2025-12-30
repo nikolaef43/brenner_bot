@@ -723,7 +723,7 @@ export function OperatorsClient({ operators }: { operators: BrennerOperatorPalet
             {searchQuery ? (
               <button
                 onClick={() => setSearchQuery("")}
-                className="p-2 text-muted-foreground hover:text-foreground active:scale-90 transition-all touch-manipulation rounded-lg hover:bg-muted"
+                className="p-2 text-muted-foreground hover:text-foreground active:scale-90 transition-all touch-manipulation rounded-lg hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 aria-label="Clear search"
               >
                 <XIcon className="size-4" />
@@ -736,8 +736,9 @@ export function OperatorsClient({ operators }: { operators: BrennerOperatorPalet
           </div>
         </div>
 
-        {/* Category pills */}
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+        {/* Category pills with scroll fade hint */}
+        <div className="relative -mx-4 sm:mx-0">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide px-4 sm:px-0">
           <CategoryPill
             category={null}
             isActive={selectedCategory === null}
@@ -753,6 +754,9 @@ export function OperatorsClient({ operators }: { operators: BrennerOperatorPalet
               count={categoryCounts[key]}
             />
           ))}
+          </div>
+          {/* Fade hint on mobile */}
+          <div className="absolute right-0 top-0 bottom-1 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none sm:hidden" />
         </div>
 
         {/* Results count */}
