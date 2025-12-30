@@ -1,7 +1,9 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { readCorpusDoc } from "@/lib/corpus";
 import { CrosswalkTable } from "@/components/distillation/CrosswalkTable";
 import type { Metadata } from "next";
+import { Jargon } from "@/components/jargon";
 
 export const metadata: Metadata = {
   title: "Distillations",
@@ -114,13 +116,13 @@ function getWordCount(content: string): number {
   return content.split(/\s+/).filter(Boolean).length;
 }
 
-const convergences = [
-  "Parallel exploration of multiple hypotheses simultaneously",
-  "Discriminative tests that can falsify competing theories",
-  "Bayesian updating based on experimental evidence",
-  "Empirical constraint takes precedence over theoretical elegance",
-  "Choosing the right problem is more important than solving any problem",
-  "Building intuition through hands-on experimentation",
+const convergences: ReactNode[] = [
+  <>Parallel exploration of multiple <Jargon term="hypothesis">hypotheses</Jargon> simultaneously</>,
+  <><Jargon term="discriminative-test">Discriminative tests</Jargon> that can <Jargon term="falsification">falsify</Jargon> competing theories</>,
+  <><Jargon term="bayesian-update">Bayesian updating</Jargon> based on experimental <Jargon term="evidence">evidence</Jargon></>,
+  <>Empirical constraint takes precedence over theoretical elegance</>,
+  <>Choosing the right problem is more important than solving any problem</>,
+  <>Building intuition through hands-on experimentation</>,
 ];
 
 const colorClasses = {

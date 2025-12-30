@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { BrennerLoopDiagram } from "@/components/method/BrennerLoopDiagram";
+import { Jargon } from "@/components/jargon";
 
 export const metadata: Metadata = {
   title: "Method",
@@ -103,7 +104,7 @@ export default function MethodPage() {
         </div>
         <p className="max-w-2xl text-muted-foreground leading-relaxed">
           Sydney Brenner developed a distinctive approach to biological research over five decades.
-          This page operationalizes his methodology into a repeatable framework of operators and loops.
+          This page operationalizes his methodology into a repeatable framework of <Jargon term="operator-library">operators</Jargon> and loops.
         </p>
       </header>
 
@@ -180,7 +181,7 @@ export default function MethodPage() {
             },
             {
               title: "Epistemic Humility",
-              description: "Hold all hypotheses loosely. Be prepared to abandon any idea, no matter how elegant, when evidence contradicts it.",
+              description: <>Hold all <Jargon term="hypothesis">hypotheses</Jargon> loosely. Be prepared to abandon any idea, no matter how elegant, when <Jargon term="evidence">evidence</Jargon> contradicts it.</>,
             },
             {
               title: "Problem Selection",

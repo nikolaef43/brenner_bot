@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { BrennerOperatorPaletteEntry } from "@/lib/operators";
+import { Jargon } from "@/components/jargon";
 
 // ============================================================================
 // ICONS
@@ -323,7 +324,7 @@ export function OperatorsClient({ operators }: { operators: BrennerOperatorPalet
             Brenner Operators
           </h1>
           <p className="mt-3 text-base sm:text-lg text-muted-foreground max-w-2xl">
-            Fourteen reusable “moves” for turning vague questions into discriminative tests—grounded in transcript anchors and curated quote-bank primitives.
+            Fourteen reusable &ldquo;moves&rdquo; for turning vague questions into <Jargon term="discriminative-test">discriminative tests</Jargon>—grounded in transcript <Jargon term="anchor">anchors</Jargon> and curated <Jargon term="quotebank">quote-bank</Jargon> primitives.
           </p>
 
           <div className="mt-7 flex flex-wrap items-center gap-3">
