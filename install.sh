@@ -725,11 +725,15 @@ configure_path() {
     return 0
   fi
 
-  log_info "Adding ${DEST_DIR} to PATH..."
+  local shell_path="${SHELL:-}"
+  if [[ -z "$shell_path" ]]; then
+    log_warn "SHELL is not set. Please add ${DEST_DIR} to your PATH manually."
+    return 0
+  fi
 
   # Detect shell and config file
   local shell_name config_file
-  shell_name=$(basename "$SHELL")
+  shell_name=$(basename "$shell_path")
 
   case "$shell_name" in
     bash)
@@ -756,6 +760,13 @@ configure_path() {
   if [[ "$shell_name" == "fish" ]]; then
     path_line="set -gx PATH ${DEST_DIR} \$PATH"
   fi
+
+  if [[ "$DRY_RUN" == "true" ]]; then
+    log_info "[DRY RUN] Would add to ${config_file}: ${path_line}"
+    return 0
+  fi
+
+  log_info "Adding ${DEST_DIR} to PATH..."
 
   if grep -qF "$DEST_DIR" "$config_file" 2>/dev/null; then
     log_debug "PATH entry already in ${config_file}"
