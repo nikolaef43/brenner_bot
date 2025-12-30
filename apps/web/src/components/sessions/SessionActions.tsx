@@ -29,7 +29,7 @@ type ApiSuccess =
       artifactMarkdown: string;
       lint: { valid: boolean; summary: { errors: number; warnings: number; info: number } };
       merge: { applied: number; skipped: number };
-      deltaStats: { deltaMessageCount: number; totalBlocks: number; validBlocks: number; invalidBlocks: number };
+      deltaStats: { deltaMessageCount: number; totalBlocks: number; validBlocks: number; invalidBlocks: number; currentRoundDeltaCount: number };
     }
   | {
       success: true;

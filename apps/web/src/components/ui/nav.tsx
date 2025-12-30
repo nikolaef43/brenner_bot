@@ -126,7 +126,40 @@ export function HeaderNav({ className }: { className?: string }) {
 export function BottomNav({ className }: { className?: string }) {
   const pathname = usePathname()
   const navRef = React.useRef<HTMLDivElement>(null)
+  const containerRef = React.useRef<HTMLElement>(null)
   const [indicatorStyle, setIndicatorStyle] = React.useState({ left: 0, width: 0 })
+
+  // iOS Safari visual viewport fix - adjusts for address bar animation
+  React.useEffect(() => {
+    const nav = containerRef.current
+    const vv = typeof window !== "undefined" ? window.visualViewport : null
+    if (!vv || !nav) return
+
+    let ticking = false
+    const updatePosition = () => {
+      // Calculate offset between layout viewport and visual viewport
+      // This compensates for iOS Safari's address bar collapsing/expanding
+      const offset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
+      nav.style.bottom = `${offset}px`
+      ticking = false
+    }
+
+    const handleViewportChange = () => {
+      if (!ticking) {
+        ticking = true
+        requestAnimationFrame(updatePosition)
+      }
+    }
+
+    vv.addEventListener("resize", handleViewportChange)
+    vv.addEventListener("scroll", handleViewportChange)
+    updatePosition() // Initial position
+
+    return () => {
+      vv.removeEventListener("resize", handleViewportChange)
+      vv.removeEventListener("scroll", handleViewportChange)
+    }
+  }, [])
 
   // Calculate active index
   const activeIndex = React.useMemo(() => {
@@ -153,6 +186,7 @@ export function BottomNav({ className }: { className?: string }) {
 
   return (
     <nav
+      ref={containerRef}
       className={cn(
         "bottom-nav lg:hidden",
         className
