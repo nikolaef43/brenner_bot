@@ -217,6 +217,20 @@ This section is a **developer toolbelt** reference (not an installer guarantee).
 
 Agent Mail is available as an MCP server for coordinating work across agents.
 
+### CRITICAL: How Agents Access Agent Mail
+
+**Coding agents (Claude Code, Codex, Gemini CLI) access Agent Mail NATIVELY via MCP tools.**
+
+- You do NOT need to implement HTTP wrappers, client classes, or JSON-RPC handling
+- MCP tools are available directly in your environment (e.g., `macro_start_session`, `send_message`, `fetch_inbox`)
+- If MCP tools aren't available, flag it to the user — they may need to start the Agent Mail server
+
+**The `AgentMailClient` class in `brenner.ts` and `apps/web/src/lib/agentMail.ts` is for:**
+- The `brenner` CLI tool (for human operators interacting from command line)
+- The web app (which runs in browser/server and can't use MCP natively)
+
+**DO NOT** create HTTP wrappers or unify "client code" for agent-to-Agent-Mail communication — this is already handled by your MCP runtime.
+
 What Agent Mail gives:
 - Identities, inbox/outbox, searchable threads.
 - Advisory file reservations (leases) to avoid agents clobbering each other.
