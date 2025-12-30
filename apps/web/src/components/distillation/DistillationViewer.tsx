@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { ReactNode } from "react";
 import type {
   ParsedDistillation,
@@ -297,6 +297,119 @@ function formatNumber(n: number): string {
   return n.toString();
 }
 
+function generateAnchorId(title: string, partNumber?: number): string {
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  return partNumber ? `part-${partNumber}-${slug}` : slug;
+}
+
+// ============================================================================
+// TABLE OF CONTENTS
+// ============================================================================
+
+interface TocEntry {
+  id: string;
+  title: string;
+  level: number;
+  partNumber?: number;
+  partTitle?: string;
+}
+
+function extractTocEntries(data: ParsedDistillation): TocEntry[] {
+  const entries: TocEntry[] = [];
+
+  for (const part of data.parts) {
+    // Add part as entry if multiple parts
+    if (data.parts.length > 1) {
+      entries.push({
+        id: `part-${part.number}`,
+        title: part.title,
+        level: 0,
+        partNumber: part.number,
+      });
+    }
+
+    // Add sections
+    for (const section of part.sections) {
+      entries.push({
+        id: generateAnchorId(section.title, data.parts.length > 1 ? part.number : undefined),
+        title: section.title,
+        level: section.level,
+        partNumber: data.parts.length > 1 ? part.number : undefined,
+        partTitle: data.parts.length > 1 ? part.title : undefined,
+      });
+    }
+  }
+
+  return entries;
+}
+
+interface DistillationTOCProps {
+  entries: TocEntry[];
+  activeSection: string;
+  onSectionClick: (id: string) => void;
+  docId: string;
+}
+
+function DistillationTOC({ entries, activeSection, onSectionClick, docId }: DistillationTOCProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const theme = getModelTheme(docId);
+
+  return (
+    <nav className="lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto">
+      {/* Mobile toggle */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="lg:hidden w-full flex items-center justify-between px-4 py-3 rounded-xl bg-card border border-border mb-2"
+      >
+        <span className="text-sm font-medium text-foreground">Table of Contents</span>
+        <ChevronIcon className={`size-5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+
+      {/* TOC list */}
+      <div className={`${isOpen ? "block" : "hidden"} lg:block`}>
+        <div className="px-4 py-3 rounded-xl bg-card/50 border border-border/50 lg:bg-transparent lg:border-0 lg:p-0">
+          <h3 className="hidden lg:block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+            Contents
+          </h3>
+          <ul className="space-y-1">
+            {entries.map((entry) => {
+              const isActive = activeSection === entry.id;
+              const isPart = entry.level === 0;
+
+              return (
+                <li key={entry.id}>
+                  <button
+                    onClick={() => {
+                      onSectionClick(entry.id);
+                      setIsOpen(false);
+                    }}
+                    className={`
+                      w-full text-left px-3 py-2 rounded-lg text-sm transition-colors
+                      ${isPart ? "font-semibold" : "font-normal"}
+                      ${isActive
+                        ? `${theme.bgSubtle} text-foreground`
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      }
+                    `}
+                    style={{ paddingLeft: isPart ? undefined : `${12 + (entry.level - 1) * 12}px` }}
+                  >
+                    {entry.title}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
 // ============================================================================
 // ICONS - Clean, consistent
 // ============================================================================
@@ -345,6 +458,22 @@ function DocumentIcon() {
   return (
     <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+  );
+}
+
+function LinkIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
     </svg>
   );
 }
@@ -404,9 +533,11 @@ function toRoman(num: number): string {
 interface SectionProps {
   section: DistillationSection;
   docId: string;
+  sectionId: string;
 }
 
-function Section({ section, docId }: SectionProps) {
+function Section({ section, docId, sectionId }: SectionProps) {
+  const [copied, setCopied] = useState(false);
   const HeadingTag = `h${section.level + 1}` as "h2" | "h3" | "h4";
   const headingClasses = {
     1: "text-2xl lg:text-3xl font-bold mb-6 mt-12 first:mt-0",
@@ -415,11 +546,31 @@ function Section({ section, docId }: SectionProps) {
     4: "text-base lg:text-lg font-semibold mb-2 mt-6",
   };
 
+  const handleCopyLink = () => {
+    const url = `${window.location.origin}${window.location.pathname}#${sectionId}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <section className="scroll-mt-24">
-      <HeadingTag className={`text-foreground tracking-tight ${headingClasses[section.level]}`}>
-        {section.title}
-      </HeadingTag>
+    <section id={sectionId} className="scroll-mt-24 group/section">
+      <div className="flex items-start gap-2">
+        <HeadingTag className={`text-foreground tracking-tight ${headingClasses[section.level]} flex-1`}>
+          {section.title}
+        </HeadingTag>
+        <button
+          onClick={handleCopyLink}
+          className="opacity-0 group-hover/section:opacity-100 transition-opacity mt-2 p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+          title={copied ? "Copied!" : "Copy link to section"}
+        >
+          {copied ? (
+            <CheckIcon className="size-4" />
+          ) : (
+            <LinkIcon className="size-4" />
+          )}
+        </button>
+      </div>
 
       <div className="space-y-4">
         {section.content.map((content, i) => (
@@ -556,19 +707,64 @@ interface DistillationViewerProps {
 
 export function DistillationViewer({ data, docId }: DistillationViewerProps) {
   const [progress, setProgress] = useState(0);
+  const [activeSection, setActiveSection] = useState("");
   const theme = getModelTheme(docId);
 
+  // Extract TOC entries
+  const tocEntries = useMemo(() => extractTocEntries(data), [data]);
+
+  // Track scroll for progress bar and active section
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
       const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
       setProgress(Math.min(100, Math.max(0, scrollPercent)));
+
+      // Find active section based on scroll position
+      const sections = tocEntries.map(e => document.getElementById(e.id)).filter(Boolean) as HTMLElement[];
+      const viewportCenter = scrollTop + window.innerHeight * 0.3;
+
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = sections[i];
+        if (section.offsetTop <= viewportCenter) {
+          setActiveSection(tocEntries[i].id);
+          break;
+        }
+      }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // Initial call
     return () => window.removeEventListener("scroll", handleScroll);
+  }, [tocEntries]);
+
+  // Handle URL hash on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+      const element = document.getElementById(hash);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      }
+    }
   }, []);
+
+  // Scroll to section from TOC
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      // Update URL hash
+      window.history.replaceState(null, "", `#${id}`);
+    }
+  };
+
+  // Check if we have enough sections for a TOC
+  const showTOC = tocEntries.length > 3;
 
   return (
     <>
@@ -586,21 +782,70 @@ export function DistillationViewer({ data, docId }: DistillationViewerProps) {
         docId={docId}
       />
 
-      <div className="max-w-3xl mx-auto">
-        {data.parts.length > 0 ? (
-          data.parts.map((part) => (
-            <div key={part.number}>
-              {data.parts.length > 1 && <PartHeader part={part} docId={docId} />}
+      {data.parts.length > 0 ? (
+        showTOC ? (
+          <div className="lg:grid lg:grid-cols-[280px_1fr] lg:gap-8 xl:gap-12 max-w-6xl mx-auto">
+            {/* Sidebar TOC (desktop) */}
+            <aside className="hidden lg:block">
+              <DistillationTOC
+                entries={tocEntries}
+                activeSection={activeSection}
+                onSectionClick={scrollToSection}
+                docId={docId}
+              />
+            </aside>
 
-              {part.sections.map((section, i) => (
-                <Section key={i} section={section} docId={docId} />
-              ))}
+            {/* Mobile TOC */}
+            <div className="lg:hidden mb-8">
+              <DistillationTOC
+                entries={tocEntries}
+                activeSection={activeSection}
+                onSectionClick={scrollToSection}
+                docId={docId}
+              />
             </div>
-          ))
-        ) : data.rawContent ? (
+
+            {/* Main content */}
+            <main className="max-w-3xl">
+              {data.parts.map((part) => (
+                <div key={part.number} id={data.parts.length > 1 ? `part-${part.number}` : undefined}>
+                  {data.parts.length > 1 && <PartHeader part={part} docId={docId} />}
+
+                  {part.sections.map((section) => (
+                    <Section
+                      key={section.title}
+                      section={section}
+                      docId={docId}
+                      sectionId={generateAnchorId(section.title, data.parts.length > 1 ? part.number : undefined)}
+                    />
+                  ))}
+                </div>
+              ))}
+            </main>
+          </div>
+        ) : (
+          <div className="max-w-3xl mx-auto">
+            {data.parts.map((part) => (
+              <div key={part.number}>
+                {data.parts.length > 1 && <PartHeader part={part} docId={docId} />}
+
+                {part.sections.map((section) => (
+                  <Section
+                    key={section.title}
+                    section={section}
+                    docId={docId}
+                    sectionId={generateAnchorId(section.title, data.parts.length > 1 ? part.number : undefined)}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        )
+      ) : data.rawContent ? (
+        <div className="max-w-3xl mx-auto">
           <RawContentFallback content={data.rawContent} />
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       {/* Back to top */}
       <BackToTopButton />
