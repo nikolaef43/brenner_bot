@@ -47,11 +47,14 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         <textarea
           id={textareaId}
           className={cn(
-            "flex min-h-[120px] w-full rounded-lg border border-border bg-background px-3 py-3 text-sm",
+            // Base styles - text-base on mobile for better readability, text-sm on desktop
+            "flex min-h-[120px] w-full rounded-lg border border-border bg-background px-3 py-3 text-base sm:text-sm",
             "transition-all duration-150 ease-out",
-            "placeholder:text-muted-foreground",
+            "placeholder:text-muted-foreground/70",
             "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background focus:border-primary",
-            "disabled:cursor-not-allowed disabled:opacity-50",
+            "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted/50",
+            // Touch-friendly: prevent zoom on focus in iOS
+            "touch-manipulation",
             "resize-y",
             autoResize && "resize-none overflow-hidden",
             error && "border-destructive focus:ring-destructive/50",
