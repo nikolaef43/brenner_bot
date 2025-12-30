@@ -568,6 +568,7 @@
 
   /* Glow effects */
   --glow-primary: 0 0 40px oklch(0.65 0.18 195 / 0.25);
+  --glow-primary-strong: 0 0 50px oklch(0.65 0.18 195 / 0.40);
   --glow-accent: 0 0 40px oklch(0.75 0.16 75 / 0.25);
   --glow-soft: 0 0 60px oklch(0.65 0.18 195 / 0.15);
 
@@ -817,6 +818,7 @@
 
   /* Glow effects - more prominent in dark mode */
   --glow-primary: 0 0 50px oklch(0.72 0.18 195 / 0.35);
+  --glow-primary-strong: 0 0 60px oklch(0.72 0.18 195 / 0.50);
   --glow-accent: 0 0 50px oklch(0.80 0.14 75 / 0.30);
   --glow-soft: 0 0 80px oklch(0.72 0.18 195 / 0.20);
 }
@@ -2562,6 +2564,14 @@
 
   .toast-info .toast-icon {
     @apply text-info;
+  }
+
+  .toast-warning {
+    border-color: var(--warning);
+  }
+
+  .toast-warning .toast-icon {
+    color: var(--warning);
   }
 
   .toast-icon {

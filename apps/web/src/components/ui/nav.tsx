@@ -169,6 +169,119 @@ export function BackToTop({ className }: { className?: string }) {
   )
 }
 
+// Table of Contents with Scroll Spy
+export interface TocItem {
+  id: string
+  title: string
+  level: number
+}
+
+export function TableOfContents({
+  items,
+  className,
+  title = "On this page",
+}: {
+  items: TocItem[]
+  className?: string
+  title?: string
+}) {
+  const [activeId, setActiveId] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    if (items.length === 0) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Find the first visible section
+        const visibleEntries = entries.filter((entry) => entry.isIntersecting)
+        if (visibleEntries.length > 0) {
+          // Get the entry closest to the top of the viewport
+          const closest = visibleEntries.reduce((prev, curr) => {
+            const prevRect = prev.boundingClientRect
+            const currRect = curr.boundingClientRect
+            return Math.abs(prevRect.top) < Math.abs(currRect.top) ? prev : curr
+          })
+          setActiveId(closest.target.id)
+        }
+      },
+      {
+        rootMargin: "-80px 0% -80% 0%",
+        threshold: 0,
+      }
+    )
+
+    // Observe all headings
+    items.forEach((item) => {
+      const element = document.getElementById(item.id)
+      if (element) {
+        observer.observe(element)
+      }
+    })
+
+    return () => observer.disconnect()
+  }, [items])
+
+  const handleClick = (id: string) => {
+    const element = document.getElementById(id)
+    if (element) {
+      const yOffset = -96 // Offset for fixed header
+      const y = element.getBoundingClientRect().top + window.scrollY + yOffset
+      window.scrollTo({ top: y, behavior: "smooth" })
+    }
+  }
+
+  if (items.length === 0) return null
+
+  return (
+    <nav className={cn("toc", className)} aria-label="Table of contents">
+      <div className="toc-wrapper">
+        <h2 className="toc-header">{title}</h2>
+        <ul className="space-y-1">
+          {items.map((item) => (
+            <li key={item.id}>
+              <button
+                onClick={() => handleClick(item.id)}
+                className="toc-item text-left w-full"
+                style={{ "--depth": item.level - 1 } as React.CSSProperties}
+                data-active={activeId === item.id}
+              >
+                {item.title}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </nav>
+  )
+}
+
+// Extract headings from content (utility hook)
+export function useTableOfContents(contentRef: React.RefObject<HTMLElement | null>) {
+  const [items, setItems] = React.useState<TocItem[]>([])
+
+  React.useEffect(() => {
+    if (!contentRef.current) return
+
+    const headings = contentRef.current.querySelectorAll("h2, h3, h4")
+    const tocItems: TocItem[] = []
+
+    headings.forEach((heading) => {
+      if (heading.id) {
+        const level = parseInt(heading.tagName[1] ?? "2", 10)
+        tocItems.push({
+          id: heading.id,
+          title: heading.textContent ?? "",
+          level,
+        })
+      }
+    })
+
+    setItems(tocItems)
+  }, [contentRef])
+
+  return items
+}
+
 // Theme Toggle
 export function ThemeToggle({ className }: { className?: string }) {
   const [theme, setTheme] = React.useState<"light" | "dark">("light")
