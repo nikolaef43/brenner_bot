@@ -223,6 +223,33 @@ Some prose explanation here.
     }
   });
 
+  it("accepts research_thread EDIT with null target_id", () => {
+    const body = `
+\`\`\`delta
+{
+  "operation": "EDIT",
+  "section": "research_thread",
+  "target_id": null,
+  "payload": {
+    "statement": "How do cells determine fate?",
+    "context": "Based on Brenner transcript"
+  }
+}
+\`\`\`
+`;
+
+    const result = parseDeltaMessage(body);
+
+    expect(result.validCount).toBe(1);
+    expect(result.invalidCount).toBe(0);
+    expect(result.deltas[0]).toMatchObject({
+      valid: true,
+      operation: "EDIT",
+      section: "research_thread",
+      target_id: null,
+    });
+  });
+
   it("handles multiple delta blocks", () => {
     const body = `
 \`\`\`delta

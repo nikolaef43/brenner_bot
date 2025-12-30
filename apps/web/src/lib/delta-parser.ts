@@ -238,10 +238,21 @@ function validateDelta(raw: unknown, rawJson: string): ParsedDelta {
     };
   }
 
-  if ((operation === "EDIT" || operation === "KILL") && typeof target_id !== "string") {
+  // KILL always requires target_id
+  if (operation === "KILL" && typeof target_id !== "string") {
     return {
       valid: false,
-      error: `${operation} operation requires target_id as a string`,
+      error: "KILL operation requires target_id as a string",
+      raw: rawJson,
+    };
+  }
+
+  // EDIT requires target_id, except for research_thread which allows null
+  // (research_thread is a singleton that can be created/updated without target_id)
+  if (operation === "EDIT" && typeof target_id !== "string" && section !== "research_thread") {
+    return {
+      valid: false,
+      error: "EDIT operation requires target_id as a string",
       raw: rawJson,
     };
   }

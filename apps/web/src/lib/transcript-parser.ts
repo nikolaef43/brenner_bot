@@ -22,6 +22,7 @@ export interface ParsedTranscript {
   subtitle: string;
   totalSections: number;
   sections: TranscriptSection[];
+  rawContent?: string; // Fallback for unstructured content
 }
 
 /**
@@ -36,11 +37,10 @@ function parseInlineFormatting(text: string): { clean: string; highlights: strin
     highlights.push(match[1]);
   }
 
-  // Clean the text
+  // Clean the text (remove markdown formatting, [sic] markers preserved as-is)
   const clean = text
     .replace(/\*\*([^*]+)\*\*/g, "$1") // Remove bold markers
     .replace(/\*([^*]+)\*/g, "$1")     // Remove italic markers
-    .replace(/\[sic\]/g, "[sic]")      // Keep sic markers
     .trim();
 
   return { clean, highlights };
@@ -181,11 +181,15 @@ export function parseTranscript(markdown: string): ParsedTranscript {
     });
   }
 
+  // If no sections found, include raw content as fallback
+  const rawContent = sections.length === 0 ? markdown.trim() : undefined;
+
   return {
     title,
     subtitle,
     totalSections: sections.length,
     sections,
+    rawContent,
   };
 }
 
