@@ -294,48 +294,21 @@ bun run type-check   # type-check (if configured)
 
 ---
 
-## Corpus Files and Vercel Deployment (CRITICAL)
+## Corpus Files and Vercel Deployment
 
-Two bugs combined to break brennerbot.org on 2024-12-30:
+`apps/web/public/_corpus/` contains markdown files served by the web app. These files must be committed to git (not gitignored) or Vercel deployments will fail.
 
-**Bug 1: Corpus files were gitignored**
-- Someone added `/public/_corpus/` to `.gitignore`
-- Files existed locally (copied by `bun run build`)
-- But they were NEVER committed to git
-- Vercel only deploys git-tracked files
-- Result: Vercel had NO corpus files → build failed → **ENTIRE SITE 500 ERRORS**
+**Rules:**
+1. Never add `public/_corpus/` to `.gitignore`
+2. After `bun run build`, commit any new/changed corpus files
+3. The directory uses underscore (`_corpus`) to avoid conflict with the `/corpus` route
 
-**Bug 2: Wrong URL path in fallback fetch**
-- `src/lib/corpus.ts` had a fallback to fetch files via HTTP when filesystem unavailable
-- The URL was `/corpus/filename` but files are served from `/_corpus/filename`
-- Even if files existed, the fetch would 404
-
-### Rules
-
-1. **`apps/web/public/_corpus/` MUST be committed to git** - NEVER add it to `.gitignore`
-2. **The directory is `_corpus` (with underscore)** - This avoids conflict with the `/corpus` route
-3. **After `bun run build`, check for new corpus files**: `git status apps/web/public/_corpus/`
-4. **If corpus files changed, commit them** - They are ~800KB total, not huge
-
-### How to Verify Before Deploying
-
+**Verify before deploying:**
 ```bash
-# MUST show 17+ files - if empty, deployment WILL fail:
-git ls-files apps/web/public/_corpus/ | wc -l
-
-# MUST show _corpus (with underscore) in the fetch URL:
-grep "baseUrl}/_corpus" apps/web/src/lib/corpus.ts
-
-# Test the build locally:
-cd apps/web && bun run build
+git ls-files apps/web/public/_corpus/ | wc -l  # Should show 17+ files
 ```
 
-### If Site Breaks Again
-
-1. Check `git ls-files apps/web/public/_corpus/` - if empty, files were gitignored
-2. Check `apps/web/.gitignore` - ensure `_corpus` is NOT listed
-3. Check `apps/web/src/lib/corpus.ts` - ensure `fetchFromPublicUrl` uses `/_corpus/`
-4. Run `vercel deploy --prod` from `apps/web/` to deploy with local files
+**If deployments fail:** Check that corpus files are tracked (`git ls-files`) and that `src/lib/corpus.ts` uses `/_corpus/` (with underscore) in the fetch URL.
 
 ---
 
