@@ -22,20 +22,54 @@ export const metadata: Metadata = {
   },
   description:
     "Research lab for operationalizing Sydney Brenner's scientific methodology via multi-agent collaboration.",
-  keywords: ["Sydney Brenner", "research methodology", "AI", "multi-agent", "science"],
+  keywords: [
+    "Sydney Brenner",
+    "research methodology",
+    "AI",
+    "multi-agent",
+    "science",
+    "Nobel Prize",
+    "molecular biology",
+    "bacteriophage",
+  ],
   authors: [{ name: "BrennerBot" }],
+  creator: "BrennerBot",
+  publisher: "BrennerBot",
+  metadataBase: new URL("https://brennerbot.org"),
+  alternates: {
+    canonical: "/",
+  },
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "https://brennerbot.org",
     siteName: "BrennerBot",
     title: "BrennerBot",
-    description: "Research lab for operationalizing Sydney Brenner's scientific methodology.",
+    description:
+      "Operationalizing Sydney Brenner's scientific methodology via multi-agent collaboration. 236 interview segments, 3 model distillations, 40k+ words of wisdom.",
   },
   twitter: {
     card: "summary_large_image",
+    site: "@brennerbot",
+    creator: "@brennerbot",
     title: "BrennerBot",
-    description: "Research lab for operationalizing Sydney Brenner's scientific methodology.",
+    description:
+      "Operationalizing Sydney Brenner's scientific methodology via multi-agent collaboration.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 

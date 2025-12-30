@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Bacteriophage (Lambda phage) - Sydney Brenner's iconic research subject -->
+  <defs>
+    <!-- Gradient for the head capsid -->
+    <linearGradient id="headGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="50%" stop-color="#0891b2"/>
+      <stop offset="100%" stop-color="#0e7490"/>
+    </linearGradient>
+    <!-- Gradient for the tail -->
+    <linearGradient id="tailGradient" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#0891b2"/>
+      <stop offset="100%" stop-color="#164e63"/>
+    </linearGradient>
+    <!-- Glow effect -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="0.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Icosahedral head (hexagon) -->
+  <polygon
+    points="16,3 24,7.5 24,16.5 16,21 8,16.5 8,7.5"
+    fill="url(#headGradient)"
+    stroke="#06b6d4"
+    stroke-width="0.5"
+    filter="url(#glow)"
+  />
+
+  <!-- Head highlight (3D effect) -->
+  <polygon
+    points="16,4.5 22,8 22,12 16,15 10,12 10,8"
+    fill="rgba(255,255,255,0.15)"
+  />
+
+  <!-- DNA strand inside head (subtle) -->
+  <path
+    d="M14,8 Q16,10 14,12 Q12,14 14,16"
+    stroke="rgba(255,255,255,0.3)"
+    stroke-width="0.8"
+    fill="none"
+    stroke-linecap="round"
+  />
+  <path
+    d="M18,8 Q16,10 18,12 Q20,14 18,16"
+    stroke="rgba(255,255,255,0.3)"
+    stroke-width="0.8"
+    fill="none"
+    stroke-linecap="round"
+  />
+
+  <!-- Tail sheath -->
+  <rect
+    x="14.5" y="21"
+    width="3" height="6"
+    fill="url(#tailGradient)"
+    rx="0.5"
+  />
+
+  <!-- Baseplate -->
+  <polygon
+    points="12,27 20,27 18,28.5 14,28.5"
+    fill="#0e7490"
+  />
+
+  <!-- Tail fibers (6 legs) -->
+  <g stroke="#06b6d4" stroke-width="0.8" stroke-linecap="round" fill="none">
+    <!-- Left fibers -->
+    <path d="M14,28 L10,31 L8,30"/>
+    <path d="M13,28 L9,30"/>
+    <path d="M12.5,27.5 L8,29"/>
+    <!-- Right fibers -->
+    <path d="M18,28 L22,31 L24,30"/>
+    <path d="M19,28 L23,30"/>
+    <path d="M19.5,27.5 L24,29"/>
+  </g>
+</svg>
