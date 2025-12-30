@@ -41,6 +41,7 @@ EASY_MODE=false
 VERIFY=false
 DRY_RUN=false
 VERBOSE=false
+SYSTEM=false
 SKIP_BRENNER=false
 SKIP_NTM=false
 SKIP_CASS=false
@@ -281,7 +282,11 @@ install_upstream_tool() {
       fi
       ;;
     cass|cm)
-      extra_args+=(--dest "$DEST_DIR")
+      if [[ "$SYSTEM" == "true" ]]; then
+        extra_args+=(--system)
+      else
+        extra_args+=(--dest "$DEST_DIR")
+      fi
       if [[ "$EASY_MODE" == "true" ]]; then
         extra_args+=(--easy-mode)
       fi
@@ -452,6 +457,24 @@ download_file() {
   fi
 }
 
+maybe_sudo() {
+  if [[ "$SYSTEM" != "true" ]]; then
+    "$@"
+    return 0
+  fi
+
+  if [[ "$(id -u)" == "0" ]]; then
+    "$@"
+    return 0
+  fi
+
+  if ! command -v sudo &>/dev/null; then
+    die "sudo is required for --system installs (DEST=${DEST_DIR})"
+  fi
+
+  sudo "$@"
+}
+
 # Install binary to destination with atomic move
 # Args: source_path, dest_dir, binary_name
 atomic_install() {
@@ -463,14 +486,14 @@ atomic_install() {
   log_debug "Installing ${name} to ${dest_dir}"
 
   # Ensure destination directory exists
-  mkdir -p "$dest_dir" || die "Failed to create directory: ${dest_dir}"
+  maybe_sudo mkdir -p "$dest_dir" || die "Failed to create directory: ${dest_dir}"
 
   # Make executable
   chmod +x "$src" || die "Failed to chmod: ${src}"
 
   # Atomic move (rename is atomic on same filesystem)
   # If cross-filesystem, mv will copy+delete
-  mv -f "$src" "$dest" || die "Failed to install to: ${dest}"
+  maybe_sudo mv -f "$src" "$dest" || die "Failed to install to: ${dest}"
 
   log_info "Installed: ${dest}"
 }
@@ -568,8 +591,22 @@ verify_installation() {
       die "Verification failed: brenner --help failed"
     fi
 
-    # TODO: Once brenner doctor is implemented:
-    # "$brenner_path" doctor --json || die "brenner doctor failed"
+    local -a doctor_args=(doctor --json)
+    if [[ "$SKIP_NTM" == "true" ]]; then
+      doctor_args+=(--skip-ntm)
+    fi
+    if [[ "$SKIP_CASS" == "true" ]]; then
+      doctor_args+=(--skip-cass)
+    fi
+    if [[ "$SKIP_CM" == "true" ]]; then
+      doctor_args+=(--skip-cm)
+    fi
+
+    if PATH="${DEST_DIR}:${PATH}" "$brenner_path" "${doctor_args[@]}" >/dev/null; then
+      log_info "Verification passed: brenner doctor --json works"
+    else
+      die "Verification failed: brenner doctor --json failed"
+    fi
   fi
 
   verify_toolchain
@@ -578,6 +615,10 @@ verify_installation() {
 # Configure PATH for easy-mode
 configure_path() {
   if [[ "$EASY_MODE" != "true" ]]; then
+    return 0
+  fi
+
+  if [[ "$SYSTEM" == "true" ]]; then
     return 0
   fi
 
@@ -644,6 +685,7 @@ Usage:
 Options:
   --version <ver>      Version to install (default: latest)
   --dest <path>        Install destination (default: ~/.local/bin)
+  --system             Install to /usr/local/bin (requires sudo)
   --artifact-url <url> Override artifact URL (requires --checksum)
   --checksum <hash>    Override checksum (64 hex chars)
   --easy-mode          Configure PATH automatically
@@ -686,7 +728,13 @@ parse_args() {
         ;;
       --dest)
         DEST_DIR="$2"
+        SYSTEM=false
         shift 2
+        ;;
+      --system)
+        DEST_DIR="/usr/local/bin"
+        SYSTEM=true
+        shift
         ;;
       --artifact-url)
         ARTIFACT_URL="$2"
