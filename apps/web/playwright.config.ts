@@ -58,19 +58,26 @@ export default defineConfig({
       name: "desktop-firefox",
       use: { ...devices["Desktop Firefox"] },
     },
-    {
-      name: "desktop-safari",
-      use: { ...devices["Desktop Safari"] },
-    },
     // Mobile browsers
     {
       name: "mobile-chrome",
       use: { ...devices["Pixel 5"] },
     },
-    {
-      name: "mobile-safari",
-      use: { ...devices["iPhone 12"] },
-    },
+    // WebKit projects are opt-in because they require host dependencies that may be missing
+    // in minimal Linux environments (common in CI/containers). Enable with:
+    //   PLAYWRIGHT_INCLUDE_WEBKIT=1 bun run test:e2e
+    ...(process.env.PLAYWRIGHT_INCLUDE_WEBKIT === "1"
+      ? [
+          {
+            name: "desktop-safari",
+            use: { ...devices["Desktop Safari"] },
+          },
+          {
+            name: "mobile-safari",
+            use: { ...devices["iPhone 12"] },
+          },
+        ]
+      : []),
   ],
   outputDir: "test-results/",
 });
