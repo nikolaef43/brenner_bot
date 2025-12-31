@@ -1601,21 +1601,6 @@ export function lintArtifact(artifact: Artifact): LintReport {
   }
 
   /**
-   * Check if anchors contain any valid grounding (transcript §n, evidence EV-*, or labeled inference).
-   */
-  function hasValidGrounding(anchors: string[] | undefined): boolean {
-    if (!Array.isArray(anchors) || anchors.length === 0) return false;
-    const transcriptRefs = extractAnchorRefs(anchors);
-    if (transcriptRefs.length > 0) return true;
-    if (hasEvidenceCitations(anchors)) return true;
-    // Check for explicit inference label
-    return anchors.some((a) => {
-      const lower = a.toLowerCase();
-      return lower === "inference" || lower === "[inference]" || lower.includes("[inference]");
-    });
-  }
-
-  /**
    * Check if anchors contain [inference] without source context.
    * Returns false if there are transcript §n anchors or evidence EV-* citations
    * alongside the inference label (those count as source context).
