@@ -1177,6 +1177,11 @@ Commands:
 
   prompt compose --excerpt-file <path> [--template <path>] [--theme <s>] [--domain <s>] [--question <s>]
 
+  cockpit start [--project-key <abs-path>] --thread-id <id> --sender <AgentName> --to <A,B>
+               --excerpt-file <path> --question <s> [--context <s>]
+               [--hypotheses <s>] [--constraints <s>] [--outputs <s>] [--role-map <s>] [--with-memory]
+               [--ntm-args <s>] [--skip-ntm] [--skip-broadcast] [--broadcast-message <s>] [--dry-run] [--json]
+
   session start [--project-key <abs-path>] [--sender <AgentName>] --to <A,B> --thread-id <id>
                --excerpt-file <path> --question <s> [--context <s>]
                [--hypotheses <s>] [--constraints <s>] [--outputs <s>]
@@ -1250,6 +1255,12 @@ Examples:
   ./brenner.ts session start --project-key "$PWD" --to PurplePond,PurpleCat \\
     --thread-id RS-20251230-example --excerpt-file excerpt.md --question "..." --with-memory
   ./brenner.ts session status --project-key "$PWD" --thread-id RS-20251230-example --watch
+
+  # One-command: spawn ntm + send role-specific kickoff + broadcast "check mail"
+  ./brenner.ts cockpit start --project-key "$PWD" --thread-id RS-20251230-example --sender FuchsiaDog \\
+    --to BlueLake,PurpleMountain,RedForest \\
+    --role-map "BlueLake=hypothesis_generator,PurpleMountain=test_designer,RedForest=adversarial_critic" \\
+    --excerpt-file excerpt.md --question "..."
 
   # Work the inbox (threads -> read -> ack)
   ./brenner.ts mail inbox --project-key "$PWD" --threads
@@ -2279,10 +2290,18 @@ ${JSON.stringify(delta, null, 2)}
             const loc = ex.location ? `, ${ex.location}` : "";
             const type = ex.verbatim ? "verbatim" : "paraphrased";
             lines.push(`**${rec.id}#${ex.anchor}** (${type}${loc}):`);
-            lines.push(`> ${ex.text}`);
+            // Handle multi-line text by prefixing each line with >
+            const textLines = ex.text.split("\n");
+            for (const textLine of textLines) {
+              lines.push(`> ${textLine}`);
+            }
             if (ex.note) {
               lines.push(`>`);
-              lines.push(`> *Note: ${ex.note}*`);
+              // Handle multi-line notes too
+              const noteLines = ex.note.split("\n");
+              for (const noteLine of noteLines) {
+                lines.push(`> *${noteLine}*`);
+              }
             }
             lines.push("");
           }
@@ -3167,6 +3186,219 @@ ${JSON.stringify(delta, null, 2)}
 
     stdoutLine(JSON.stringify(result, null, 2));
     process.exit(result.ok ? 0 : 1);
+  }
+
+  if (top === "cockpit" && sub === "start") {
+    const jsonMode = asBoolFlag(flags, "json");
+    const dryRun = asBoolFlag(flags, "dry-run");
+    const skipNtm = asBoolFlag(flags, "skip-ntm");
+    const skipBroadcast = asBoolFlag(flags, "skip-broadcast");
+    const ntmArgsRaw = asStringFlag(flags, "ntm-args") ?? "--cc=1 --cod=1 --gmi=1";
+
+    const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
+    const threadId = asStringFlag(flags, "thread-id");
+    if (!threadId) throw new Error("Missing --thread-id.");
+
+    let sender = asStringFlag(flags, "sender") ?? process.env.AGENT_NAME;
+    if (!sender) throw new Error("Missing --sender (or set AGENT_NAME).");
+
+    const to = splitCsv(asStringFlag(flags, "to"));
+    if (to.length === 0) throw new Error("Missing --to <A,B>.");
+
+    const excerptFile = asStringFlag(flags, "excerpt-file");
+    if (!excerptFile) throw new Error("Missing --excerpt-file.");
+    const excerpt = readTextFile(resolve(excerptFile));
+
+    const question = asStringFlag(flags, "question");
+    if (!question) throw new Error("Missing --question (research question).");
+
+    const context = asStringFlag(flags, "context") ?? "See excerpt for background.";
+    const withMemory = asBoolFlag(flags, "with-memory");
+    let memoryAudit: CassMemoryKickoffAudit = null;
+
+    const roleMapRaw = asStringFlag(flags, "role-map")?.trim();
+    if (!roleMapRaw) {
+      throw new Error(
+        "Missing --role-map. Cockpit sessions require an explicit roster mapping. " +
+          'Example: --role-map "BlueLake=hypothesis_generator,PurpleMountain=test_designer,RedForest=adversarial_critic"'
+      );
+    }
+
+    const recipientRoles = parseRoleMapFlag(roleMapRaw);
+    const normalizedMap = new Set(Object.keys(recipientRoles).map((k) => k.trim().toLowerCase()));
+    const missing = to.filter((r) => !normalizedMap.has(r.trim().toLowerCase()));
+    if (missing.length > 0) {
+      throw new Error(`--role-map is missing entries for: ${missing.join(", ")}`);
+    }
+
+    const kickoffConfig: KickoffConfig = {
+      threadId,
+      researchQuestion: question,
+      context,
+      excerpt,
+      recipients: to,
+      recipientRoles,
+      initialHypotheses: asStringFlag(flags, "hypotheses"),
+      constraints: asStringFlag(flags, "constraints"),
+      requestedOutputs: asStringFlag(flags, "outputs"),
+    };
+
+    if (withMemory) {
+      const memoryResult = await getCassMemoryContext(question, { workspace: projectKey, top: 5, history: 0 });
+      const memoryContext = formatCassMemoryContextForKickoff(memoryResult);
+      memoryAudit = {
+        enabled: true,
+        ok: memoryResult.ok,
+        injected: Boolean(memoryContext),
+        memoryContext: memoryContext ?? null,
+        provenance: memoryResult.provenance,
+      };
+      if (memoryContext) {
+        kickoffConfig.memoryContext = memoryContext;
+      }
+    }
+
+    const broadcastMessage =
+      asStringFlag(flags, "broadcast-message") ?? `Please check your Agent Mail inbox for thread: ${threadId}`;
+
+    const ntmSpawnArgv = ["ntm", "spawn", threadId, ...splitCommand(ntmArgsRaw)];
+    const ntmSendArgv = ["ntm", "send", threadId, "--all", broadcastMessage];
+
+    const kickoffPreview = composeKickoffMessages(kickoffConfig).map((m) => ({
+      to: m.to,
+      role: m.role.role,
+      subject: m.subject,
+    }));
+
+    if (dryRun) {
+      if (jsonMode) {
+        stdoutLine(
+          JSON.stringify(
+            {
+              ok: true,
+              dryRun: true,
+              threadId,
+              projectKey,
+              sender,
+              to,
+              roster: recipientRoles,
+              memory: memoryAudit,
+              ntm: {
+                spawn: skipNtm ? null : { argv: ntmSpawnArgv },
+                broadcast: skipBroadcast ? null : { argv: ntmSendArgv },
+              },
+              kickoff: kickoffPreview,
+            },
+            null,
+            2
+          )
+        );
+      } else {
+        const lines: string[] = [];
+        lines.push("cockpit start (dry-run)");
+        lines.push(`thread: ${threadId}`);
+        lines.push(`project: ${projectKey}`);
+        lines.push("");
+        if (!skipNtm) {
+          lines.push("ntm spawn:");
+          lines.push(`  ${ntmSpawnArgv.join(" ")}`);
+          lines.push("");
+        }
+        lines.push("kickoff messages:");
+        for (const msg of kickoffPreview) {
+          lines.push(`  - ${msg.to}: ${msg.role} (${msg.subject})`);
+        }
+        lines.push("");
+        if (!skipBroadcast) {
+          lines.push("ntm broadcast:");
+          lines.push(`  ${ntmSendArgv.join(" ")}`);
+          lines.push("");
+        }
+        stdoutLine(lines.join("\n").trim());
+      }
+      process.exit(0);
+    }
+
+    const ntmResults: Json[] = [];
+
+    if (!skipNtm) {
+      const proc = Bun.spawnSync(ntmSpawnArgv, { stdout: "pipe", stderr: "pipe" });
+      ntmResults.push({
+        action: "spawn",
+        argv: ntmSpawnArgv,
+        exitCode: proc.exitCode ?? 1,
+        stdout: proc.stdout.toString(),
+        stderr: proc.stderr.toString(),
+      });
+      if ((proc.exitCode ?? 1) !== 0) {
+        throw new Error(`ntm spawn failed: ${proc.stderr.toString().trim()}`);
+      }
+    }
+
+    // Send kickoff via Agent Mail (role-specific, explicit roster)
+    const client = new AgentMailClient(runtimeConfig.agentMail);
+    await client.toolsCall("ensure_project", { human_key: projectKey });
+    const registerResult = await client.toolsCall("register_agent", {
+      project_key: projectKey,
+      name: sender,
+      program: "brenner-cli",
+      model: "orchestrator",
+      task_description: `Brenner Protocol session (cockpit): ${threadId}`,
+    });
+    const actualName = parseAgentNameFromToolResult(registerResult);
+    if (actualName && actualName !== sender) {
+      stderrLine(`Agent Mail assigned sender name "${actualName}" (requested "${sender}").`);
+      sender = actualName;
+    }
+
+    const messages = composeKickoffMessages(kickoffConfig);
+    const sendResults: Json[] = [];
+    for (const msg of messages) {
+      const result = await client.toolsCall("send_message", {
+        project_key: projectKey,
+        sender_name: sender,
+        to: [msg.to],
+        subject: msg.subject,
+        body_md: msg.body,
+        thread_id: threadId,
+        ack_required: true,
+      });
+      sendResults.push(result);
+    }
+
+    if (!skipBroadcast) {
+      const proc = Bun.spawnSync(ntmSendArgv, { stdout: "pipe", stderr: "pipe" });
+      ntmResults.push({
+        action: "broadcast",
+        argv: ntmSendArgv,
+        exitCode: proc.exitCode ?? 1,
+        stdout: proc.stdout.toString(),
+        stderr: proc.stderr.toString(),
+      });
+      if ((proc.exitCode ?? 1) !== 0) {
+        throw new Error(`ntm send failed: ${proc.stderr.toString().trim()}`);
+      }
+    }
+
+    stdoutLine(
+      JSON.stringify(
+        {
+          ok: true,
+          threadId,
+          projectKey,
+          sender,
+          to,
+          roster: recipientRoles,
+          memory: memoryAudit,
+          ntm: ntmResults,
+          sent: messages.length,
+          messages: sendResults,
+        },
+        null,
+        2
+      )
+    );
+    process.exit(0);
   }
 
   const normalizedTop = top === "orchestrate" ? "session" : top;
