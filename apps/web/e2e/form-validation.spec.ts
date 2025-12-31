@@ -798,13 +798,16 @@ test.describe("Form Keyboard Accessibility", () => {
 
     logger.info(`Tab order: ${actualOrder.join(" → ")}`);
 
-    // Verify logical order
+    // Verify logical order (threadId → sender → to)
     const threadIdIdx = actualOrder.indexOf("threadId");
     const senderIdx = actualOrder.indexOf("sender");
     const toIdx = actualOrder.indexOf("to");
 
     if (threadIdIdx >= 0 && senderIdx >= 0) {
       expect(threadIdIdx).toBeLessThan(senderIdx);
+    }
+    if (senderIdx >= 0 && toIdx >= 0) {
+      expect(senderIdx).toBeLessThan(toIdx);
     }
 
     await takeScreenshot(page, logger, "tab-navigation");
