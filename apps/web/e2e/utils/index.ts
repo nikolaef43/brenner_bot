@@ -45,3 +45,10 @@ export {
   type NetworkRequestLog,
   type PerformanceTimingData,
 } from "./network-logging";
+
+// Accessibility (axe-core)
+export {
+  checkAccessibility,
+  filterViolationsByImpact,
+  formatViolations,
+} from "./a11y-testing";
