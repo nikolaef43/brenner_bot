@@ -19,6 +19,7 @@ import {
   HypothesisSchema,
 } from "../schemas/hypothesis";
 import { createAssumption, AssumptionSchema } from "../schemas/assumption";
+import { createAnomaly, AnomalySchema } from "../schemas/anomaly";
 import { createCritique } from "../schemas/critique";
 import { createTestRecord, TestRecordSchema } from "../schemas/test-record";
 
@@ -285,5 +286,180 @@ describe("DashboardAggregator", () => {
     expect(eventTypes.has("hypothesis_validated")).toBe(true);
     expect(eventTypes.has("assumption_falsified")).toBe(true);
     expect(eventTypes.has("critique_raised")).toBe(true);
+  });
+
+  it("counts proposed + plain active hypotheses and covers additional timeline branches", async () => {
+    const session = "RS-20260101";
+
+    const hypothesisStorage = new HypothesisStorage({ baseDir: testDir });
+    const assumptionStorage = new AssumptionStorage({ baseDir: testDir });
+    const anomalyStorage = new AnomalyStorage({ baseDir: testDir });
+    const critiqueStorage = new CritiqueStorage({ baseDir: testDir });
+    const testStorage = new TestStorage({ baseDir: testDir });
+
+    const proposed = HypothesisSchema.parse({
+      ...createHypothesis({
+        id: "H-RS-20260101-001",
+        statement: "A proposed hypothesis",
+        sessionId: session,
+        category: "phenomenological",
+      }),
+      state: "proposed",
+      unresolvedCritiqueCount: 0,
+      createdAt: "2026-01-01T10:00:00Z",
+      updatedAt: "2026-01-01T10:00:00Z",
+    });
+
+    const active = HypothesisSchema.parse({
+      ...createHypothesis({
+        id: "H-RS-20260101-002",
+        statement: "An active hypothesis with no critiques",
+        sessionId: session,
+        category: "mechanistic",
+        mechanism: "Mechanism",
+      }),
+      state: "active",
+      unresolvedCritiqueCount: 0,
+      createdAt: "2026-01-01T11:00:00Z",
+      updatedAt: "2026-01-01T11:00:00Z",
+    });
+
+    await hypothesisStorage.saveSessionHypotheses(session, [proposed, active]);
+
+    const verifiedScale = AssumptionSchema.parse({
+      ...createAssumption({
+        id: "A-RS-20260101-001",
+        statement: "Scale physics check that was verified later.",
+        type: "scale_physics",
+        sessionId: session,
+        load: { affectedHypotheses: [], affectedTests: [], description: "load" },
+      }),
+      status: "verified",
+      createdAt: "2026-01-01T09:00:00Z",
+      updatedAt: "2026-01-01T12:00:00Z",
+      calculation: {
+        quantities: "L≈100µm, D≈10µm²/s",
+        result: "τ≈1000s",
+        units: "seconds, micrometers",
+        implication: "Timescale is plausible",
+      },
+    });
+
+    await assumptionStorage.saveSessionAssumptions(session, [verifiedScale]);
+
+    const resolvedAnomaly = AnomalySchema.parse({
+      ...createAnomaly({
+        id: "X-RS-20260101-001",
+        observation: "An anomaly that gets resolved.",
+        source: { type: "discussion", anchors: ["§1"] },
+        conflictsWith: {
+          hypotheses: ["H-RS-20260101-002"],
+          assumptions: [],
+          description: "Conflicts with an active hypothesis.",
+        },
+        sessionId: session,
+      }),
+      quarantineStatus: "resolved",
+      resolvedAt: "2026-01-01T12:30:00Z",
+    });
+
+    await anomalyStorage.saveSessionAnomalies(session, [resolvedAnomaly]);
+
+    const addressedCritique = {
+      ...createCritique({
+        id: "C-RS-20260101-001",
+        targetType: "hypothesis",
+        targetId: "H-RS-20260101-002",
+        attack: "A critique that gets accepted",
+        evidenceToConfirm: "Evidence needed to confirm the critique.",
+        severity: "minor",
+        sessionId: session,
+      }),
+      status: "accepted" as const,
+      createdAt: "2026-01-01T10:00:00Z",
+      updatedAt: "2026-01-01T12:00:00Z",
+    };
+
+    await critiqueStorage.saveSessionCritiques(session, [addressedCritique]);
+
+	    const inProgress = TestRecordSchema.parse({
+	      ...createTestRecord({
+	        id: "T-RS-20260101-001",
+	        name: "In progress test",
+	        procedure: "Procedure long enough.",
+	        discriminates: ["H-RS-20260101-001", "H-RS-20260101-002"],
+	        expectedOutcomes: [
+	          { hypothesisId: "H-RS-20260101-001", outcome: "Alpha", resultType: "positive" },
+	          { hypothesisId: "H-RS-20260101-002", outcome: "Gamma", resultType: "negative" },
+	        ],
+	        potencyCheck: { positiveControl: "A specific positive control that is long enough." },
+	        evidencePerWeekScore: { likelihoodRatio: 2, cost: 2, speed: 2, ambiguity: 2 },
+	        feasibility: { requirements: "Standard", difficulty: "easy" },
+	        designedInSession: session,
+	      }),
+	      status: "in_progress",
+	    });
+
+	    const completed = TestRecordSchema.parse({
+	      ...createTestRecord({
+	        id: "T-RS-20260101-002",
+	        name: "Completed test",
+	        procedure: "Procedure long enough.",
+	        discriminates: ["H-RS-20260101-001", "H-RS-20260101-002"],
+	        expectedOutcomes: [
+	          { hypothesisId: "H-RS-20260101-001", outcome: "Alpha", resultType: "positive" },
+	          { hypothesisId: "H-RS-20260101-002", outcome: "Gamma", resultType: "negative" },
+	        ],
+	        potencyCheck: { positiveControl: "A specific positive control that is long enough." },
+	        evidencePerWeekScore: { likelihoodRatio: 1, cost: 1, speed: 1, ambiguity: 1 },
+	        feasibility: { requirements: "Standard", difficulty: "easy" },
+	        designedInSession: session,
+	      }),
+      status: "completed",
+      execution: {
+        startedAt: "2026-01-01T12:00:00Z",
+        completedAt: "2026-01-01T12:45:00Z",
+        observedOutcome: "Observed",
+        potencyCheckPassed: true,
+      },
+    });
+
+    await testStorage.saveSessionTests(session, [inProgress, completed]);
+
+    const program = createResearchProgram({
+      id: "RP-TEST-002",
+      name: "Program Test 2",
+      description: "Covers additional branches.",
+      sessions: [session],
+    });
+
+    const aggregator = new DashboardAggregator({ baseDir: testDir, maxTimelineEvents: 100 });
+    const dashboard = await aggregator.generateDashboard(program);
+
+    expect(dashboard.hypothesisFunnel.proposed).toBe(1);
+    expect(dashboard.hypothesisFunnel.active).toBe(1);
+
+    const eventTypes = new Set(dashboard.recentEvents.map((e) => e.eventType));
+    expect(eventTypes.has("assumption_verified")).toBe(true);
+    expect(eventTypes.has("anomaly_resolved")).toBe(true);
+    expect(eventTypes.has("critique_addressed")).toBe(true);
+    expect(eventTypes.has("test_executed")).toBe(true);
+
+    expect(dashboard.testExecution.inProgress).toBe(1);
+    expect(dashboard.testExecution.completed).toBe(1);
+  });
+
+  it("emits NO_SESSIONS warning for programs with no sessions", async () => {
+    const program = createResearchProgram({
+      id: "RP-EMPTY-001",
+      name: "Empty Program",
+      description: "No sessions",
+      sessions: [],
+    });
+
+    const aggregator = new DashboardAggregator({ baseDir: testDir });
+    const dashboard = await aggregator.generateDashboard(program);
+
+    expect(dashboard.warnings.some((w) => w.code === "NO_SESSIONS")).toBe(true);
   });
 });

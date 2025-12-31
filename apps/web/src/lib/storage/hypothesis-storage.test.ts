@@ -88,6 +88,14 @@ describe("Session File Operations", () => {
     expect(loaded).toHaveLength(0);
   });
 
+  test("throws on malformed session file (non-ENOENT error path)", async () => {
+    await fs.mkdir(join(testDir, ".research", "hypotheses"), { recursive: true });
+    const filePath = join(testDir, ".research", "hypotheses", "BAD-hypotheses.json");
+    await fs.writeFile(filePath, "not-json");
+
+    await expect(storage.loadSessionHypotheses("BAD")).rejects.toBeDefined();
+  });
+
   test("preserves createdAt on update", async () => {
     const hypothesis = createTestHypothesisData();
     await storage.saveSessionHypotheses("TEST", [hypothesis]);
@@ -103,6 +111,17 @@ describe("Session File Operations", () => {
     const content2 = JSON.parse(await fs.readFile(filePath, "utf-8")) as SessionHypothesisFile;
     expect(content2.createdAt).toBe(originalCreatedAt);
     expect(content2.updatedAt).not.toBe(content2.createdAt);
+  });
+
+  test("autoRebuildIndex updates index when enabled", async () => {
+    const hypothesis = createTestHypothesisData({ id: "H-TEST-001" });
+    const autoStorage = new HypothesisStorage({ baseDir: testDir, autoRebuildIndex: true });
+
+    await autoStorage.saveSessionHypotheses("TEST", [hypothesis]);
+
+    const indexPath = join(testDir, ".research", "hypothesis-index.json");
+    const content = await fs.readFile(indexPath, "utf-8");
+    expect(content).toContain("\"version\"");
   });
 });
 
@@ -165,6 +184,24 @@ describe("Individual Hypothesis Operations", () => {
 
   test("deleteHypothesis returns false for non-existent hypothesis", async () => {
     const deleted = await storage.deleteHypothesis("H-TEST-999");
+    expect(deleted).toBe(false);
+  });
+
+  test("deleteHypothesis returns false if hypothesis disappears between lookup and delete", async () => {
+    const hypothesis = createTestHypothesisData({ id: "H-TEST-001" });
+
+    class FlakyStorage extends HypothesisStorage {
+      private calls = 0;
+
+      // Simulate a race: first call finds hypothesis, second call returns empty session list.
+      override async loadSessionHypotheses(_sessionId: string) {
+        this.calls++;
+        return this.calls === 1 ? [hypothesis] : [];
+      }
+    }
+
+    const flaky = new FlakyStorage({ baseDir: testDir, autoRebuildIndex: false });
+    const deleted = await flaky.deleteHypothesis("H-TEST-001");
     expect(deleted).toBe(false);
   });
 });

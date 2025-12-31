@@ -14,6 +14,7 @@
 import { describe, it, expect, beforeAll, vi, afterAll } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useSearch, useSearchIndex, useSearchResult } from "./hooks";
+import { searchEngine } from "./engine";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import type { SearchResult } from "./types";
@@ -242,6 +243,20 @@ describe("useSearchIndex", () => {
     expect(result.current.error).toBeNull();
   });
 
+  it("load hits the early-return branch when searchEngine is already loaded before calling load()", async () => {
+    searchEngine.clear();
+    await searchEngine.load(); // uses the fetch stub from beforeAll
+
+    const { result } = renderHook(() => useSearchIndex());
+
+    await act(async () => {
+      await result.current.load();
+    });
+
+    expect(result.current.isLoaded).toBe(true);
+    expect(result.current.error).toBeNull();
+  });
+
   it("load function is stable across renders", () => {
     const { result, rerender } = renderHook(() => useSearchIndex());
 
@@ -250,6 +265,25 @@ describe("useSearchIndex", () => {
     const secondLoad = result.current.load;
 
     expect(firstLoad).toBe(secondLoad);
+  });
+
+  it("sets error when index load fails", async () => {
+    searchEngine.clear();
+    vi.mocked(fetch).mockRejectedValueOnce(new Error("load-failed"));
+
+    try {
+      const { result } = renderHook(() => useSearchIndex());
+
+      await act(async () => {
+        await result.current.load();
+      });
+
+      expect(result.current.isLoaded).toBe(false);
+      expect(result.current.error).toContain("load-failed");
+    } finally {
+      // Ensure later tests can reload successfully (loadPromise resets)
+      searchEngine.clear();
+    }
   });
 });
 
@@ -374,6 +408,81 @@ describe("useSearch", () => {
         },
         { timeout: 2000 }
       );
+    });
+
+    it("respects scope filtering", async () => {
+      const { result } = renderHook(() => useSearch());
+
+      act(() => {
+        result.current.setScope("transcript");
+        result.current.search("brenner");
+      });
+
+      await waitFor(() => {
+        expect(result.current.results.length).toBeGreaterThan(0);
+      });
+
+      expect(result.current.results.every((r) => r.category === "transcript")).toBe(true);
+    });
+
+    it("returns empty results for whitespace-only query", async () => {
+      const { result } = renderHook(() => useSearch());
+
+      act(() => {
+        result.current.search("   ");
+      });
+
+      await waitFor(() => {
+        expect(result.current.results).toEqual([]);
+      });
+    });
+
+    it("returns an error when searchEngine.search throws", async () => {
+      searchEngine.clear();
+      await searchEngine.load(); // ensure isIndexLoaded can become true
+
+      const searchSpy = vi.spyOn(searchEngine, "search").mockImplementation(() => {
+        throw new Error("search-boom");
+      });
+
+      try {
+        const { result } = renderHook(() => useSearch());
+
+        act(() => {
+          result.current.search("brenner");
+        });
+
+        await waitFor(() => {
+          expect(result.current.error).toContain("search-boom");
+        });
+
+        expect(result.current.results).toEqual([]);
+      } finally {
+        searchSpy.mockRestore();
+        searchEngine.clear();
+      }
+    });
+  });
+
+  describe("load errors", () => {
+    it("exposes loadError via error and returns no results", async () => {
+      searchEngine.clear();
+      vi.mocked(fetch).mockRejectedValueOnce(new Error("boom"));
+
+      try {
+        const { result } = renderHook(() => useSearch());
+
+        await waitFor(() => {
+          expect(typeof result.current.error).toBe("string");
+          expect(result.current.error).toContain("boom");
+        });
+
+        expect(result.current.results).toEqual([]);
+        expect(result.current.isIndexLoaded).toBe(false);
+      } finally {
+        // Ensure later tests can reload successfully (loadPromise resets)
+        searchEngine.clear();
+      }
     });
   });
 

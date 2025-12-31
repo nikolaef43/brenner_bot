@@ -33,21 +33,38 @@ export default defineConfig({
     // Coverage configuration
     coverage: {
       provider: "v8",
-      reporter: ["text", "lcov", "html"],
+      reporter: ["text", "lcov", "html", "json"],
       reportsDirectory: "./coverage",
       include: ["src/lib/**/*.ts"],
       exclude: [
         "src/**/*.test.ts",
         "src/**/*.test.tsx",
+        "src/__fixtures__/**",
+        "src/types/**",
+        "**/*.d.ts",
+        "src/lib/operators.local.ts",
         "node_modules/**",
         ".next/**",
       ],
-      // Coverage thresholds (can be tightened as coverage improves)
+      // Coverage thresholds (tighten with intent; prefer tests over excludes)
       thresholds: {
-        lines: 50,
-        functions: 50,
-        branches: 50,
-        statements: 50,
+        lines: 80,
+        functions: 80,
+        branches: 75,
+        statements: 80,
+        perFile: true,
+        "src/lib/artifact-merge.ts": {
+          lines: 90,
+          functions: 90,
+          branches: 85,
+          statements: 90,
+        },
+        "src/lib/delta-parser.ts": {
+          lines: 90,
+          functions: 90,
+          branches: 85,
+          statements: 90,
+        },
       },
     },
 

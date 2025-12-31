@@ -10,6 +10,7 @@ import { readFile } from "node:fs/promises";
 import {
   parseManifest,
   detectPlatform,
+  detectPlatformFrom,
   generateInstallPlan,
   formatPlanHuman,
   formatPlanJson,
@@ -171,6 +172,18 @@ describe("detectPlatform", () => {
         platform
       );
     }
+  });
+
+  test.each([
+    ["linux", "x64", "linux-x64"],
+    ["linux", "arm64", "linux-arm64"],
+    ["darwin", "arm64", "darwin-arm64"],
+    ["darwin", "x64", "darwin-x64"],
+    ["win32", "x64", "win-x64"],
+    ["win32", "arm64", null],
+    ["freebsd", "x64", null],
+  ] as [string, string, PlatformString | null][])("detectPlatformFrom(%s,%s) -> %s", (os, arch, expected) => {
+    expect(detectPlatformFrom(os, arch)).toBe(expected);
   });
 });
 

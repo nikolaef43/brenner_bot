@@ -2,6 +2,8 @@
 
 **🌐 Live at [brennerbot.org](https://brennerbot.org)**
 
+[![Coverage](https://codecov.io/gh/Dicklesworthstone/brenner_bot/branch/main/graph/badge.svg)](https://codecov.io/gh/Dicklesworthstone/brenner_bot)
+
 <p align="center">
   <img src="apps/web/public/brennerbot_illustration.jpeg" alt="BrennerBot Illustration" width="600" />
   <br />

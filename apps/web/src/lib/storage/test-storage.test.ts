@@ -123,6 +123,23 @@ describe("TestStorage", () => {
       const deleted = await storage.deleteTest("T-NONEXISTENT-001");
       expect(deleted).toBe(false);
     });
+
+    it("returns false if test disappears between lookup and delete", async () => {
+      const test = createTestTestRecord("RS20251230", 1);
+
+      class FlakyStorage extends TestStorage {
+        private calls = 0;
+
+        override async loadSessionTests(_sessionId: string) {
+          this.calls++;
+          return this.calls === 1 ? [test] : [];
+        }
+      }
+
+      const flaky = new FlakyStorage({ baseDir: tempDir, autoRebuildIndex: false });
+      const deleted = await flaky.deleteTest(test.id);
+      expect(deleted).toBe(false);
+    });
   });
 
   // ============================================================================
@@ -168,6 +185,13 @@ describe("TestStorage", () => {
       expect(new Date(content2.updatedAt).getTime()).toBeGreaterThan(
         new Date(originalCreatedAt).getTime()
       );
+    });
+
+    it("throws on malformed session file JSON (non-ENOENT error path)", async () => {
+      await fs.mkdir(join(tempDir, ".research", "tests"), { recursive: true });
+      await fs.writeFile(join(tempDir, ".research", "tests", "BAD-tests.json"), "not-json");
+
+      await expect(storage.loadSessionTests("BAD")).rejects.toBeDefined();
     });
   });
 
@@ -670,6 +694,14 @@ describe("TestStorage", () => {
       expect(sessions).toContain("RS20251231");
       expect(sessions).toContain("CELL-FATE-001");
     });
+
+    it("ignores non-matching files in the tests directory", async () => {
+      await fs.mkdir(join(tempDir, ".research", "tests"), { recursive: true });
+      await fs.writeFile(join(tempDir, ".research", "tests", "NOT_A_SESSION.json"), "{}");
+
+      const sessions = await storage.listSessions();
+      expect(sessions).toEqual([]);
+    });
   });
 
   describe("getTestsByPriority", () => {
@@ -713,6 +745,27 @@ describe("TestStorage", () => {
 
       const next = await storage.getNextTestToExecute();
       expect(next).toBeNull();
+    });
+
+    it("breaks priority ties by createdAt timestamp", async () => {
+      const readyEarlier = {
+        ...createTestTestRecord("RS20251230", 1),
+        status: "ready" as const,
+        priority: 1,
+        createdAt: "2025-01-01T00:00:00Z",
+      };
+      const readyLater = {
+        ...createTestTestRecord("RS20251230", 2),
+        status: "ready" as const,
+        priority: 1,
+        createdAt: "2025-01-02T00:00:00Z",
+      };
+
+      await storage.saveTest(readyLater);
+      await storage.saveTest(readyEarlier);
+
+      const next = await storage.getNextTestToExecute();
+      expect(next?.id).toBe(readyEarlier.id);
     });
   });
 });

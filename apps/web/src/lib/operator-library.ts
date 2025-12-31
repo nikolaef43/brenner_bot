@@ -238,3 +238,12 @@ export async function getOperatorPalette(): Promise<OperatorWithQuotes[]> {
   operatorPaletteCache = palette;
   return palette;
 }
+
+export const __private = {
+  fileExists,
+  tryReadFromFilesystem,
+  fetchFromPublicUrl,
+  getTrustedPublicBaseUrl,
+  normalizeBaseUrl,
+  parseBullets,
+};

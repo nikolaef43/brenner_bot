@@ -7,11 +7,12 @@
  * Run with: cd apps/web && bun run test -- src/lib/corpus.test.ts
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, vi } from "vitest";
 import { resolve } from "node:path";
 import { access } from "node:fs/promises";
 import {
   CORPUS_DOCS,
+  __private,
   listCorpusDocs,
   readCorpusDoc,
   type CorpusDoc,
@@ -340,5 +341,107 @@ describe("category filtering", () => {
     const gptDocs = CORPUS_DOCS.filter((d) => d.model === "gpt");
     expect(gptDocs.length).toBeGreaterThan(0);
     expect(gptDocs.every((d) => d.model === "gpt")).toBe(true);
+  });
+});
+
+// ============================================================================
+// Internal helpers (for coverage + correctness)
+// ============================================================================
+
+describe("__private (internal helpers)", () => {
+  it("normalizeBaseUrl strips path/query/hash and trailing slash", () => {
+    expect(__private.normalizeBaseUrl("https://example.com/a/b?x=1#y", "X")).toBe("https://example.com");
+    expect(__private.normalizeBaseUrl("http://example.com/", "X")).toBe("http://example.com");
+  });
+
+  it("normalizeBaseUrl rejects non-absolute or non-http(s) URLs", () => {
+    expect(() => __private.normalizeBaseUrl("/relative", "X")).toThrow(/absolute http/);
+    expect(() => __private.normalizeBaseUrl("ftp://example.com", "X")).toThrow(/absolute http/);
+  });
+
+  it("tryReadFromFilesystem returns content for known corpus file", async () => {
+    const content = await __private.tryReadFromFilesystem("complete_brenner_transcript.md");
+    expect(typeof content === "string" && content.length > 1000).toBe(true);
+  });
+
+  it("tryReadFromFilesystem can read from repo root when public/_corpus is missing the file", async () => {
+    // README.md exists at repo root, but is not a corpus public asset.
+    const content = await __private.tryReadFromFilesystem("README.md");
+    expect(typeof content).toBe("string");
+    expect(content).toContain("Brenner");
+  });
+
+  it("tryReadFromFilesystem returns null for unknown file", async () => {
+    const content = await __private.tryReadFromFilesystem("definitely-not-a-real-corpus-file.md");
+    expect(content).toBeNull();
+  });
+
+  it("getTrustedPublicBaseUrl prefers BRENNER_PUBLIC_BASE_URL, then VERCEL_URL, then NODE_ENV=development, else production default", () => {
+    const saved = {
+      BRENNER_PUBLIC_BASE_URL: process.env.BRENNER_PUBLIC_BASE_URL,
+      VERCEL_URL: process.env.VERCEL_URL,
+      NODE_ENV: process.env.NODE_ENV,
+    };
+
+    try {
+      process.env.BRENNER_PUBLIC_BASE_URL = "https://example.com/path?x=1#y";
+      delete process.env.VERCEL_URL;
+      delete process.env.NODE_ENV;
+      expect(__private.getTrustedPublicBaseUrl()).toBe("https://example.com");
+
+      delete process.env.BRENNER_PUBLIC_BASE_URL;
+      process.env.VERCEL_URL = "brennerbot-example.vercel.app";
+      expect(__private.getTrustedPublicBaseUrl()).toBe("https://brennerbot-example.vercel.app");
+
+      delete process.env.VERCEL_URL;
+      process.env.NODE_ENV = "development";
+      expect(__private.getTrustedPublicBaseUrl()).toBe("http://localhost:3000");
+
+      process.env.NODE_ENV = "production";
+      expect(__private.getTrustedPublicBaseUrl()).toBe("https://brennerbot.org");
+    } finally {
+      if (saved.BRENNER_PUBLIC_BASE_URL === undefined) delete process.env.BRENNER_PUBLIC_BASE_URL;
+      else process.env.BRENNER_PUBLIC_BASE_URL = saved.BRENNER_PUBLIC_BASE_URL;
+      if (saved.VERCEL_URL === undefined) delete process.env.VERCEL_URL;
+      else process.env.VERCEL_URL = saved.VERCEL_URL;
+      if (saved.NODE_ENV === undefined) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = saved.NODE_ENV;
+    }
+  });
+
+  it("fetchFromPublicUrl fetches corpus content from BRENNER_PUBLIC_BASE_URL", async () => {
+    vi.stubGlobal("fetch", async (input: unknown) => {
+      expect(String(input)).toContain("/_corpus/test-corpus.md");
+      return new Response("hello from corpus", { status: 200, headers: { "content-type": "text/plain" } });
+    });
+
+    const saved = process.env.BRENNER_PUBLIC_BASE_URL;
+    process.env.BRENNER_PUBLIC_BASE_URL = "https://example.com";
+
+    try {
+      const content = await __private.fetchFromPublicUrl("test-corpus.md");
+      expect(content).toBe("hello from corpus");
+    } finally {
+      if (saved === undefined) delete process.env.BRENNER_PUBLIC_BASE_URL;
+      else process.env.BRENNER_PUBLIC_BASE_URL = saved;
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("fetchFromPublicUrl throws on non-OK responses", async () => {
+    vi.stubGlobal("fetch", async () => {
+      return new Response("not found", { status: 404, headers: { "content-type": "text/plain" } });
+    });
+
+    const saved = process.env.BRENNER_PUBLIC_BASE_URL;
+    process.env.BRENNER_PUBLIC_BASE_URL = "https://example.com";
+
+    try {
+      await expect(__private.fetchFromPublicUrl("missing.md")).rejects.toThrow(/Failed to fetch corpus file/);
+    } finally {
+      if (saved === undefined) delete process.env.BRENNER_PUBLIC_BASE_URL;
+      else process.env.BRENNER_PUBLIC_BASE_URL = saved;
+      vi.unstubAllGlobals();
+    }
   });
 });

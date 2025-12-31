@@ -165,6 +165,30 @@ describe("parseTranscript", () => {
       // Should have 3 separate quotes
       expect(quotes?.length).toBe(3);
     });
+
+    it("ends a quote block when a non-quote line appears without an empty line separator", () => {
+      const transcript = `# Test
+## 1. Section
+> A quoted line
+Paragraph immediately after quote
+`;
+
+      const result = parseTranscript(transcript);
+      const section = result.sections[0];
+      const quote = section?.content.find((c) => c.type === "brenner-quote");
+      const paragraph = section?.content.find((c) => c.type === "paragraph");
+
+      expect(quote?.text).toContain("A quoted line");
+      expect(paragraph?.text).toContain("Paragraph immediately after quote");
+    });
+
+    it("flushes a trailing quote at end-of-section without a final blank line", () => {
+      const transcript = "# Test\n## 1. Section\n> Trailing quote with no final newline";
+      const result = parseTranscript(transcript);
+      const quotes = result.sections[0]?.content.filter((c) => c.type === "brenner-quote");
+      expect(quotes).toHaveLength(1);
+      expect(quotes?.[0]?.text).toContain("Trailing quote");
+    });
   });
 
   describe("edge cases", () => {

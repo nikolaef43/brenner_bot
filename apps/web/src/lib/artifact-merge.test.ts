@@ -9,6 +9,8 @@
 import { describe, expect, test } from "vitest";
 import {
   createEmptyArtifact,
+  formatLintReportHuman,
+  formatLintReportJson,
   lintArtifact,
   mergeArtifact,
   mergeArtifactWithTimestamps,
@@ -124,6 +126,71 @@ describe("ADD operations", () => {
     expect(h1.killed_by).toBeUndefined();
     expect(h1.killed_at).toBeUndefined();
     expect(h1.kill_reason).toBeUndefined();
+  });
+
+  test("warns and ignores forbidden payload keys in ADD payload (prototype pollution)", () => {
+    const artifact = createEmptyArtifact("TEST-001");
+    const payload = JSON.parse(
+      '{"__proto__":{"polluted":true},"name":"Test Hypothesis","claim":"Something is true","mechanism":"Via some process"}',
+    ) as Record<string, unknown>;
+    const delta = makeValidDelta("ADD", "hypothesis_slate", null, payload);
+
+    const result = mergeArtifact(artifact, [delta], "TestAgent", "2025-01-01T00:00:00Z");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.warnings.some((w) => w.code === "FORBIDDEN_PAYLOAD_KEY")).toBe(true);
+
+    const h1 = result.artifact.sections.hypothesis_slate[0] as unknown as Record<string, unknown>;
+    expect(h1.name).toBe("Test Hypothesis");
+    expect(h1.polluted).toBeUndefined();
+    expect(Object.getPrototypeOf(h1)).toBe(Object.prototype);
+  });
+
+  test("sorts discriminative tests by score even when some score fields are missing", () => {
+    const artifact = createEmptyArtifact("TEST-001");
+    const deltas: ValidDelta[] = [
+      makeValidDelta("ADD", "discriminative_tests", null, {
+        name: "Partial score",
+        procedure: "Procedure",
+        discriminates: "H1 vs H2",
+        expected_outcomes: { H1: "A", H2: "B" },
+        potency_check: "Control",
+        score: { likelihood_ratio: 2 },
+      }),
+      makeValidDelta("ADD", "discriminative_tests", null, {
+        name: "Missing LR score",
+        procedure: "Procedure",
+        discriminates: "H1 vs H2",
+        expected_outcomes: { H1: "A", H2: "B" },
+        potency_check: "Control",
+        score: { cost: 1, speed: 1, ambiguity: 1 },
+      }),
+      makeValidDelta("ADD", "discriminative_tests", null, {
+        name: "Full score",
+        procedure: "Procedure",
+        discriminates: "H1 vs H2",
+        expected_outcomes: { H1: "A", H2: "B" },
+        potency_check: "Control",
+        score: { likelihood_ratio: 1, cost: 1, speed: 1, ambiguity: 1 },
+      }),
+      makeValidDelta("ADD", "discriminative_tests", null, {
+        name: "No score",
+        procedure: "Procedure",
+        discriminates: "H1 vs H2",
+        expected_outcomes: { H1: "A", H2: "B" },
+        potency_check: "Control",
+      }),
+    ];
+
+    const result = mergeArtifact(artifact, deltas, "TestAgent", "2025-01-01T00:00:00Z");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const names = result.artifact.sections.discriminative_tests.map((t) => t.name);
+    expect(names).toEqual(["Full score", "Missing LR score", "Partial score", "No score"]);
   });
 
   test("assigns sequential IDs for multiple ADDs", () => {
@@ -320,6 +387,86 @@ describe("EDIT operations", () => {
     expect(Object.getPrototypeOf(rt)).toBe(Object.prototype);
   });
 
+  test("research_thread EDIT requires a payload object", () => {
+    const artifact = createEmptyArtifact("TEST-001");
+    const delta: ValidDelta = {
+      valid: true,
+      operation: "EDIT",
+      section: "research_thread",
+      target_id: null,
+      payload: "not-an-object",
+      rationale: "test",
+      raw: JSON.stringify({
+        operation: "EDIT",
+        section: "research_thread",
+        target_id: null,
+        payload: "not-an-object",
+      }),
+    };
+
+    const result = mergeArtifact(artifact, [delta], "TestAgent", "2025-01-01T00:00:00Z");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors[0]?.code).toBe("MISSING_REQUIRED_FIELD");
+  });
+
+  test("research_thread merges anchors by default and replaces when requested", () => {
+    const artifact = createEmptyArtifact("TEST-001");
+    const create = makeValidDelta("EDIT", "research_thread", null, {
+      statement: "What is X?",
+      context: "Background",
+      why_it_matters: "Important",
+      anchors: "§1",
+    });
+
+    const afterCreate = mergeArtifact(artifact, [create], "Agent1", "2025-01-01T00:00:00Z");
+    expect(afterCreate.ok).toBe(true);
+    if (!afterCreate.ok) return;
+
+    const mergeAnchors = makeValidDelta("EDIT", "research_thread", null, {
+      anchors: ["§2", "§3"],
+    });
+
+    const afterMerge = mergeArtifact(afterCreate.artifact, [mergeAnchors], "Agent2", "2025-01-01T00:01:00Z");
+    expect(afterMerge.ok).toBe(true);
+    if (!afterMerge.ok) return;
+
+    expect(afterMerge.artifact.sections.research_thread?.anchors).toEqual(["§2", "§3"]);
+
+    const replaceAnchors = makeValidDelta("EDIT", "research_thread", null, {
+      anchors: ["§9"],
+      replace: true,
+    });
+
+    const afterReplace = mergeArtifact(afterMerge.artifact, [replaceAnchors], "Agent3", "2025-01-01T00:02:00Z");
+    expect(afterReplace.ok).toBe(true);
+    if (!afterReplace.ok) return;
+
+    expect(afterReplace.artifact.sections.research_thread?.anchors).toEqual(["§9"]);
+
+    const badAnchors: ValidDelta = {
+      valid: true,
+      operation: "EDIT",
+      section: "research_thread",
+      target_id: null,
+      payload: { anchors: "§10" },
+      rationale: "test",
+      raw: JSON.stringify({
+        operation: "EDIT",
+        section: "research_thread",
+        target_id: null,
+        payload: { anchors: "§10" },
+      }),
+    };
+
+    const afterBad = mergeArtifact(afterReplace.artifact, [badAnchors], "Agent4", "2025-01-01T00:03:00Z");
+    expect(afterBad.ok).toBe(true);
+    if (!afterBad.ok) return;
+
+    expect(afterBad.artifact.sections.research_thread?.anchors).toEqual(["§9"]);
+  });
+
   test("merges array fields by default", () => {
     const artifact = createEmptyArtifact("TEST-001");
     const addDelta = makeValidDelta("ADD", "hypothesis_slate", null, {
@@ -469,6 +616,162 @@ describe("KILL operations", () => {
     // Edit should be skipped, claim should remain original
     expect(result.artifact.sections.hypothesis_slate[0].claim).toBe("Original");
     expect(result.warnings.some((w) => w.code === "TARGET_KILLED")).toBe(true);
+  });
+
+  test("warns when killing the last third alternative hypothesis", () => {
+    const artifact = createEmptyArtifact("TEST-001");
+    const deltas: ValidDelta[] = [
+      makeValidDelta("ADD", "hypothesis_slate", null, { name: "H1", claim: "A", mechanism: "M" }),
+      makeValidDelta("ADD", "hypothesis_slate", null, { name: "H2", claim: "B", mechanism: "M" }),
+      makeValidDelta("ADD", "hypothesis_slate", null, {
+        name: "Third alternative",
+        claim: "Both could be wrong",
+        mechanism: "Misspecification",
+        third_alternative: true,
+      }),
+    ];
+
+    const afterAdd = mergeArtifact(artifact, deltas, "Agent1", "2025-01-01T00:00:00Z");
+    expect(afterAdd.ok).toBe(true);
+    if (!afterAdd.ok) return;
+
+    const killThird = makeValidDelta("KILL", "hypothesis_slate", "H3", { reason: "Removed" });
+    const result = mergeArtifact(afterAdd.artifact, [killThird], "Agent2", "2025-01-01T00:01:00Z");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.warnings.some((w) => w.code === "NO_THIRD_ALTERNATIVE")).toBe(true);
+  });
+
+  test("warns when killing the last scale check assumption", () => {
+    const artifact = createEmptyArtifact("TEST-001");
+    const deltas: ValidDelta[] = [
+      makeValidDelta("ADD", "assumption_ledger", null, {
+        name: "A1",
+        statement: "S1",
+        load: "L1",
+        test: "T1",
+        scale_check: true,
+      }),
+      makeValidDelta("ADD", "assumption_ledger", null, { name: "A2", statement: "S2", load: "L2", test: "T2" }),
+      makeValidDelta("ADD", "assumption_ledger", null, { name: "A3", statement: "S3", load: "L3", test: "T3" }),
+    ];
+
+    const afterAdd = mergeArtifact(artifact, deltas, "Agent1", "2025-01-01T00:00:00Z");
+    expect(afterAdd.ok).toBe(true);
+    if (!afterAdd.ok) return;
+
+    const killScale = makeValidDelta("KILL", "assumption_ledger", "A1", { reason: "Removed" });
+    const result = mergeArtifact(afterAdd.artifact, [killScale], "Agent2", "2025-01-01T00:01:00Z");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.warnings.some((w) => w.code === "NO_SCALE_CHECK")).toBe(true);
+  });
+
+  test("rejects KILL on research_thread", () => {
+    const artifact = createEmptyArtifact("TEST-001");
+    const delta: ValidDelta = {
+      valid: true,
+      operation: "KILL",
+      section: "research_thread",
+      target_id: "RT",
+      payload: { reason: "Nope" },
+      rationale: "test",
+      raw: JSON.stringify({ operation: "KILL", section: "research_thread", target_id: "RT", payload: { reason: "Nope" } }),
+    };
+
+    const result = mergeArtifact(artifact, [delta], "Agent1", "2025-01-01T00:00:00Z");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors[0]?.code).toBe("INVALID_TARGET");
+  });
+
+  test("rejects KILL when target_id is missing", () => {
+    const artifact = createEmptyArtifact("TEST-001");
+    const delta: ValidDelta = {
+      valid: true,
+      operation: "KILL",
+      section: "hypothesis_slate",
+      target_id: null,
+      payload: { reason: "No target" },
+      rationale: "test",
+      raw: JSON.stringify({ operation: "KILL", section: "hypothesis_slate", target_id: null, payload: { reason: "No target" } }),
+    };
+
+    const result = mergeArtifact(artifact, [delta], "Agent1", "2025-01-01T00:00:00Z");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors[0]?.code).toBe("INVALID_TARGET");
+  });
+
+  test("rejects KILL when target does not exist", () => {
+    const artifact = createEmptyArtifact("TEST-001");
+    const delta = makeValidDelta("KILL", "hypothesis_slate", "H1", { reason: "Missing" });
+
+    const result = mergeArtifact(artifact, [delta], "Agent1", "2025-01-01T00:00:00Z");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors[0]?.code).toBe("INVALID_TARGET");
+  });
+
+  test("does not warn when a third alternative remains after KILL", () => {
+    const artifact = createEmptyArtifact("TEST-001");
+    const deltas: ValidDelta[] = [
+      makeValidDelta("ADD", "hypothesis_slate", null, { name: "H1", claim: "A", mechanism: "M" }),
+      makeValidDelta("ADD", "hypothesis_slate", null, { name: "H2", claim: "B", mechanism: "M" }),
+      makeValidDelta("ADD", "hypothesis_slate", null, {
+        name: "Third alternative",
+        claim: "Both could be wrong",
+        mechanism: "Misspecification",
+        third_alternative: true,
+      }),
+    ];
+
+    const afterAdd = mergeArtifact(artifact, deltas, "Agent1", "2025-01-01T00:00:00Z");
+    expect(afterAdd.ok).toBe(true);
+    if (!afterAdd.ok) return;
+
+    const killH1 = makeValidDelta("KILL", "hypothesis_slate", "H1", { reason: 123 as unknown as string });
+    const result = mergeArtifact(afterAdd.artifact, [killH1], "Agent2", "2025-01-01T00:01:00Z");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.warnings.some((w) => w.code === "NO_THIRD_ALTERNATIVE")).toBe(false);
+    expect(result.artifact.sections.hypothesis_slate[0].kill_reason).toBe("");
+  });
+
+  test("does not warn when a scale check remains after KILL", () => {
+    const artifact = createEmptyArtifact("TEST-001");
+    const deltas: ValidDelta[] = [
+      makeValidDelta("ADD", "assumption_ledger", null, {
+        name: "A1",
+        statement: "S1",
+        load: "L1",
+        test: "T1",
+        scale_check: true,
+      }),
+      makeValidDelta("ADD", "assumption_ledger", null, { name: "A2", statement: "S2", load: "L2", test: "T2" }),
+      makeValidDelta("ADD", "assumption_ledger", null, { name: "A3", statement: "S3", load: "L3", test: "T3" }),
+    ];
+
+    const afterAdd = mergeArtifact(artifact, deltas, "Agent1", "2025-01-01T00:00:00Z");
+    expect(afterAdd.ok).toBe(true);
+    if (!afterAdd.ok) return;
+
+    const killA2 = makeValidDelta("KILL", "assumption_ledger", "A2", { reason: "Removed" });
+    const result = mergeArtifact(afterAdd.artifact, [killA2], "Agent2", "2025-01-01T00:01:00Z");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.warnings.some((w) => w.code === "NO_SCALE_CHECK")).toBe(false);
   });
 });
 
@@ -752,6 +1055,107 @@ describe("validateArtifact", () => {
     expect(warnings.some((w) => w.code === "NO_THIRD_ALTERNATIVE")).toBe(true);
     expect(warnings.some((w) => w.code === "NO_SCALE_CHECK")).toBe(true);
   });
+
+  test("executes third-alternative / scale-check callbacks on non-empty sections", () => {
+    const artifact = createEmptyArtifact("TEST-002");
+
+    artifact.sections.hypothesis_slate = [
+      { id: "H1", name: "H1", claim: "A", mechanism: "M" },
+      { id: "H2", name: "H2", claim: "B", mechanism: "M" },
+      { id: "H3", name: "H3", claim: "C", mechanism: "M", killed: true },
+    ];
+
+    artifact.sections.predictions_table = [
+      { id: "P1", condition: "C1", predictions: { H1: "A", H2: "B" } },
+      { id: "P2", condition: "C2", predictions: { H1: "A", H2: "B" }, killed: true },
+    ];
+
+    artifact.sections.discriminative_tests = [
+      {
+        id: "T1",
+        name: "T1",
+        procedure: "P",
+        discriminates: "H1 vs H2",
+        expected_outcomes: { H1: "A", H2: "B" },
+        potency_check: "Control",
+      },
+      {
+        id: "T2",
+        name: "T2",
+        procedure: "P",
+        discriminates: "H1 vs H2",
+        expected_outcomes: { H1: "A", H2: "B" },
+        potency_check: "Control",
+        killed: true,
+      },
+    ];
+
+    artifact.sections.assumption_ledger = [
+      { id: "A1", name: "A1", statement: "S1", load: "L1", test: "T1" },
+      { id: "A2", name: "A2", statement: "S2", load: "L2", test: "T2" },
+      { id: "A3", name: "A3", statement: "S3", load: "L3", test: "T3", killed: true },
+    ];
+
+    artifact.sections.adversarial_critique = [
+      { id: "C1", name: "C1", attack: "A", evidence: "E", current_status: "S" },
+      { id: "C2", name: "C2", attack: "A", evidence: "E", current_status: "S", killed: true },
+    ];
+
+    const warnings = validateArtifact(artifact);
+
+    expect(warnings.some((w) => w.code === "NO_THIRD_ALTERNATIVE")).toBe(true);
+    expect(warnings.some((w) => w.code === "NO_SCALE_CHECK")).toBe(true);
+    expect(warnings.some((w) => w.code === "NO_REAL_THIRD_ALTERNATIVE")).toBe(true);
+  });
+
+  test("returns no warnings for a minimally complete artifact", () => {
+    const artifact = createEmptyArtifact("TEST-003");
+
+    artifact.sections.hypothesis_slate = [
+      { id: "H1", name: "H1", claim: "A", mechanism: "M" },
+      { id: "H2", name: "H2", claim: "B", mechanism: "M" },
+      { id: "H3", name: "Third alternative", claim: "Both could be wrong", mechanism: "Misspecification", third_alternative: true },
+    ];
+
+    artifact.sections.predictions_table = [
+      { id: "P1", condition: "C1", predictions: { H1: "A", H2: "B", H3: "?" } },
+      { id: "P2", condition: "C2", predictions: { H1: "A", H2: "B", H3: "?" } },
+      { id: "P3", condition: "C3", predictions: { H1: "A", H2: "B", H3: "?" } },
+    ];
+
+    artifact.sections.discriminative_tests = [
+      {
+        id: "T1",
+        name: "T1",
+        procedure: "P",
+        discriminates: "H1 vs H2",
+        expected_outcomes: { H1: "A", H2: "B" },
+        potency_check: "Control",
+      },
+      {
+        id: "T2",
+        name: "T2",
+        procedure: "P",
+        discriminates: "H1 vs H2",
+        expected_outcomes: { H1: "A", H2: "B" },
+        potency_check: "Control",
+      },
+    ];
+
+    artifact.sections.assumption_ledger = [
+      { id: "A1", name: "A1", statement: "S1", load: "L1", test: "T1", scale_check: true },
+      { id: "A2", name: "A2", statement: "S2", load: "L2", test: "T2" },
+      { id: "A3", name: "A3", statement: "S3", load: "L3", test: "T3" },
+    ];
+
+    artifact.sections.adversarial_critique = [
+      { id: "C1", name: "C1", attack: "A", evidence: "E", current_status: "S", real_third_alternative: true },
+      { id: "C2", name: "C2", attack: "A", evidence: "E", current_status: "S" },
+    ];
+
+    const warnings = validateArtifact(artifact);
+    expect(warnings).toEqual([]);
+  });
 });
 
 // ============================================================================
@@ -984,5 +1388,190 @@ describe("lintArtifact", () => {
     const report = lintArtifact(merged.artifact);
     expect(report.valid).toBe(true);
     expect(report.summary.errors).toBe(0);
+  });
+});
+
+// ============================================================================
+// Coverage-focused tests (exercise rarely-hit branches)
+// ============================================================================
+
+describe("artifact-merge additional coverage", () => {
+  test("ADD rejects non-object payload (MISSING_REQUIRED_FIELD)", () => {
+    const artifact = createEmptyArtifact("TEST-ADD-BAD-PAYLOAD");
+    const delta = makeValidDelta("ADD", "hypothesis_slate", null, {});
+    // Force payload to be non-object to hit the guardrail
+    (delta as any).payload = ["not-an-object"];
+
+    const result = mergeArtifact(artifact, [delta], "Agent", "2025-01-01T00:00:00Z");
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors.some((e) => e.code === "MISSING_REQUIRED_FIELD")).toBe(true);
+  });
+
+  test("EDIT rejects missing target_id for non-research_thread sections", () => {
+    const artifact = createEmptyArtifact("TEST-EDIT-NO-TARGET");
+    const delta = makeValidDelta("EDIT", "hypothesis_slate", null, { claim: "x" });
+    const result = mergeArtifact(artifact, [delta], "Agent", "2025-01-01T00:00:00Z");
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors.some((e) => e.code === "INVALID_TARGET")).toBe(true);
+  });
+
+  test("research_thread anchors merge by default on EDIT when replace is not set", () => {
+    const base = createEmptyArtifact("TEST-RT-ANCHORS");
+
+    const first = mergeArtifact(
+      base,
+      [
+        makeValidDelta("EDIT", "research_thread", null, {
+          statement: "S",
+          context: "C",
+          why_it_matters: "W",
+          anchors: ["§1"],
+        }),
+      ],
+      "Agent",
+      "2025-01-01T00:00:00Z",
+    );
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+
+    const second = mergeArtifact(
+      first.artifact,
+      [makeValidDelta("EDIT", "research_thread", null, { anchors: ["§2"] })],
+      "Agent",
+      "2025-01-01T00:01:00Z",
+    );
+    expect(second.ok).toBe(true);
+    if (!second.ok) return;
+
+    const rtAnchors = second.artifact.sections.research_thread?.anchors ?? [];
+    expect(rtAnchors).toEqual(expect.arrayContaining(["§1", "§2"]));
+  });
+
+  test("renderArtifactMarkdown renders empty contributors list and killed blocks + experiment result fields", () => {
+    const artifact = createEmptyArtifact("TEST-RENDER-EXTRA");
+    // Keep contributors empty to hit YAML 'contributors: []' branch.
+    artifact.metadata.contributors = [];
+
+    artifact.sections.research_thread = {
+      id: "RT",
+      statement: "Statement",
+      context: "Context",
+      why_it_matters: "Why",
+      anchors: ["§1"],
+    };
+
+    artifact.sections.hypothesis_slate = [
+      { id: "H1", name: "H1", claim: "C", mechanism: "M", anchors: ["§2"], killed: true, killed_by: "Agent", killed_at: "t", kill_reason: "r" },
+      { id: "HXYZ", name: "Third Alternative", claim: "Both wrong", mechanism: "?", anchors: ["inference"], third_alternative: true },
+    ] as any;
+
+    artifact.sections.predictions_table = [
+      { id: "P1", condition: "Cond", predictions: { H1: "A", hxyz: "A" } },
+    ] as any;
+
+    artifact.sections.discriminative_tests = [
+      {
+        id: "T1",
+        name: "Test 1",
+        procedure: "P",
+        discriminates: "H1 vs HXYZ",
+        expected_outcomes: { H1: "A", HXYZ: "B" },
+        potency_check: "Potency (no §50)",
+        score: { likelihood_ratio: 1, cost: 1, speed: 1, ambiguity: 1 },
+        status: "blocked",
+        last_run: {
+          result_id: "XR-001",
+          run_at: "2025-01-01T00:00:00Z",
+          exit_code: 1,
+          timed_out: true,
+          duration_ms: 1234,
+          summary: "Boom",
+          result_path: "results/XR-001.json",
+        },
+        actual_outcomes: { H1: "observed A" },
+      },
+    ] as any;
+
+    artifact.sections.anomaly_register = [
+      { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: ["H1"], status: "active", resolution_plan: "Plan" },
+    ] as any;
+
+    artifact.sections.assumption_ledger = [
+      { id: "A1", name: "A1", statement: "S", load: "L", test: "T", scale_check: true, calculation: "1e3" },
+    ] as any;
+
+    artifact.sections.adversarial_critique = [
+      { id: "C1", name: "C1", attack: "Attack", evidence: "Evidence", current_status: "active", real_third_alternative: true },
+    ] as any;
+
+    const md = renderArtifactMarkdown(artifact);
+    expect(md).toContain("contributors:");
+    expect(md).toContain("  []");
+    expect(md).toContain("**Killed**: true");
+    expect(md).toContain("**Last run**:");
+    expect(md).toContain("**Actual outcomes**:");
+    expect(md).toContain("## 6. Anomaly Register");
+    expect(md).toContain("### X1: Anomaly");
+    expect(md).toContain("**Observation**:");
+  });
+
+  test("lintArtifact flags a wide set of metadata + section violations and report formatters cover all sections", () => {
+    const artifact = createEmptyArtifact(" ");
+    artifact.metadata.status = "weird" as any;
+    artifact.metadata.created_at = "not-a-date";
+    artifact.metadata.updated_at = "2000-01-01T00:00:00Z";
+    artifact.metadata.version = 1.5 as any;
+    artifact.metadata.contributors = [];
+
+    artifact.sections.research_thread = {
+      id: "RT",
+      statement: "",
+      context: "",
+      why_it_matters: "",
+      anchors: [],
+    };
+
+    artifact.sections.hypothesis_slate = [
+      { id: "H1", name: "H1", claim: "", mechanism: "M", anchors: ["§999"], unresolvedCritiqueCount: 0 },
+      { id: "H2", name: "H2", claim: "C", mechanism: "M", anchors: ["[inference]"], unresolvedCritiqueCount: 0 },
+      { id: "H3", name: "H3", claim: "C", mechanism: "M", anchors: [], unresolvedCritiqueCount: 0 },
+      { id: "H4", name: "H4", claim: "C", mechanism: "M", anchors: ["§1"], unresolvedCritiqueCount: 0 },
+      { id: "H5", name: "H5", claim: "C", mechanism: "M", anchors: ["§1"], unresolvedCritiqueCount: 0 },
+      { id: "H6", name: "H6", claim: "C", mechanism: "M", anchors: ["§1"], unresolvedCritiqueCount: 0 },
+      { id: "H7", name: "H7", claim: "C", mechanism: "M", anchors: ["§1"], unresolvedCritiqueCount: 0 },
+    ] as any;
+
+    artifact.sections.predictions_table = [
+      { id: "P1", condition: "Cond", predictions: { H1: "X", H2: "X" } },
+    ] as any;
+
+    artifact.sections.discriminative_tests = [
+      { id: "T1", name: "T1", procedure: "", discriminates: "", expected_outcomes: {}, potency_check: "", score: undefined },
+      { id: "T2", name: "T2", procedure: "P", discriminates: "H1 vs H2", expected_outcomes: { H1: "X" }, potency_check: "Has potency but no §50", score: { likelihood_ratio: 3, cost: 3, speed: 3, ambiguity: 3 } },
+      { id: "T3", name: "T3", procedure: "P", discriminates: "H1 vs H2", expected_outcomes: { H1: "X" }, potency_check: "Has potency but no §50", score: { likelihood_ratio: 1, cost: 1, speed: 1, ambiguity: 1 } },
+    ] as any;
+
+    artifact.sections.assumption_ledger = [
+      { id: "A1", name: "A1", statement: "", load: "L", test: "T", scale_check: true, calculation: "" },
+      { id: "A2", name: "A2", statement: "S", load: "L", test: "T" },
+      { id: "A3", name: "A3", statement: "S", load: "L", test: "T" },
+    ] as any;
+
+    artifact.sections.adversarial_critique = [
+      { id: "C1", name: "C1", attack: "", evidence: "", current_status: "" },
+      { id: "C2", name: "C2", attack: "Attack", evidence: "", current_status: "" },
+    ] as any;
+
+    const report = lintArtifact(artifact);
+    expect(report.valid).toBe(false);
+    expect(report.violations.length).toBeGreaterThan(0);
+
+    const human = formatLintReportHuman(report, "TEST");
+    expect(human).toContain("Artifact Linter Report");
+
+    const json = formatLintReportJson(report, "TEST");
+    expect(() => JSON.parse(json)).not.toThrow();
   });
 });

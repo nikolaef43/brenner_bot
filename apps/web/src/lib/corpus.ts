@@ -260,3 +260,11 @@ export async function readCorpusDoc(id: string): Promise<{ doc: CorpusDoc; conte
 
   return { doc, content };
 }
+
+export const __private = {
+  fileExists,
+  tryReadFromFilesystem,
+  fetchFromPublicUrl,
+  getTrustedPublicBaseUrl,
+  normalizeBaseUrl,
+};

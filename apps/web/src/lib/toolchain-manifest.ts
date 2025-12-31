@@ -85,10 +85,7 @@ export type ToolchainManifest = z.infer<typeof ManifestSchema>;
  *
  * Uses Bun/Node globals: process.platform, process.arch
  */
-export function detectPlatform(): PlatformString | null {
-  const os = process.platform;
-  const arch = process.arch;
-
+export function detectPlatformFrom(os: string, arch: string): PlatformString | null {
   // Map to manifest platform strings
   if (os === "linux" && arch === "x64") return "linux-x64";
   if (os === "linux" && arch === "arm64") return "linux-arm64";
@@ -97,6 +94,10 @@ export function detectPlatform(): PlatformString | null {
   if (os === "win32" && arch === "x64") return "win-x64";
 
   return null;
+}
+
+export function detectPlatform(): PlatformString | null {
+  return detectPlatformFrom(process.platform, process.arch);
 }
 
 /**

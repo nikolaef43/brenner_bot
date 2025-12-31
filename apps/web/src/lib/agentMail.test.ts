@@ -327,6 +327,148 @@ describe("SSE response parsing", () => {
     const client = new AgentMailClient({ baseUrl: "http://example.com" });
     await expect(client.call("tools/list")).rejects.toThrow("boom");
   });
+
+  it("parses SSE payloads via fallback text parsing when Response.body is missing", async () => {
+    const sseBody = [
+      "event: message",
+      "data: [DONE]",
+      "",
+      "event: message",
+      'data: {"jsonrpc":"2.0","id":"1","result":{"ok":true}}',
+      "",
+    ].join("\n");
+
+    vi.stubGlobal("fetch", async () => {
+      const res = {
+        ok: true,
+        status: 200,
+        headers: new Headers({ "Content-Type": "text/event-stream; charset=utf-8" }),
+        text: async () => sseBody,
+        body: undefined,
+      };
+      return res as unknown as Response;
+    });
+
+    const client = new AgentMailClient({ baseUrl: "http://example.com" });
+    const result = await client.call("tools/list");
+    expect(result).toEqual({ ok: true });
+  });
+
+  it("throws when SSE response is missing any JSON-RPC payload", async () => {
+    const sseBody = ["event: message", "data: not-json", "", ""].join("\n");
+
+    vi.stubGlobal("fetch", async () => {
+      const res = {
+        ok: true,
+        status: 200,
+        headers: new Headers({ "Content-Type": "text/event-stream" }),
+        text: async () => sseBody,
+        body: undefined,
+      };
+      return res as unknown as Response;
+    });
+
+    const client = new AgentMailClient({ baseUrl: "http://example.com" });
+    await expect(client.call("tools/list")).rejects.toThrow(/missing JSON-RPC payload/i);
+  });
+
+  it("parses SSE when the final chunk has no trailing newline (buffer flush path)", async () => {
+    const chunk = 'data: {"jsonrpc":"2.0","id":"1","result":{"ok":true}}';
+
+    vi.stubGlobal("fetch", async () => {
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode(chunk));
+          controller.close();
+        },
+      });
+      return new Response(stream, {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream" },
+      });
+    });
+
+    const client = new AgentMailClient({ baseUrl: "http://example.com" });
+    const result = await client.call("tools/list");
+    expect(result).toEqual({ ok: true });
+  });
+});
+
+// ============================================================================
+// Tests: call() non-SSE parsing and request construction
+// ============================================================================
+
+describe("AgentMailClient.call (non-SSE)", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("normalizes baseUrl/path and sends Authorization header when bearerToken is set", async () => {
+    let capturedUrl: string | null = null;
+    let capturedHeaders: Headers | null = null;
+
+    vi.stubGlobal("fetch", async (input: unknown, init?: RequestInit) => {
+      capturedUrl = String(input);
+      capturedHeaders = new Headers(init?.headers as HeadersInit | undefined);
+      return new Response(JSON.stringify({ jsonrpc: "2.0", id: "1", result: { ok: true } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
+
+    const client = new AgentMailClient({
+      baseUrl: "http://example.com///",
+      path: "mcp",
+      bearerToken: "secret",
+    });
+
+    const result = await client.call("tools/list");
+    expect(result).toEqual({ ok: true });
+    expect(capturedUrl).toBe("http://example.com/mcp/");
+    expect(capturedHeaders?.get("authorization")).toBe("Bearer secret");
+  });
+
+  it("throws a descriptive error when HTTP response is not JSON", async () => {
+    vi.stubGlobal("fetch", async () => {
+      return new Response("not-json", { status: 200, headers: { "Content-Type": "text/plain" } });
+    });
+
+    const client = new AgentMailClient({ baseUrl: "http://example.com" });
+    await expect(client.call("tools/list")).rejects.toThrow(/non-JSON response/i);
+  });
+
+  it("throws when HTTP response is non-OK", async () => {
+    vi.stubGlobal("fetch", async () => {
+      return new Response(JSON.stringify({ jsonrpc: "2.0", id: "1", result: { ok: false } }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
+
+    const client = new AgentMailClient({ baseUrl: "http://example.com" });
+    await expect(client.call("tools/list")).rejects.toThrow(/HTTP 401/);
+  });
+
+  it("throws when JSON payload is not an object", async () => {
+    vi.stubGlobal("fetch", async () => {
+      return new Response("[]", { status: 200, headers: { "Content-Type": "application/json" } });
+    });
+
+    const client = new AgentMailClient({ baseUrl: "http://example.com" });
+    await expect(client.call("tools/list")).rejects.toThrow(/malformed JSON/i);
+  });
+
+  it("throws when JSON-RPC envelope contains an error field", async () => {
+    vi.stubGlobal("fetch", async () => {
+      return new Response(JSON.stringify({ jsonrpc: "2.0", id: "1", error: { message: "boom" } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
+
+    const client = new AgentMailClient({ baseUrl: "http://example.com" });
+    await expect(client.call("tools/list")).rejects.toThrow(/MCP error/i);
+  });
 });
 
 // ============================================================================
@@ -453,6 +595,65 @@ describe("readInbox parameters", () => {
     });
     expect(promise).toBeInstanceOf(Promise);
     promise.catch(() => {});
+  });
+});
+
+// ============================================================================
+// Tests: Resource JSON parsing
+// ============================================================================
+
+describe("resource JSON parsing", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("readInbox parses a JSON inbox payload", async () => {
+    stubAgentMailJsonRpcFetch();
+    const client = new AgentMailClient({ baseUrl: "http://example.com" });
+
+    const inbox = await client.readInbox({ projectKey: "/project", agentName: "agent" });
+    expect(inbox.project).toBe("/project");
+    expect(inbox.agent).toBe("agent");
+    expect(inbox.count).toBe(0);
+    expect(inbox.messages).toEqual([]);
+  });
+
+  it("readThread parses a JSON thread payload", async () => {
+    stubAgentMailJsonRpcFetch();
+    const client = new AgentMailClient({ baseUrl: "http://example.com" });
+
+    const thread = await client.readThread({ projectKey: "/project", threadId: "thread-abc", includeBodies: true });
+    expect(thread.project).toBe("/project");
+    expect(thread.thread_id).toBe("thread-abc");
+    expect(Array.isArray(thread.messages)).toBe(true);
+  });
+
+  it("throws when resources/read returns missing contents", async () => {
+    vi.stubGlobal("fetch", async () => {
+      return new Response(JSON.stringify({ jsonrpc: "2.0", id: "1", result: { contents: [] } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
+
+    const client = new AgentMailClient({ baseUrl: "http://example.com" });
+    await expect(client.readInbox({ projectKey: "/project", agentName: "agent" })).rejects.toThrow(/missing contents/);
+  });
+
+  it("throws when resources/read returns non-JSON text", async () => {
+    vi.stubGlobal("fetch", async () => {
+      return new Response(
+        JSON.stringify({
+          jsonrpc: "2.0",
+          id: "1",
+          result: { contents: [{ uri: "resource://inbox/agent", text: "not-json" }] },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    });
+
+    const client = new AgentMailClient({ baseUrl: "http://example.com" });
+    await expect(client.readInbox({ projectKey: "/project", agentName: "agent" })).rejects.toThrow(/non-JSON text/);
   });
 });
 
