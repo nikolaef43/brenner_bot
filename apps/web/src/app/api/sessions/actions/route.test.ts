@@ -155,6 +155,69 @@ describe("POST /api/sessions/actions", () => {
     }));
   });
 
+  it("posts a DELTA message when bodyMd contains a delta block", async () => {
+    const deltaBody = [
+      "Here are experiment deltas.",
+      "",
+      "```delta",
+      JSON.stringify({
+        operation: "EDIT",
+        section: "research_thread",
+        target_id: null,
+        payload: { context: "Observed X" },
+        rationale: "Record experiment outcome",
+      }),
+      "```",
+      "",
+    ].join("\n");
+
+    const response = await POST(
+      makeRequest({
+        action: "post_delta",
+        threadId: "TEST-DELTA",
+        sender: "Operator",
+        recipients: ["Claude"],
+        subject: "Experiment T1 result",
+        bodyMd: deltaBody,
+      })
+    );
+
+    expect(response.status).toBe(200);
+    const json = await response.json();
+    expect(json).toMatchObject({
+      success: true,
+      action: "post_delta",
+      threadId: "TEST-DELTA",
+      messageId: 123,
+    });
+
+    expect(toolsCallMock).toHaveBeenCalledWith("send_message", expect.objectContaining({
+      subject: expect.stringMatching(/^DELTA\[/),
+      body_md: deltaBody.trim(),
+      thread_id: "TEST-DELTA",
+    }));
+  });
+
+  it("rejects post_delta when bodyMd does not include a delta block", async () => {
+    const response = await POST(
+      makeRequest({
+        action: "post_delta",
+        threadId: "TEST-NO-DELTA",
+        sender: "Operator",
+        recipients: ["Claude"],
+        subject: "DELTA[human]: no blocks",
+        bodyMd: "no delta blocks here",
+      })
+    );
+
+    expect(response.status).toBe(400);
+    const json = await response.json();
+    expect(json).toMatchObject({
+      success: false,
+      code: "VALIDATION_ERROR",
+    });
+  });
+
   it("rejects critique requests when no compiled artifact exists", async () => {
     readThreadMock.mockResolvedValueOnce({
       project: "/data/projects/brenner_bot",

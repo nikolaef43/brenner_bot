@@ -13,7 +13,7 @@ export const runtime = "nodejs";
 // Types
 // ============================================================================
 
-type SessionAction = "compile" | "publish" | "request_critique";
+type SessionAction = "compile" | "publish" | "request_critique" | "post_delta";
 
 interface SessionActionRequest {
   action: SessionAction;
@@ -22,6 +22,7 @@ interface SessionActionRequest {
   sender?: string;
   recipients?: string[];
   subject?: string;
+  bodyMd?: string;
   ackRequired?: boolean;
 }
 
@@ -66,6 +67,13 @@ interface CritiqueRequestResult {
   action: "request_critique";
   threadId: string;
   version: number;
+  messageId?: number;
+}
+
+interface PostDeltaResult {
+  success: true;
+  action: "post_delta";
+  threadId: string;
   messageId?: number;
 }
 
@@ -325,7 +333,7 @@ async function ensureProjectAndRegisterSender(args: {
 
 export async function POST(
   request: NextRequest
-): Promise<NextResponse<CompileResult | PublishResult | CritiqueRequestResult | ErrorResponse>> {
+): Promise<NextResponse<CompileResult | PublishResult | CritiqueRequestResult | PostDeltaResult | ErrorResponse>> {
   const reqHeaders = await headers();
   const reqCookies = await cookies();
   const authResult = checkOrchestrationAuth(reqHeaders, reqCookies);
@@ -348,7 +356,7 @@ export async function POST(
   }
 
   const action = body.action;
-  if (action !== "compile" && action !== "publish" && action !== "request_critique") {
+  if (action !== "compile" && action !== "publish" && action !== "request_critique" && action !== "post_delta") {
     return NextResponse.json(
       { success: false, error: "Invalid action", code: "VALIDATION_ERROR" },
       { status: 400 }
@@ -446,6 +454,85 @@ export async function POST(
       const code = message.includes("ECONNREFUSED") || message.includes("fetch failed") ? "NETWORK_ERROR" : "SERVER_ERROR";
       const status = code === "NETWORK_ERROR" ? 502 : 500;
       return NextResponse.json({ success: false, error: message, code }, { status });
+    }
+  }
+
+  if (action === "post_delta") {
+    const sender = body.sender?.trim();
+    if (!sender) {
+      return NextResponse.json(
+        { success: false, error: "Missing sender", code: "VALIDATION_ERROR" },
+        { status: 400 }
+      );
+    }
+
+    const recipients = normalizeRecipients(body.recipients);
+    if (!recipients) {
+      return NextResponse.json(
+        { success: false, error: "Missing recipients", code: "VALIDATION_ERROR" },
+        { status: 400 }
+      );
+    }
+
+    const rawSubject = body.subject?.trim() ?? "";
+    const subject = /^DELTA\[[^\]]+\]:/i.test(rawSubject)
+      ? rawSubject
+      : rawSubject.length > 0
+        ? `DELTA[human]: ${rawSubject}`
+        : `DELTA[human]: [${threadId}] experiment deltas`;
+
+    const bodyMd = body.bodyMd?.trim();
+    if (!bodyMd) {
+      return NextResponse.json(
+        { success: false, error: "Missing bodyMd", code: "VALIDATION_ERROR" },
+        { status: 400 }
+      );
+    }
+
+    if (!/```delta\s*\r?\n[\s\S]*?```/m.test(bodyMd)) {
+      return NextResponse.json(
+        { success: false, error: "bodyMd must include at least one ```delta fenced block", code: "VALIDATION_ERROR" },
+        { status: 400 }
+      );
+    }
+
+    try {
+      const client = new AgentMailClient();
+
+      const ensured = await ensureProjectAndRegisterSender({
+        client,
+        projectKey,
+        sender,
+        taskDescription: `Brenner Bot post delta message: ${threadId}`,
+      });
+      if (ensured) {
+        return NextResponse.json(ensured, { status: 502 });
+      }
+
+      const sendResult = await client.toolsCall("send_message", {
+        project_key: projectKey,
+        sender_name: sender,
+        to: recipients,
+        subject,
+        body_md: bodyMd,
+        thread_id: threadId,
+        ack_required: Boolean(body.ackRequired),
+      });
+
+      const messageId = extractMessageId(sendResult);
+      return NextResponse.json({
+        success: true,
+        action: "post_delta",
+        threadId,
+        messageId,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      const code = message.includes("ECONNREFUSED") || message.includes("fetch failed") ? "NETWORK_ERROR" : "SERVER_ERROR";
+      return NextResponse.json(
+        { success: false, error: message, code },
+        { status: code === "NETWORK_ERROR" ? 502 : 500 }
+      );
     }
   }
 
