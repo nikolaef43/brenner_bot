@@ -14,12 +14,28 @@
 import {
   test,
   expect,
-  fillInput,
   takeScreenshot,
-  assertTextContent,
   assertUrl,
   waitForNetworkIdle,
 } from "./utils";
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+/**
+ * Get the cookie domain from the BASE_URL.
+ * Defaults to localhost for local development, otherwise extracts from URL.
+ */
+function getCookieDomain(): string {
+  const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+  try {
+    const url = new URL(baseUrl);
+    return url.hostname;
+  } catch {
+    return "localhost";
+  }
+}
 
 // ============================================================================
 // Session Form Validation Tests
@@ -33,7 +49,7 @@ test.describe("Session Form Validation", () => {
       {
         name: "brenner_lab_secret",
         value: labSecret,
-        domain: "localhost",
+        domain: getCookieDomain(),
         path: "/",
       },
     ]);
