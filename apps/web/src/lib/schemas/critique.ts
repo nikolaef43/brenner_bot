@@ -34,7 +34,7 @@ const hypothesisIdPattern = /^H-[A-Za-z0-9][\w-]*-\d{3}$/;
 
 /**
  * Test ID format for targets/references
- * Supports both A-{session}-{seq} and simple T{n} format for backwards compatibility.
+ * Supports both T-{session}-{seq} and simple T{n} format for backwards compatibility.
  */
 const testIdPattern = /^T-[A-Za-z0-9][\w-]*-\d{3}$|^T\d+$/;
 
