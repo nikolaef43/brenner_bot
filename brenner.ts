@@ -3983,7 +3983,7 @@ ${JSON.stringify(delta, null, 2)}
     // Subcommand: add-session
     if (sub === "add-session") {
       const programId = action;
-      const sessionId = asStringFlag(flags, "session") ?? positionalArgs[1];
+      const sessionId = asStringFlag(flags, "session") ?? positional[3];
 
       if (!programId) throw new Error("Missing program ID. Usage: program add-session <program-id> --session <session-id>");
       if (!sessionId) throw new Error("Missing --session <session-id>.");
@@ -4006,7 +4006,7 @@ ${JSON.stringify(delta, null, 2)}
     // Subcommand: remove-session
     if (sub === "remove-session") {
       const programId = action;
-      const sessionId = asStringFlag(flags, "session") ?? positionalArgs[1];
+      const sessionId = asStringFlag(flags, "session") ?? positional[3];
 
       if (!programId) throw new Error("Missing program ID. Usage: program remove-session <program-id> --session <session-id>");
       if (!sessionId) throw new Error("Missing --session <session-id>.");
