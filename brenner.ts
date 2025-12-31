@@ -1770,7 +1770,7 @@ async function buildSessionDataFromStorage(sessionId: string, baseDir: string): 
     test: a.testMethod ?? "",
     status: a.status as "unchecked" | "verified" | "falsified" | undefined,
     scale_check: a.type === "scale_physics",
-    calculation: a.calculation?.formula,
+    calculation: a.calculation ? `${a.calculation.quantities} → ${a.calculation.result}` : undefined,
   }));
 
   const anomalyRegister = anomalies.map((x) => ({
