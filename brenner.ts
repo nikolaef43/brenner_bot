@@ -58,6 +58,17 @@ import {
   type Anomaly,
   type QuarantineStatus,
 } from "./apps/web/src/lib/schemas/anomaly";
+import { AssumptionStorage } from "./apps/web/src/lib/storage/assumption-storage";
+import {
+  createAssumption,
+  generateAssumptionId,
+  ScaleCalculationSchema,
+  type Assumption,
+  type AssumptionStatus,
+  type AssumptionType,
+  type ScaleCalculation,
+} from "./apps/web/src/lib/schemas/assumption";
+import { challengeAssumption, verifyAssumption, falsifyAssumption } from "./apps/web/src/lib/schemas/assumption-lifecycle";
 
 function isRecord(value: Json): value is { [key: string]: Json } {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -1184,6 +1195,19 @@ Commands:
   anomaly reactivate <id> [--project-key <abs-path>] [--json]
   anomaly spawn-hypothesis <id> [--project-key <abs-path>] [--json]
   anomaly stats [--project-key <abs-path>] [--json]
+
+  assumption list [--session-id <id>] [--status <unchecked|challenged|verified|falsified>]
+                [--type <background|methodological|boundary|scale_physics>] [--project-key <abs-path>] [--json]
+  assumption show <id> [--project-key <abs-path>] [--json]
+  assumption create --statement <s> --type <background|methodological|boundary|scale_physics> --load-description <s>
+                   [--session-id <id>] [--affects-hypotheses <H1,H2>] [--affects-tests <T1,T2>]
+                   [--test-method <s>] [--anchors <A,B>] [--by <s>] [--notes <s>] [--calculation <json>]
+                   [--project-key <abs-path>] [--json]
+  assumption challenge <id> --reason <s> [--evidence <s>] [--by <s>] [--project-key <abs-path>] [--json]
+  assumption verify <id> --evidence <s> [--reason <s>] [--by <s>] [--project-key <abs-path>] [--json]
+  assumption falsify <id> --evidence <s> [--reason <s>] [--by <s>] [--project-key <abs-path>] [--json]
+  assumption link <assumption-id> <hypothesis-id|test-id> [--load-description <s>] [--project-key <abs-path>] [--json]
+  assumption stats [--project-key <abs-path>] [--json]
 
   mail health
   mail tools
