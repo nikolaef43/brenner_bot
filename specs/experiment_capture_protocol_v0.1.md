@@ -60,7 +60,7 @@ Required:
 Optional:
 - `--timeout <seconds>` (default: 900; must be > 0)
 - `--cwd <path>` (default: current working directory)
-- `--out-file <path>` (override default output path)
+- `--out-file <path>` (override default output path; if relative, resolved relative to `--cwd`)
 - `--json` (prints structured output summary)
 
 CLI exit code:
@@ -90,7 +90,7 @@ Optional:
 - `--stdout <text>` and/or `--stderr <text>` (inline; discouraged for large output)
 - `--cwd <path>` (default: current working directory)
 - `--command <csv-or-quoted-string>` (best-effort provenance; optional in v0)
-- `--out-file <path>` (override default output path)
+- `--out-file <path>` (override default output path; if relative, resolved relative to `--cwd`)
 - `--json` (prints structured output summary)
 
 CLI exit code:

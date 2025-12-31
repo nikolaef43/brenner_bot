@@ -1603,7 +1603,7 @@ async function main(): Promise<void> {
     if (!threadId) throw new Error("Missing --thread-id.");
     if (!testId) throw new Error("Missing --test-id.");
 
-    const cwd = resolve(asStringFlag(flags, "cwd") ?? process.cwd());
+    const cwd = resolve(asStringFlag(flags, "cwd") ?? runtimeConfig.defaults.projectKey);
     const outFileRaw = asStringFlag(flags, "out-file") ?? asStringFlag(flags, "out");
 
     const safeThreadId = sanitizeThreadIdForArtifactFilename(threadId);
@@ -1626,7 +1626,7 @@ async function main(): Promise<void> {
       safeTestId,
       `${timestamp}_${resultId}.json`
     );
-    const outFile = resolve(outFileRaw ?? defaultOutFile);
+    const outFile = outFileRaw ? resolve(cwd, outFileRaw) : defaultOutFile;
 
     if (sub === "run") {
       const timeoutSeconds = asIntFlag(flags, "timeout") ?? 900;
@@ -1668,6 +1668,7 @@ async function main(): Promise<void> {
         const [out, err, exitCode] = await Promise.all([stdoutPromise, stderrPromise, exitCodePromise]);
         stdout = out;
         stderr = err;
+        const resolvedExitCode = typeof exitCode === "number" ? exitCode : timedOut ? 124 : 1;
 
         const finishedAt = new Date();
         const durationMs = finishedAt.getTime() - startedAt.getTime();
@@ -1687,7 +1688,7 @@ async function main(): Promise<void> {
           timeout_seconds: timeoutSeconds,
           timed_out: timedOut,
 
-          exit_code: exitCode,
+          exit_code: resolvedExitCode,
           started_at: startedAt.toISOString(),
           finished_at: finishedAt.toISOString(),
           duration_ms: durationMs,
@@ -1728,8 +1729,8 @@ async function main(): Promise<void> {
       if (stdoutFile && stdoutInline) throw new Error("Use either --stdout-file or --stdout (not both).");
       if (stderrFile && stderrInline) throw new Error("Use either --stderr-file or --stderr (not both).");
 
-      const stdoutText = stdoutFile ? readTextFile(resolve(stdoutFile)) : stdoutInline ?? "";
-      const stderrText = stderrFile ? readTextFile(resolve(stderrFile)) : stderrInline ?? "";
+      const stdoutText = stdoutFile ? readTextFile(resolve(cwd, stdoutFile)) : stdoutInline ?? "";
+      const stderrText = stderrFile ? readTextFile(resolve(cwd, stderrFile)) : stderrInline ?? "";
 
       let argv: string[] | null = null;
       if (commandRaw) {
