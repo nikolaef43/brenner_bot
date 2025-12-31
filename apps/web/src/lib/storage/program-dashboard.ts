@@ -431,7 +431,7 @@ export class DashboardAggregator {
       events.push({
         timestamp: h.createdAt,
         eventType: "hypothesis_proposed",
-        description: `Hypothesis ${h.id} proposed: ${h.statement.substring(0, 50)}...`,
+        description: `Hypothesis ${h.id} proposed: ${truncate(h.statement, 50)}`,
         entityId: h.id,
         sessionId: h.sessionId,
       });
@@ -475,7 +475,7 @@ export class DashboardAggregator {
         events.push({
           timestamp: a.updatedAt,
           eventType: "assumption_falsified",
-          description: `Assumption ${a.id} falsified: ${a.statement.substring(0, 40)}...`,
+          description: `Assumption ${a.id} falsified: ${truncate(a.statement, 40)}`,
           entityId: a.id,
           sessionId: a.sessionId,
         });
@@ -487,7 +487,7 @@ export class DashboardAggregator {
       events.push({
         timestamp: a.createdAt,
         eventType: "anomaly_recorded",
-        description: `Anomaly ${a.id} recorded: ${a.observation.substring(0, 40)}...`,
+        description: `Anomaly ${a.id} recorded: ${truncate(a.observation, 40)}`,
         entityId: a.id,
         sessionId: a.sessionId,
       });
@@ -508,7 +508,7 @@ export class DashboardAggregator {
       events.push({
         timestamp: c.createdAt,
         eventType: "critique_raised",
-        description: `${c.severity} critique on ${c.targetType}: ${c.attack.substring(0, 40)}...`,
+        description: `${c.severity} critique on ${c.targetType}: ${truncate(c.attack, 40)}`,
         entityId: c.id,
         sessionId: c.sessionId,
       });
@@ -530,7 +530,7 @@ export class DashboardAggregator {
         events.push({
           timestamp: t.execution.completedAt,
           eventType: "test_executed",
-          description: `Test ${t.id} completed: ${t.name.substring(0, 40)}`,
+          description: `Test ${t.id} completed: ${truncate(t.name, 40)}`,
           entityId: t.id,
           sessionId: t.designedInSession,
         });
