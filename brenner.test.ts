@@ -3012,3 +3012,263 @@ describe("hypothesis CLI", () => {
     expect(searchParsed.hypotheses.map((h) => h.id)).toContain(create1Parsed.hypothesis.id);
   });
 });
+
+// ============================================================================
+// Tests: Test CLI
+// ============================================================================
+
+describe("test CLI", () => {
+  function setupTestProjectFixture(args?: { sessionId?: string; testId?: string }): {
+    projectDir: string;
+    sessionId: string;
+    testId: string;
+    hypothesisAId: string;
+    hypothesisBId: string;
+  } {
+    const projectDir = join(tmpdir(), `brenner-test-tests-${randomUUID()}`);
+    mkdirSync(projectDir, { recursive: true });
+
+    const sessionId = args?.sessionId ?? "RS-TEST";
+    const testId = args?.testId ?? `T-${sessionId}-001`;
+
+    const hypothesisAId = `H-${sessionId}-001`;
+    const hypothesisBId = `H-${sessionId}-002`;
+
+    mkdirSync(join(projectDir, ".research", "tests"), { recursive: true });
+    mkdirSync(join(projectDir, ".research", "hypotheses"), { recursive: true });
+
+    const now = new Date().toISOString();
+
+    const hypothesesFile = {
+      sessionId,
+      createdAt: now,
+      updatedAt: now,
+      hypotheses: [
+        {
+          id: hypothesisAId,
+          statement: "Hypothesis A: the assay signal should be detected (positive) under condition X.",
+          origin: "proposed",
+          category: "mechanistic",
+          confidence: "medium",
+          sessionId,
+          state: "active",
+          createdAt: now,
+          updatedAt: now,
+        },
+        {
+          id: hypothesisBId,
+          statement: "Hypothesis B: the assay signal should not be detected (negative) under condition X.",
+          origin: "proposed",
+          category: "third_alternative",
+          confidence: "medium",
+          sessionId,
+          state: "active",
+          createdAt: now,
+          updatedAt: now,
+        },
+      ],
+    };
+
+    writeFileSync(
+      join(projectDir, ".research", "hypotheses", `${sessionId}-hypotheses.json`),
+      JSON.stringify(hypothesesFile, null, 2),
+      "utf8"
+    );
+
+    const sessionTestsFile = {
+      sessionId,
+      createdAt: now,
+      updatedAt: now,
+      tests: [
+        {
+          id: testId,
+          name: "Binary signal assay for Hypothesis A vs B",
+          procedure: "Run the assay under condition X and observe whether the signal is detected or absent.",
+          discriminates: [hypothesisAId, hypothesisBId],
+          expectedOutcomes: [
+            {
+              hypothesisId: hypothesisAId,
+              outcome: "Signal is detected (positive).",
+              resultType: "positive",
+              confidence: "medium",
+            },
+            {
+              hypothesisId: hypothesisBId,
+              outcome: "Signal is not detected (negative).",
+              resultType: "negative",
+              confidence: "medium",
+            },
+          ],
+          potencyCheck: {
+            positiveControl: "Include a known positive sample to verify the assay can detect the signal.",
+            sensitivityVerification: "Verify detection threshold is adequate using a dilution series.",
+            timingValidation: "Run a short time course to confirm we measure within the assay window.",
+          },
+          evidencePerWeekScore: {
+            likelihoodRatio: 3,
+            cost: 3,
+            speed: 3,
+            ambiguity: 3,
+          },
+          feasibility: {
+            requirements: "Standard assay reagents and a readout instrument.",
+            difficulty: "easy",
+          },
+          designedInSession: sessionId,
+          designedBy: "Tester",
+          status: "ready",
+          createdAt: now,
+          updatedAt: now,
+        },
+      ],
+    };
+
+    writeFileSync(
+      join(projectDir, ".research", "tests", `${sessionId}-tests.json`),
+      JSON.stringify(sessionTestsFile, null, 2),
+      "utf8"
+    );
+
+    return { projectDir, sessionId, testId, hypothesisAId, hypothesisBId };
+  }
+
+  it("supports list/show/execute/suggest-kills (json mode)", async () => {
+    const { projectDir, sessionId, testId, hypothesisAId, hypothesisBId } = setupTestProjectFixture();
+
+    const list = await runCli(["test", "list", "--project-key", projectDir, "--json"]);
+    expect(list.exitCode).toBe(0);
+    const listParsed = JSON.parse(list.stdout) as { ok: boolean; count: number; tests: Array<{ id: string }> };
+    expect(listParsed.ok).toBe(true);
+    expect(listParsed.count).toBe(1);
+    expect(listParsed.tests.map((t) => t.id)).toContain(testId);
+
+    const show = await runCli(["test", "show", testId, "--project-key", projectDir, "--json"]);
+    expect(show.exitCode).toBe(0);
+    const showParsed = JSON.parse(show.stdout) as { ok: boolean; test: { id: string } };
+    expect(showParsed.ok).toBe(true);
+    expect(showParsed.test.id).toBe(testId);
+
+    const execute = await runCli([
+      "test",
+      "execute",
+      testId,
+      "--project-key",
+      projectDir,
+      "--json",
+      "--result",
+      "positive",
+      "--potency-pass",
+    ]);
+    expect(execute.exitCode).toBe(0);
+    const executeParsed = JSON.parse(execute.stdout) as {
+      ok: boolean;
+      test: { id: string; status: string; execution?: { observedOutcome: string } };
+      suggestions: Array<{ hypothesisId: string; suggestedAction: string }>;
+      applied: unknown;
+    };
+    expect(executeParsed.ok).toBe(true);
+    expect(executeParsed.test.id).toBe(testId);
+    expect(executeParsed.test.status).toBe("completed");
+    expect(executeParsed.test.execution?.observedOutcome).toBe("positive");
+    expect(executeParsed.applied).toBeNull();
+    expect(executeParsed.suggestions.some((s) => s.hypothesisId === hypothesisAId && s.suggestedAction === "validate")).toBe(true);
+    expect(executeParsed.suggestions.some((s) => s.hypothesisId === hypothesisBId && s.suggestedAction === "kill")).toBe(true);
+
+    const suggestKills = await runCli(["test", "suggest-kills", testId, "--project-key", projectDir, "--json"]);
+    expect(suggestKills.exitCode).toBe(0);
+    const suggestParsed = JSON.parse(suggestKills.stdout) as { ok: boolean; kills: Array<{ hypothesisId: string }> };
+    expect(suggestParsed.ok).toBe(true);
+    expect(suggestParsed.kills.map((k) => k.hypothesisId)).toContain(hypothesisBId);
+
+    const hypothesesPath = join(projectDir, ".research", "hypotheses", `${sessionId}-hypotheses.json`);
+    expect(existsSync(hypothesesPath)).toBe(true);
+    const hypothesesJson = JSON.parse(readFileSync(hypothesesPath, "utf8")) as {
+      hypotheses: Array<{ id: string; state: string }>;
+    };
+    const stateById = new Map(hypothesesJson.hypotheses.map((h) => [h.id, h.state]));
+    expect(stateById.get(hypothesisAId)).toBe("active");
+    expect(stateById.get(hypothesisBId)).toBe("active");
+  });
+
+  it("execute --apply transitions hypotheses and persists", async () => {
+    const { projectDir, sessionId, testId, hypothesisAId, hypothesisBId } = setupTestProjectFixture();
+
+    const execute = await runCli([
+      "test",
+      "execute",
+      testId,
+      "--project-key",
+      projectDir,
+      "--json",
+      "--result",
+      "positive",
+      "--potency-pass",
+      "--apply",
+    ]);
+    expect(execute.exitCode).toBe(0);
+    const executeParsed = JSON.parse(execute.stdout) as {
+      ok: boolean;
+      applied: { saved: number; applied: Array<{ hypothesisId: string; ok: boolean }> } | null;
+    };
+    expect(executeParsed.ok).toBe(true);
+    expect(executeParsed.applied).not.toBeNull();
+    expect(executeParsed.applied?.saved).toBe(2);
+    expect(executeParsed.applied?.applied.every((r) => r.ok)).toBe(true);
+
+    const hypothesesPath = join(projectDir, ".research", "hypotheses", `${sessionId}-hypotheses.json`);
+    const hypothesesJson = JSON.parse(readFileSync(hypothesesPath, "utf8")) as {
+      hypotheses: Array<{ id: string; state: string }>;
+    };
+    const stateById = new Map(hypothesesJson.hypotheses.map((h) => [h.id, h.state]));
+    expect(stateById.get(hypothesisAId)).toBe("confirmed");
+    expect(stateById.get(hypothesisBId)).toBe("refuted");
+  });
+
+  it("bind transitions hypotheses (matched/violated)", async () => {
+    const { projectDir, sessionId, testId, hypothesisAId, hypothesisBId } = setupTestProjectFixture({ sessionId: "RS-BIND" });
+
+    const bindMatched = await runCli([
+      "test",
+      "bind",
+      testId,
+      hypothesisAId,
+      "--project-key",
+      projectDir,
+      "--json",
+      "--matched",
+      "--by",
+      "Tester",
+    ]);
+    expect(bindMatched.exitCode).toBe(0);
+    const bindMatchedParsed = JSON.parse(bindMatched.stdout) as { ok: boolean; hypothesis: { id: string; state: string } };
+    expect(bindMatchedParsed.ok).toBe(true);
+    expect(bindMatchedParsed.hypothesis.id).toBe(hypothesisAId);
+    expect(bindMatchedParsed.hypothesis.state).toBe("confirmed");
+
+    const bindViolated = await runCli([
+      "test",
+      "bind",
+      testId,
+      hypothesisBId,
+      "--project-key",
+      projectDir,
+      "--json",
+      "--violated",
+      "--by",
+      "Tester",
+    ]);
+    expect(bindViolated.exitCode).toBe(0);
+    const bindViolatedParsed = JSON.parse(bindViolated.stdout) as { ok: boolean; hypothesis: { id: string; state: string } };
+    expect(bindViolatedParsed.ok).toBe(true);
+    expect(bindViolatedParsed.hypothesis.id).toBe(hypothesisBId);
+    expect(bindViolatedParsed.hypothesis.state).toBe("refuted");
+
+    const hypothesesPath = join(projectDir, ".research", "hypotheses", `${sessionId}-hypotheses.json`);
+    const hypothesesJson = JSON.parse(readFileSync(hypothesesPath, "utf8")) as {
+      hypotheses: Array<{ id: string; state: string }>;
+    };
+    const stateById = new Map(hypothesesJson.hypotheses.map((h) => [h.id, h.state]));
+    expect(stateById.get(hypothesisAId)).toBe("confirmed");
+    expect(stateById.get(hypothesisBId)).toBe("refuted");
+  });
+});
