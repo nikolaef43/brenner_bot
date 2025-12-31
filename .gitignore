@@ -17,6 +17,9 @@ pnpm-lock.yaml
 # Dependencies
 node_modules/
 
+# Local research workspace state
+.research/
+
 # Build/test outputs
 .next/
 out/
