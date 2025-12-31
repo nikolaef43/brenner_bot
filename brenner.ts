@@ -1752,7 +1752,7 @@ async function buildSessionDataFromStorage(sessionId: string, baseDir: string): 
     discriminates: t.discriminates.join(", "),
     expected_outcomes: t.expectedOutcomes,
     potency_check: t.potencyCheck?.positiveControl ?? "",
-    feasibility: t.feasibility?.assessment ?? "",
+    feasibility: t.feasibility ? `${t.feasibility.difficulty}: ${t.feasibility.requirements}` : "",
     status: t.status === "completed" ? ("passed" as const) : (t.status as "untested" | "passed" | "failed" | "blocked" | "error"),
     score: {
       likelihood_ratio: t.evidencePerWeekScore.likelihoodRatio,
@@ -1767,7 +1767,7 @@ async function buildSessionDataFromStorage(sessionId: string, baseDir: string): 
     name: a.statement.slice(0, 50),
     statement: a.statement,
     load: `Affects: ${a.load.affectedHypotheses.join(", ") || "none"}`,
-    test: a.testApproach ?? "",
+    test: a.testMethod ?? "",
     status: a.status as "unchecked" | "verified" | "falsified" | undefined,
     scale_check: a.type === "scale_physics",
     calculation: a.calculation?.formula,
