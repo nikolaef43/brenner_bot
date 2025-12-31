@@ -1084,10 +1084,15 @@ export function scoreHypothesisKillRate(session: SessionData): DimensionScore {
   const killsFromFlags = hypotheses.filter((h) => h.killed);
   const totalKills = Math.max(killsFromTransitions.length, killsFromFlags.length);
 
-  // Check if kills are linked to test results
+  // Check if kills are linked to test results (from transitions)
   const killsWithTestLink = killsFromTransitions.filter(
     (t) => t.triggeredBy?.startsWith("T-") || t.triggeredBy?.startsWith("test-")
   );
+  // Check if flagged kills are linked to test results (via killed_by field)
+  const flaggedKillsWithTestLink = killsFromFlags.filter(
+    (h) => h.killed_by?.startsWith("T-") || h.killed_by?.startsWith("test-")
+  );
+  const totalKillsWithTestLink = killsWithTestLink.length + flaggedKillsWithTestLink.length;
 
   // Check if kill reasoning is documented
   const killsWithReasoning = killsFromTransitions.filter(
@@ -1107,10 +1112,10 @@ export function scoreHypothesisKillRate(session: SessionData): DimensionScore {
     {
       signal: "Kill linked to specific test result",
       points: 5,
-      found: killsWithTestLink.length > 0 || flaggedKillsWithReasoning.length > 0,
+      found: totalKillsWithTestLink > 0,
       evidence:
-        killsWithTestLink.length > 0
-          ? `${killsWithTestLink.length} kills linked to tests`
+        totalKillsWithTestLink > 0
+          ? `${totalKillsWithTestLink} kills linked to tests`
           : undefined,
     },
     {
