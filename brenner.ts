@@ -2494,11 +2494,19 @@ ${JSON.stringify(delta, null, 2)}
         const resolvedOut = resolve(projectKey, outFile);
         mkdirSync(dirname(resolvedOut), { recursive: true });
         writeFileSync(resolvedOut, md, "utf8");
-        stdoutLine(resolvedOut);
+        if (jsonMode) {
+          stdoutLine(JSON.stringify({ ok: true, path: resolvedOut, bytes: md.length }, null, 2));
+        } else {
+          stdoutLine(resolvedOut);
+        }
       } else {
         // Also write to default location
         writeFileSync(evidenceMdPath, md, "utf8");
-        stdoutLine(md);
+        if (jsonMode) {
+          stdoutLine(JSON.stringify({ ok: true, path: evidenceMdPath, bytes: md.length }, null, 2));
+        } else {
+          stdoutLine(md);
+        }
       }
       process.exit(0);
     }
