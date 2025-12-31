@@ -3272,3 +3272,129 @@ describe("test CLI", () => {
     expect(stateById.get(hypothesisBId)).toBe("refuted");
   });
 });
+
+// ============================================================================
+// Tests: Evidence CLI
+// ============================================================================
+
+describe("evidence post", () => {
+  it("supports --dry-run --json and optional --evidence-id filtering", async () => {
+    const projectDir = join(tmpdir(), `brenner-test-evidence-${randomUUID()}`);
+    mkdirSync(projectDir, { recursive: true });
+
+    const threadId = "RS-EVIDENCE";
+
+    const init = await runCli(["evidence", "init", "--thread-id", threadId, "--project-key", projectDir]);
+    expect(init.exitCode).toBe(0);
+
+    const add1 = await runCli([
+      "evidence",
+      "add",
+      "--thread-id",
+      threadId,
+      "--project-key",
+      projectDir,
+      "--type",
+      "paper",
+      "--title",
+      "Test Paper 1",
+      "--source",
+      "doi:10.000/test-1",
+      "--relevance",
+      "Foundational.",
+    ]);
+    expect(add1.exitCode).toBe(0);
+
+    const add2 = await runCli([
+      "evidence",
+      "add",
+      "--thread-id",
+      threadId,
+      "--project-key",
+      projectDir,
+      "--type",
+      "dataset",
+      "--title",
+      "Test Dataset 2",
+      "--source",
+      "https://example.com/dataset",
+      "--relevance",
+      "Supplemental.",
+    ]);
+    expect(add2.exitCode).toBe(0);
+
+    const dryRunAll = await runCli([
+      "evidence",
+      "post",
+      "--thread-id",
+      threadId,
+      "--project-key",
+      projectDir,
+      "--sender",
+      "Operator",
+      "--to",
+      "Agent",
+      "--dry-run",
+      "--json",
+    ]);
+    expect(dryRunAll.exitCode).toBe(0);
+    const dryRunAllParsed = JSON.parse(dryRunAll.stdout) as {
+      ok: boolean;
+      dry_run: boolean;
+      subject: string;
+      body_md: string;
+    };
+    expect(dryRunAllParsed.ok).toBe(true);
+    expect(dryRunAllParsed.dry_run).toBe(true);
+    expect(dryRunAllParsed.subject).toMatch(/^EVIDENCE:/);
+    expect(dryRunAllParsed.body_md).toContain("EV-001");
+    expect(dryRunAllParsed.body_md).toContain("EV-002");
+
+    const dryRunFiltered = await runCli([
+      "evidence",
+      "post",
+      "--thread-id",
+      threadId,
+      "--project-key",
+      projectDir,
+      "--sender",
+      "Operator",
+      "--to",
+      "Agent",
+      "--evidence-id",
+      "EV-001",
+      "--dry-run",
+      "--json",
+    ]);
+    expect(dryRunFiltered.exitCode).toBe(0);
+    const dryRunFilteredParsed = JSON.parse(dryRunFiltered.stdout) as { ok: boolean; body_md: string };
+    expect(dryRunFilteredParsed.ok).toBe(true);
+    expect(dryRunFilteredParsed.body_md).toContain("EV-001");
+    expect(dryRunFilteredParsed.body_md).not.toContain("EV-002");
+  });
+
+  it("fails clearly when evidence pack is missing", async () => {
+    const projectDir = join(tmpdir(), `brenner-test-evidence-missing-${randomUUID()}`);
+    mkdirSync(projectDir, { recursive: true });
+
+    const threadId = "RS-EVIDENCE-MISSING";
+
+    const result = await runCli([
+      "evidence",
+      "post",
+      "--thread-id",
+      threadId,
+      "--project-key",
+      projectDir,
+      "--sender",
+      "Operator",
+      "--to",
+      "Agent",
+      "--dry-run",
+      "--json",
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("Run 'evidence init' first");
+  });
+});

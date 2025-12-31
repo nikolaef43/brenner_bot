@@ -1237,6 +1237,8 @@ Commands:
               [--verbatim] [--location <s>] [--note <s>] [--project-key <abs-path>] [--json]
   evidence list --thread-id <id> [--project-key <abs-path>] [--json]
   evidence render --thread-id <id> [--project-key <abs-path>] [--out-file <path>]
+  evidence post --thread-id <id> --sender <AgentName> --to <A,B> [--evidence-id <EV-001,EV-002>] [--subject <s>]
+                [--dry-run] [--project-key <abs-path>] [--json]
   evidence verify --thread-id <id> --evidence-id <EV-NNN> --notes <s> [--project-key <abs-path>] [--json]
 
   anomaly list [--session-id <id>] [--status <active|resolved|deferred|paradigm_shifting>] [--project-key <abs-path>] [--json]
@@ -2652,6 +2654,113 @@ ${JSON.stringify(delta, null, 2)}
           stdoutLine(md);
         }
       }
+      process.exit(0);
+    }
+
+    // Subcommand: post (render + send to Agent Mail as EVIDENCE: message)
+    if (sub === "post") {
+      // Validate required flags first (fail fast, before file I/O / network)
+      let sender = asStringFlag(flags, "sender") ?? process.env.AGENT_NAME;
+      if (!sender) throw new Error("Missing --sender (or set AGENT_NAME).");
+      const to = splitCsv(asStringFlag(flags, "to"));
+      if (to.length === 0) throw new Error("Missing --to <A,B>.");
+
+      const evidenceIdsRaw = splitCsv(asStringFlag(flags, "evidence-id"));
+      const dryRun = asBoolFlag(flags, "dry-run");
+      const rawSubject = nonEmptyString(asStringFlag(flags, "subject"));
+
+      const pack = readEvidencePack();
+      if (!pack) throw new Error(`No evidence pack found at ${evidenceJsonPath}. Run 'evidence init' first.`);
+
+      // Optional filtering to selected evidence IDs (preserve original order)
+      const selectedIds = evidenceIdsRaw.length > 0 ? Array.from(new Set(evidenceIdsRaw)) : [];
+      const selectedPack: EvidencePack =
+        selectedIds.length > 0
+          ? (() => {
+            const idSet = new Set(selectedIds);
+            const records = pack.records.filter((r) => idSet.has(r.id));
+            const found = new Set(records.map((r) => r.id));
+            const missing = selectedIds.filter((id) => !found.has(id));
+            if (missing.length > 0) {
+              throw new Error(`Evidence record(s) not found: ${missing.join(", ")}`);
+            }
+            return { ...pack, records };
+          })()
+          : pack;
+
+      const md = renderEvidenceMd(selectedPack).trimEnd();
+
+      const defaultSubjectSuffix =
+        selectedPack.records.length > 0
+          ? selectedPack.records.map((r) => r.id).join(", ")
+          : "evidence pack";
+      const subject = rawSubject
+        ? /^EVIDENCE:/i.test(rawSubject)
+          ? rawSubject
+          : `EVIDENCE: ${rawSubject}`
+        : `EVIDENCE: [${threadId}] ${defaultSubjectSuffix}`;
+
+      if (dryRun) {
+        if (jsonMode) {
+          stdoutLine(JSON.stringify({ ok: true, dry_run: true, subject, body_md: md }, null, 2));
+        } else {
+          stdoutLine(md);
+        }
+        process.exit(0);
+      }
+
+      // Send via Agent Mail
+      const client = new AgentMailClient(runtimeConfig.agentMail);
+
+      if (isAbsolute(projectKey)) {
+        await client.toolsCall("ensure_project", { human_key: projectKey });
+      }
+
+      // Register sender if needed
+      const whoisResult = await client.toolsCall("whois", {
+        project_key: projectKey,
+        agent_name: sender,
+        include_recent_commits: false,
+      });
+
+      if (isToolError(whoisResult)) {
+        const registerResult = await client.toolsCall("register_agent", {
+          project_key: projectKey,
+          name: sender,
+          program: "brenner-cli",
+          model: "orchestrator",
+          task_description: `Brenner CLI evidence post: ${threadId}`,
+        });
+        const actualName = parseAgentNameFromToolResult(registerResult);
+        if (actualName && actualName !== sender) {
+          stderrLine(`Agent Mail assigned sender name "${actualName}" (requested "${sender}").`);
+          sender = actualName;
+        }
+      }
+
+      const sendResult = await client.toolsCall("send_message", {
+        project_key: projectKey,
+        sender_name: sender,
+        to,
+        subject,
+        body_md: md,
+        thread_id: threadId,
+        ack_required: false,
+      });
+
+      if (isToolError(sendResult)) {
+        stderrLine(`Error sending message: ${JSON.stringify(sendResult, null, 2)}`);
+        process.exit(1);
+      }
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, subject, bytes: md.length, message: sendResult }, null, 2));
+      } else {
+        stdoutLine(`Sent EVIDENCE message to thread ${threadId}`);
+        stdoutLine(`Subject: ${subject}`);
+        stdoutLine(`To: ${to.join(", ")}`);
+      }
+
       process.exit(0);
     }
 
