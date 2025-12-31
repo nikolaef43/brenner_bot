@@ -1312,6 +1312,13 @@ Commands:
   hypothesis search <query> [--project-key <abs-path>] [--json]
   hypothesis link <child-id> <parent-id> [--project-key <abs-path>] [--json]
   hypothesis stats [--project-key <abs-path>] [--json]
+  hypothesis activate <id> [--project-key <abs-path>] [--json]
+  hypothesis kill <id> --test=<test-id> [--reason <s>] [--project-key <abs-path>] [--json]
+  hypothesis refine <id> --child=<new-id> [--project-key <abs-path>] [--json]
+  hypothesis validate <id> --test=<test-id> [--project-key <abs-path>] [--json]
+  hypothesis park <id> [--reason <s>] [--project-key <abs-path>] [--json]
+  hypothesis reactivate <id> [--project-key <abs-path>] [--json]
+  hypothesis history <id> [--project-key <abs-path>] [--json]
 
   test list [--session-id <id>] [--status <designed|ready|in_progress|completed|blocked|abandoned>] [--project-key <abs-path>] [--json]
   test show <id> [--project-key <abs-path>] [--json]
@@ -4164,6 +4171,292 @@ ${JSON.stringify(delta, null, 2)}
         stdoutLine(`  With parent:           ${withParent}`);
         stdoutLine(`  Unresolved critiques:  ${totalUnresolvedCritiques}`);
         stdoutLine(`  Sessions with data:    ${sessions}`);
+      }
+      process.exit(0);
+    }
+
+    // Subcommand: activate
+    if (sub === "activate") {
+      const hypothesisId = action;
+      if (!hypothesisId) throw new Error("Missing hypothesis ID. Usage: hypothesis activate <id>");
+
+      const hypothesis = await storage.getHypothesisById(hypothesisId);
+      if (!hypothesis) {
+        throw new Error(`Hypothesis not found: ${hypothesisId}`);
+      }
+
+      const result = activateHypothesis(hypothesis);
+      if (!result.success) {
+        if (jsonMode) {
+          stdoutLine(JSON.stringify({ ok: false, error: result.error }, null, 2));
+        } else {
+          stderrLine(`✗ Error: ${result.error?.message ?? "Unknown error"}`);
+        }
+        process.exit(1);
+      }
+
+      await storage.saveHypothesis(result.hypothesis!);
+
+      // Log transition history
+      const historyStore = new TransitionHistoryStore({ baseDir: projectKey });
+      await historyStore.logTransition(result.transition!);
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
+      } else {
+        stdoutLine(`✓ Activated hypothesis ${hypothesisId}`);
+        stdoutLine(`  State: ${result.transition!.fromState} → ${result.transition!.toState}`);
+      }
+      process.exit(0);
+    }
+
+    // Subcommand: kill (alias for refute)
+    if (sub === "kill" || sub === "refute") {
+      const hypothesisId = action;
+      if (!hypothesisId) throw new Error(`Missing hypothesis ID. Usage: hypothesis ${sub} <id> --test=<test-id> [--reason="..."]`);
+
+      const testId = asStringFlag(flags, "test");
+      const reason = asStringFlag(flags, "reason");
+
+      if (!testId && !reason) {
+        throw new Error(`--test=<test-id> or --reason="..." is required.\nHypotheses should be killed by specific test results, not arbitrary decisions.`);
+      }
+
+      const hypothesis = await storage.getHypothesisById(hypothesisId);
+      if (!hypothesis) {
+        throw new Error(`Hypothesis not found: ${hypothesisId}`);
+      }
+
+      const result = refuteHypothesis(hypothesis, {
+        testResultId: testId,
+        reason,
+      });
+
+      if (!result.success) {
+        if (jsonMode) {
+          stdoutLine(JSON.stringify({ ok: false, error: result.error }, null, 2));
+        } else {
+          stderrLine(`✗ Error: ${result.error?.message ?? "Unknown error"}`);
+        }
+        process.exit(1);
+      }
+
+      await storage.saveHypothesis(result.hypothesis!);
+
+      const historyStore = new TransitionHistoryStore({ baseDir: projectKey });
+      await historyStore.logTransition(result.transition!);
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
+      } else {
+        stdoutLine(`✓ Killed hypothesis ${hypothesisId}`);
+        stdoutLine(`  State: ${result.transition!.fromState} → ${result.transition!.toState}`);
+        if (testId) stdoutLine(`  Killed by: ${testId}`);
+        if (reason) stdoutLine(`  Reason: ${reason}`);
+      }
+      process.exit(0);
+    }
+
+    // Subcommand: refine (alias for supersede)
+    if (sub === "refine" || sub === "supersede") {
+      const hypothesisId = action;
+      if (!hypothesisId) throw new Error(`Missing hypothesis ID. Usage: hypothesis ${sub} <id> --child=<new-id>`);
+
+      const childId = asStringFlag(flags, "child");
+      if (!childId) {
+        throw new Error("--child=<new-id> is required. Must link to the refined/superseding hypothesis.");
+      }
+
+      const hypothesis = await storage.getHypothesisById(hypothesisId);
+      if (!hypothesis) {
+        throw new Error(`Hypothesis not found: ${hypothesisId}`);
+      }
+
+      const child = await storage.getHypothesisById(childId);
+      if (!child) {
+        throw new Error(`Child hypothesis not found: ${childId}`);
+      }
+
+      const result = supersedeHypothesis(hypothesis, { childHypothesisId: childId });
+
+      if (!result.success) {
+        if (jsonMode) {
+          stdoutLine(JSON.stringify({ ok: false, error: result.error }, null, 2));
+        } else {
+          stderrLine(`✗ Error: ${result.error?.message ?? "Unknown error"}`);
+        }
+        process.exit(1);
+      }
+
+      await storage.saveHypothesis(result.hypothesis!);
+
+      const historyStore = new TransitionHistoryStore({ baseDir: projectKey });
+      await historyStore.logTransition(result.transition!);
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
+      } else {
+        stdoutLine(`✓ Refined hypothesis ${hypothesisId}`);
+        stdoutLine(`  State: ${result.transition!.fromState} → ${result.transition!.toState}`);
+        stdoutLine(`  Replaced by: ${childId}`);
+      }
+      process.exit(0);
+    }
+
+    // Subcommand: validate (alias for confirm)
+    if (sub === "validate" || sub === "confirm") {
+      const hypothesisId = action;
+      if (!hypothesisId) throw new Error(`Missing hypothesis ID. Usage: hypothesis ${sub} <id> --test=<test-id>`);
+
+      const testId = asStringFlag(flags, "test");
+      if (!testId) {
+        throw new Error("--test=<test-id> is required. Validation must be linked to a test result.");
+      }
+
+      const hypothesis = await storage.getHypothesisById(hypothesisId);
+      if (!hypothesis) {
+        throw new Error(`Hypothesis not found: ${hypothesisId}`);
+      }
+
+      const result = confirmHypothesis(hypothesis, { testResultId: testId });
+
+      if (!result.success) {
+        if (jsonMode) {
+          stdoutLine(JSON.stringify({ ok: false, error: result.error }, null, 2));
+        } else {
+          stderrLine(`✗ Error: ${result.error?.message ?? "Unknown error"}`);
+        }
+        process.exit(1);
+      }
+
+      await storage.saveHypothesis(result.hypothesis!);
+
+      const historyStore = new TransitionHistoryStore({ baseDir: projectKey });
+      await historyStore.logTransition(result.transition!);
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
+      } else {
+        stdoutLine(`✓ Validated hypothesis ${hypothesisId}`);
+        stdoutLine(`  State: ${result.transition!.fromState} → ${result.transition!.toState}`);
+        stdoutLine(`  Validated by: ${testId}`);
+        stdoutLine(`  ⚠️  Note: Validation is provisional. New tests may still refute this hypothesis.`);
+      }
+      process.exit(0);
+    }
+
+    // Subcommand: park (alias for defer)
+    if (sub === "park" || sub === "defer") {
+      const hypothesisId = action;
+      if (!hypothesisId) throw new Error(`Missing hypothesis ID. Usage: hypothesis ${sub} <id> [--reason="..."]`);
+
+      const reason = asStringFlag(flags, "reason");
+
+      const hypothesis = await storage.getHypothesisById(hypothesisId);
+      if (!hypothesis) {
+        throw new Error(`Hypothesis not found: ${hypothesisId}`);
+      }
+
+      const result = deferHypothesis(hypothesis, { reason });
+
+      if (!result.success) {
+        if (jsonMode) {
+          stdoutLine(JSON.stringify({ ok: false, error: result.error }, null, 2));
+        } else {
+          stderrLine(`✗ Error: ${result.error?.message ?? "Unknown error"}`);
+        }
+        process.exit(1);
+      }
+
+      await storage.saveHypothesis(result.hypothesis!);
+
+      const historyStore = new TransitionHistoryStore({ baseDir: projectKey });
+      await historyStore.logTransition(result.transition!);
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
+      } else {
+        stdoutLine(`✓ Parked hypothesis ${hypothesisId}`);
+        stdoutLine(`  State: ${result.transition!.fromState} → ${result.transition!.toState}`);
+        if (reason) stdoutLine(`  Reason: ${reason}`);
+      }
+      process.exit(0);
+    }
+
+    // Subcommand: reactivate
+    if (sub === "reactivate") {
+      const hypothesisId = action;
+      if (!hypothesisId) throw new Error("Missing hypothesis ID. Usage: hypothesis reactivate <id>");
+
+      const hypothesis = await storage.getHypothesisById(hypothesisId);
+      if (!hypothesis) {
+        throw new Error(`Hypothesis not found: ${hypothesisId}`);
+      }
+
+      const result = reactivateHypothesis(hypothesis);
+
+      if (!result.success) {
+        if (jsonMode) {
+          stdoutLine(JSON.stringify({ ok: false, error: result.error }, null, 2));
+        } else {
+          stderrLine(`✗ Error: ${result.error?.message ?? "Unknown error"}`);
+        }
+        process.exit(1);
+      }
+
+      await storage.saveHypothesis(result.hypothesis!);
+
+      const historyStore = new TransitionHistoryStore({ baseDir: projectKey });
+      await historyStore.logTransition(result.transition!);
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
+      } else {
+        stdoutLine(`✓ Reactivated hypothesis ${hypothesisId}`);
+        stdoutLine(`  State: ${result.transition!.fromState} → ${result.transition!.toState}`);
+      }
+      process.exit(0);
+    }
+
+    // Subcommand: history
+    if (sub === "history") {
+      const hypothesisId = action;
+      if (!hypothesisId) throw new Error("Missing hypothesis ID. Usage: hypothesis history <id>");
+
+      const hypothesis = await storage.getHypothesisById(hypothesisId);
+      if (!hypothesis) {
+        throw new Error(`Hypothesis not found: ${hypothesisId}`);
+      }
+
+      const historyStore = new TransitionHistoryStore({ baseDir: projectKey });
+      const history = await historyStore.getHistory(hypothesisId);
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({
+          ok: true,
+          hypothesisId,
+          currentState: hypothesis.state,
+          isTerminal: isTerminalState(hypothesis.state),
+          transitionCount: history.length,
+          transitions: history,
+        }, null, 2));
+      } else {
+        stdoutLine(`Timeline for ${hypothesisId}:`);
+        stdoutLine(`  ${hypothesis.createdAt}  created (${history.length > 0 ? history[0]?.fromState ?? "proposed" : hypothesis.state})`);
+
+        for (const t of history) {
+          stdoutLine(`  ${t.timestamp}  ${t.trigger}`);
+          stdoutLine(`                        ${t.fromState} → ${t.toState}`);
+          if (t.triggeredBy) stdoutLine(`                        Triggered by: ${t.triggeredBy}`);
+          if (t.reason) stdoutLine(`                        Reason: ${t.reason}`);
+        }
+
+        stdoutLine("");
+        if (isTerminalState(hypothesis.state)) {
+          stdoutLine(`Current state: ${hypothesis.state} (terminal)`);
+        } else {
+          stdoutLine(`Current state: ${hypothesis.state}`);
+        }
       }
       process.exit(0);
     }
