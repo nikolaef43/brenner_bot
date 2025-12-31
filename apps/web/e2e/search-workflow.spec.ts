@@ -1,7 +1,7 @@
 /**
  * E2E Tests: Search Workflow
  *
- * Tests the spotlight search (Cmd+K) workflow - the most critical user journey.
+ * Tests the spotlight search workflow (Cmd+K on macOS, Ctrl+K on Windows/Linux) - the most critical user journey.
  * Philosophy: Test real user flows with detailed logging.
  */
 

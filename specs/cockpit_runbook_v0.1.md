@@ -484,6 +484,9 @@ RESULT_FILE=$(ls -t artifacts/$THREAD_ID/experiments/T1/*.json | head -1)
 
 With `--json`:
 ```bash
+# Pick a specific run (avoid shell globs expanding to multiple files)
+RESULT_FILE=$(ls -t artifacts/$THREAD_ID/experiments/T1/*.json | head -1)
+
 ./brenner.ts experiment encode \
   --result-file "$RESULT_FILE" \
   --project-key "$PROJECT_KEY" \
@@ -502,6 +505,9 @@ These are agent responsibilities during the interpretation phase.
 The `experiment post` command combines encode + send:
 
 ```bash
+# Pick a specific run (avoid shell globs expanding to multiple files)
+RESULT_FILE=$(ls -t artifacts/$THREAD_ID/experiments/T1/*.json | head -1)
+
 ./brenner.ts experiment post \
   --result-file "$RESULT_FILE" \
   --project-key "$PROJECT_KEY" \
@@ -517,6 +523,9 @@ This:
 **Alternative**: Send manually with `mail send`:
 
 ```bash
+# Pick a specific run (avoid shell globs expanding to multiple files)
+RESULT_FILE=$(ls -t artifacts/$THREAD_ID/experiments/T1/*.json | head -1)
+
 ./brenner.ts experiment encode \
   --result-file "$RESULT_FILE" \
   --project-key "$PROJECT_KEY" \
