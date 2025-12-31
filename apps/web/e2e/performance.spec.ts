@@ -235,17 +235,18 @@ test.describe("Performance: Interactions", () => {
     await page.goto("/corpus", { waitUntil: "networkidle" });
 
     // Measure time to open search modal
+    // Use Control+k for cross-platform compatibility (works on Linux CI)
     const startTime = Date.now();
-    await page.keyboard.press("Meta+k");
+    await page.keyboard.press("Control+k");
 
     // Wait for search modal to appear
     const searchModal = page.locator('[data-testid="spotlight-search"], [role="dialog"]');
     await searchModal.first().waitFor({ state: "visible", timeout: 2000 });
 
     const openTime = Date.now() - startTime;
-    console.log(`\nSearch modal open time: ${openTime}ms (budget: 100ms)`);
+    console.log(`\nSearch modal open time: ${openTime}ms (budget: 500ms)`);
 
-    expect(openTime).toBeLessThan(500); // Allow 500ms for CI variance
+    expect(openTime).toBeLessThan(500); // 500ms allows CI variance
   });
 
   test("Navigation between pages is fast", async ({ page }) => {
