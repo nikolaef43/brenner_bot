@@ -100,7 +100,10 @@ export function critiqueToArtifactItem(c: Critique): CritiqueItem {
     name: c.targetId ? `Critique of ${c.targetId}` : `Critique of ${c.targetType}`,
     attack: c.attack,
     evidence: c.evidenceToConfirm ?? "",
-    current_status: c.status === "active" ? "active" : c.status === "addressed" ? "addressed" : "dismissed",
+    // Map critique status: active, addressed, dismissed, accepted
+    // "accepted" means changes were made, so map to "addressed" (not "dismissed")
+    current_status: c.status === "active" ? "active" :
+                    (c.status === "addressed" || c.status === "accepted") ? "addressed" : "dismissed",
     ...(hasThirdAlt && { real_third_alternative: true }),
     ...(c.proposedAlternative?.description && { proposed_alternative: c.proposedAlternative.description }),
   };
@@ -365,22 +368,27 @@ export class ScorecardAdapter {
       );
     }
 
-    // Load all data across sessions
+    // Load all sessions in parallel for efficiency
+    const sessionDataPromises = sessionIds.map(sessionId =>
+      Promise.all([
+        this.hypothesisStorage.loadSessionHypotheses(sessionId),
+        this.assumptionStorage.loadSessionAssumptions(sessionId),
+        this.anomalyStorage.loadSessionAnomalies(sessionId),
+        this.critiqueStorage.loadSessionCritiques(sessionId),
+        this.testStorage.loadSessionTests(sessionId),
+      ])
+    );
+
+    const allSessionData = await Promise.all(sessionDataPromises);
+
+    // Aggregate all data from all sessions
     const allHypotheses: Hypothesis[] = [];
     const allAssumptions: Assumption[] = [];
     const allAnomalies: Anomaly[] = [];
     const allCritiques: Critique[] = [];
     const allTests: TestRecord[] = [];
 
-    for (const sessionId of sessionIds) {
-      const [hypotheses, assumptions, anomalies, critiques, tests] = await Promise.all([
-        this.hypothesisStorage.loadSessionHypotheses(sessionId),
-        this.assumptionStorage.loadSessionAssumptions(sessionId),
-        this.anomalyStorage.loadSessionAnomalies(sessionId),
-        this.critiqueStorage.loadSessionCritiques(sessionId),
-        this.testStorage.loadSessionTests(sessionId),
-      ]);
-
+    for (const [hypotheses, assumptions, anomalies, critiques, tests] of allSessionData) {
       allHypotheses.push(...hypotheses);
       allAssumptions.push(...assumptions);
       allAnomalies.push(...anomalies);
