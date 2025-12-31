@@ -53,7 +53,6 @@ import {
   resolveAnomaly,
   deferAnomaly,
   reactivateAnomaly,
-  markParadigmShifting,
   linkSpawnedHypothesis,
   generateAnomalyId,
   type Anomaly,
@@ -2594,7 +2593,8 @@ ${JSON.stringify(delta, null, 2)}
           for (const a of anomalies) {
             const status = a.quarantineStatus.padEnd(16);
             const conflicts = a.conflictsWith.hypotheses.join(",") || "(none)";
-            stdoutLine(`[${status}] ${a.id}: ${a.observation.slice(0, 60)}... (conflicts: ${conflicts})`);
+            const obsPreview = a.observation.length > 60 ? `${a.observation.slice(0, 60)}...` : a.observation;
+            stdoutLine(`[${status}] ${a.id}: ${obsPreview} (conflicts: ${conflicts})`);
           }
         }
       }
