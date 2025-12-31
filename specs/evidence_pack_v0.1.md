@@ -253,9 +253,11 @@ brenner evidence add-excerpt \
   --thread-id RS-20251230-bio-rrp \
   --evidence-id EV-001 \
   --text "Recovery time constant was measured at 487 ± 32 ms" \
-  --verbatim true \
+  --verbatim \
   --location "p. 4, Results section"
 ```
+
+Note: `--verbatim` is a boolean flag (presence means true, absence means paraphrased).
 
 Result: New excerpt with anchor `EV-001#E1`.
 
@@ -480,11 +482,11 @@ This prevents accidental publication of copyrighted excerpts.
 ### Errors (must fix)
 
 - [ ] Evidence pack has valid `version` field
-- [ ] All record IDs follow `EV-NNN` format
-- [ ] All excerpt anchors follow `EN` format
+- [ ] All record IDs follow `EV-NNN` format (e.g., `EV-001`, `EV-042`)
+- [ ] All excerpt anchors follow `E{N}` format (e.g., `E1`, `E2`, `E12`)
 - [ ] No duplicate record IDs
 - [ ] No duplicate excerpt anchors within a record
-- [ ] Required fields present (id, type, title, source, relevance)
+- [ ] Required fields present (id, type, title, source, relevance, key_findings, verified, excerpts)
 
 ### Warnings (should fix)
 
