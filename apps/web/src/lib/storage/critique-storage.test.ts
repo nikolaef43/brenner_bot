@@ -44,7 +44,20 @@ async function createTestCritiqueData(
   const sessionId = overrides.sessionId ?? "TEST";
   const id = overrides.id ?? `C-${sessionId}-001`;
   const targetType = overrides.targetType ?? "hypothesis";
-  const targetId = overrides.targetId ?? (targetType === "framing" || targetType === "methodology" ? undefined : `H-${sessionId}-001`);
+
+  // Generate appropriate targetId based on targetType if not provided
+  let targetId: string | undefined;
+  if (overrides.targetId !== undefined) {
+    targetId = overrides.targetId;
+  } else if (targetType === "framing" || targetType === "methodology") {
+    targetId = undefined;
+  } else if (targetType === "hypothesis") {
+    targetId = `H-${sessionId}-001`;
+  } else if (targetType === "test") {
+    targetId = `T-${sessionId}-001`;
+  } else if (targetType === "assumption") {
+    targetId = `A-${sessionId}-001`;
+  }
 
   return createCritique({
     id,

@@ -194,17 +194,30 @@ export class AssumptionStorage {
 
   /**
    * Get a specific assumption by ID.
+   *
+   * Supports two ID formats:
+   * - Complex: A-{sessionId}-{seq} (e.g., A-TEST-001)
+   * - Simple: A{n} (e.g., A1, A42) - requires scanning all sessions
    */
   async getAssumptionById(id: string): Promise<Assumption | null> {
-    // Extract session ID from assumption ID (A-{sessionId}-{seq})
-    const match = id.match(/^A-(.+)-\d{3}$/);
-    if (!match) {
-      return null;
+    // Try complex format first: A-{sessionId}-{seq}
+    const complexMatch = id.match(/^A-(.+)-\d{3}$/);
+    if (complexMatch) {
+      const sessionId = complexMatch[1];
+      const assumptions = await this.loadSessionAssumptions(sessionId);
+      return assumptions.find((a) => a.id === id) ?? null;
     }
 
-    const sessionId = match[1];
-    const assumptions = await this.loadSessionAssumptions(sessionId);
-    return assumptions.find((a) => a.id === id) ?? null;
+    // Check for simple format: A{n}
+    const simpleMatch = id.match(/^A\d+$/);
+    if (simpleMatch) {
+      // For simple format, we need to scan all sessions
+      const allAssumptions = await this.getAllAssumptions();
+      return allAssumptions.find((a) => a.id === id) ?? null;
+    }
+
+    // Invalid format
+    return null;
   }
 
   /**

@@ -34,13 +34,15 @@ const hypothesisIdPattern = /^H-[A-Za-z0-9][\w-]*-\d{3}$/;
 
 /**
  * Test ID format for targets/references
+ * Supports both A-{session}-{seq} and simple T{n} format for backwards compatibility.
  */
-const testIdPattern = /^T-[A-Za-z0-9][\w-]*-\d{3}$/;
+const testIdPattern = /^T-[A-Za-z0-9][\w-]*-\d{3}$|^T\d+$/;
 
 /**
  * Assumption ID format for targets/references
+ * Supports both A-{session}-{seq} and simple A{n} format for backwards compatibility.
  */
-const assumptionIdPattern = /^A-[A-Za-z0-9][\w-]*-\d{3}$/;
+const assumptionIdPattern = /^A-[A-Za-z0-9][\w-]*-\d{3}$|^A\d+$/;
 
 /**
  * Transcript anchor format: §n or §n-m for ranges
