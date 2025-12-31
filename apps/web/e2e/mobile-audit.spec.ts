@@ -22,18 +22,18 @@ const PAGES = [
   { path: "/corpus", name: "corpus-index" },
   { path: "/corpus/initial-metaprompt", name: "initial-metaprompt" },
   { path: "/corpus/metaprompt", name: "metaprompt" },
-  { path: "/corpus/quote-bank", name: "quote-bank" },
-  { path: "/corpus/distillation-opus-45", name: "distillation-opus" },
   { path: "/corpus/distillation-gpt-52", name: "distillation-gpt" },
   { path: "/corpus/distillation-gemini-3", name: "distillation-gemini" },
   { path: "/distillations", name: "distillations" },
-  { path: "/method", name: "method" },
 ];
 
-// Large pages - take viewport screenshot to avoid timeout
+// Large pages - take viewport screenshot to avoid timeout (or exceed 32767px height limit)
 const LARGE_PAGES = [
   { path: "/corpus/transcript", name: "transcript" },
+  { path: "/corpus/quote-bank", name: "quote-bank" },
+  { path: "/corpus/distillation-opus-45", name: "distillation-opus" },
   { path: "/distillations/compare", name: "distillations-compare" },
+  { path: "/method", name: "method" },
 ];
 
 const SCREENSHOT_DIR = "./screenshots/mobile-audit";
