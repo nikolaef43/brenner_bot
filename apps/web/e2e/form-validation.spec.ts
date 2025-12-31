@@ -728,8 +728,9 @@ test.describe("Excerpt Basket Validation", () => {
 
       logger.info(`Persisted basket item visible after reload: ${hasItem}`);
 
-      // Check for item count badge
-      const badgeWithCount = page.locator('text=1').first();
+      // Check for item count badge (look for badge-like elements near the excerpt button)
+      // Use more specific selectors to avoid matching random "1"s on the page
+      const badgeWithCount = page.locator('[data-testid*="badge"], [class*="badge"], [aria-label*="item"], [role="status"]').filter({ hasText: "1" }).first();
       const hasBadge = await badgeWithCount.isVisible().catch(() => false);
 
       logger.info(`Item count badge visible: ${hasBadge}`);
@@ -753,7 +754,7 @@ test.describe("Form Keyboard Accessibility", () => {
     await context.addCookies([{
       name: "brenner_lab_secret",
       value: labSecret,
-      domain: "localhost",
+      domain: getCookieDomain(),
       path: "/",
     }]);
 
