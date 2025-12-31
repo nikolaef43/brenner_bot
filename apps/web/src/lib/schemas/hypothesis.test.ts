@@ -12,6 +12,7 @@ import {
   isValidAnchor,
   createHypothesis,
   createThirdAlternative,
+  warnMissingMechanism,
   type Hypothesis,
 } from "./hypothesis";
 
@@ -416,5 +417,50 @@ describe("createThirdAlternative", () => {
     });
 
     expect(hypothesis.mechanism).toBe("Required mechanism description.");
+  });
+});
+
+describe("warnMissingMechanism", () => {
+  const baseHypothesis = (overrides: Partial<Hypothesis>): Hypothesis => ({
+    id: "H-TEST-001",
+    statement: "Test statement for hypothesis.",
+    origin: "proposed",
+    category: "mechanistic",
+    confidence: "medium",
+    sessionId: "TEST",
+    state: "proposed",
+    isInference: false,
+    unresolvedCritiqueCount: 0,
+    createdAt: "2025-12-30T19:00:00Z",
+    updatedAt: "2025-12-30T19:00:00Z",
+    ...overrides,
+  });
+
+  it("returns warning for mechanistic hypothesis without mechanism", () => {
+    const hypothesis = baseHypothesis({ category: "mechanistic", mechanism: undefined });
+    const warning = warnMissingMechanism(hypothesis);
+    expect(warning).not.toBeNull();
+    expect(warning).toContain("should include a mechanism");
+  });
+
+  it("returns null for mechanistic hypothesis with mechanism", () => {
+    const hypothesis = baseHypothesis({
+      category: "mechanistic",
+      mechanism: "Cells count divisions.",
+    });
+    const warning = warnMissingMechanism(hypothesis);
+    expect(warning).toBeNull();
+  });
+
+  it("returns null for non-mechanistic hypothesis without mechanism", () => {
+    const hypothesis = baseHypothesis({ category: "phenomenological", mechanism: undefined });
+    const warning = warnMissingMechanism(hypothesis);
+    expect(warning).toBeNull();
+  });
+
+  it("returns null for third_alternative without mechanism", () => {
+    const hypothesis = baseHypothesis({ category: "third_alternative", mechanism: undefined });
+    const warning = warnMissingMechanism(hypothesis);
+    expect(warning).toBeNull();
   });
 });

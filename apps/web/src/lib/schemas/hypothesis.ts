@@ -277,23 +277,20 @@ export const HypothesisSchema = z
      * Free-form notes.
      */
     notes: z.string().max(2000, "Notes too long").optional(),
-  })
-  .refine(
-    (data) => {
-      // Mechanistic hypotheses SHOULD have a mechanism (warn, don't block)
-      // This is a soft requirement - the strict version would use superRefine
-      if (data.category === "mechanistic" && !data.mechanism) {
-        return true; // Allow but warn elsewhere
-      }
-      return true;
-    },
-    {
-      message: "Mechanistic hypotheses should include a mechanism description",
-      path: ["mechanism"],
-    }
-  );
+  });
 
 export type Hypothesis = z.infer<typeof HypothesisSchema>;
+
+/**
+ * Check if a mechanistic hypothesis is missing its mechanism.
+ * This is a soft validation - call this separately to generate warnings.
+ */
+export function warnMissingMechanism(hypothesis: Hypothesis): string | null {
+  if (hypothesis.category === "mechanistic" && !hypothesis.mechanism) {
+    return `Hypothesis ${hypothesis.id}: Mechanistic hypotheses should include a mechanism description`;
+  }
+  return null;
+}
 
 // ============================================================================
 // Validation Helpers
@@ -313,6 +310,29 @@ export const LEVEL_CONFLATION_PATTERNS = [
   /the (?:organism|cell|protein) (?:decides?|chooses?|wants?)/i,
   /(?:dna|rna|gene) (?:knows?|remembers?|learns?)/i,
   /(?:it|this) (?:wants to|tries to|needs to)/i,
+] as const;
+
+/**
+ * Placeholder patterns that indicate a low-quality third alternative.
+ * These suggest "both could be wrong" without specificity.
+ */
+const PLACEHOLDER_PATTERNS = [
+  /both (?:could be|are|might be) wrong/i,
+  /neither (?:is|may be) correct/i,
+  /question (?:is|may be) misspecified/i,
+] as const;
+
+/**
+ * Indicators of a genuinely orthogonal third alternative.
+ * These suggest a different causal structure, not just a blend.
+ */
+const ORTHOGONAL_INDICATORS = [
+  /different causal structure/i,
+  /shared assumption/i,
+  /cross-domain/i,
+  /neither.*nor/i,
+  /entirely different/i,
+  /orthogonal/i,
 ] as const;
 
 /**
@@ -355,19 +375,17 @@ export function validateThirdAlternative(hypotheses: Hypothesis[]): {
     };
   }
 
-  // Check for placeholder patterns
-  const placeholderPatterns = [
-    /both (?:could be|are|might be) wrong/i,
-    /neither (?:is|may be) correct/i,
-    /question (?:is|may be) misspecified/i,
-  ];
+  // Combine statement and mechanism for pattern matching
+  // (patterns use /i flag so no need to lowercase)
+  const combinedText = `${thirdAlt.statement} ${thirdAlt.mechanism ?? ""}`;
 
-  const statement = thirdAlt.statement.toLowerCase();
-  const mechanism = thirdAlt.mechanism?.toLowerCase() ?? "";
-  const combinedText = `${statement} ${mechanism}`;
+  // Check for placeholder patterns (suggests low quality)
+  const isPlaceholder = PLACEHOLDER_PATTERNS.some((p) => p.test(combinedText));
 
-  const isPlaceholder = placeholderPatterns.some((p) => p.test(combinedText));
+  // Check for orthogonal indicators (suggests high quality)
+  const isOrthogonal = ORTHOGONAL_INDICATORS.some((p) => p.test(combinedText));
 
+  // Placeholder without mechanism = quality 1
   if (isPlaceholder && !thirdAlt.mechanism) {
     return {
       present: true,
@@ -376,18 +394,6 @@ export function validateThirdAlternative(hypotheses: Hypothesis[]): {
         "Third alternative is a placeholder. Provide a specific mechanism or alternative framing.",
     };
   }
-
-  // Check if it proposes a genuinely different structure
-  const orthogonalIndicators = [
-    /different causal structure/i,
-    /shared assumption/i,
-    /cross-domain/i,
-    /neither.*nor/i,
-    /entirely different/i,
-    /orthogonal/i,
-  ];
-
-  const isOrthogonal = orthogonalIndicators.some((p) => p.test(combinedText));
 
   if (isOrthogonal) {
     return {
