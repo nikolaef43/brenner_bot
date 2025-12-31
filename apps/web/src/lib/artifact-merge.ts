@@ -83,6 +83,20 @@ export interface TestScore {
   ambiguity?: number;
 }
 
+/** Experiment run result attached to a test */
+export interface TestLastRun {
+  result_id: string;
+  result_path: string;
+  run_at: string;
+  exit_code: number;
+  timed_out: boolean;
+  duration_ms?: number;
+  summary?: string;
+}
+
+/** Test execution status */
+export type TestStatus = "untested" | "passed" | "failed" | "blocked" | "error";
+
 /** Discriminative test item */
 export interface TestItem extends BaseItem {
   name: string;
@@ -92,6 +106,11 @@ export interface TestItem extends BaseItem {
   potency_check: string;
   feasibility?: string;
   score?: TestScore;
+  // Experiment result fields (optional)
+  test_id?: string;
+  last_run?: TestLastRun;
+  status?: TestStatus;
+  actual_outcomes?: Record<string, string>;
 }
 
 /** Assumption item */
@@ -1014,6 +1033,7 @@ function renderTests(items: TestItem[]): string[] {
     const heading = isKilled(t) ? `### ~~${headingBase}~~` : `### ${headingBase}`;
 
     lines.push(heading);
+    if (t.test_id) lines.push(`**Test ID**: ${escapeInline(t.test_id)}`);
     lines.push(`**Procedure**: ${escapeInline(t.procedure)}`);
     lines.push(`**Discriminates**: ${escapeInline(t.discriminates)}`);
     lines.push("**Expected outcomes**:");
@@ -1028,6 +1048,24 @@ function renderTests(items: TestItem[]): string[] {
       const speed = t.score.speed ?? 0;
       const ambiguity = t.score.ambiguity ?? 0;
       lines.push(`**Evidence-per-week score**: LR=${lr}, Cost=${cost}, Speed=${speed}, Ambiguity=${ambiguity}`);
+    }
+    // Experiment result fields
+    if (t.status) lines.push(`**Status**: ${escapeInline(t.status)}`);
+    if (t.last_run) {
+      lines.push("**Last run**:");
+      lines.push(`- Result ID: \`${escapeInline(t.last_run.result_id)}\``);
+      lines.push(`- Run at: ${escapeInline(t.last_run.run_at)}`);
+      lines.push(`- Exit code: ${t.last_run.exit_code}`);
+      if (t.last_run.timed_out) lines.push(`- Timed out: yes`);
+      if (t.last_run.duration_ms != null) lines.push(`- Duration: ${(t.last_run.duration_ms / 1000).toFixed(2)}s`);
+      if (t.last_run.summary) lines.push(`- Summary: ${escapeInline(t.last_run.summary)}`);
+      lines.push(`- Result file: \`${escapeInline(t.last_run.result_path)}\``);
+    }
+    if (t.actual_outcomes && Object.keys(t.actual_outcomes).length > 0) {
+      lines.push("**Actual outcomes**:");
+      for (const [key, value] of Object.entries(t.actual_outcomes)) {
+        lines.push(`- ${key}: ${escapeInline(value)}`);
+      }
     }
     lines.push(...renderKillBlock(t));
     lines.push("");
