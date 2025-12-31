@@ -10,6 +10,7 @@
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 
@@ -120,6 +121,10 @@ function parseArgs(argv: string[]): ParsedArgs {
 
   for (let i = 0; i < argv.length; i++) {
     const token = argv[i] ?? "";
+    if (token === "--") {
+      positional.push(...argv.slice(i + 1));
+      break;
+    }
     if (!token.startsWith("--")) {
       positional.push(token);
       continue;
@@ -208,6 +213,78 @@ const sanitizeThreadIdForArtifactFilename = (threadId: string): string => {
   const strippedEdges = collapsedDashes.replace(/^[-.]+|[-.]+$/g, "");
   return strippedEdges || "thread";
 };
+
+function formatUtcTimestampForFilename(date: Date): string {
+  // YYYYMMDDTHHMMSSZ (UTC)
+  const iso = date.toISOString(); // e.g. 2025-12-31T04:03:31.119Z
+  const head = iso.slice(0, 19); // 2025-12-31T04:03:31
+  return head.replace(/[-:]/g, "") + "Z";
+}
+
+type ExperimentResultV01 = {
+  schema_version: "experiment_result_v0.1";
+  result_id: string;
+  capture_mode: "run" | "record";
+  thread_id: string;
+  test_id: string;
+
+  created_at: string;
+  cwd: string;
+  argv: string[] | null;
+
+  timeout_seconds: number | null;
+  timed_out: boolean;
+
+  exit_code: number;
+  started_at: string | null;
+  finished_at: string | null;
+  duration_ms: number | null;
+
+  stdout: string;
+  stderr: string;
+
+  git?: {
+    sha: string;
+    dirty: boolean;
+    status_porcelain: string[];
+  };
+
+  runtime: {
+    platform: string;
+    arch: string;
+    bun_version: string;
+  };
+};
+
+function bestEffortGitProvenance(cwd: string):
+  | {
+      sha: string;
+      dirty: boolean;
+      status_porcelain: string[];
+    }
+  | null {
+  const gitPath = Bun.which("git");
+  if (!gitPath) return null;
+
+  try {
+    const rev = Bun.spawnSync([gitPath, "rev-parse", "HEAD"], { cwd, stdout: "pipe", stderr: "pipe" });
+    if (rev.exitCode !== 0) return null;
+    const sha = rev.stdout.toString().trim();
+    if (!sha) return null;
+
+    const status = Bun.spawnSync([gitPath, "status", "--porcelain"], { cwd, stdout: "pipe", stderr: "pipe" });
+    if (status.exitCode !== 0) return null;
+    const statusLines = status.stdout
+      .toString()
+      .split("\n")
+      .map((s) => s.trimEnd())
+      .filter(Boolean);
+
+    return { sha, dirty: statusLines.length > 0, status_porcelain: statusLines };
+  } catch {
+    return null;
+  }
+}
 
 async function withWorkingDirectory<T>(cwd: string, fn: () => Promise<T>): Promise<T> {
   const previous = process.cwd();
@@ -974,6 +1051,10 @@ Commands:
   excerpt build [--sections <A,B>] [--tags <A,B>] [--limit <n>] [--theme <s>] [--ordering <relevance|chronological>]
                [--max-total-words <n>] [--max-quote-words <n>] [--transcript-file <path>] [--quote-bank-file <path>] [--json]
   corpus search <query> [--limit <n>] [--docs <A,B>] [--category <s>] [--model <s>] [--project-key <abs-path>] [--json]
+  experiment run --thread-id <id> --test-id <id> [--timeout <seconds>] [--cwd <path>] [--out-file <path>] [--json] -- <cmd> [args...]
+  experiment record --thread-id <id> --test-id <id> --exit-code <n>
+                   [--stdout-file <path>] [--stderr-file <path>] [--stdout <text>] [--stderr <text>]
+                   [--cwd <path>] [--command <s>] [--out-file <path>] [--json]
   mail health
   mail tools
   mail agents [--project-key <abs-path>]
@@ -1051,6 +1132,9 @@ Examples:
 
   # Search corpus (ranked hits with anchors + snippets)
   ./brenner.ts corpus search "ribosome" --docs transcript --limit 5
+
+  # Capture an experiment run
+  ./brenner.ts experiment run --thread-id RS-20251231-example --test-id T1 --timeout 60 -- bash -lc "echo hi; echo err 1>&2; exit 3"
 
   # Start a session (role-specific prompts) + watch status
   ./brenner.ts session start --project-key "$PWD" --to PurplePond,PurpleCat \\
@@ -1463,6 +1547,208 @@ async function main(): Promise<void> {
 
     stdoutLine(lines.join("\n"));
     process.exit(0);
+  }
+
+  if (top === "experiment") {
+    const jsonMode = asBoolFlag(flags, "json");
+    const threadId = asStringFlag(flags, "thread-id");
+    const testId = asStringFlag(flags, "test-id");
+    if (!threadId) throw new Error("Missing --thread-id.");
+    if (!testId) throw new Error("Missing --test-id.");
+
+    const cwd = resolve(asStringFlag(flags, "cwd") ?? process.cwd());
+    const outFileRaw = asStringFlag(flags, "out-file") ?? asStringFlag(flags, "out");
+
+    const safeThreadId = sanitizeThreadIdForArtifactFilename(threadId);
+    const safeTestId = sanitizeThreadIdForArtifactFilename(testId);
+    if (!outFileRaw && safeThreadId !== threadId) {
+      stderrLine(`Warning: sanitized thread id for experiment path: "${threadId}" -> "${safeThreadId}"`);
+    }
+    if (!outFileRaw && safeTestId !== testId) {
+      stderrLine(`Warning: sanitized test id for experiment path: "${testId}" -> "${safeTestId}"`);
+    }
+
+    const resultId = randomUUID();
+    const createdAt = new Date();
+    const timestamp = formatUtcTimestampForFilename(createdAt);
+    const defaultOutFile = join(
+      cwd,
+      "artifacts",
+      safeThreadId,
+      "experiments",
+      safeTestId,
+      `${timestamp}_${resultId}.json`
+    );
+    const outFile = resolve(outFileRaw ?? defaultOutFile);
+
+    if (sub === "run") {
+      const timeoutSeconds = asIntFlag(flags, "timeout") ?? 900;
+      if (timeoutSeconds <= 0) throw new Error("Invalid --timeout: must be > 0.");
+
+      const rawArgv = process.argv.slice(2);
+      const sepIndex = rawArgv.indexOf("--");
+      if (sepIndex === -1) throw new Error('Missing "--" separator before command.');
+      const commandArgv = rawArgv.slice(sepIndex + 1);
+      if (commandArgv.length === 0) throw new Error('Missing command after "--".');
+
+      const startedAt = createdAt;
+      let timedOut = false;
+      let stdout = "";
+      let stderr = "";
+
+      const proc = Bun.spawn(commandArgv, { cwd, stdout: "pipe", stderr: "pipe" });
+      const timeoutMs = timeoutSeconds * 1000;
+      const killTimer = setTimeout(() => {
+        timedOut = true;
+        try {
+          proc.kill();
+        } catch {
+          // ignore
+        }
+        setTimeout(() => {
+          try {
+            proc.kill("SIGKILL");
+          } catch {
+            // ignore
+          }
+        }, 1000);
+      }, timeoutMs);
+
+      try {
+        const stdoutPromise = proc.stdout ? new Response(proc.stdout).text() : Promise.resolve("");
+        const stderrPromise = proc.stderr ? new Response(proc.stderr).text() : Promise.resolve("");
+        const exitCodePromise = proc.exited;
+        const [out, err, exitCode] = await Promise.all([stdoutPromise, stderrPromise, exitCodePromise]);
+        stdout = out;
+        stderr = err;
+
+        const finishedAt = new Date();
+        const durationMs = finishedAt.getTime() - startedAt.getTime();
+        const git = bestEffortGitProvenance(cwd);
+
+        const result: ExperimentResultV01 = {
+          schema_version: "experiment_result_v0.1",
+          result_id: resultId,
+          capture_mode: "run",
+          thread_id: threadId,
+          test_id: testId,
+
+          created_at: startedAt.toISOString(),
+          cwd,
+          argv: commandArgv,
+
+          timeout_seconds: timeoutSeconds,
+          timed_out: timedOut,
+
+          exit_code: exitCode,
+          started_at: startedAt.toISOString(),
+          finished_at: finishedAt.toISOString(),
+          duration_ms: durationMs,
+
+          stdout,
+          stderr,
+
+          ...(git ? { git } : {}),
+          runtime: { platform: process.platform, arch: process.arch, bun_version: Bun.version },
+        };
+
+        mkdirSync(dirname(outFile), { recursive: true });
+        writeFileSync(outFile, JSON.stringify(result, null, 2), "utf8");
+
+        if (jsonMode) {
+          stdoutLine(JSON.stringify({ ok: true, out_file: outFile, result }, null, 2));
+        } else {
+          stdoutLine(outFile);
+          if (timedOut) stderrLine(`Timed out after ${timeoutSeconds}s.`);
+        }
+
+        process.exit(0);
+      } finally {
+        clearTimeout(killTimer);
+      }
+    }
+
+    if (sub === "record") {
+      const exitCode = asIntFlag(flags, "exit-code");
+      if (typeof exitCode !== "number") throw new Error("Missing --exit-code.");
+
+      const stdoutFile = asStringFlag(flags, "stdout-file");
+      const stderrFile = asStringFlag(flags, "stderr-file");
+      const stdoutInline = asStringFlag(flags, "stdout");
+      const stderrInline = asStringFlag(flags, "stderr");
+      const commandRaw = asStringFlag(flags, "command");
+
+      if (stdoutFile && stdoutInline) throw new Error("Use either --stdout-file or --stdout (not both).");
+      if (stderrFile && stderrInline) throw new Error("Use either --stderr-file or --stderr (not both).");
+
+      const stdoutText = stdoutFile ? readTextFile(resolve(stdoutFile)) : stdoutInline ?? "";
+      const stderrText = stderrFile ? readTextFile(resolve(stderrFile)) : stderrInline ?? "";
+
+      let argv: string[] | null = null;
+      if (commandRaw) {
+        if (commandRaw.trim().startsWith("[")) {
+          try {
+            const parsed = JSON.parse(commandRaw) as Json;
+            if (Array.isArray(parsed) && parsed.every((v) => typeof v === "string")) argv = parsed as string[];
+          } catch {
+            // ignore
+          }
+        }
+        if (!argv) {
+          if (commandRaw.includes(",")) {
+            const csv = commandRaw
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean);
+            if (csv.length > 0) argv = csv;
+          } else {
+            const tokens = splitCommand(commandRaw);
+            if (tokens.length > 0) argv = tokens;
+          }
+        }
+      }
+
+      const git = bestEffortGitProvenance(cwd);
+
+      const result: ExperimentResultV01 = {
+        schema_version: "experiment_result_v0.1",
+        result_id: resultId,
+        capture_mode: "record",
+        thread_id: threadId,
+        test_id: testId,
+
+        created_at: createdAt.toISOString(),
+        cwd,
+        argv,
+
+        timeout_seconds: null,
+        timed_out: false,
+
+        exit_code: exitCode,
+        started_at: null,
+        finished_at: null,
+        duration_ms: null,
+
+        stdout: stdoutText,
+        stderr: stderrText,
+
+        ...(git ? { git } : {}),
+        runtime: { platform: process.platform, arch: process.arch, bun_version: Bun.version },
+      };
+
+      mkdirSync(dirname(outFile), { recursive: true });
+      writeFileSync(outFile, JSON.stringify(result, null, 2), "utf8");
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, out_file: outFile, result }, null, 2));
+      } else {
+        stdoutLine(outFile);
+      }
+
+      process.exit(0);
+    }
+
+    throw new Error(`Unknown experiment subcommand: ${sub ?? "(missing)"}`);
   }
 
   if (top === "mail") {
