@@ -107,24 +107,25 @@ test.describe("Visual Regression", () => {
       });
 
       await withStep(logger, page, "Capture search modal", async () => {
-        // Focus on the modal area for screenshot
-        const modal = page.locator('[data-testid="spotlight-search"], [role="dialog"], .spotlight-search, [class*="spotlight"]').first();
+        // Use the actual selector from SpotlightSearch.tsx: role="dialog" aria-label="Search"
+        const modal = page.locator('[role="dialog"][aria-label="Search"]');
         const isVisible = await modal.isVisible().catch(() => false);
 
-        if (isVisible) {
-          await expect(modal).toHaveScreenshot("spotlight-modal.png", {
-            ...SNAPSHOT_OPTIONS,
-            maxDiffPixels: 150, // Allow more variance for input caret
-          });
-          logger.info("Spotlight modal screenshot captured");
-        } else {
-          // Capture full page if modal selector not found
-          await expect(page).toHaveScreenshot("spotlight-modal-full.png", {
+        if (!isVisible) {
+          // Fallback: capture full page with modal overlay visible
+          logger.warn("Modal selector not matched, capturing full page with modal state");
+          await expect(page).toHaveScreenshot("spotlight-modal.png", {
             ...SNAPSHOT_OPTIONS,
             maxDiffPixels: 200,
           });
-          logger.warn("Modal selector not found, captured full page");
+          return;
         }
+
+        await expect(modal).toHaveScreenshot("spotlight-modal.png", {
+          ...SNAPSHOT_OPTIONS,
+          maxDiffPixels: 150, // Allow more variance for input caret
+        });
+        logger.info("Spotlight modal screenshot captured");
       });
     });
 
@@ -139,14 +140,14 @@ test.describe("Visual Regression", () => {
         const nav = page.locator("nav").first();
         const isVisible = await nav.isVisible().catch(() => false);
 
-        if (isVisible) {
-          await expect(nav).toHaveScreenshot("navigation-bar.png", {
-            ...SNAPSHOT_OPTIONS,
-          });
-          logger.info("Navigation bar screenshot captured");
-        } else {
-          logger.warn("Navigation element not found, skipping");
+        if (!isVisible) {
+          test.skip(true, "Navigation element not found in this environment");
         }
+
+        await expect(nav).toHaveScreenshot("navigation-bar.png", {
+          ...SNAPSHOT_OPTIONS,
+        });
+        logger.info("Navigation bar screenshot captured");
       });
     });
 
@@ -165,14 +166,14 @@ test.describe("Visual Regression", () => {
         const footer = page.locator("footer").first();
         const isVisible = await footer.isVisible().catch(() => false);
 
-        if (isVisible) {
-          await expect(footer).toHaveScreenshot("footer.png", {
-            ...SNAPSHOT_OPTIONS,
-          });
-          logger.info("Footer screenshot captured");
-        } else {
-          logger.warn("Footer element not found, skipping");
+        if (!isVisible) {
+          test.skip(true, "Footer element not found in this environment");
         }
+
+        await expect(footer).toHaveScreenshot("footer.png", {
+          ...SNAPSHOT_OPTIONS,
+        });
+        logger.info("Footer screenshot captured");
       });
     });
   });

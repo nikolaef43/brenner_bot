@@ -1776,15 +1776,15 @@ async function buildSessionDataFromStorage(sessionId: string, baseDir: string): 
     id: x.id,
     name: x.observation.slice(0, 50),
     observation: x.observation,
-    conflicts_with: x.conflictsWith,
-    status: x.status as "active" | "resolved" | "deferred" | undefined,
+    conflicts_with: [...x.conflictsWith.hypotheses, ...x.conflictsWith.assumptions],
+    status: x.quarantineStatus as "active" | "resolved" | "deferred" | undefined,
   }));
 
   const adversarialCritique = critiques.map((c) => ({
     id: c.id,
-    name: c.title,
-    attack: c.challenge,
-    evidence: c.evidence ?? "",
+    name: c.attack.slice(0, 50),
+    attack: c.attack,
+    evidence: c.evidenceToConfirm ?? "",
     current_status: c.status,
     real_third_alternative: c.proposedAlternative !== undefined,
   }));
