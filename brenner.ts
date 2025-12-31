@@ -301,6 +301,57 @@ type ExperimentResultV01 = {
   };
 };
 
+// ============================================================================
+// Evidence Pack Types (v0.1)
+// ============================================================================
+
+type EvidenceType =
+  | "paper"
+  | "preprint"
+  | "dataset"
+  | "experiment"
+  | "observation"
+  | "prior_session"
+  | "expert_opinion"
+  | "code_artifact";
+
+type EvidenceExcerpt = {
+  anchor: string; // E1, E2, etc.
+  text: string;
+  verbatim: boolean;
+  location?: string;
+  note?: string;
+};
+
+type EvidenceRecord = {
+  id: string; // EV-001, EV-002, etc.
+  type: EvidenceType;
+  title: string;
+  authors?: string[];
+  date?: string;
+  source: string;
+  access_method: "url" | "doi" | "file" | "session" | "manual";
+  imported_at: string;
+  imported_by: string;
+  relevance: string;
+  key_findings: string[];
+  supports?: string[];
+  refutes?: string[];
+  informs?: string[];
+  verified: boolean;
+  verification_notes?: string;
+  excerpts: EvidenceExcerpt[];
+};
+
+type EvidencePack = {
+  version: "0.1";
+  thread_id: string;
+  created_at: string;
+  updated_at: string;
+  next_id: number;
+  records: EvidenceRecord[];
+};
+
 function bestEffortGitProvenance(cwd: string):
   | {
       sha: string;
@@ -1102,6 +1153,16 @@ Commands:
                    [--cwd <path>] [--command <s>] [--out-file <path>] [--json]
   experiment encode --result-file <path> [--out-file <path>] [--project-key <abs-path>] [--json]
   experiment post --result-file <path> --sender <AgentName> --to <A,B> [--project-key <abs-path>] [--json]
+
+  evidence init --thread-id <id> [--project-key <abs-path>]
+  evidence add --thread-id <id> --type <type> --title <s> --source <s> [--relevance <s>]
+              [--supports <H1,H2>] [--refutes <H3>] [--informs <T1>] [--project-key <abs-path>] [--json]
+  evidence add-excerpt --thread-id <id> --evidence-id <EV-NNN> --text <s>
+              [--verbatim] [--location <s>] [--note <s>] [--project-key <abs-path>] [--json]
+  evidence list --thread-id <id> [--project-key <abs-path>] [--json]
+  evidence render --thread-id <id> [--project-key <abs-path>] [--out-file <path>]
+  evidence verify --thread-id <id> --evidence-id <EV-NNN> --notes <s> [--project-key <abs-path>] [--json]
+
   mail health
   mail tools
   mail agents [--project-key <abs-path>]
@@ -2076,6 +2137,319 @@ ${JSON.stringify(delta, null, 2)}
     }
 
     throw new Error(`Unknown experiment subcommand: ${sub ?? "(missing)"}`);
+  }
+
+  // ============================================================================
+  // Evidence Pack Commands
+  // ============================================================================
+
+  if (top === "evidence") {
+    const jsonMode = asBoolFlag(flags, "json");
+    const projectKey = asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey;
+    const threadId = asStringFlag(flags, "thread-id");
+
+    if (!threadId) throw new Error("Missing --thread-id.");
+
+    // Evidence pack path: artifacts/<thread_id>/evidence.json
+    const safeThreadId = threadId.replace(/[^a-zA-Z0-9_.-]/g, "_");
+    const evidenceDir = resolve(projectKey, "artifacts", safeThreadId);
+    const evidenceJsonPath = join(evidenceDir, "evidence.json");
+    const evidenceMdPath = join(evidenceDir, "evidence.md");
+
+    // Helper: read existing evidence pack or return null
+    function readEvidencePack(): EvidencePack | null {
+      if (!existsSync(evidenceJsonPath)) return null;
+      try {
+        const content = readTextFile(evidenceJsonPath);
+        return JSON.parse(content) as EvidencePack;
+      } catch {
+        return null;
+      }
+    }
+
+    // Helper: write evidence pack
+    function writeEvidencePack(pack: EvidencePack): void {
+      pack.updated_at = new Date().toISOString();
+      mkdirSync(evidenceDir, { recursive: true });
+      writeFileSync(evidenceJsonPath, JSON.stringify(pack, null, 2), "utf8");
+    }
+
+    // Helper: format evidence ID
+    function formatEvidenceId(n: number): string {
+      return `EV-${String(n).padStart(3, "0")}`;
+    }
+
+    // Helper: infer access method from source
+    function inferAccessMethod(source: string): EvidenceRecord["access_method"] {
+      if (source.startsWith("doi:") || source.startsWith("https://doi.org/")) return "doi";
+      if (source.startsWith("http://") || source.startsWith("https://")) return "url";
+      if (source.startsWith("file://") || source.startsWith("/") || source.startsWith("./")) return "file";
+      if (source.startsWith("session://")) return "session";
+      return "manual";
+    }
+
+    // Helper: render evidence pack to markdown
+    function renderEvidenceMd(pack: EvidencePack): string {
+      const lines: string[] = [];
+      lines.push(`# Evidence Pack: ${pack.thread_id}`);
+      lines.push("");
+      lines.push(`> Created: ${pack.created_at}`);
+      lines.push(`> Updated: ${pack.updated_at}`);
+      lines.push(`> Records: ${pack.records.length}`);
+      lines.push("");
+      lines.push("---");
+
+      for (const rec of pack.records) {
+        lines.push("");
+        lines.push(`## ${rec.id}: ${rec.title}`);
+        lines.push("");
+        lines.push("| Field | Value |");
+        lines.push("|-------|-------|");
+        lines.push(`| Type | ${rec.type} |`);
+        if (rec.authors?.length) lines.push(`| Authors | ${rec.authors.join("; ")} |`);
+        if (rec.date) lines.push(`| Date | ${rec.date} |`);
+        lines.push(`| Source | ${rec.source} |`);
+        lines.push(`| Verified | ${rec.verified ? `Yes${rec.verification_notes ? ` (${rec.verification_notes})` : ""}` : "No"} |`);
+        if (rec.supports?.length) lines.push(`| Supports | ${rec.supports.join(", ")} |`);
+        if (rec.refutes?.length) lines.push(`| Refutes | ${rec.refutes.join(", ")} |`);
+        if (rec.informs?.length) lines.push(`| Informs | ${rec.informs.join(", ")} |`);
+        lines.push("");
+        lines.push(`**Relevance**: ${rec.relevance}`);
+        lines.push("");
+        if (rec.key_findings.length > 0) {
+          lines.push("**Key Findings**:");
+          for (const finding of rec.key_findings) {
+            lines.push(`- ${finding}`);
+          }
+          lines.push("");
+        }
+        if (rec.excerpts.length > 0) {
+          lines.push("### Excerpts");
+          lines.push("");
+          for (const ex of rec.excerpts) {
+            const loc = ex.location ? `, ${ex.location}` : "";
+            const type = ex.verbatim ? "verbatim" : "paraphrased";
+            lines.push(`**${rec.id}#${ex.anchor}** (${type}${loc}):`);
+            lines.push(`> ${ex.text}`);
+            if (ex.note) {
+              lines.push(`>`);
+              lines.push(`> *Note: ${ex.note}*`);
+            }
+            lines.push("");
+          }
+        }
+        lines.push("---");
+      }
+
+      return lines.join("\n");
+    }
+
+    // Subcommand: init
+    if (sub === "init") {
+      const existing = readEvidencePack();
+      if (existing) {
+        if (jsonMode) {
+          stdoutLine(JSON.stringify({ ok: true, existing: true, path: evidenceJsonPath, records: existing.records.length }, null, 2));
+        } else {
+          stdoutLine(`Evidence pack already exists: ${evidenceJsonPath} (${existing.records.length} records)`);
+        }
+        process.exit(0);
+      }
+
+      const now = new Date().toISOString();
+      const pack: EvidencePack = {
+        version: "0.1",
+        thread_id: threadId,
+        created_at: now,
+        updated_at: now,
+        next_id: 1,
+        records: [],
+      };
+      writeEvidencePack(pack);
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, created: true, path: evidenceJsonPath }, null, 2));
+      } else {
+        stdoutLine(`Created: ${evidenceJsonPath}`);
+      }
+      process.exit(0);
+    }
+
+    // Subcommand: add
+    if (sub === "add") {
+      const evType = asStringFlag(flags, "type") as EvidenceType | undefined;
+      const title = asStringFlag(flags, "title");
+      const source = asStringFlag(flags, "source");
+      const relevance = asStringFlag(flags, "relevance") ?? "";
+      const supports = splitCsv(asStringFlag(flags, "supports"));
+      const refutes = splitCsv(asStringFlag(flags, "refutes"));
+      const informs = splitCsv(asStringFlag(flags, "informs"));
+
+      if (!evType) throw new Error("Missing --type (paper|preprint|dataset|experiment|observation|prior_session|expert_opinion|code_artifact).");
+      if (!title) throw new Error("Missing --title.");
+      if (!source) throw new Error("Missing --source.");
+
+      let pack = readEvidencePack();
+      if (!pack) {
+        // Auto-init
+        const now = new Date().toISOString();
+        pack = {
+          version: "0.1",
+          thread_id: threadId,
+          created_at: now,
+          updated_at: now,
+          next_id: 1,
+          records: [],
+        };
+      }
+
+      const evId = formatEvidenceId(pack.next_id);
+      const agentName = process.env.AGENT_NAME ?? "operator";
+
+      const record: EvidenceRecord = {
+        id: evId,
+        type: evType,
+        title,
+        source,
+        access_method: inferAccessMethod(source),
+        imported_at: new Date().toISOString(),
+        imported_by: agentName,
+        relevance,
+        key_findings: [],
+        verified: false,
+        excerpts: [],
+      };
+      if (supports.length > 0) record.supports = supports;
+      if (refutes.length > 0) record.refutes = refutes;
+      if (informs.length > 0) record.informs = informs;
+
+      pack.records.push(record);
+      pack.next_id++;
+      writeEvidencePack(pack);
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, evidence_id: evId, path: evidenceJsonPath }, null, 2));
+      } else {
+        stdoutLine(`Added ${evId}: ${title}`);
+      }
+      process.exit(0);
+    }
+
+    // Subcommand: add-excerpt
+    if (sub === "add-excerpt") {
+      const evidenceId = asStringFlag(flags, "evidence-id");
+      const text = asStringFlag(flags, "text");
+      const verbatim = asBoolFlag(flags, "verbatim");
+      const location = asStringFlag(flags, "location");
+      const note = asStringFlag(flags, "note");
+
+      if (!evidenceId) throw new Error("Missing --evidence-id (e.g., EV-001).");
+      if (!text) throw new Error("Missing --text.");
+
+      const pack = readEvidencePack();
+      if (!pack) throw new Error(`No evidence pack found at ${evidenceJsonPath}. Run 'evidence init' first.`);
+
+      const record = pack.records.find((r) => r.id === evidenceId);
+      if (!record) throw new Error(`Evidence record ${evidenceId} not found.`);
+
+      const nextAnchor = `E${record.excerpts.length + 1}`;
+      const excerpt: EvidenceExcerpt = {
+        anchor: nextAnchor,
+        text,
+        verbatim,
+      };
+      if (location) excerpt.location = location;
+      if (note) excerpt.note = note;
+
+      record.excerpts.push(excerpt);
+      writeEvidencePack(pack);
+
+      const fullAnchor = `${evidenceId}#${nextAnchor}`;
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, anchor: fullAnchor, path: evidenceJsonPath }, null, 2));
+      } else {
+        stdoutLine(`Added excerpt ${fullAnchor}`);
+      }
+      process.exit(0);
+    }
+
+    // Subcommand: list
+    if (sub === "list") {
+      const pack = readEvidencePack();
+      if (!pack) {
+        if (jsonMode) {
+          stdoutLine(JSON.stringify({ ok: true, records: [], path: evidenceJsonPath, exists: false }, null, 2));
+        } else {
+          stdoutLine(`No evidence pack found at ${evidenceJsonPath}`);
+        }
+        process.exit(0);
+      }
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, records: pack.records, path: evidenceJsonPath, exists: true }, null, 2));
+      } else {
+        if (pack.records.length === 0) {
+          stdoutLine("No evidence records.");
+        } else {
+          for (const rec of pack.records) {
+            const verified = rec.verified ? "✓" : " ";
+            const excerpts = rec.excerpts.length > 0 ? ` (${rec.excerpts.length} excerpts)` : "";
+            stdoutLine(`[${verified}] ${rec.id}: ${rec.title} [${rec.type}]${excerpts}`);
+          }
+        }
+      }
+      process.exit(0);
+    }
+
+    // Subcommand: render
+    if (sub === "render") {
+      const outFile = asStringFlag(flags, "out-file");
+
+      const pack = readEvidencePack();
+      if (!pack) throw new Error(`No evidence pack found at ${evidenceJsonPath}. Run 'evidence init' first.`);
+
+      const md = renderEvidenceMd(pack);
+
+      if (outFile) {
+        const resolvedOut = resolve(projectKey, outFile);
+        mkdirSync(dirname(resolvedOut), { recursive: true });
+        writeFileSync(resolvedOut, md, "utf8");
+        stdoutLine(resolvedOut);
+      } else {
+        // Also write to default location
+        writeFileSync(evidenceMdPath, md, "utf8");
+        stdoutLine(md);
+      }
+      process.exit(0);
+    }
+
+    // Subcommand: verify
+    if (sub === "verify") {
+      const evidenceId = asStringFlag(flags, "evidence-id");
+      const notes = asStringFlag(flags, "notes");
+
+      if (!evidenceId) throw new Error("Missing --evidence-id (e.g., EV-001).");
+      if (!notes) throw new Error("Missing --notes.");
+
+      const pack = readEvidencePack();
+      if (!pack) throw new Error(`No evidence pack found at ${evidenceJsonPath}. Run 'evidence init' first.`);
+
+      const record = pack.records.find((r) => r.id === evidenceId);
+      if (!record) throw new Error(`Evidence record ${evidenceId} not found.`);
+
+      record.verified = true;
+      record.verification_notes = notes;
+      writeEvidencePack(pack);
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, evidence_id: evidenceId, verified: true }, null, 2));
+      } else {
+        stdoutLine(`Verified ${evidenceId}: ${notes}`);
+      }
+      process.exit(0);
+    }
+
+    throw new Error(`Unknown evidence subcommand: ${sub ?? "(missing)"}`);
   }
 
   if (top === "mail") {
