@@ -343,6 +343,10 @@ export function SessionActions({
     setBusy("experiment_run");
     setError(null);
     setLastOk(null);
+    setExperimentResult(null);
+    setExperimentResultFile(null);
+    setDeltaSubject("");
+    setDeltaBodyMd("");
 
     try {
       const testId = experimentTestId.trim();
@@ -393,6 +397,7 @@ export function SessionActions({
     const generated = generateDeltaFromExperiment({ threadId, testId, result: experimentResult, resultFile: experimentResultFile });
     setDeltaSubject(generated.subject);
     setDeltaBodyMd(generated.bodyMd);
+    setError(null);
     setLastOk("Generated DELTA draft from latest experiment result");
   };
 
