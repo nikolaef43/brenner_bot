@@ -118,6 +118,14 @@ export interface KickoffConfig {
   memoryContext?: string;
   /** List of agent names to receive kickoff */
   recipients: string[];
+  /**
+   * Optional explicit roster mapping from recipient → role.
+   *
+   * When provided, kickoff composition must NOT rely on recipient name heuristics
+   * (real Agent Mail identities are adjective+noun). This mapping is treated as
+   * the source of truth and must cover every recipient.
+   */
+  recipientRoles?: Record<string, AgentRole>;
   /** Optional seed hypotheses */
   initialHypotheses?: string;
   /** Optional constraints (time bounds, scope limits) */
@@ -227,6 +235,37 @@ ${role.description}
 // Message Composition
 // ============================================================================
 
+const AGENT_ROLE_VALUES: AgentRole[] = ["hypothesis_generator", "test_designer", "adversarial_critic"];
+
+function isAgentRole(value: unknown): value is AgentRole {
+  return typeof value === "string" && AGENT_ROLE_VALUES.includes(value as AgentRole);
+}
+
+function normalizeRecipientKey(name: string): string {
+  return name.trim().toLowerCase();
+}
+
+function buildRecipientRoleMap(
+  recipientRoles: Record<string, AgentRole> | undefined,
+): Map<string, AgentRole> | null {
+  if (!recipientRoles) return null;
+
+  const map = new Map<string, AgentRole>();
+  for (const [recipient, role] of Object.entries(recipientRoles)) {
+    const key = normalizeRecipientKey(recipient);
+    if (!key) throw new Error("Invalid recipientRoles: empty recipient name.");
+    if (!isAgentRole(role)) throw new Error(`Invalid recipientRoles entry for "${recipient}": "${String(role)}".`);
+    map.set(key, role);
+  }
+  return map;
+}
+
+const ROLE_CONFIG_BY_AGENT_ROLE: Record<AgentRole, RoleConfig> = {
+  hypothesis_generator: AGENT_ROLES["Codex"],
+  test_designer: AGENT_ROLES["Opus"],
+  adversarial_critic: AGENT_ROLES["Gemini"],
+};
+
 /**
  * Get the role configuration for an agent name.
  * Falls back to DEFAULT_ROLE for unknown agents.
@@ -274,6 +313,18 @@ function composeKickoffBody(config: KickoffConfig, role: RoleConfig): string {
   // Title
   sections.push(`# Brenner Protocol Session: ${config.threadId}`);
   sections.push("");
+
+  // Explicit roster (when provided)
+  const explicitRoles = buildRecipientRoleMap(config.recipientRoles);
+  if (explicitRoles) {
+    sections.push("## Roster (explicit)");
+    for (const recipient of config.recipients) {
+      const assigned = explicitRoles.get(normalizeRecipientKey(recipient));
+      const label = assigned ? ROLE_CONFIG_BY_AGENT_ROLE[assigned].displayName : "Unassigned";
+      sections.push(`- ${recipient}: ${label}`);
+    }
+    sections.push("");
+  }
 
   // Role assignment
   sections.push(getRolePromptSection(role));
@@ -353,8 +404,18 @@ function composeKickoffBody(config: KickoffConfig, role: RoleConfig): string {
  * Each recipient gets a role-specific message.
  */
 export function composeKickoffMessages(config: KickoffConfig): KickoffMessage[] {
+  const explicitRoles = buildRecipientRoleMap(config.recipientRoles);
+  if (explicitRoles) {
+    const missing = config.recipients.filter((r) => !explicitRoles.has(normalizeRecipientKey(r)));
+    if (missing.length > 0) {
+      throw new Error(`Missing recipient role mapping for: ${missing.join(", ")}`);
+    }
+  }
+
   return config.recipients.map((recipient) => {
-    const role = getAgentRole(recipient);
+    const role = explicitRoles
+      ? ROLE_CONFIG_BY_AGENT_ROLE[explicitRoles.get(normalizeRecipientKey(recipient))!]
+      : getAgentRole(recipient);
     const subject = `KICKOFF: [${config.threadId}] ${config.researchQuestion.slice(0, 60)}${config.researchQuestion.length > 60 ? "..." : ""}`;
     const body = composeKickoffBody(config, role);
 

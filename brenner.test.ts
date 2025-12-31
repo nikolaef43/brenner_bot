@@ -989,6 +989,96 @@ describe("session start validation", () => {
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("--question");
   });
+
+  it("rejects malformed --role-map entries", async () => {
+    const result = await runCli([
+      "session",
+      "start",
+      "--sender",
+      "Test",
+      "--to",
+      "BlueLake,PurpleMountain",
+      "--thread-id",
+      "TEST-1",
+      "--excerpt-file",
+      "README.md",
+      "--question",
+      "Test?",
+      "--role-map",
+      "BlueLake",
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--role-map entry");
+  });
+
+  it("rejects unknown roles in --role-map", async () => {
+    const result = await runCli([
+      "session",
+      "start",
+      "--sender",
+      "Test",
+      "--to",
+      "BlueLake,PurpleMountain",
+      "--thread-id",
+      "TEST-1",
+      "--excerpt-file",
+      "README.md",
+      "--question",
+      "Test?",
+      "--role-map",
+      "BlueLake=not_a_role,PurpleMountain=test_designer",
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("Invalid --role-map role");
+  });
+
+  it("rejects --role-map that doesn't cover all recipients", async () => {
+    const result = await runCli([
+      "session",
+      "start",
+      "--sender",
+      "Test",
+      "--to",
+      "BlueLake,PurpleMountain",
+      "--thread-id",
+      "TEST-1",
+      "--excerpt-file",
+      "README.md",
+      "--question",
+      "Test?",
+      "--role-map",
+      "BlueLake=hypothesis_generator",
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--role-map is missing entries for");
+  });
+
+  it("rejects --role-map in unified mode", async () => {
+    const result = await runCli([
+      "session",
+      "start",
+      "--sender",
+      "Test",
+      "--to",
+      "BlueLake",
+      "--thread-id",
+      "TEST-1",
+      "--excerpt-file",
+      "README.md",
+      "--question",
+      "Test?",
+      "--unified",
+      "--role-map",
+      "BlueLake=hypothesis_generator",
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--role-map");
+    expect(result.stderr).toContain("--unified");
+  });
 });
 
 // ============================================================================

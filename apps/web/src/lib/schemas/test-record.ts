@@ -315,7 +315,10 @@ export const TestExecutionSchema = z.object({
   rawDataRef: z.string().optional(),
 
   /** Which hypothesis's prediction was matched? */
-  matchedHypothesisId: z.string().optional(),
+  matchedHypothesisId: z
+    .string()
+    .regex(/^H-[A-Za-z0-9][\w-]*-\d{3}$/, "Invalid hypothesis ID format")
+    .optional(),
 
   /** Execution notes */
   notes: z.string().optional(),
@@ -564,13 +567,8 @@ export function validatePotencyCheck(test: TestRecord): {
   const issues: string[] = [];
   const check = test.potencyCheck;
 
-  if (!check) {
-    return {
-      valid: false,
-      score: 0,
-      issues: ["CRITICAL: No potency check. Test MUST have a potency check."],
-    };
-  }
+  // Note: potencyCheck is required by TestRecordSchema, so it's always present.
+  // This validation focuses on quality, not existence.
 
   if (!check.positiveControl || check.positiveControl.length < 10) {
     issues.push("Potency check must have a specific positive control");
@@ -579,8 +577,14 @@ export function validatePotencyCheck(test: TestRecord): {
 
   const score = calculatePotencyScore(check);
 
-  if (score === 0) {
-    issues.push("Potency check is present but incomplete");
+  // Add suggestions for improving potency score
+  if (score < 3) {
+    if (!check.sensitivityVerification) {
+      issues.push("Consider adding sensitivity verification for a more complete potency check");
+    }
+    if (!check.timingValidation) {
+      issues.push("Consider adding timing validation for a more complete potency check");
+    }
   }
 
   return {

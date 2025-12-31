@@ -18,6 +18,43 @@ describe("session kickoff ↔ thread status contract", () => {
     expect(bodyByRecipient.get("Gemini")).toContain("DELTA[gemini]");
   });
 
+  it("supports explicit roster mapping for adjective+noun Agent Mail names", () => {
+    const messages = composeKickoffMessages({
+      threadId: "RS-20251230-test",
+      researchQuestion: "What is the minimal test case?",
+      context: "Short context.",
+      excerpt: "§1: Exclusion is good.",
+      recipients: ["BlueLake", "PurpleMountain", "RedForest"],
+      recipientRoles: {
+        BlueLake: "hypothesis_generator",
+        PurpleMountain: "test_designer",
+        RedForest: "adversarial_critic",
+      },
+    });
+
+    const bodyByRecipient = new Map(messages.map((m) => [m.to, m.body]));
+
+    expect(bodyByRecipient.get("BlueLake")).toContain("DELTA[gpt]");
+    expect(bodyByRecipient.get("PurpleMountain")).toContain("DELTA[opus]");
+    expect(bodyByRecipient.get("RedForest")).toContain("DELTA[gemini]");
+    expect(bodyByRecipient.get("BlueLake")).toContain("## Roster (explicit)");
+  });
+
+  it("fails loudly when roster mapping is missing a recipient", () => {
+    expect(() =>
+      composeKickoffMessages({
+        threadId: "RS-20251230-test",
+        researchQuestion: "What is the minimal test case?",
+        context: "Short context.",
+        excerpt: "§1: Exclusion is good.",
+        recipients: ["BlueLake", "PurpleMountain"],
+        recipientRoles: {
+          BlueLake: "hypothesis_generator",
+        },
+      }),
+    ).toThrow(/Missing recipient role mapping/);
+  });
+
   it("includes memory context when provided", () => {
     const messages = composeKickoffMessages({
       threadId: "RS-20251230-test",

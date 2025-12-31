@@ -188,8 +188,12 @@ export const PredictionSchema = z.object({
 
   /**
    * If confirmed: which hypothesis's prediction matched?
+   * Should reference a hypothesis from hypothesisPredictions.
    */
-  confirmedHypothesisId: z.string().optional(),
+  confirmedHypothesisId: z
+    .string()
+    .regex(hypothesisIdPattern, "Invalid hypothesis ID format")
+    .optional(),
 
   /**
    * If inconclusive or invalidated: why?

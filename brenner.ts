@@ -21,7 +21,7 @@ import { CORPUS_DOCS } from "./apps/web/src/lib/corpus";
 import { globalSearch, type SearchCategory } from "./apps/web/src/lib/globalSearch";
 import type { Json } from "./apps/web/src/lib/json";
 import { parseQuoteBank } from "./apps/web/src/lib/quotebank-parser";
-import { composeKickoffMessages, type KickoffConfig } from "./apps/web/src/lib/session-kickoff";
+import { composeKickoffMessages, type AgentRole, type KickoffConfig } from "./apps/web/src/lib/session-kickoff";
 import { parseDeltaMessage, type ValidDelta } from "./apps/web/src/lib/delta-parser";
 import {
   createEmptyArtifact,
@@ -175,6 +175,51 @@ function splitCsv(value: string | undefined): string[] {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+const VALID_ROSTER_ROLES: AgentRole[] = ["hypothesis_generator", "test_designer", "adversarial_critic"];
+
+function parseRoleMapFlag(value: string): Record<string, AgentRole> {
+  const parts = value
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (parts.length === 0) {
+    throw new Error(
+      `Invalid --role-map: expected "Name=role,Name=role" (roles: ${VALID_ROSTER_ROLES.join(", ")})`
+    );
+  }
+
+  const out: Record<string, AgentRole> = {};
+  const seen = new Map<string, string>();
+
+  for (const part of parts) {
+    const eq = part.indexOf("=");
+    if (eq === -1) throw new Error(`Invalid --role-map entry "${part}": expected "Name=role"`);
+
+    const name = part.slice(0, eq).trim();
+    const roleRaw = part.slice(eq + 1).trim();
+
+    if (!name) throw new Error(`Invalid --role-map entry "${part}": missing agent name`);
+    if (!roleRaw) throw new Error(`Invalid --role-map entry "${part}": missing role`);
+
+    const normalizedName = name.toLowerCase();
+    const previous = seen.get(normalizedName);
+    if (previous) {
+      throw new Error(`Invalid --role-map: duplicate mapping for "${name}" (also provided for "${previous}")`);
+    }
+    seen.set(normalizedName, name);
+
+    if (!VALID_ROSTER_ROLES.includes(roleRaw as AgentRole)) {
+      throw new Error(
+        `Invalid --role-map role for "${name}": "${roleRaw}". Expected one of: ${VALID_ROSTER_ROLES.join(", ")}`
+      );
+    }
+
+    out[name] = roleRaw as AgentRole;
+  }
+
+  return out;
 }
 
 function readTextFile(path: string): string {
@@ -1072,7 +1117,7 @@ Commands:
   session start [--project-key <abs-path>] [--sender <AgentName>] --to <A,B> --thread-id <id>
                --excerpt-file <path> --question <s> [--context <s>]
                [--hypotheses <s>] [--constraints <s>] [--outputs <s>]
-               [--with-memory] [--unified] [--template <path>] [--theme <s>] [--domain <s>]
+               [--role-map <s>] [--with-memory] [--unified] [--template <path>] [--theme <s>] [--domain <s>]
 
   session status [--project-key <abs-path>] --thread-id <id> [--watch] [--timeout <seconds>]
   session compile [--project-key <abs-path>] --thread-id <id> [--out-file <path>] [--json]
@@ -1080,12 +1125,14 @@ Commands:
   session publish [--project-key <abs-path>] --thread-id <id> [--sender <AgentName>] --to <A,B>
                 [--subject <s>] [--ack-required] [--json]
 
-    By default, sends role-specific prompts to each recipient:
+    By default, sends role-specific prompts to each recipient using name heuristics:
       - Codex/GPT → Hypothesis Generator
       - Opus/Claude → Test Designer
       - Gemini → Adversarial Critic
 
     Use --unified to send the same prompt to all recipients (legacy mode).
+    For real Agent Mail identities (e.g. BlueLake), pass an explicit roster:
+      --role-map "BlueLake=hypothesis_generator,PurpleMountain=test_designer,RedForest=adversarial_critic"
 
 Aliases:
   orchestrate start  (alias for: session start)
@@ -2438,19 +2485,18 @@ async function main(): Promise<void> {
     const withMemory = asBoolFlag(flags, "with-memory");
     let memoryAudit: CassMemoryKickoffAudit = null;
 
-    // Ensure project + sender identity exist
-    await client.toolsCall("ensure_project", { human_key: projectKey });
-    const registerResult = await client.toolsCall("register_agent", {
-      project_key: projectKey,
-      name: sender,
-      program: "brenner-cli",
-      model: "orchestrator",
-      task_description: `Brenner Protocol session: ${threadId}`,
-    });
-    const actualName = parseAgentNameFromToolResult(registerResult);
-    if (actualName && actualName !== sender) {
-      stderrLine(`Agent Mail assigned sender name "${actualName}" (requested "${sender}").`);
-      sender = actualName;
+    const roleMapRaw = asStringFlag(flags, "role-map")?.trim();
+    if (roleMapRaw && unified) {
+      throw new Error("Use --role-map only in role-specific mode (omit --unified).");
+    }
+
+    const recipientRoles = roleMapRaw ? parseRoleMapFlag(roleMapRaw) : undefined;
+    if (recipientRoles) {
+      const normalizedMap = new Set(Object.keys(recipientRoles).map((k) => k.trim().toLowerCase()));
+      const missing = to.filter((r) => !normalizedMap.has(r.trim().toLowerCase()));
+      if (missing.length > 0) {
+        throw new Error(`--role-map is missing entries for: ${missing.join(", ")}`);
+      }
     }
 
     // Compose kickoff configuration
@@ -2460,6 +2506,7 @@ async function main(): Promise<void> {
       context,
       excerpt,
       recipients: to,
+      recipientRoles,
       initialHypotheses: asStringFlag(flags, "hypotheses"),
       constraints: asStringFlag(flags, "constraints"),
       requestedOutputs: asStringFlag(flags, "outputs"),
@@ -2484,6 +2531,21 @@ async function main(): Promise<void> {
           `No MEMORY CONTEXT injected (cass-memory ${memoryResult.provenance.mode}${details ? `: ${details}` : ""}).`
         );
       }
+    }
+
+    // Ensure project + sender identity exist
+    await client.toolsCall("ensure_project", { human_key: projectKey });
+    const registerResult = await client.toolsCall("register_agent", {
+      project_key: projectKey,
+      name: sender,
+      program: "brenner-cli",
+      model: "orchestrator",
+      task_description: `Brenner Protocol session: ${threadId}`,
+    });
+    const actualName = parseAgentNameFromToolResult(registerResult);
+    if (actualName && actualName !== sender) {
+      stderrLine(`Agent Mail assigned sender name "${actualName}" (requested "${sender}").`);
+      sender = actualName;
     }
 
     if (unified) {
@@ -2529,7 +2591,13 @@ async function main(): Promise<void> {
         results.push(result);
       }
 
-      stdoutLine(JSON.stringify({ memory: memoryAudit, sent: results.length, messages: results }, null, 2));
+      stdoutLine(
+        JSON.stringify(
+          { memory: memoryAudit, roster: kickoffConfig.recipientRoles ?? null, sent: results.length, messages: results },
+          null,
+          2
+        )
+      );
     }
 
     process.exit(0);
