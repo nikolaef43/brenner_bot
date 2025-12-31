@@ -249,14 +249,22 @@ test.describe("Performance: Interactions", () => {
     expect(openTime).toBeLessThan(500); // 500ms allows CI variance
   });
 
-  test("Navigation between pages is fast", async ({ page }) => {
+  test("Navigation between pages is fast", async ({ page, isMobile }) => {
     // Load initial page
     await page.goto("/", { waitUntil: "networkidle" });
 
     // Navigate to corpus and measure
     const startTime = Date.now();
-    await page.click('a[href="/corpus"]');
-    await page.waitForLoadState("networkidle");
+
+    if (isMobile) {
+      // On mobile, nav links are in hamburger menu - use direct navigation
+      await page.goto("/corpus", { waitUntil: "networkidle" });
+    } else {
+      // On desktop, click the visible nav link
+      await page.click('a[href="/corpus"]');
+      await page.waitForLoadState("networkidle");
+    }
+
     const navigationTime = Date.now() - startTime;
 
     console.log(`\nNavigation time (Home -> Corpus): ${navigationTime}ms (budget: 2000ms)`);
