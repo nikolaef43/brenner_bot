@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, afterEach } from "vitest";
+import { describe, test, expect, beforeEach } from "vitest";
 import { promises as fs } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
@@ -77,14 +77,7 @@ beforeEach(async () => {
   storage = new CritiqueStorage({ baseDir: testDir, autoRebuildIndex: false });
 });
 
-afterEach(async () => {
-  // Clean up temp directory
-  try {
-    await fs.rm(testDir, { recursive: true, force: true });
-  } catch {
-    // Ignore cleanup errors
-  }
-});
+// Note: No cleanup. Repo invariant: do not delete files/dirs without explicit approval.
 
 // ============================================================================
 // Session File Operations Tests
