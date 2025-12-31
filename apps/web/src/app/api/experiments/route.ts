@@ -11,6 +11,7 @@
 
 import { randomUUID } from "node:crypto";
 import { resolve, dirname, join } from "node:path";
+import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { headers, cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
@@ -101,16 +102,16 @@ function formatUtcTimestampForFilename(date: Date): string {
 
 function bestEffortGitProvenance(cwd: string): { sha: string; branch: string | null; dirty: boolean } | null {
   try {
-    const shaProc = Bun.spawnSync(["git", "rev-parse", "HEAD"], { cwd, stdout: "pipe", stderr: "pipe" });
-    if (shaProc.exitCode !== 0) return null;
-    const sha = new TextDecoder().decode(shaProc.stdout).trim();
+    const shaProc = spawnSync("git", ["rev-parse", "HEAD"], { cwd, encoding: "utf8" });
+    if (shaProc.status !== 0 || shaProc.error) return null;
+    const sha = (shaProc.stdout ?? "").trim();
     if (!sha) return null;
 
-    const branchProc = Bun.spawnSync(["git", "rev-parse", "--abbrev-ref", "HEAD"], { cwd, stdout: "pipe", stderr: "pipe" });
-    const branch = branchProc.exitCode === 0 ? new TextDecoder().decode(branchProc.stdout).trim() || null : null;
+    const branchProc = spawnSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd, encoding: "utf8" });
+    const branch = branchProc.status === 0 && !branchProc.error ? (branchProc.stdout ?? "").trim() || null : null;
 
-    const statusProc = Bun.spawnSync(["git", "status", "--porcelain"], { cwd, stdout: "pipe", stderr: "pipe" });
-    const dirty = statusProc.exitCode === 0 && new TextDecoder().decode(statusProc.stdout).trim().length > 0;
+    const statusProc = spawnSync("git", ["status", "--porcelain"], { cwd, encoding: "utf8" });
+    const dirty = statusProc.status === 0 && !statusProc.error && (statusProc.stdout ?? "").trim().length > 0;
 
     return { sha, branch, dirty };
   } catch {
@@ -210,16 +211,21 @@ export async function POST(request: NextRequest): Promise<NextResponse<Experimen
     // Execute command with timeout
     const startedAt = createdAt;
     let timedOut = false;
-    let stdout = "";
-    let stderr = "";
+    const stdoutChunks: string[] = [];
+    const stderrChunks: string[] = [];
 
-    const proc = Bun.spawn(command, { cwd, stdout: "pipe", stderr: "pipe" });
+    const proc = spawn(command[0], command.slice(1), { cwd, stdio: ["ignore", "pipe", "pipe"] });
+    proc.stdout?.setEncoding("utf8");
+    proc.stderr?.setEncoding("utf8");
+    proc.stdout?.on("data", (chunk: string) => stdoutChunks.push(chunk));
+    proc.stderr?.on("data", (chunk: string) => stderrChunks.push(chunk));
+
     const timeoutMs = timeout * 1000;
     let sigkillTimer: ReturnType<typeof setTimeout> | null = null;
     const killTimer = setTimeout(() => {
       timedOut = true;
       try {
-        proc.kill();
+        proc.kill("SIGTERM");
       } catch {
         // ignore
       }
@@ -233,17 +239,19 @@ export async function POST(request: NextRequest): Promise<NextResponse<Experimen
     }, timeoutMs);
 
     try {
-      const stdoutPromise = proc.stdout ? new Response(proc.stdout).text() : Promise.resolve("");
-      const stderrPromise = proc.stderr ? new Response(proc.stderr).text() : Promise.resolve("");
-      const exitCodePromise = proc.exited;
-      const [out, err, exitCode] = await Promise.all([stdoutPromise, stderrPromise, exitCodePromise]);
-      stdout = out;
-      stderr = err;
+      const exitCode = await new Promise<number | null>((resolveExitCode, rejectExitCode) => {
+        proc.on("error", rejectExitCode);
+        proc.on("close", (code) => resolveExitCode(code));
+      });
+
+      const stdout = stdoutChunks.join("");
+      const stderr = stderrChunks.join("");
       const resolvedExitCode = typeof exitCode === "number" ? exitCode : timedOut ? 124 : 1;
 
       const finishedAt = new Date();
       const durationMs = finishedAt.getTime() - startedAt.getTime();
       const git = bestEffortGitProvenance(cwd);
+      const bun_version = (process.versions as unknown as Record<string, string | undefined>).bun ?? "unknown";
 
       const result: ExperimentResultV01 = {
         schema_version: "experiment_result_v0.1",
@@ -268,7 +276,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Experimen
         stderr,
 
         ...(git ? { git } : {}),
-        runtime: { platform: process.platform, arch: process.arch, bun_version: Bun.version },
+        runtime: { platform: process.platform, arch: process.arch, bun_version },
       };
 
       // Write result file

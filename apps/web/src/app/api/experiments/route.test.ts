@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { mkdirSync, rmSync, existsSync, readFileSync } from "node:fs";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mkdirSync, existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -35,13 +35,6 @@ describe("POST /api/experiments", () => {
     // Create a temp directory for each test
     testDir = join(tmpdir(), `brenner-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(testDir, { recursive: true });
-  });
-
-  afterEach(() => {
-    // Clean up temp directory
-    if (testDir && existsSync(testDir)) {
-      rmSync(testDir, { recursive: true, force: true });
-    }
   });
 
   describe("auth", () => {
