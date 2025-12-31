@@ -374,9 +374,10 @@ export function suggestTransitionsFromExecution(
         "Hypothesis predictions consistent with observed outcome.";
       supportingPredictions = matchedPreds;
     } else {
-      // This shouldn't happen given our logic, but handle it
+      // Ambiguous case: neither result nor prediction had clear polarity indicators
+      // No action can be suggested without clearer data
       suggestedAction = "none";
-      reason = "No predictions matched or violated for this hypothesis.";
+      reason = "Result or prediction polarity unclear - no action suggested.";
       supportingPredictions = [];
     }
 
