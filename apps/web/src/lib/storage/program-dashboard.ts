@@ -295,7 +295,7 @@ export class DashboardAggregator {
       byStatus[a.quarantineStatus] = (byStatus[a.quarantineStatus] || 0) + 1;
     }
 
-    const withSpawnedHypotheses = anomalies.filter((a) => a.spawnedHypotheses.length > 0).length;
+    const withSpawnedHypotheses = anomalies.filter((a) => a.spawnedHypotheses && a.spawnedHypotheses.length > 0).length;
     const paradigmShifting = anomalies.filter((a) => a.quarantineStatus === "paradigm_shifting").length;
 
     return {
@@ -319,7 +319,7 @@ export class DashboardAggregator {
       bySeverity[c.severity] = (bySeverity[c.severity] || 0) + 1;
     }
 
-    const withAlternatives = critiques.filter((c) => c.suggestedAlternatives && c.suggestedAlternatives.length > 0).length;
+    const withAlternatives = critiques.filter((c) => c.proposedAlternative).length;
 
     return {
       total: critiques.length,
@@ -410,21 +410,23 @@ export class DashboardAggregator {
         sessionId: h.sessionId,
       });
 
-      if (h.state === "killed" && h.updatedAt !== h.createdAt) {
+      // Map refuted → killed for timeline
+      if (h.state === "refuted" && h.updatedAt !== h.createdAt) {
         events.push({
           timestamp: h.updatedAt,
           eventType: "hypothesis_killed",
-          description: `Hypothesis ${h.id} killed`,
+          description: `Hypothesis ${h.id} refuted`,
           entityId: h.id,
           sessionId: h.sessionId,
         });
       }
 
-      if (h.state === "validated" && h.updatedAt !== h.createdAt) {
+      // Map confirmed → validated for timeline
+      if (h.state === "confirmed" && h.updatedAt !== h.createdAt) {
         events.push({
           timestamp: h.updatedAt,
           eventType: "hypothesis_validated",
-          description: `Hypothesis ${h.id} validated`,
+          description: `Hypothesis ${h.id} confirmed`,
           entityId: h.id,
           sessionId: h.sessionId,
         });
@@ -459,7 +461,7 @@ export class DashboardAggregator {
       events.push({
         timestamp: a.createdAt,
         eventType: "anomaly_recorded",
-        description: `Anomaly ${a.id} recorded: ${a.description.substring(0, 40)}...`,
+        description: `Anomaly ${a.id} recorded: ${a.observation.substring(0, 40)}...`,
         entityId: a.id,
         sessionId: a.sessionId,
       });
@@ -480,7 +482,7 @@ export class DashboardAggregator {
       events.push({
         timestamp: c.createdAt,
         eventType: "critique_raised",
-        description: `${c.severity} critique on ${c.targetType}: ${c.critique.substring(0, 40)}...`,
+        description: `${c.severity} critique on ${c.targetType}: ${c.attack.substring(0, 40)}...`,
         entityId: c.id,
         sessionId: c.sessionId,
       });
@@ -504,7 +506,7 @@ export class DashboardAggregator {
           eventType: "test_executed",
           description: `Test ${t.id} completed: ${t.name.substring(0, 40)}`,
           entityId: t.id,
-          sessionId: t.sessionId,
+          sessionId: t.designedInSession,
         });
       }
     }
@@ -539,13 +541,13 @@ export class DashboardAggregator {
       });
     }
 
-    // Check for hypotheses under attack with no resolution
-    const underAttack = hypotheses.filter((h) => h.state === "under_attack");
+    // Check for active hypotheses with unresolved critiques
+    const underAttack = hypotheses.filter((h) => h.state === "active" && h.unresolvedCritiqueCount > 0);
     if (underAttack.length > 0) {
       warnings.push({
         code: "HYPOTHESES_UNDER_ATTACK",
         severity: "warning",
-        message: `${underAttack.length} hypothesis(es) under attack require resolution.`,
+        message: `${underAttack.length} hypothesis(es) have unresolved critiques.`,
         relatedIds: underAttack.map((h) => h.id),
         suggestion: "Address critiques or design discriminative tests.",
       });
@@ -553,7 +555,7 @@ export class DashboardAggregator {
 
     // Check for active anomalies that haven't spawned hypotheses
     const activeAnomalies = anomalies.filter(
-      (a) => a.quarantineStatus === "active" && a.spawnedHypotheses.length === 0
+      (a) => a.quarantineStatus === "active" && (!a.spawnedHypotheses || a.spawnedHypotheses.length === 0)
     );
     if (activeAnomalies.length > 3) {
       warnings.push({
@@ -593,7 +595,7 @@ export class DashboardAggregator {
 
     // Check for no active hypotheses
     const active = hypotheses.filter(
-      (h) => h.state === "active" || h.state === "proposed" || h.state === "under_attack"
+      (h) => h.state === "active" || h.state === "proposed"
     );
     if (active.length === 0 && hypotheses.length > 0) {
       warnings.push({
