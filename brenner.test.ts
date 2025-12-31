@@ -755,6 +755,185 @@ describe("experiment capture", () => {
 });
 
 // ============================================================================
+// Tests: Experiment Post Validation
+// ============================================================================
+
+describe("experiment post validation", () => {
+  it("requires --result-file flag", async () => {
+    const result = await runCli(["experiment", "post", "--sender", "TestAgent", "--to", "Agent"]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--result-file");
+  });
+
+  it("requires --sender flag", async () => {
+    const cwd = join(tmpdir(), `brenner-test-post-sender-${randomUUID()}`);
+    mkdirSync(cwd, { recursive: true });
+    const resultFile = join(cwd, "result.json");
+    writeFileSync(resultFile, "{}", "utf8");
+
+    const result = await runCli(
+      ["experiment", "post", "--result-file", resultFile, "--to", "Agent", "--project-key", cwd],
+      { cwd }
+    );
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--sender");
+  });
+
+  it("requires --to flag", async () => {
+    const cwd = join(tmpdir(), `brenner-test-post-to-${randomUUID()}`);
+    mkdirSync(cwd, { recursive: true });
+    const resultFile = join(cwd, "result.json");
+    writeFileSync(resultFile, "{}", "utf8");
+
+    const result = await runCli(
+      ["experiment", "post", "--result-file", resultFile, "--sender", "TestAgent", "--project-key", cwd],
+      { cwd }
+    );
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--to");
+  });
+
+  it("fails with clear error when result file is missing", async () => {
+    const cwd = join(tmpdir(), `brenner-test-post-nofile-${randomUUID()}`);
+    mkdirSync(cwd, { recursive: true });
+
+    const result = await runCli(
+      ["experiment", "post", "--result-file", "nonexistent.json", "--sender", "TestAgent", "--to", "Agent", "--project-key", cwd],
+      { cwd }
+    );
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("Cannot read result file");
+  });
+
+  it("fails with clear error when result file is missing required fields", async () => {
+    const cwd = join(tmpdir(), `brenner-test-post-missing-${randomUUID()}`);
+    mkdirSync(cwd, { recursive: true });
+    const resultFile = join(cwd, "result.json");
+
+    // Missing all required fields
+    const mockResult = { schema_version: "experiment_result_v0.1" };
+    writeFileSync(resultFile, JSON.stringify(mockResult, null, 2), "utf8");
+
+    const result = await runCli(
+      ["experiment", "post", "--result-file", resultFile, "--sender", "TestAgent", "--to", "Agent", "--project-key", cwd],
+      { cwd }
+    );
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("missing required field");
+  });
+
+  it("validates result file has result_id", async () => {
+    const cwd = join(tmpdir(), `brenner-test-post-resultid-${randomUUID()}`);
+    mkdirSync(cwd, { recursive: true });
+    const resultFile = join(cwd, "result.json");
+
+    const mockResult = {
+      schema_version: "experiment_result_v0.1",
+      test_id: "T1",
+      thread_id: "RS-TEST",
+      exit_code: 0,
+      timed_out: false,
+    };
+    writeFileSync(resultFile, JSON.stringify(mockResult, null, 2), "utf8");
+
+    const result = await runCli(
+      ["experiment", "post", "--result-file", resultFile, "--sender", "TestAgent", "--to", "Agent", "--project-key", cwd],
+      { cwd }
+    );
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("result_id");
+  });
+
+  it("validates result file has test_id", async () => {
+    const cwd = join(tmpdir(), `brenner-test-post-testid-${randomUUID()}`);
+    mkdirSync(cwd, { recursive: true });
+    const resultFile = join(cwd, "result.json");
+
+    const mockResult = {
+      schema_version: "experiment_result_v0.1",
+      result_id: randomUUID(),
+      thread_id: "RS-TEST",
+      exit_code: 0,
+      timed_out: false,
+    };
+    writeFileSync(resultFile, JSON.stringify(mockResult, null, 2), "utf8");
+
+    const result = await runCli(
+      ["experiment", "post", "--result-file", resultFile, "--sender", "TestAgent", "--to", "Agent", "--project-key", cwd],
+      { cwd }
+    );
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("test_id");
+  });
+
+  it("validates result file has thread_id", async () => {
+    const cwd = join(tmpdir(), `brenner-test-post-threadid-${randomUUID()}`);
+    mkdirSync(cwd, { recursive: true });
+    const resultFile = join(cwd, "result.json");
+
+    const mockResult = {
+      schema_version: "experiment_result_v0.1",
+      result_id: randomUUID(),
+      test_id: "T1",
+      exit_code: 0,
+      timed_out: false,
+    };
+    writeFileSync(resultFile, JSON.stringify(mockResult, null, 2), "utf8");
+
+    const result = await runCli(
+      ["experiment", "post", "--result-file", resultFile, "--sender", "TestAgent", "--to", "Agent", "--project-key", cwd],
+      { cwd }
+    );
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("thread_id");
+  });
+
+  it("validates result file has exit_code", async () => {
+    const cwd = join(tmpdir(), `brenner-test-post-exitcode-${randomUUID()}`);
+    mkdirSync(cwd, { recursive: true });
+    const resultFile = join(cwd, "result.json");
+
+    const mockResult = {
+      schema_version: "experiment_result_v0.1",
+      result_id: randomUUID(),
+      test_id: "T1",
+      thread_id: "RS-TEST",
+      timed_out: false,
+    };
+    writeFileSync(resultFile, JSON.stringify(mockResult, null, 2), "utf8");
+
+    const result = await runCli(
+      ["experiment", "post", "--result-file", resultFile, "--sender", "TestAgent", "--to", "Agent", "--project-key", cwd],
+      { cwd }
+    );
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("exit_code");
+  });
+
+  it("validates result file has timed_out", async () => {
+    const cwd = join(tmpdir(), `brenner-test-post-timedout-${randomUUID()}`);
+    mkdirSync(cwd, { recursive: true });
+    const resultFile = join(cwd, "result.json");
+
+    const mockResult = {
+      schema_version: "experiment_result_v0.1",
+      result_id: randomUUID(),
+      test_id: "T1",
+      thread_id: "RS-TEST",
+      exit_code: 0,
+    };
+    writeFileSync(resultFile, JSON.stringify(mockResult, null, 2), "utf8");
+
+    const result = await runCli(
+      ["experiment", "post", "--result-file", resultFile, "--sender", "TestAgent", "--to", "Agent", "--project-key", cwd],
+      { cwd }
+    );
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("timed_out");
+  });
+});
+
+// ============================================================================
 // Tests: Version Output
 // ============================================================================
 

@@ -1101,6 +1101,7 @@ Commands:
                    [--stdout-file <path>] [--stderr-file <path>] [--stdout <text>] [--stderr <text>]
                    [--cwd <path>] [--command <s>] [--out-file <path>] [--json]
   experiment encode --result-file <path> [--out-file <path>] [--project-key <abs-path>] [--json]
+  experiment post --result-file <path> --sender <AgentName> --to <A,B> [--project-key <abs-path>] [--json]
   mail health
   mail tools
   mail agents [--project-key <abs-path>]
@@ -1711,6 +1712,165 @@ ${JSON.stringify(delta, null, 2)}
         } else {
           stdoutLine(markdown);
         }
+      }
+
+      process.exit(0);
+    }
+
+    // Handle post subcommand (encode + send in one step)
+    if (sub === "post") {
+      // Validate required flags first (fail fast, before file I/O)
+      const resultFilePath = asStringFlag(flags, "result-file");
+      if (!resultFilePath) throw new Error("Missing --result-file.");
+
+      let sender = asStringFlag(flags, "sender") ?? process.env.AGENT_NAME;
+      if (!sender) throw new Error("Missing --sender (or set AGENT_NAME).");
+      const to = splitCsv(asStringFlag(flags, "to"));
+      if (to.length === 0) throw new Error("Missing --to <A,B>.");
+
+      const projectKey = asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey;
+      const resolvedResultFile = resolve(projectKey, resultFilePath);
+
+      // Read and parse the result file
+      let resultJson: string;
+      try {
+        resultJson = readTextFile(resolvedResultFile);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        throw new Error(`Cannot read result file "${resolvedResultFile}": ${msg}`);
+      }
+
+      let result: ExperimentResultV01;
+      try {
+        result = JSON.parse(resultJson) as ExperimentResultV01;
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        throw new Error(`Invalid JSON in result file: ${msg}`);
+      }
+
+      // Validate required fields
+      if (!result.result_id) throw new Error("Result file missing required field: result_id");
+      if (!result.test_id) throw new Error("Result file missing required field: test_id");
+      if (!result.thread_id) throw new Error("Result file missing required field: thread_id");
+      if (typeof result.exit_code !== "number") throw new Error("Result file missing required field: exit_code");
+      if (typeof result.timed_out !== "boolean") throw new Error("Result file missing required field: timed_out");
+
+      // Compute relative path for result_path (relative to project key)
+      const resultPath = resultFilePath.startsWith("/")
+        ? resultFilePath.replace(projectKey + "/", "")
+        : resultFilePath;
+
+      // Determine status based on exit code and timeout
+      let status: "passed" | "failed" | "blocked";
+      if (result.timed_out) {
+        status = "blocked";
+      } else if (result.exit_code === 0) {
+        status = "passed";
+      } else {
+        status = "failed";
+      }
+
+      // Generate summary
+      let summary: string;
+      if (result.timed_out) {
+        const timeoutSec = result.timeout_seconds ?? "unknown";
+        summary = `Test blocked: timed out after ${timeoutSec}s`;
+      } else if (result.duration_ms != null) {
+        const durationSec = (result.duration_ms / 1000).toFixed(1);
+        summary = `Test completed: exit ${result.exit_code} in ${durationSec}s`;
+      } else {
+        summary = `Test completed: exit ${result.exit_code}`;
+      }
+
+      // Build the DELTA object
+      const delta = {
+        operation: "EDIT",
+        section: "discriminative_tests",
+        target_id: result.test_id,
+        payload: {
+          test_id: result.test_id,
+          last_run: {
+            result_id: result.result_id,
+            result_path: resultPath,
+            run_at: result.started_at ?? result.created_at,
+            exit_code: result.exit_code,
+            timed_out: result.timed_out,
+            ...(result.duration_ms != null ? { duration_ms: result.duration_ms } : {}),
+            summary,
+          },
+          status,
+        },
+        rationale: `Recording result of experiment run ${result.result_id.slice(0, 8)} for ${result.test_id}`,
+      };
+
+      // Build markdown body
+      const bodyMd = `## Deltas
+
+Recording experiment result for test **${result.test_id}** in thread \`${result.thread_id}\`.
+
+- **Status**: ${status}
+- **Exit code**: ${result.exit_code}
+- **Result file**: \`${resultPath}\`
+
+\`\`\`delta
+${JSON.stringify(delta, null, 2)}
+\`\`\`
+`;
+
+      // Send via Agent Mail
+      const client = new AgentMailClient(runtimeConfig.agentMail);
+
+      if (isAbsolute(projectKey)) {
+        await client.toolsCall("ensure_project", { human_key: projectKey });
+      }
+
+      // Check if sender exists, register if needed
+      const whoisResult = await client.toolsCall("whois", {
+        project_key: projectKey,
+        agent_name: sender,
+        include_recent_commits: false,
+      });
+
+      if (isToolError(whoisResult)) {
+        const registerResult = await client.toolsCall("register_agent", {
+          project_key: projectKey,
+          name: sender,
+          program: "brenner-cli",
+          model: "orchestrator",
+          task_description: `Brenner CLI experiment post: ${result.thread_id}`,
+        });
+        const actualName = parseAgentNameFromToolResult(registerResult);
+        if (actualName && actualName !== sender) {
+          stderrLine(`Agent Mail assigned sender name "${actualName}" (requested "${sender}").`);
+          sender = actualName;
+        }
+      }
+
+      // Build subject
+      const subject = `DELTA[results]: ${result.test_id} ${status}`;
+
+      // Send the message
+      const sendResult = await client.toolsCall("send_message", {
+        project_key: projectKey,
+        sender_name: sender,
+        to,
+        subject,
+        body_md: bodyMd,
+        thread_id: result.thread_id,
+        ack_required: false,
+      });
+
+      if (isToolError(sendResult)) {
+        stderrLine(`Error sending message: ${JSON.stringify(sendResult, null, 2)}`);
+        process.exit(1);
+      }
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, delta, message: sendResult }, null, 2));
+      } else {
+        stdoutLine(`Sent DELTA message to thread ${result.thread_id}`);
+        stdoutLine(`Subject: ${subject}`);
+        stdoutLine(`To: ${to.join(", ")}`);
       }
 
       process.exit(0);
