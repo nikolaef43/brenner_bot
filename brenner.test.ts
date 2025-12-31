@@ -2868,3 +2868,147 @@ describe("boolean flags", () => {
     expect(result.stderr).toContain("connect");
   });
 });
+
+// ============================================================================
+// Tests: Hypothesis CLI
+// ============================================================================
+
+describe("hypothesis CLI", () => {
+  it("supports list/create/show/search/link with --json", async () => {
+    const projectDir = join(tmpdir(), `brenner-test-hypothesis-${randomUUID()}`);
+    mkdirSync(projectDir, { recursive: true });
+
+    const listEmpty = await runCli([
+      "hypothesis",
+      "list",
+      "--project-key",
+      projectDir,
+      "--json",
+    ]);
+    expect(listEmpty.exitCode).toBe(0);
+    const listEmptyParsed = JSON.parse(listEmpty.stdout) as {
+      ok: boolean;
+      count: number;
+      hypotheses: unknown[];
+    };
+    expect(listEmptyParsed.ok).toBe(true);
+    expect(listEmptyParsed.count).toBe(0);
+
+    const create1 = await runCli([
+      "hypothesis",
+      "create",
+      "--project-key",
+      projectDir,
+      "--json",
+      "--session-id",
+      "RS-TEST",
+      "--statement",
+      "Cell fate is epigenetically determined by early development cues.",
+      "--category",
+      "mechanistic",
+      "--mechanism",
+      "A stable epigenetic mark is established early and maintained through cell divisions.",
+      "--anchors",
+      "§1,§2",
+      "--tags",
+      "epigenetics,cell-fate",
+      "--notes",
+      "Initial hypothesis.",
+    ]);
+    expect(create1.exitCode).toBe(0);
+    const create1Parsed = JSON.parse(create1.stdout) as {
+      ok: boolean;
+      hypothesis: { id: string; sessionId: string; anchors?: string[]; tags?: string[]; notes?: string };
+    };
+    expect(create1Parsed.ok).toBe(true);
+    expect(create1Parsed.hypothesis.id).toBe("H-RS-TEST-001");
+    expect(create1Parsed.hypothesis.sessionId).toBe("RS-TEST");
+    expect(create1Parsed.hypothesis.anchors).toEqual(["§1", "§2"]);
+    expect(create1Parsed.hypothesis.tags).toEqual(["epigenetics", "cell-fate"]);
+    expect(create1Parsed.hypothesis.notes).toBe("Initial hypothesis.");
+
+    const create2 = await runCli([
+      "hypothesis",
+      "create",
+      "--project-key",
+      projectDir,
+      "--json",
+      "--session-id",
+      "RS-TEST",
+      "--statement",
+      "Third alternative: cell fate is primarily driven by stochastic chromatin accessibility changes.",
+      "--category",
+      "third_alternative",
+    ]);
+    expect(create2.exitCode).toBe(0);
+    const create2Parsed = JSON.parse(create2.stdout) as { ok: boolean; hypothesis: { id: string } };
+    expect(create2Parsed.ok).toBe(true);
+    expect(create2Parsed.hypothesis.id).toBe("H-RS-TEST-002");
+
+    const listFiltered = await runCli([
+      "hypothesis",
+      "list",
+      "--project-key",
+      projectDir,
+      "--json",
+      "--session-id",
+      "RS-TEST",
+      "--state",
+      "proposed",
+    ]);
+    expect(listFiltered.exitCode).toBe(0);
+    const listFilteredParsed = JSON.parse(listFiltered.stdout) as { ok: boolean; count: number };
+    expect(listFilteredParsed.ok).toBe(true);
+    expect(listFilteredParsed.count).toBe(2);
+
+    const link = await runCli([
+      "hypothesis",
+      "link",
+      create2Parsed.hypothesis.id,
+      create1Parsed.hypothesis.id,
+      "--project-key",
+      projectDir,
+      "--json",
+    ]);
+    expect(link.exitCode).toBe(0);
+    const linkParsed = JSON.parse(link.stdout) as { ok: boolean; hypothesis: { parentId?: string } };
+    expect(linkParsed.ok).toBe(true);
+    expect(linkParsed.hypothesis.parentId).toBe(create1Parsed.hypothesis.id);
+
+    const show = await runCli([
+      "hypothesis",
+      "show",
+      create2Parsed.hypothesis.id,
+      "--project-key",
+      projectDir,
+      "--json",
+    ]);
+    expect(show.exitCode).toBe(0);
+    const showParsed = JSON.parse(show.stdout) as {
+      ok: boolean;
+      hypothesis: { parentId?: string };
+      children: string[];
+    };
+    expect(showParsed.ok).toBe(true);
+    expect(showParsed.hypothesis.parentId).toBe(create1Parsed.hypothesis.id);
+    expect(showParsed.children).toEqual([]);
+
+    const search = await runCli([
+      "hypothesis",
+      "search",
+      "epigenetically",
+      "--project-key",
+      projectDir,
+      "--json",
+    ]);
+    expect(search.exitCode).toBe(0);
+    const searchParsed = JSON.parse(search.stdout) as {
+      ok: boolean;
+      count: number;
+      hypotheses: Array<{ id: string }>;
+    };
+    expect(searchParsed.ok).toBe(true);
+    expect(searchParsed.count).toBeGreaterThanOrEqual(1);
+    expect(searchParsed.hypotheses.map((h) => h.id)).toContain(create1Parsed.hypothesis.id);
+  });
+});

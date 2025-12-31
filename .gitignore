@@ -26,6 +26,7 @@ out/
 dist/
 build/
 coverage/
+.vitest-cache/
 playwright-report/
 test-results/
 *.tsbuildinfo

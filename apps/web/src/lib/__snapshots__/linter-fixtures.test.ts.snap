@@ -61,3 +61,65 @@ exports[`Linter Output Snapshots > warning artifact report matches snapshot 1`] 
   ],
 }
 `;
+
+exports[`Linter Output Snapshots invalid artifact report matches snapshot 1`] = `
+{
+  "summary": {
+    "errors": 13,
+    "info": 0,
+    "warnings": 4,
+  },
+  "valid": false,
+  "violationIds": [
+    "EA-001",
+    "EA-002",
+    "EC-001",
+    "EH-001",
+    "EH-003",
+    "EM-002",
+    "EM-003",
+    "EM-003b",
+    "EM-004",
+    "EP-001",
+    "ER-001",
+    "ER-002",
+    "ET-001",
+    "WC-001",
+    "WH-001",
+    "WM-001",
+    "WR-001",
+  ],
+}
+`;
+
+exports[`Linter Output Snapshots valid artifact report matches snapshot 1`] = `
+{
+  "summary": {
+    "errors": 0,
+    "info": 2,
+    "warnings": 0,
+  },
+  "valid": true,
+  "violationIds": [
+    "IP-P02",
+    "IP-P02",
+  ],
+}
+`;
+
+exports[`Linter Output Snapshots warning artifact report matches snapshot 1`] = `
+{
+  "summary": {
+    "errors": 0,
+    "info": 2,
+    "warnings": 2,
+  },
+  "valid": true,
+  "violationIds": [
+    "IP-P02",
+    "IP-P02",
+    "WC-001",
+    "WH-001",
+  ],
+}
+`;

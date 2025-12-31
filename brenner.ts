@@ -107,6 +107,14 @@ import {
   type HypothesisOrigin,
   type HypothesisConfidence,
 } from "./apps/web/src/lib/schemas/hypothesis";
+import { TestStorage } from "./apps/web/src/lib/storage/test-storage";
+import {
+  scoreSession,
+  BRENNER_QUOTES,
+  type SessionData,
+  type SessionDimensionScore,
+  type DimensionScore,
+} from "./apps/web/src/lib/schemas/scorecard";
 
 function isRecord(value: Json): value is { [key: string]: Json } {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -5483,6 +5491,572 @@ ${JSON.stringify(delta, null, 2)}
       }
     }
 
+    process.exit(0);
+  }
+
+  // ============================================================================
+  // Score Command
+  // ============================================================================
+  if (top === "score") {
+    const jsonMode = asBoolFlag(flags, "json");
+    const projectKey = asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey;
+    const allSessions = asBoolFlag(flags, "all");
+    const sessionId = sub; // First positional after "score" is session ID
+
+    // Helper to build SessionData from storage for scoring
+    async function buildSessionDataFromStorage(sid: string, baseDir: string): Promise<SessionData> {
+      const hypothesisStorage = new HypothesisStorage({ baseDir });
+      const testStorage = new TestStorage({ baseDir });
+      const assumptionStorage = new AssumptionStorage({ baseDir });
+      const anomalyStorage = new AnomalyStorage({ baseDir });
+      const critiqueStorage = new CritiqueStorage({ baseDir });
+
+      // Load data from storage
+      const hypotheses = await hypothesisStorage.loadSessionHypotheses(sid);
+      const tests = await testStorage.loadSessionTests(sid);
+      const assumptions = await assumptionStorage.loadSessionAssumptions(sid);
+      const anomalies = await anomalyStorage.loadSessionAnomalies(sid);
+      const critiques = await critiqueStorage.loadSessionCritiques(sid);
+
+      // Map storage types to Artifact sections
+      // HypothesisItem from artifact-merge expects: id, killed, third_alternative, mechanism, name, claim, anchors
+      const hypothesisSlate = hypotheses.map((h) => ({
+        id: h.id,
+        name: h.statement.slice(0, 50),
+        claim: h.statement,
+        mechanism: h.mechanism ?? "",
+        killed: h.state === "refuted",
+        third_alternative: h.category === "third_alternative",
+        anchors: h.anchors ?? [],
+      }));
+
+      // TestItem expects: id, name, procedure, discriminates, expected_outcomes, potency_check, feasibility, status, score
+      const discriminativeTests = tests.map((t) => ({
+        id: t.id,
+        name: t.name,
+        procedure: t.procedure,
+        discriminates: t.discriminates.join(", "),
+        expected_outcomes: t.expectedOutcomes,
+        potency_check: t.potencyCheck?.positiveControl ?? "",
+        feasibility: t.feasibility?.assessment ?? "",
+        status: t.status === "completed" ? ("passed" as const) : (t.status as "untested" | "passed" | "failed" | "blocked" | "error"),
+        score: {
+          likelihood_ratio: t.evidencePerWeekScore.likelihoodRatio,
+          cost: t.evidencePerWeekScore.cost,
+          speed: t.evidencePerWeekScore.speed,
+          ambiguity: t.evidencePerWeekScore.ambiguity,
+        },
+      }));
+
+      // AssumptionItem expects: id, name, statement, load, test, status, scale_check, calculation
+      const assumptionLedger = assumptions.map((a) => ({
+        id: a.id,
+        name: a.statement.slice(0, 50),
+        statement: a.statement,
+        load: `Affects: ${a.load.affectedHypotheses.join(", ") || "none"}`,
+        test: a.testApproach ?? "",
+        status: a.status as "unchecked" | "verified" | "falsified" | undefined,
+        scale_check: a.type === "scale_physics",
+        calculation: a.calculation?.formula,
+      }));
+
+      // AnomalyItem expects: id, name, observation, conflicts_with, status
+      const anomalyRegister = anomalies.map((x) => ({
+        id: x.id,
+        name: x.observation.slice(0, 50),
+        observation: x.observation,
+        conflicts_with: x.conflictsWith,
+        status: x.status as "active" | "resolved" | "deferred" | undefined,
+      }));
+
+      // CritiqueItem expects: id, name, attack, evidence, current_status, real_third_alternative
+      const adversarialCritique = critiques.map((c) => ({
+        id: c.id,
+        name: c.title,
+        attack: c.challenge,
+        evidence: c.evidence ?? "",
+        current_status: c.status,
+        real_third_alternative: c.proposedAlternative !== undefined,
+      }));
+
+      const artifact: Artifact = {
+        metadata: {
+          session_id: sid,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          version: 1,
+          contributors: [],
+          status: "active",
+        },
+        sections: {
+          research_thread: null, // Not available from storage
+          hypothesis_slate: hypothesisSlate,
+          predictions_table: [], // Not available from storage directly
+          discriminative_tests: discriminativeTests,
+          assumption_ledger: assumptionLedger,
+          anomaly_register: anomalyRegister,
+          adversarial_critique: adversarialCritique,
+        },
+      };
+
+      return {
+        sessionId: sid,
+        artifact,
+        hypothesisTransitions: [], // Would need to track transitions over time
+      };
+    }
+
+    // Helper to format dimension score for human output
+    function formatDimensionScore(d: DimensionScore): string {
+      const bar = "█".repeat(Math.round(d.percentage / 10)) + "░".repeat(10 - Math.round(d.percentage / 10));
+      return `${d.dimension.padEnd(28)} ${bar} ${d.points}/${d.maxPoints} (${d.percentage}%)`;
+    }
+
+    // Score a single session
+    if (sessionId && !allSessions) {
+      const sessionData = await buildSessionDataFromStorage(sessionId, projectKey);
+      const result = scoreSession(sessionData);
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, score: result }, null, 2));
+      } else {
+        stdoutLine(`\n═══════════════════════════════════════════════════════════`);
+        stdoutLine(`  SESSION SCORECARD: ${result.sessionId}`);
+        stdoutLine(`═══════════════════════════════════════════════════════════\n`);
+
+        stdoutLine(`Grade: ${result.grade}  (${result.totalScore}/${result.maxScore} points)\n`);
+
+        stdoutLine(`Dimension Breakdown:`);
+        stdoutLine(`───────────────────────────────────────────────────────────`);
+        stdoutLine(formatDimensionScore(result.dimensions.paradoxGrounding));
+        stdoutLine(formatDimensionScore(result.dimensions.hypothesisKillRate));
+        stdoutLine(formatDimensionScore(result.dimensions.testDiscriminability));
+        stdoutLine(formatDimensionScore(result.dimensions.assumptionTracking));
+        stdoutLine(formatDimensionScore(result.dimensions.thirdAlternativeDiscovery));
+        stdoutLine(formatDimensionScore(result.dimensions.experimentalFeasibility));
+        stdoutLine(formatDimensionScore(result.dimensions.adversarialPressure));
+        stdoutLine(`───────────────────────────────────────────────────────────\n`);
+
+        stdoutLine(`Scored at: ${result.scoredAt}`);
+      }
+      process.exit(0);
+    }
+
+    // Score all sessions
+    if (allSessions) {
+      const hypothesisStorage = new HypothesisStorage({ baseDir: projectKey });
+      const testStorage = new TestStorage({ baseDir: projectKey });
+
+      // Get all session IDs from both storages
+      const hypothesisSessions = await hypothesisStorage.listSessions();
+      const testSessions = await testStorage.listSessions();
+      const allSessionIds = [...new Set([...hypothesisSessions, ...testSessions])];
+
+      if (allSessionIds.length === 0) {
+        if (jsonMode) {
+          stdoutLine(JSON.stringify({ ok: true, sessions: [], message: "No sessions found" }, null, 2));
+        } else {
+          stdoutLine("No sessions found in storage.");
+        }
+        process.exit(0);
+      }
+
+      const results: Array<{ sessionId: string; score: SessionDimensionScore }> = [];
+
+      for (const sid of allSessionIds) {
+        const sessionData = await buildSessionDataFromStorage(sid, projectKey);
+        const result = scoreSession(sessionData);
+        results.push({ sessionId: sid, score: result });
+      }
+
+      // Sort by total score descending
+      results.sort((a, b) => b.score.totalScore - a.score.totalScore);
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({
+          ok: true,
+          count: results.length,
+          sessions: results,
+        }, null, 2));
+      } else {
+        stdoutLine(`\n═══════════════════════════════════════════════════════════`);
+        stdoutLine(`  ALL SESSIONS SCORECARD`);
+        stdoutLine(`═══════════════════════════════════════════════════════════\n`);
+
+        stdoutLine(`${"Rank".padEnd(6)} ${"Session".padEnd(30)} ${"Grade".padEnd(6)} ${"Score".padEnd(10)}`);
+        stdoutLine(`───────────────────────────────────────────────────────────`);
+
+        results.forEach((r, idx) => {
+          const rank = `#${idx + 1}`.padEnd(6);
+          const session = r.sessionId.padEnd(30);
+          const grade = r.score.grade.padEnd(6);
+          const score = `${r.score.totalScore}/${r.score.maxScore}`;
+          stdoutLine(`${rank} ${session} ${grade} ${score}`);
+        });
+
+        stdoutLine(`───────────────────────────────────────────────────────────`);
+        const avgScore = results.reduce((sum, r) => sum + r.score.totalScore, 0) / results.length;
+        stdoutLine(`\nAverage score: ${avgScore.toFixed(1)} points across ${results.length} sessions`);
+      }
+      process.exit(0);
+    }
+
+    throw new Error("Usage: brenner score <session-id> [--json] or brenner score --all [--json]");
+  }
+
+  // ============================================================================
+  // Feedback Command
+  // ============================================================================
+  if (top === "feedback") {
+    const jsonMode = asBoolFlag(flags, "json");
+    const projectKey = asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey;
+    const sessionId = sub;
+
+    if (!sessionId) {
+      throw new Error("Usage: brenner feedback <session-id> [--json]");
+    }
+
+    // Reuse the buildSessionDataFromStorage helper (inline here for simplicity)
+    const hypothesisStorage = new HypothesisStorage({ baseDir: projectKey });
+    const testStorage = new TestStorage({ baseDir: projectKey });
+    const assumptionStorage = new AssumptionStorage({ baseDir: projectKey });
+    const anomalyStorage = new AnomalyStorage({ baseDir: projectKey });
+    const critiqueStorage = new CritiqueStorage({ baseDir: projectKey });
+
+    const hypotheses = await hypothesisStorage.loadSessionHypotheses(sessionId);
+    const tests = await testStorage.loadSessionTests(sessionId);
+    const assumptions = await assumptionStorage.loadSessionAssumptions(sessionId);
+    const anomalies = await anomalyStorage.loadSessionAnomalies(sessionId);
+    const critiques = await critiqueStorage.loadSessionCritiques(sessionId);
+
+    const hypothesisSlate = hypotheses.map((h) => ({
+      id: h.id,
+      name: h.statement.slice(0, 50),
+      claim: h.statement,
+      mechanism: h.mechanism ?? "",
+      killed: h.state === "refuted",
+      third_alternative: h.category === "third_alternative",
+      anchors: h.anchors ?? [],
+    }));
+
+    const discriminativeTests = tests.map((t) => ({
+      id: t.id,
+      name: t.name,
+      procedure: t.procedure,
+      discriminates: t.discriminates.join(", "),
+      expected_outcomes: t.expectedOutcomes,
+      potency_check: t.potencyCheck?.positiveControl ?? "",
+      feasibility: t.feasibility?.assessment ?? "",
+      status: t.status === "completed" ? ("passed" as const) : (t.status as "untested" | "passed" | "failed" | "blocked" | "error"),
+      score: {
+        likelihood_ratio: t.evidencePerWeekScore.likelihoodRatio,
+        cost: t.evidencePerWeekScore.cost,
+        speed: t.evidencePerWeekScore.speed,
+        ambiguity: t.evidencePerWeekScore.ambiguity,
+      },
+    }));
+
+    const assumptionLedger = assumptions.map((a) => ({
+      id: a.id,
+      name: a.statement.slice(0, 50),
+      statement: a.statement,
+      load: `Affects: ${a.load.affectedHypotheses.join(", ") || "none"}`,
+      test: a.testApproach ?? "",
+      status: a.status as "unchecked" | "verified" | "falsified" | undefined,
+      scale_check: a.type === "scale_physics",
+      calculation: a.calculation?.formula,
+    }));
+
+    const anomalyRegister = anomalies.map((x) => ({
+      id: x.id,
+      name: x.observation.slice(0, 50),
+      observation: x.observation,
+      conflicts_with: x.conflictsWith,
+      status: x.status as "active" | "resolved" | "deferred" | undefined,
+    }));
+
+    const adversarialCritique = critiques.map((c) => ({
+      id: c.id,
+      name: c.title,
+      attack: c.challenge,
+      evidence: c.evidence ?? "",
+      current_status: c.status,
+      real_third_alternative: c.proposedAlternative !== undefined,
+    }));
+
+    const artifact: Artifact = {
+      metadata: {
+        session_id: sessionId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        version: 1,
+        contributors: [],
+        status: "active",
+      },
+      sections: {
+        research_thread: null,
+        hypothesis_slate: hypothesisSlate,
+        predictions_table: [],
+        discriminative_tests: discriminativeTests,
+        assumption_ledger: assumptionLedger,
+        anomaly_register: anomalyRegister,
+        adversarial_critique: adversarialCritique,
+      },
+    };
+
+    const sessionData: SessionData = {
+      sessionId,
+      artifact,
+      hypothesisTransitions: [],
+    };
+
+    const result = scoreSession(sessionData);
+
+    // Generate feedback based on low-scoring dimensions
+    interface FeedbackItem {
+      dimension: string;
+      score: number;
+      maxScore: number;
+      suggestion: string;
+      brennerQuote?: string;
+    }
+
+    const feedback: FeedbackItem[] = [];
+
+    // Check each dimension and generate feedback for low scores
+    const dimensions = [
+      { key: "paradoxGrounding", name: "Paradox Grounding", threshold: 10 },
+      { key: "hypothesisKillRate", name: "Hypothesis Kill Rate", threshold: 10, quoteKey: "theoryKillJustification" },
+      { key: "testDiscriminability", name: "Test Discriminability", threshold: 10, quoteKey: "discriminativePower" },
+      { key: "assumptionTracking", name: "Assumption Tracking", threshold: 8, quoteKey: "scaleCheckRigor" },
+      { key: "thirdAlternativeDiscovery", name: "Third Alternative Discovery", threshold: 8, quoteKey: "thirdAlternativePresence" },
+      { key: "experimentalFeasibility", name: "Experimental Feasibility", threshold: 5 },
+      { key: "adversarialPressure", name: "Adversarial Pressure", threshold: 10, quoteKey: "anomalyQuarantineDiscipline" },
+    ] as const;
+
+    for (const dim of dimensions) {
+      const d = result.dimensions[dim.key];
+      if (d.points < dim.threshold) {
+        const suggestions: Record<string, string> = {
+          paradoxGrounding: "Start with a genuine puzzle or paradox. Identify surprising observations that challenge existing paradigm.",
+          hypothesisKillRate: "Actively try to refute hypotheses. Link kills to specific test results with documented reasoning.",
+          testDiscriminability: "Design tests that produce different outcomes for different hypotheses. Include potency checks for all tests.",
+          assumptionTracking: "Record assumptions explicitly. Link them to hypotheses and include scale/physics checks with calculations.",
+          thirdAlternativeDiscovery: "Add a genuine third alternative that proposes a different causal structure, not a blend.",
+          experimentalFeasibility: "Add feasibility assessments to tests. Execute tests to move from design to results.",
+          adversarialPressure: "Log critiques with evidence. Propose real third alternatives from critique.",
+        };
+
+        feedback.push({
+          dimension: dim.name,
+          score: d.points,
+          maxScore: d.maxPoints,
+          suggestion: suggestions[dim.key] ?? "Improve this dimension.",
+          brennerQuote: dim.quoteKey ? BRENNER_QUOTES[dim.quoteKey] : undefined,
+        });
+      }
+    }
+
+    if (jsonMode) {
+      stdoutLine(JSON.stringify({
+        ok: true,
+        sessionId,
+        grade: result.grade,
+        totalScore: result.totalScore,
+        maxScore: result.maxScore,
+        feedback,
+      }, null, 2));
+    } else {
+      stdoutLine(`\n═══════════════════════════════════════════════════════════`);
+      stdoutLine(`  IMPROVEMENT FEEDBACK: ${sessionId}`);
+      stdoutLine(`═══════════════════════════════════════════════════════════\n`);
+
+      stdoutLine(`Current Grade: ${result.grade} (${result.totalScore}/${result.maxScore})\n`);
+
+      if (feedback.length === 0) {
+        stdoutLine(`Excellent work! All dimensions are above threshold.\n`);
+      } else {
+        stdoutLine(`Areas for Improvement (${feedback.length}):`);
+        stdoutLine(`───────────────────────────────────────────────────────────`);
+
+        for (const f of feedback) {
+          stdoutLine(`\n▶ ${f.dimension} (${f.score}/${f.maxScore})`);
+          stdoutLine(`  ${f.suggestion}`);
+          if (f.brennerQuote) {
+            stdoutLine(`  💬 "${f.brennerQuote}"`);
+          }
+        }
+        stdoutLine(``);
+      }
+    }
+    process.exit(0);
+  }
+
+  // ============================================================================
+  // Leaderboard Command
+  // ============================================================================
+  if (top === "leaderboard") {
+    const jsonMode = asBoolFlag(flags, "json");
+    const projectKey = asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey;
+    const limit = asIntFlag(flags, "limit") ?? 10;
+
+    const hypothesisStorage = new HypothesisStorage({ baseDir: projectKey });
+    const testStorage = new TestStorage({ baseDir: projectKey });
+    const assumptionStorage = new AssumptionStorage({ baseDir: projectKey });
+    const anomalyStorage = new AnomalyStorage({ baseDir: projectKey });
+    const critiqueStorage = new CritiqueStorage({ baseDir: projectKey });
+
+    // Get all session IDs
+    const hypothesisSessions = await hypothesisStorage.listSessions();
+    const testSessions = await testStorage.listSessions();
+    const allSessionIds = [...new Set([...hypothesisSessions, ...testSessions])];
+
+    if (allSessionIds.length === 0) {
+      if (jsonMode) {
+        stdoutLine(JSON.stringify({ ok: true, leaderboard: [], message: "No sessions found" }, null, 2));
+      } else {
+        stdoutLine("No sessions found in storage.");
+      }
+      process.exit(0);
+    }
+
+    const results: Array<{
+      rank: number;
+      sessionId: string;
+      grade: string;
+      totalScore: number;
+      maxScore: number;
+      percentage: number;
+    }> = [];
+
+    for (const sid of allSessionIds) {
+      const hypotheses = await hypothesisStorage.loadSessionHypotheses(sid);
+      const tests = await testStorage.loadSessionTests(sid);
+      const assumptions = await assumptionStorage.loadSessionAssumptions(sid);
+      const anomalies = await anomalyStorage.loadSessionAnomalies(sid);
+      const critiques = await critiqueStorage.loadSessionCritiques(sid);
+
+      const hypothesisSlate = hypotheses.map((h) => ({
+        id: h.id,
+        name: h.statement.slice(0, 50),
+        claim: h.statement,
+        mechanism: h.mechanism ?? "",
+        killed: h.state === "refuted",
+        third_alternative: h.category === "third_alternative",
+        anchors: h.anchors ?? [],
+      }));
+
+      const discriminativeTests = tests.map((t) => ({
+        id: t.id,
+        name: t.name,
+        procedure: t.procedure,
+        discriminates: t.discriminates.join(", "),
+        expected_outcomes: t.expectedOutcomes,
+        potency_check: t.potencyCheck?.positiveControl ?? "",
+        feasibility: t.feasibility?.assessment ?? "",
+        status: t.status === "completed" ? ("passed" as const) : (t.status as "untested" | "passed" | "failed" | "blocked" | "error"),
+        score: {
+          likelihood_ratio: t.evidencePerWeekScore.likelihoodRatio,
+          cost: t.evidencePerWeekScore.cost,
+          speed: t.evidencePerWeekScore.speed,
+          ambiguity: t.evidencePerWeekScore.ambiguity,
+        },
+      }));
+
+      const assumptionLedger = assumptions.map((a) => ({
+        id: a.id,
+        name: a.statement.slice(0, 50),
+        statement: a.statement,
+        load: `Affects: ${a.load.affectedHypotheses.join(", ") || "none"}`,
+        test: a.testApproach ?? "",
+        status: a.status as "unchecked" | "verified" | "falsified" | undefined,
+        scale_check: a.type === "scale_physics",
+        calculation: a.calculation?.formula,
+      }));
+
+      const anomalyRegister = anomalies.map((x) => ({
+        id: x.id,
+        name: x.observation.slice(0, 50),
+        observation: x.observation,
+        conflicts_with: x.conflictsWith,
+        status: x.status as "active" | "resolved" | "deferred" | undefined,
+      }));
+
+      const adversarialCritique = critiques.map((c) => ({
+        id: c.id,
+        name: c.title,
+        attack: c.challenge,
+        evidence: c.evidence ?? "",
+        current_status: c.status,
+        real_third_alternative: c.proposedAlternative !== undefined,
+      }));
+
+      const artifact: Artifact = {
+        metadata: {
+          session_id: sid,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          version: 1,
+          contributors: [],
+          status: "active",
+        },
+        sections: {
+          research_thread: null,
+          hypothesis_slate: hypothesisSlate,
+          predictions_table: [],
+          discriminative_tests: discriminativeTests,
+          assumption_ledger: assumptionLedger,
+          anomaly_register: anomalyRegister,
+          adversarial_critique: adversarialCritique,
+        },
+      };
+
+      const sessionData: SessionData = { sessionId: sid, artifact, hypothesisTransitions: [] };
+      const score = scoreSession(sessionData);
+
+      results.push({
+        rank: 0, // Will be set after sorting
+        sessionId: sid,
+        grade: score.grade,
+        totalScore: score.totalScore,
+        maxScore: score.maxScore,
+        percentage: Math.round((score.totalScore / score.maxScore) * 100),
+      });
+    }
+
+    // Sort by score descending and assign ranks
+    results.sort((a, b) => b.totalScore - a.totalScore);
+    results.forEach((r, idx) => { r.rank = idx + 1; });
+
+    const topResults = results.slice(0, limit);
+
+    if (jsonMode) {
+      stdoutLine(JSON.stringify({
+        ok: true,
+        totalSessions: results.length,
+        showing: topResults.length,
+        leaderboard: topResults,
+      }, null, 2));
+    } else {
+      stdoutLine(`\n═══════════════════════════════════════════════════════════`);
+      stdoutLine(`  🏆 SESSION LEADERBOARD`);
+      stdoutLine(`═══════════════════════════════════════════════════════════\n`);
+
+      stdoutLine(`${"Rank".padEnd(6)} ${"Session".padEnd(30)} ${"Grade".padEnd(6)} ${"Score".padEnd(12)} ${"Pct"}`);
+      stdoutLine(`───────────────────────────────────────────────────────────`);
+
+      for (const r of topResults) {
+        const medal = r.rank === 1 ? "🥇" : r.rank === 2 ? "🥈" : r.rank === 3 ? "🥉" : "  ";
+        const rank = `${medal}${r.rank}`.padEnd(6);
+        const session = r.sessionId.slice(0, 28).padEnd(30);
+        const grade = r.grade.padEnd(6);
+        const score = `${r.totalScore}/${r.maxScore}`.padEnd(12);
+        stdoutLine(`${rank} ${session} ${grade} ${score} ${r.percentage}%`);
+      }
+
+      stdoutLine(`───────────────────────────────────────────────────────────`);
+      stdoutLine(`\nShowing top ${topResults.length} of ${results.length} sessions`);
+    }
     process.exit(0);
   }
 

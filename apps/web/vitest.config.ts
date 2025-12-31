@@ -11,6 +11,8 @@ import { resolve } from "node:path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  // Avoid writing cache files into `node_modules/.vite` (some cache files are tracked in this repo).
+  cacheDir: "./.vitest-cache",
   test: {
     // Use happy-dom for React component testing (faster than jsdom)
     // Node environment is auto-selected for non-tsx files
