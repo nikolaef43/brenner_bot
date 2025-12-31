@@ -319,7 +319,228 @@ Rules:
 
 ---
 
-## 4) One end-to-end example session (kickoff → agent responses)
+## 4) Running experiments (discriminative tests)
+
+> **Key distinction**: The experiment workflow separates **capture** (record what happened) from **interpretation** (decide what it means). The CLI handles capture; agents handle interpretation.
+
+### 4.1 Workspace best practice
+
+Always run experiments from the project root (the folder you're studying):
+
+```bash
+cd /path/to/your/project
+export PROJECT_KEY="$PWD"
+export THREAD_ID="RS-20251230-cell-fate"
+```
+
+Using `--project-key "$PWD"` ensures:
+- Result files are written relative to your workspace
+- File paths in DELTAs are consistent across agents
+- Artifacts compile correctly
+
+### 4.2 Define a discriminative test command (T#)
+
+Discriminative tests are defined in the session artifact's `discriminative_tests` section. Each test has:
+- `test_id`: Identifier like `T1`, `T2`, etc.
+- `procedure`: The command to run
+- `expected_outcomes`: What each hypothesis predicts
+
+Example from an artifact:
+
+```markdown
+### T1: RRP Knockout Test
+- **Procedure**: `python test_rrp.py --variant knockout`
+- **Discriminates**: H1 vs H2
+- **Expected outcomes**:
+  - H1 (structural): Protein still folds
+  - H2 (functional): Complete loss of activity
+```
+
+### 4.3 Run the experiment (capture phase)
+
+Use `experiment run` to execute the test command and capture output:
+
+```bash
+./brenner.ts experiment run \
+  --thread-id "$THREAD_ID" \
+  --test-id T1 \
+  --timeout 300 \
+  -- python test_rrp.py --variant knockout
+```
+
+**Flags**:
+- `--thread-id`: Required. Links result to the session thread.
+- `--test-id`: Required. The T# being executed.
+- `--timeout`: Optional (default 120s). Max execution time.
+- `--json`: Optional. Emit structured output instead of the file path.
+
+**What gets captured**:
+- Exit code (0 = success, non-zero = failure)
+- Stdout and stderr (full content)
+- Timing (start, finish, duration)
+- Timeout status (blocked if timed out)
+
+**Where results are written**:
+```
+artifacts/{thread_id}/results/{test_id}_{timestamp}_{uuid}.json
+```
+
+Example output:
+```
+artifacts/RS-20251230-cell-fate/results/T1_20251230_183045_a1b2c3d4.json
+```
+
+### 4.4 Inspect the result file
+
+The result file is a structured JSON document (schema: `experiment_result_v0.1`):
+
+```bash
+cat artifacts/$THREAD_ID/results/T1_*.json | jq '.'
+```
+
+Key fields:
+- `result_id`: Unique identifier for this run
+- `test_id`, `thread_id`: Back-references
+- `exit_code`: 0 = passed, non-zero = failed
+- `timed_out`: true if killed by timeout (status = blocked)
+- `stdout`, `stderr`: Captured output
+- `duration_ms`: Execution time
+
+### 4.5 Encode the result → DELTA blocks (still capture, not interpretation)
+
+Generate a non-interpretive DELTA that attaches run metadata to the test:
+
+```bash
+./brenner.ts experiment encode \
+  --result-file artifacts/$THREAD_ID/results/T1_*.json \
+  --project-key "$PROJECT_KEY" \
+  > delta.md
+```
+
+With `--json`:
+```bash
+./brenner.ts experiment encode \
+  --result-file artifacts/$THREAD_ID/results/T1_*.json \
+  --project-key "$PROJECT_KEY" \
+  --json
+```
+
+**What `encode` does NOT do**:
+- It does NOT interpret whether the result supports H1 or H2
+- It does NOT update hypothesis confidence scores
+- It does NOT decide if the test was valid
+
+These are agent responsibilities during the interpretation phase.
+
+### 4.6 Post the DELTA message (encode + send in one step)
+
+The `experiment post` command combines encode + send:
+
+```bash
+./brenner.ts experiment post \
+  --result-file artifacts/$THREAD_ID/results/T1_*.json \
+  --project-key "$PROJECT_KEY" \
+  --sender Operator \
+  --to BlueLake,PurpleMountain,RedForest
+```
+
+This:
+1. Reads and validates the result file
+2. Generates the DELTA block
+3. Sends it to Agent Mail with subject `DELTA[results]: T1 passed|failed|blocked`
+
+**Alternative**: Send manually with `mail send`:
+
+```bash
+./brenner.ts experiment encode \
+  --result-file artifacts/$THREAD_ID/results/T1_*.json \
+  --project-key "$PROJECT_KEY" \
+  > delta.md
+
+./brenner.ts mail send \
+  --project-key "$PROJECT_KEY" \
+  --thread-id "$THREAD_ID" \
+  --sender Operator \
+  --to BlueLake,PurpleMountain,RedForest \
+  --subject "DELTA[results]: T1 run" \
+  --body-file delta.md
+```
+
+### 4.7 Compile the updated artifact
+
+After posting experiment results, compile to merge the DELTA:
+
+```bash
+./brenner.ts session compile \
+  --project-key "$PROJECT_KEY" \
+  --thread-id "$THREAD_ID" \
+  > artifact_v2.md
+```
+
+Or write directly to disk:
+```bash
+./brenner.ts session write \
+  --project-key "$PROJECT_KEY" \
+  --thread-id "$THREAD_ID"
+```
+
+### 4.8 Full experiment loop (copy/paste example)
+
+```bash
+# 0) Set workspace context
+export PROJECT_KEY="$PWD"
+export THREAD_ID="RS-20251230-cell-fate"
+
+# 1) Run the experiment (capture)
+./brenner.ts experiment run \
+  --thread-id "$THREAD_ID" \
+  --test-id T1 \
+  --timeout 300 \
+  -- python test_rrp.py --variant knockout
+
+# 2) Find the result file
+RESULT_FILE=$(ls -t artifacts/$THREAD_ID/results/T1_*.json | head -1)
+echo "Result: $RESULT_FILE"
+
+# 3) Post to thread (encode + send)
+./brenner.ts experiment post \
+  --result-file "$RESULT_FILE" \
+  --project-key "$PROJECT_KEY" \
+  --sender Operator \
+  --to BlueLake,PurpleMountain,RedForest
+
+# 4) Compile updated artifact
+./brenner.ts session compile \
+  --project-key "$PROJECT_KEY" \
+  --thread-id "$THREAD_ID" \
+  > artifact_v2.md
+
+# 5) Publish to thread
+./brenner.ts session publish \
+  --project-key "$PROJECT_KEY" \
+  --thread-id "$THREAD_ID" \
+  --sender Operator \
+  --to BlueLake,PurpleMountain,RedForest
+```
+
+### 4.9 Capture vs Interpretation: who does what
+
+| Phase | Who | What happens | Output |
+|-------|-----|--------------|--------|
+| **Capture** | Operator + CLI | Run command, record stdout/stderr/exit | `ExperimentResult` JSON |
+| **Encode** | CLI | Generate DELTA with run metadata | `DELTA[results]: T# status` message |
+| **Interpretation** | Agents | Analyze output, update hypotheses | `DELTA[gpt/opus/gemini]: ...` messages |
+
+The operator **never** interprets results. The CLI **never** guesses what results mean.
+
+Agents receive the raw data and must:
+1. Read the result (stdout, exit code, duration)
+2. Compare to expected outcomes in the test spec
+3. Send follow-up DELTAs updating hypothesis status, adding anomalies, or proposing new tests
+
+---
+
+## 5) One end-to-end example session (kickoff → agent responses)
 
 ```bash
 # 1) Choose the join key
@@ -346,7 +567,7 @@ Next steps: compile deltas → render canonical artifact → publish `COMPILED` 
 
 ---
 
-## 5) Optional `.ntm/` project templates (proposal)
+## 6) Optional `.ntm/` project templates (proposal)
 
 > **Goal**: minimize copy/paste friction in the cockpit without adding lots of repo-specific scaffolding.
 
@@ -391,7 +612,7 @@ If we decide to commit a project config, add a tiny `.ntm/config.toml` with a �
 
 ---
 
-## 6) Post-session wrap-up checklist (artifacts + memory outcomes)
+## 7) Post-session wrap-up checklist (artifacts + memory outcomes)
 
 Use this to “land the plane” after a session:
 
