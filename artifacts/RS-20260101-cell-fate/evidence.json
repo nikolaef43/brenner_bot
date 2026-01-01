@@ -1,0 +1,80 @@
+{
+  "version": "0.1",
+  "thread_id": "RS-20260101-cell-fate",
+  "created_at": "2026-01-01T20:02:37.878Z",
+  "updated_at": "2026-01-01T20:03:35.267Z",
+  "next_id": 4,
+  "records": [
+    {
+      "id": "EV-001",
+      "type": "paper",
+      "title": "Asymmetric cell divisions and cell fate specification in C. elegans",
+      "source": "doi:10.1146/annurev-cellbio-100913-013027",
+      "access_method": "doi",
+      "imported_at": "2026-01-01T20:02:46.064Z",
+      "imported_by": "operator",
+      "relevance": "Canonical review of molecular mechanisms governing asymmetric divisions and fate specification in early embryo",
+      "key_findings": [],
+      "verified": true,
+      "excerpts": [
+        {
+          "anchor": "E1",
+          "text": "PAR proteins establish anterior-posterior polarity through cortical flows that segregate P granules to the posterior, ensuring germ-line fate is restricted to the P1 lineage",
+          "verbatim": true,
+          "location": "Section 2.1, p. 127"
+        }
+      ],
+      "supports": [
+        "H1",
+        "H2"
+      ],
+      "verification_notes": "Peer-reviewed Annual Review article by Rose & Gonczy (2014)"
+    },
+    {
+      "id": "EV-002",
+      "type": "dataset",
+      "title": "WormBase Cell Lineage Database",
+      "source": "https://wormbase.org/species/c_elegans/cell",
+      "access_method": "url",
+      "imported_at": "2026-01-01T20:02:57.950Z",
+      "imported_by": "operator",
+      "relevance": "Complete cell lineage for all 959 somatic cells, essential for validating cell fate predictions",
+      "key_findings": [],
+      "verified": false,
+      "excerpts": [
+        {
+          "anchor": "E1",
+          "text": "The invariant cell lineage of C. elegans produces exactly 959 somatic cells through precisely timed asymmetric divisions",
+          "verbatim": false,
+          "location": "Database summary"
+        }
+      ],
+      "supports": [
+        "H1"
+      ]
+    },
+    {
+      "id": "EV-003",
+      "type": "paper",
+      "title": "Wnt signaling polarizes an early C. elegans blastomere",
+      "source": "doi:10.1016/j.cell.2006.05.010",
+      "access_method": "doi",
+      "imported_at": "2026-01-01T20:03:15.284Z",
+      "imported_by": "operator",
+      "relevance": "Key paper showing MOM-2/Wnt signal from P2 polarizes EMS blastomere, demonstrating extrinsic fate determination",
+      "key_findings": [],
+      "verified": false,
+      "excerpts": [
+        {
+          "anchor": "E1",
+          "text": "MOM-2/Wnt signaling from P2 to EMS is required for proper specification of the E (gut) lineage, with loss of function resulting in transformation of E to MS fate",
+          "verbatim": true,
+          "location": "Results, Figure 3"
+        }
+      ],
+      "supports": [
+        "H2"
+      ]
+    }
+  ]
+}
