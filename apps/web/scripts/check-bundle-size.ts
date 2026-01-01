@@ -179,8 +179,8 @@ function checkBundleSizes(): boolean {
   return !hasViolation;
 }
 
-// Run if executed directly
-if (import.meta.main) {
+// Run if executed directly (Bun-specific: import.meta.main)
+if ((import.meta as { main?: boolean }).main) {
   const success = checkBundleSizes();
   process.exit(success ? 0 : 1);
 }
