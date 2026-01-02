@@ -89,7 +89,11 @@ export function SectionReference({ sectionNumber, endNumber, title: propsTitle, 
   }>({ position: "top", style: {} });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const openTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  // Hover delay before showing tooltip (matches jargon.tsx for consistency)
+  const HOVER_DELAY_MS = 400;
 
   // Get section data from context (loads from sections.json)
   const { getSection } = useSectionData();
@@ -105,9 +109,12 @@ export function SectionReference({ sectionNumber, endNumber, title: propsTitle, 
 
   const portalContainer = typeof document === "undefined" ? null : document.body;
 
-  // Cleanup timeout on unmount
+  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
+      if (openTimeoutRef.current) {
+        clearTimeout(openTimeoutRef.current);
+      }
       if (closeTimeoutRef.current) {
         clearTimeout(closeTimeoutRef.current);
       }
@@ -180,14 +187,26 @@ export function SectionReference({ sectionNumber, endNumber, title: propsTitle, 
 
   const handleMouseEnter = useCallback(() => {
     if (isMobile) return;
+    // Clear any pending close
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
     }
-    setIsOpen(true);
+    // Clear any pending open (in case of rapid mouse movements)
+    if (openTimeoutRef.current) {
+      clearTimeout(openTimeoutRef.current);
+    }
+    // Delay before showing tooltip to prevent accidental triggers
+    openTimeoutRef.current = setTimeout(() => {
+      setIsOpen(true);
+    }, HOVER_DELAY_MS);
   }, [isMobile]);
 
   const handleMouseLeave = useCallback(() => {
     if (isMobile) return;
+    // Cancel any pending open
+    if (openTimeoutRef.current) {
+      clearTimeout(openTimeoutRef.current);
+    }
     closeTimeoutRef.current = setTimeout(() => {
       setIsOpen(false);
     }, 150);
@@ -319,10 +338,11 @@ export function SectionReference({ sectionNumber, endNumber, title: propsTitle, 
                   <div className="h-1.5 w-12 rounded-full bg-muted-foreground/40" />
                 </div>
 
-                {/* Close button */}
+                {/* Close button - z-10 ensures it's above scrollable content */}
                 <button
+                  type="button"
                   onClick={handleClose}
-                  className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors active:bg-muted/80"
+                  className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 active:bg-muted/60"
                   aria-label="Close"
                 >
                   <XIcon />

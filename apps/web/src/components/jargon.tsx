@@ -346,11 +346,11 @@ export function Jargon({ term, children, className }: JargonProps) {
                   <div className="h-1.5 w-12 rounded-full bg-muted-foreground/40" />
                 </div>
 
-                {/* Close button */}
+                {/* Close button - z-10 ensures it's above scrollable content */}
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors active:bg-muted/80"
+                  className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 active:bg-muted/60"
                   aria-label="Close"
                 >
                   <XIcon />
