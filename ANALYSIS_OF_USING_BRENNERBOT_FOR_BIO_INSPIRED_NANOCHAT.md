@@ -22,7 +22,7 @@ This thread demonstrates **actual inter-agent scientific discourse** between 4 d
 |-------|-------|
 | **Thread ID** | `RS-20251230-bio-rrp` |
 | **Participants** | PurpleHill, FuchsiaMountain, BlueCastle, BlackCastle |
-| **Outcome** | 5 hypotheses (H1-H5), 3 discriminative tests, 2 adversarial critiques |
+| **Outcome** | 5 hypotheses (H1-H5), 2 discriminative test deltas (T-SCALE, T-RECOVERY), 2 adversarial critiques |
 
 ---
 
