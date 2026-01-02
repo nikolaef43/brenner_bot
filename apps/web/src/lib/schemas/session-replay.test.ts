@@ -1,15 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
   SessionRecordSchema,
-  SessionInputsSchema,
-  SessionTraceSchema,
-  SessionOutputsSchema,
   TraceMessageSchema,
   TraceRoundSchema,
   AgentRosterEntrySchema,
   KickoffInputSchema,
   ReplayReportSchema,
-  DivergenceSchema,
   createRecordId,
   createEmptySessionRecord,
   computeContentHash,

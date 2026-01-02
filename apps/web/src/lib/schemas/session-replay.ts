@@ -2,8 +2,6 @@ import { z } from "zod";
 import {
   OperatorInterventionSchema,
   InterventionSummarySchema,
-  type OperatorIntervention,
-  type InterventionSummary,
 } from "./operator-intervention";
 
 /**

@@ -851,12 +851,6 @@ export function mergeArtifactWithTimestamps(
 // Validation Helpers
 // ============================================================================
 
-/**
- * Validate that an artifact meets minimum requirements.
- *
- * @param artifact - The artifact to validate
- * @returns Array of validation warnings (empty if valid)
- */
 /** Valid reference relation types */
 const VALID_REFERENCE_RELATIONS: ReferenceRelation[] = [
   "extends",
@@ -963,6 +957,12 @@ export function extractReferences(
   return refMap;
 }
 
+/**
+ * Validate that an artifact meets minimum requirements.
+ *
+ * @param artifact - The artifact to validate
+ * @returns Array of validation warnings (empty if valid)
+ */
 export function validateArtifact(artifact: Artifact): MergeWarning[] {
   const warnings: MergeWarning[] = [];
 
