@@ -79,6 +79,13 @@ function sanitizeThreadId(threadId: string): string {
   return threadId.replace(/[^a-zA-Z0-9\-_.]/g, "_");
 }
 
+const VALID_EVIDENCE_TYPES = new Set<string>([
+  "paper", "preprint", "dataset", "experiment",
+  "observation", "prior_session", "expert_opinion", "code_artifact",
+]);
+
+const VALID_ACCESS_METHODS = new Set<string>(["url", "doi", "file", "session", "manual"]);
+
 /**
  * Validates that a parsed JSON object conforms to the EvidencePack structure.
  * Returns the validated object or throws an error with details.
@@ -110,26 +117,71 @@ function validateEvidencePack(data: unknown): EvidencePack {
     throw new Error("Missing or invalid 'records' field (expected array)");
   }
 
-  // Validate each record has minimum required fields
+  // Validate each record has all required fields
   for (let i = 0; i < obj.records.length; i++) {
-    const record = obj.records[i] as Record<string, unknown>;
+    const record = obj.records[i];
     if (typeof record !== "object" || record === null) {
       throw new Error(`Record at index ${i} is not an object`);
     }
-    if (typeof record.id !== "string") {
-      throw new Error(`Record at index ${i} missing 'id' field`);
+    const rec = record as Record<string, unknown>;
+    const recId = typeof rec.id === "string" ? rec.id : `index ${i}`;
+
+    if (typeof rec.id !== "string") {
+      throw new Error(`Record ${recId}: missing 'id' field`);
     }
-    if (typeof record.type !== "string") {
-      throw new Error(`Record at index ${i} missing 'type' field`);
+    if (typeof rec.type !== "string") {
+      throw new Error(`Record ${recId}: missing 'type' field`);
     }
-    if (typeof record.title !== "string") {
-      throw new Error(`Record at index ${i} missing 'title' field`);
+    if (!VALID_EVIDENCE_TYPES.has(rec.type)) {
+      throw new Error(`Record ${recId}: invalid type '${rec.type}'`);
     }
-    if (!Array.isArray(record.excerpts)) {
-      throw new Error(`Record at index ${i} missing 'excerpts' array`);
+    if (typeof rec.title !== "string") {
+      throw new Error(`Record ${recId}: missing 'title' field`);
     }
-    if (!Array.isArray(record.key_findings)) {
-      throw new Error(`Record at index ${i} missing 'key_findings' array`);
+    if (typeof rec.source !== "string") {
+      throw new Error(`Record ${recId}: missing 'source' field`);
+    }
+    if (typeof rec.access_method !== "string") {
+      throw new Error(`Record ${recId}: missing 'access_method' field`);
+    }
+    if (!VALID_ACCESS_METHODS.has(rec.access_method)) {
+      throw new Error(`Record ${recId}: invalid access_method '${rec.access_method}'`);
+    }
+    if (typeof rec.imported_at !== "string") {
+      throw new Error(`Record ${recId}: missing 'imported_at' field`);
+    }
+    if (typeof rec.imported_by !== "string") {
+      throw new Error(`Record ${recId}: missing 'imported_by' field`);
+    }
+    if (typeof rec.relevance !== "string") {
+      throw new Error(`Record ${recId}: missing 'relevance' field`);
+    }
+    if (typeof rec.verified !== "boolean") {
+      throw new Error(`Record ${recId}: missing or invalid 'verified' field (expected boolean)`);
+    }
+    if (!Array.isArray(rec.key_findings)) {
+      throw new Error(`Record ${recId}: missing 'key_findings' array`);
+    }
+    if (!Array.isArray(rec.excerpts)) {
+      throw new Error(`Record ${recId}: missing 'excerpts' array`);
+    }
+
+    // Validate each excerpt has required fields
+    for (let j = 0; j < rec.excerpts.length; j++) {
+      const excerpt = rec.excerpts[j];
+      if (typeof excerpt !== "object" || excerpt === null) {
+        throw new Error(`Record ${recId}, excerpt ${j}: not an object`);
+      }
+      const ex = excerpt as Record<string, unknown>;
+      if (typeof ex.anchor !== "string") {
+        throw new Error(`Record ${recId}, excerpt ${j}: missing 'anchor' field`);
+      }
+      if (typeof ex.text !== "string") {
+        throw new Error(`Record ${recId}, excerpt ${j}: missing 'text' field`);
+      }
+      if (typeof ex.verbatim !== "boolean") {
+        throw new Error(`Record ${recId}, excerpt ${j}: missing or invalid 'verbatim' field`);
+      }
     }
   }
 
