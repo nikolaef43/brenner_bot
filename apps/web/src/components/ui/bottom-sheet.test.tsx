@@ -35,7 +35,7 @@ describe("BottomSheet", () => {
   });
 
   afterEach(() => {
-    // Clean up any remaining styles
+    // Clean up any remaining styles that might leak between tests
     document.body.style.overflow = "";
   });
 

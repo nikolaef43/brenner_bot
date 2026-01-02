@@ -24,6 +24,19 @@ const ANIMATION_PROPS = new Set([
   "whileInView",
   "layout",
   "layoutId",
+  // Drag-related props (these otherwise leak onto DOM nodes and trigger React warnings)
+  "drag",
+  "dragConstraints",
+  "dragElastic",
+  "dragMomentum",
+  "dragTransition",
+  "dragListener",
+  "onDrag",
+  "onDragStart",
+  "onDragEnd",
+  "onPan",
+  "onPanStart",
+  "onPanEnd",
   "onAnimationStart",
   "onAnimationComplete",
 ]);
@@ -32,8 +45,22 @@ const ANIMATION_PROPS = new Set([
  * Strip framer-motion animation props from an object, returning only HTML-safe props.
  */
 function stripAnimationProps<T extends Record<string, unknown>>(props: T): Partial<T> {
+  const sanitizedEntries = Object.entries(props).filter(([key]) => !ANIMATION_PROPS.has(key));
+
+  // Framer Motion often uses x/y MotionValues in `style`. In unit tests we render plain DOM nodes,
+  // so drop non-CSS keys to avoid noisy warnings and brittle snapshots.
+  const styleEntryIndex = sanitizedEntries.findIndex(([key]) => key === "style");
+  if (styleEntryIndex !== -1) {
+    const styleValue = sanitizedEntries[styleEntryIndex]?.[1];
+    if (styleValue && typeof styleValue === "object" && !Array.isArray(styleValue)) {
+      const styleObj = styleValue as Record<string, unknown>;
+      const { x: _x, y: _y, ...rest } = styleObj;
+      sanitizedEntries[styleEntryIndex] = ["style", rest];
+    }
+  }
+
   return Object.fromEntries(
-    Object.entries(props).filter(([key]) => !ANIMATION_PROPS.has(key))
+    sanitizedEntries
   ) as Partial<T>;
 }
 

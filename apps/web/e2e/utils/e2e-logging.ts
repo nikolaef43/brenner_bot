@@ -28,7 +28,6 @@ export interface ConsoleLogEntry {
   url?: string;
   lineNumber?: number;
   columnNumber?: number;
-  args?: string[];
 }
 
 export interface PageErrorEntry {
@@ -379,7 +378,7 @@ export function formatConsoleLogsAsText(testTitle: string): string {
     for (const entry of context.pageErrors) {
       lines.push(`${entry.timestamp.slice(11, 23)} ERROR ${entry.message}`);
       if (entry.stack) {
-        lines.push(`  ${entry.stack.split("\n").slice(0, 3).join("\n  ")}`);
+        lines.push(`    ${entry.stack.split("\n").slice(0, 3).join("\n    ")}`);
       }
     }
     lines.push("");

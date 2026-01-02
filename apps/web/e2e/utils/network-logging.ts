@@ -5,7 +5,7 @@
  * Philosophy: Make network issues easy to diagnose.
  */
 
-import type { Page, Request, Response, TestInfo, BrowserContext } from "@playwright/test";
+import type { Page, Request, Response, TestInfo } from "@playwright/test";
 import * as path from "path";
 import * as fs from "fs";
 
@@ -92,7 +92,9 @@ export function logNetworkRequest(testTitle: string, request: Request): void {
   const requestId = `${request.method()}-${request.url()}-${Date.now()}`;
   pendingRequests.set(requestId, { startTime: Date.now(), url: request.url() });
 
-  console.log(`\x1b[90m  -> ${request.method()} ${request.url().slice(0, 80)}...\x1b[0m`);
+  const url = request.url();
+  const displayUrl = url.length > 80 ? `${url.slice(0, 80)}...` : url;
+  console.log(`\x1b[90m  -> ${request.method()} ${displayUrl}\x1b[0m`);
 }
 
 export function logNetworkResponse(testTitle: string, response: Response): void {
@@ -126,7 +128,8 @@ export function logNetworkResponse(testTitle: string, response: Response): void 
   // Log to console with color based on status
   const statusColor = response.status() >= 400 ? "\x1b[31m" : response.status() >= 300 ? "\x1b[33m" : "\x1b[32m";
   const durationStr = duration ? ` [${formatDuration(duration)}]` : "";
-  console.log(`\x1b[90m  <- ${statusColor}${response.status()}\x1b[0m ${request.method()} ${url.slice(0, 60)}...${durationStr}`);
+  const displayUrl = url.length > 60 ? `${url.slice(0, 60)}...` : url;
+  console.log(`\x1b[90m  <- ${statusColor}${response.status()}\x1b[0m ${request.method()} ${displayUrl}${durationStr}`);
 }
 
 export function logNetworkFailure(testTitle: string, request: Request, failure: string): void {
@@ -140,7 +143,8 @@ export function logNetworkFailure(testTitle: string, request: Request, failure: 
   };
   context.networkLogs.push(networkLog);
 
-  console.log(`\x1b[31m  X ${request.method()} ${request.url().slice(0, 60)}... FAILED: ${failure}\x1b[0m`);
+  const displayUrl = request.url().length > 60 ? `${request.url().slice(0, 60)}...` : request.url();
+  console.log(`\x1b[31m  X ${request.method()} ${displayUrl} FAILED: ${failure}\x1b[0m`);
 }
 
 export function setupNetworkLogging(page: Page, testTitle: string): void {
@@ -399,14 +403,11 @@ function getMimeType(resourceType: string): string {
 }
 
 /**
- * Save HAR file to disk and store path in context.
+ * Save HAR file to disk using pre-generated JSON content.
+ * This avoids regenerating the HAR when it's already been serialized.
  */
-export function saveHarFile(testTitle: string): string | undefined {
+function saveHarFileDirect(testTitle: string, harJson: string): string | undefined {
   const context = getNetworkContext(testTitle);
-
-  if (context.networkLogs.length === 0) {
-    return undefined;
-  }
 
   // Ensure HAR output directory exists
   if (!fs.existsSync(HAR_OUTPUT_DIR)) {
@@ -416,13 +417,27 @@ export function saveHarFile(testTitle: string): string | undefined {
   const safeTitle = testTitle.replace(/[^a-zA-Z0-9]/g, "_").slice(0, 100);
   const harPath = path.join(HAR_OUTPUT_DIR, `${safeTitle}_${Date.now()}.har`);
 
-  const har = generateHar(testTitle);
-  fs.writeFileSync(harPath, JSON.stringify(har, null, 2));
+  fs.writeFileSync(harPath, harJson);
 
   context.harPath = harPath;
   console.log(`\x1b[32m  HAR file saved: ${harPath}\x1b[0m`);
 
   return harPath;
+}
+
+/**
+ * Save HAR file to disk and store path in context.
+ * Generates HAR from network logs if not already generated.
+ */
+export function saveHarFile(testTitle: string): string | undefined {
+  const context = getNetworkContext(testTitle);
+
+  if (context.networkLogs.length === 0) {
+    return undefined;
+  }
+
+  const har = generateHar(testTitle);
+  return saveHarFileDirect(testTitle, JSON.stringify(har, null, 2));
 }
 
 export async function attachNetworkLogsToTest(testInfo: TestInfo, testTitle: string): Promise<void> {
@@ -439,15 +454,17 @@ export async function attachNetworkLogsToTest(testInfo: TestInfo, testTitle: str
       contentType: "text/plain",
     });
 
-    // Generate and attach HAR file
+    // Generate HAR once and reuse for both attachment and disk save
     const har = generateHar(testTitle);
+    const harJson = JSON.stringify(har, null, 2);
+
     await testInfo.attach("network.har", {
-      body: JSON.stringify(har, null, 2),
+      body: harJson,
       contentType: "application/json",
     });
 
     // Also save to disk for easy access with Chrome DevTools
-    saveHarFile(testTitle);
+    saveHarFileDirect(testTitle, harJson);
   }
 
   await testInfo.attach("performance-timing.json", {
