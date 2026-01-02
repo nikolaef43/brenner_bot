@@ -291,12 +291,20 @@ export class AgentMailTestServer {
 
   private handleResourcesRead(params: { uri: string }): { contents: Array<{ uri: string; text: string }> } {
     const { uri } = params;
-    const url = new URL(uri);
-    const path = url.pathname;
-    const searchParams = Object.fromEntries(url.searchParams.entries());
 
-    if (path.startsWith("/inbox/")) {
-      const agentName = path.slice("/inbox/".length);
+    // Parse resource:// URIs manually since URL() doesn't handle custom schemes correctly
+    const uriWithoutScheme = uri.replace(/^resource:\/\//, "");
+    const [pathPart, queryPart] = uriWithoutScheme.split("?");
+    const searchParams: Record<string, string> = {};
+    if (queryPart) {
+      for (const pair of queryPart.split("&")) {
+        const [key, value] = pair.split("=");
+        if (key) searchParams[key] = decodeURIComponent(value || "");
+      }
+    }
+
+    if (pathPart.startsWith("inbox/")) {
+      const agentName = pathPart.slice("inbox/".length);
       const projectKey = searchParams.project || "";
       const limit = parseInt(searchParams.limit || "20", 10);
       const includeBodies = searchParams.include_bodies === "true";
@@ -307,8 +315,8 @@ export class AgentMailTestServer {
       };
     }
 
-    if (path.startsWith("/thread/")) {
-      const threadId = path.slice("/thread/".length);
+    if (pathPart.startsWith("thread/")) {
+      const threadId = pathPart.slice("thread/".length);
       const projectKey = searchParams.project || "";
       const includeBodies = searchParams.include_bodies === "true";
 
