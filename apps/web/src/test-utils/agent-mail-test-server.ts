@@ -153,6 +153,8 @@ export class AgentMailTestServer {
     this.nextProjectId = 1;
     this.nextAgentId = 1;
     this.nextMessageId = 1;
+    // Also reset error mode to prevent test pollution
+    this.errorMode = { enabled: false, code: -32603, message: "Simulated error" };
   }
 
   getPort(): number {

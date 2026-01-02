@@ -682,5 +682,19 @@ describe("AgentMailTestServer", () => {
 
       server.disableErrorMode();
     });
+
+    it("reset() clears error mode to prevent test pollution", async () => {
+      server.enableErrorMode(-32000, "Should be cleared by reset");
+      server.reset();
+
+      // After reset, error mode should be disabled and calls should succeed
+      const result = await toolsCall("ensure_project", {
+        human_key: "/test/project",
+      });
+
+      expect(result).toMatchObject({
+        human_key: "/test/project",
+      });
+    });
   });
 });
