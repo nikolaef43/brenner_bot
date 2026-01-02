@@ -14,6 +14,8 @@
 
 **Brenner Bot is a research "seed crystal"**: a curated primary-source corpus (Sydney Brenner transcripts) plus multi-model syntheses, powering **collaborative scientific research conversations** that follow the "Brenner approach."
 
+> 📊 **[End-to-End Test Report: Bio-Inspired Nanochat Session](./ANALYSIS_OF_USING_BRENNERBOT_FOR_BIO_INSPIRED_NANOCHAT.md)** — A complete walkthrough demonstrating the Brenner method in action on a real research question about biological vs. synthetic nanoparticle communication.
+
 ### The north star
 
 This repository integrates with **Agent Mail** (coordination + memory + workflow glue) so multiple coding agents can collaborate as a *research group*:
@@ -61,6 +63,24 @@ Deployed on Vercel with Cloudflare DNS at **`brennerbot.org`**.
 - [Testing Infrastructure](#testing-infrastructure)
 - [Development Workflow](#development-workflow)
 - [Releases](#releases)
+- [Research Artifact Lifecycle Management](#research-artifact-lifecycle-management)
+  - [Hypothesis Management](#hypothesis-management)
+  - [Test Management](#test-management)
+  - [Assumption Management](#assumption-management)
+  - [Anomaly Management](#anomaly-management)
+  - [Critique Management](#critique-management)
+- [Scoring & Evaluation System](#scoring--evaluation-system)
+  - [The 7-Dimension Session Score](#the-7-dimension-session-score)
+  - [Role-Specific Scoring](#role-specific-scoring)
+  - [Pass/Fail Gates](#passfail-gates)
+- [Research Program Orchestration](#research-program-orchestration)
+  - [Dashboard Metrics](#dashboard-metrics)
+- [Experiment Capture & Encoding](#experiment-capture--encoding)
+- [Cockpit Runtime](#cockpit-runtime)
+- [Web Application Pages](#web-application-pages)
+- [Specification Reference](#specification-reference)
+- [Storage & Schema Architecture](#storage--schema-architecture)
+- [JSON Output Mode](#json-output-mode)
 
 ---
 
@@ -1608,3 +1628,567 @@ This is set via environment variables during build:
 - `BRENNER_GIT_SHA`: Full commit SHA
 - `BRENNER_BUILD_DATE`: ISO 8601 timestamp
 - `BRENNER_TARGET`: Platform identifier
+
+---
+
+## Research Artifact Lifecycle Management
+
+The CLI provides comprehensive commands for managing research artifacts as first-class entities. Each artifact type follows a defined lifecycle with state transitions that enforce the Brenner method's epistemic hygiene.
+
+### Hypothesis Management
+
+Hypotheses are the core currency of scientific inquiry. The CLI tracks them through a rigorous lifecycle:
+
+**States**: `proposed` → `active` → `under_attack` / `assumption_undermined` / `refined` → `killed` / `validated` / `dormant`
+
+```bash
+# List all hypotheses in a session
+brenner hypothesis list --session RS20251230
+
+# Show detailed hypothesis information
+brenner hypothesis show H-RS20251230-001
+
+# Create a new hypothesis
+brenner hypothesis create \
+  --session RS20251230 \
+  --statement "Positional information is encoded in morphogen gradients" \
+  --mechanism "Cells read concentration thresholds to determine fate" \
+  --category causal \
+  --confidence medium
+
+# Transition hypothesis state
+brenner hypothesis transition H-RS20251230-001 active \
+  --reason "Initial evidence supports investigation"
+
+# Kill a hypothesis with evidence
+brenner hypothesis kill H-RS20251230-001 \
+  --reason "T-RS20251230-002 showed no gradient correlation" \
+  --test-id T-RS20251230-002
+
+# Validate a hypothesis
+brenner hypothesis validate H-RS20251230-001 \
+  --reason "Three independent tests confirmed gradient dependency"
+
+# Mark as third alternative (the "both could be wrong" move)
+brenner hypothesis create \
+  --session RS20251230 \
+  --statement "Neither gradient nor timing — mechanical forces drive fate" \
+  --third-alternative \
+  --spawned-from X-RS20251230-001  # From an anomaly
+```
+
+**Categories**: `causal`, `correlational`, `mechanistic`, `phenomenological`, `comparative`, `historical`
+
+**Origins**: `original`, `third_alternative`, `anomaly_spawned`, `literature`, `discussion`
+
+### Test Management
+
+Discriminative tests are designed to eliminate hypotheses, not confirm them. "Exclusion is always a tremendously good thing." (§147)
+
+**States**: `designed` → `pending` / `in_progress` → `completed` / `blocked`
+
+```bash
+# List tests for a session
+brenner test list --session RS20251230
+
+# Show test details with expected outcomes
+brenner test show T-RS20251230-001
+
+# Create a new discriminative test
+brenner test create \
+  --session RS20251230 \
+  --name "Gradient ablation assay" \
+  --procedure "Laser-ablate source tissue, measure downstream fates" \
+  --expected-outcomes '{
+    "H-RS20251230-001": "No fate change",
+    "H-RS20251230-002": "Random fate assignment",
+    "H-RS20251230-003": "Delayed but correct fate"
+  }' \
+  --potency-check "Verify source ablation via marker loss" \
+  --feasibility "Requires confocal access; 2-day turnaround"
+
+# Record test execution
+brenner test execute T-RS20251230-001 \
+  --outcome "Random fate assignment observed" \
+  --supports H-RS20251230-002 \
+  --contradicts H-RS20251230-001 \
+  --notes "n=15 embryos, p<0.001"
+```
+
+**Potency checks** are mandatory — they distinguish "no effect" from "assay failed."
+
+### Assumption Management
+
+Assumptions are load-bearing beliefs that underpin hypotheses and tests. The Brenner method requires explicit tracking because falsifying an assumption invalidates everything that depends on it.
+
+**Types**: `background`, `methodological`, `boundary`, `scale_physics`
+
+**States**: `unchecked` → `challenged` → `verified` / `falsified`
+
+```bash
+# List assumptions
+brenner assumption list --session RS20251230
+
+# Create a scale/physics assumption (mandatory for every research program)
+brenner assumption create \
+  --session RS20251230 \
+  --statement "Morphogen diffusion is fast enough for pattern formation" \
+  --type scale_physics \
+  --load-hypotheses H-RS20251230-001,H-RS20251230-002 \
+  --load-tests T-RS20251230-001 \
+  --calculation '{
+    "quantities": "D ≈ 10 μm²/s, L ≈ 100 μm",
+    "result": "τ ≈ L²/D ≈ 1000s ≈ 17 min",
+    "units": "seconds, micrometers",
+    "implication": "Gradient-based signaling is physically plausible within cell cycle"
+  }'
+
+# Challenge an assumption
+brenner assumption challenge A-RS20251230-001 \
+  --reason "New evidence suggests D may be 10x lower in tissue context"
+
+# Verify an assumption
+brenner assumption verify A-RS20251230-001 \
+  --evidence "FRAP measurements confirm D = 8-12 μm²/s in vivo"
+
+# Falsify an assumption (triggers propagation to linked hypotheses/tests)
+brenner assumption falsify A-RS20251230-001 \
+  --evidence "D measured at 0.5 μm²/s — gradient takes hours, not minutes"
+```
+
+The `scale_physics` type is special — it represents "the imprisoned imagination" constraint from Brenner. **Every research program must have at least one.**
+
+### Anomaly Management
+
+Anomalies are surprising observations that don't fit the current framework. They reveal when framings are inadequate and can spawn new hypotheses through the "paradox grounding" mechanism.
+
+**Quarantine States**: `active` → `resolved` / `deferred` / `paradigm_shifting`
+
+```bash
+# List anomalies
+brenner anomaly list --session RS20251230
+
+# Create an anomaly from experimental observation
+brenner anomaly create \
+  --session RS20251230 \
+  --observation "Cells at boundary show oscillating fate markers" \
+  --source-type experiment \
+  --source-reference T-RS20251230-003 \
+  --conflicts-with H-RS20251230-001,H-RS20251230-002 \
+  --conflict-description "Neither gradient nor timing models predict oscillation"
+
+# Resolve an anomaly with a hypothesis
+brenner anomaly resolve X-RS20251230-001 \
+  --resolved-by H-RS20251230-004 \
+  --notes "Third alternative explains oscillation as bistable switch"
+
+# Defer an anomaly (must provide reason — prevents Occam's broom)
+brenner anomaly defer X-RS20251230-001 \
+  --reason "Requires live imaging to characterize; park until microscope available"
+
+# Reactivate a deferred anomaly
+brenner anomaly reactivate X-RS20251230-001
+
+# Spawn a hypothesis from an anomaly (paradox grounding)
+brenner hypothesis create \
+  --session RS20251230 \
+  --statement "Fate oscillation reflects bistable genetic circuit" \
+  --spawned-from X-RS20251230-001
+```
+
+**Key insight**: "We didn't conceal them; we put them in an appendix." (§110) — Anomalies are quarantined, not hidden or allowed to destroy coherent frameworks prematurely.
+
+### Critique Management
+
+Critiques are adversarial attacks on hypotheses, tests, assumptions, framing, or methodology. They enforce the "when they go ugly, kill them" discipline while requiring explicit justification.
+
+**Status**: `active` → `addressed` / `dismissed` / `accepted`
+
+**Severity**: `minor`, `moderate`, `serious`, `critical`
+
+```bash
+# List critiques
+brenner critique list --session RS20251230
+
+# Create a critique targeting a hypothesis
+brenner critique create \
+  --session RS20251230 \
+  --target-type hypothesis \
+  --target-id H-RS20251230-001 \
+  --attack "Gradient model assumes linear readout, but evidence suggests threshold switching" \
+  --evidence-to-confirm "Test non-linear response curves in dose-response assays" \
+  --severity serious \
+  --alternative "Threshold-based discrete switch with hysteresis"
+
+# Create a framing critique (attacks the research question itself)
+brenner critique create \
+  --session RS20251230 \
+  --target-type framing \
+  --attack "Wrong level of description — should be asking about information flow, not substance" \
+  --evidence-to-confirm "Show equivalent patterning with different morphogens" \
+  --severity critical
+
+# Address a critique
+brenner critique address C-RS20251230-001 \
+  --response "Added non-linear model variant; does not change discriminative power" \
+  --action modified \
+  --responded-by "Codex"
+
+# Dismiss a critique (must provide reason)
+brenner critique dismiss C-RS20251230-001 \
+  --reason "Evidence cited is from non-comparable system (Drosophila vs. vertebrate)"
+
+# Accept a critique and take action
+brenner critique accept C-RS20251230-001 \
+  --action killed \
+  --response "Critique was correct; hypothesis killed in favor of threshold model"
+```
+
+---
+
+## Scoring & Evaluation System
+
+The CLI implements the 14-criterion evaluation rubric for scoring Brenner method adherence. Scores are computed per-contribution and aggregated at the session level.
+
+### The 7-Dimension Session Score
+
+Sessions are scored across seven dimensions that capture the essence of rigorous scientific inquiry:
+
+| Dimension | Max Points | What It Measures |
+|-----------|------------|------------------|
+| Paradox Grounding | 20 | Does the session start from a genuine puzzle? |
+| Hypothesis Kill Rate | 20 | Are hypotheses being eliminated, not just accumulated? |
+| Test Discriminability | 20 | Do tests actually distinguish between hypotheses? |
+| Assumption Tracking | 15 | Are load-bearing assumptions explicit and tested? |
+| Third Alternative Discovery | 15 | Are "both could be wrong" alternatives explored? |
+| Experimental Feasibility | 10 | Are tests actually executable? |
+| Adversarial Pressure | 20 | Has adversarial critique been applied? |
+
+**Grades**: A (90%+), B (80%+), C (70%+), D (60%+), F (<60%)
+
+```bash
+# Score a session
+brenner score session RS20251230
+
+# Score with detailed dimension breakdown
+brenner score session RS20251230 --verbose
+
+# Score with JSON output for programmatic use
+brenner score session RS20251230 --json
+
+# Get scoring feedback with Brenner quotes
+brenner feedback session RS20251230
+```
+
+### Role-Specific Scoring
+
+Each agent role is scored on criteria relevant to their function:
+
+**Hypothesis Generator (Codex)** — 19 points max
+- Structural Correctness (×1.0)
+- Citation Compliance (×1.0)
+- Rationale Quality (×0.5)
+- Level Separation (×1.5) — "Programs don't have wants"
+- Third Alternative Presence (×2.0) — "Both could be wrong"
+- Paradox Exploitation (×0.5)
+
+**Test Designer (Opus)** — 21.5 points max
+- Discriminative Power (×2.0) — "Exclusion is always good"
+- Potency Check Sufficiency (×2.0)
+- Object Transposition Considered (×0.5)
+- Score Calibration Honesty (×0.5)
+
+**Adversarial Critic (Gemini)** — 25.5 points max (with KILL)
+- Scale Check Rigor (×1.5) — "The imprisoned imagination"
+- Anomaly Quarantine Discipline (×1.5)
+- Theory Kill Justification (×1.5) — "When they go ugly, kill them"
+- Real Third Alternative (×1.5)
+
+```bash
+# Score a specific contribution
+brenner score contribution --delta-id D-RS20251230-003
+
+# View the leaderboard
+brenner leaderboard --session RS20251230
+brenner leaderboard --program RP-CELL-FATE-001
+```
+
+### Pass/Fail Gates
+
+Certain failures are disqualifying regardless of other scores:
+
+- **Invalid JSON** in delta block
+- **Fake anchor** detected (§n that doesn't exist)
+- **Missing potency check** in test design
+- **KILL without rationale** in critique
+
+---
+
+## Research Program Orchestration
+
+Research Programs aggregate multiple sessions into a coherent multi-session research effort. They provide dashboard views of hypothesis funnels, registry health, and timeline events.
+
+**States**: `active` → `paused` → `completed` / `abandoned`
+
+```bash
+# Create a new research program
+brenner program create \
+  --name "Cell Fate Determination in Vertebrate Embryos" \
+  --description "Investigating the computational basis of positional information encoding" \
+  --slug CELL-FATE
+
+# List programs
+brenner program list
+brenner program list --status active
+
+# Show program dashboard
+brenner program show RP-CELL-FATE-001
+brenner program dashboard RP-CELL-FATE-001
+
+# Add sessions to a program
+brenner program add-session RP-CELL-FATE-001 RS20251230
+brenner program add-session RP-CELL-FATE-001 RS20251231
+
+# Remove a session
+brenner program remove-session RP-CELL-FATE-001 RS20251231
+
+# Pause a program
+brenner program pause RP-CELL-FATE-001 \
+  --reason "Waiting for CRISPR reagents"
+
+# Resume a program
+brenner program resume RP-CELL-FATE-001
+
+# Complete a program
+brenner program complete RP-CELL-FATE-001 \
+  --summary "Validated threshold model; gradient hypothesis killed"
+
+# Abandon a program (requires explanation)
+brenner program abandon RP-CELL-FATE-001 \
+  --reason "Funding ended; see RP-NEURAL-CREST-001 for continuation"
+```
+
+### Dashboard Metrics
+
+The program dashboard shows:
+
+**Hypothesis Funnel**
+```
+Proposed → Active → Under Attack → Killed/Validated
+    12        5           2            7 / 0
+```
+
+**Registry Health**
+- Assumptions: 8 total (5 verified, 2 challenged, 1 unchecked)
+- Anomalies: 3 total (1 resolved, 1 deferred, 1 active)
+- Critiques: 5 total (4 addressed, 1 active)
+
+**Timeline Events**
+```
+2025-12-30 09:00  [hypothesis_proposed] H-RS20251230-001 created
+2025-12-30 11:30  [test_executed] T-RS20251230-001 completed
+2025-12-30 14:00  [hypothesis_killed] H-RS20251230-001 refuted by T-RS20251230-001
+```
+
+---
+
+## Experiment Capture & Encoding
+
+The CLI provides commands for encoding experiment results and posting them to the session artifact.
+
+```bash
+# Encode experiment results
+brenner experiment encode \
+  --test-id T-RS20251230-001 \
+  --outcome "Observed 3-fold reduction in marker expression" \
+  --data-file results/experiment_001.json \
+  --format structured
+
+# Post encoded results to session
+brenner experiment post \
+  --session RS20251230 \
+  --test-id T-RS20251230-001 \
+  --supports H-RS20251230-002 \
+  --contradicts H-RS20251230-001
+
+# Batch import from structured data
+brenner experiment import \
+  --session RS20251230 \
+  --file experiments.yaml
+```
+
+See [`specs/experiment_result_encoding_v0.1.md`](./specs/experiment_result_encoding_v0.1.md) and [`specs/experiment_capture_protocol_v0.1.md`](./specs/experiment_capture_protocol_v0.1.md) for the encoding specification.
+
+---
+
+## Cockpit Runtime
+
+The cockpit provides an ntm-based multi-agent runtime for running collaborative research sessions. It coordinates multiple AI agents through Agent Mail, manages the session lifecycle, and produces the research artifact.
+
+```bash
+# Start a new research session with the cockpit
+brenner cockpit start \
+  --question "How do cells determine their position in a developing embryo?" \
+  --roster opus=test_designer,codex=hypothesis_generator,gemini=adversarial_critic \
+  --rounds 5
+
+# Resume an existing session
+brenner cockpit resume RS20251230
+
+# View session status
+brenner cockpit status RS20251230
+
+# Stop a running session
+brenner cockpit stop RS20251230
+```
+
+The cockpit:
+1. Provisions ntm panes for each agent
+2. Sends kickoff messages via Agent Mail
+3. Monitors for deltas and validates them
+4. Compiles approved deltas into the session artifact
+5. Manages round transitions and convergence
+
+See [`specs/cockpit_start_command_v0.1.md`](./specs/cockpit_start_command_v0.1.md) and [`specs/cockpit_runbook_v0.1.md`](./specs/cockpit_runbook_v0.1.md) for detailed documentation.
+
+---
+
+## Web Application Pages
+
+The Next.js web app provides several views for browsing and analyzing research sessions:
+
+### Session Pages
+
+| Route | Description |
+|-------|-------------|
+| `/sessions` | List of all research sessions |
+| `/sessions/[threadId]` | Session detail view with artifact |
+| `/sessions/[threadId]/evidence` | Evidence pack view — consolidated experimental data |
+
+### Reference Pages
+
+| Route | Description |
+|-------|-------------|
+| `/operators` | The Operator Algebra reference — all cognitive moves |
+| `/method` | The Brenner Method guide — principles and practices |
+
+### Corpus Pages
+
+| Route | Description |
+|-------|-------------|
+| `/` | Home page with search |
+| `/docs/[docId]` | Document viewer with anchor navigation |
+
+---
+
+## Specification Reference
+
+The `specs/` directory contains detailed specifications for all protocols and formats:
+
+| Spec | Description |
+|------|-------------|
+| [`artifact_schema_v0.1.md`](./specs/artifact_schema_v0.1.md) | The 8-section research artifact structure |
+| [`artifact_delta_spec_v0.1.md`](./specs/artifact_delta_spec_v0.1.md) | Delta format for incremental updates |
+| [`artifact_linter_spec_v0.1.md`](./specs/artifact_linter_spec_v0.1.md) | 50+ validation rules for artifact hygiene |
+| [`artifact_publish_spec_v0.1.md`](./specs/artifact_publish_spec_v0.1.md) | Publication and export formats |
+| [`evaluation_rubric_v0.1.md`](./specs/evaluation_rubric_v0.1.md) | The 14-criterion scoring rubric |
+| [`operator_library_v0.1.md`](./specs/operator_library_v0.1.md) | Complete operator algebra reference |
+| [`role_prompts_v0.1.md`](./specs/role_prompts_v0.1.md) | Agent role system prompts |
+| [`agent_mail_contracts_v0.1.md`](./specs/agent_mail_contracts_v0.1.md) | Message formats and threading |
+| [`agent_roster_schema_v0.1.md`](./specs/agent_roster_schema_v0.1.md) | Agent configuration format |
+| [`message_body_schema_v0.1.md`](./specs/message_body_schema_v0.1.md) | Message body structure |
+| [`thread_subject_conventions_v0.1.md`](./specs/thread_subject_conventions_v0.1.md) | Thread naming conventions |
+| [`excerpt_format_v0.1.md`](./specs/excerpt_format_v0.1.md) | Transcript excerpt format |
+| [`delta_output_format_v0.1.md`](./specs/delta_output_format_v0.1.md) | Delta output formatting |
+| [`experiment_result_encoding_v0.1.md`](./specs/experiment_result_encoding_v0.1.md) | Experiment data encoding |
+| [`experiment_capture_protocol_v0.1.md`](./specs/experiment_capture_protocol_v0.1.md) | Capture workflow |
+| [`evidence_pack_v0.1.md`](./specs/evidence_pack_v0.1.md) | Evidence consolidation format |
+| [`toolchain_manifest_v0.1.md`](./specs/toolchain_manifest_v0.1.md) | Toolchain configuration |
+| [`session_replay_spec_v0.1.md`](./specs/session_replay_spec_v0.1.md) | Session replay format |
+| [`cockpit_start_command_v0.1.md`](./specs/cockpit_start_command_v0.1.md) | Cockpit CLI reference |
+| [`cockpit_runbook_v0.1.md`](./specs/cockpit_runbook_v0.1.md) | Cockpit operational guide |
+| [`deployment_runbook_v0.1.md`](./specs/deployment_runbook_v0.1.md) | Deployment procedures |
+| [`bootstrap_troubleshooting_v0.1.md`](./specs/bootstrap_troubleshooting_v0.1.md) | Setup troubleshooting |
+| [`cross_workspace_binding_v0.1.md`](./specs/cross_workspace_binding_v0.1.md) | Multi-workspace coordination |
+| [`release_artifact_matrix_v0.1.md`](./specs/release_artifact_matrix_v0.1.md) | Release binary matrix |
+
+---
+
+## Storage & Schema Architecture
+
+The system uses a layered storage architecture for research artifacts:
+
+### Storage Layer
+
+```
+apps/web/src/lib/storage/
+├── hypothesis-storage.ts    # Hypothesis CRUD with lifecycle
+├── test-storage.ts          # Test design and execution
+├── assumption-storage.ts    # Assumption tracking with load graphs
+├── anomaly-storage.ts       # Anomaly quarantine management
+├── critique-storage.ts      # Adversarial critique tracking
+├── program-storage.ts       # Research program aggregation
+└── program-dashboard.ts     # Dashboard metric computation
+```
+
+Each storage module provides:
+- **Create**: Generate IDs, validate schemas, persist to store
+- **Read**: Lookup by ID, list with filters, query by status
+- **Update**: State transitions with timestamp tracking
+- **Lifecycle**: State machine enforcement with transition validation
+
+### Schema Layer
+
+```
+apps/web/src/lib/schemas/
+├── hypothesis.ts             # Hypothesis schema and factory
+├── hypothesis-lifecycle.ts   # State machine transitions
+├── test-record.ts            # Test design schema
+├── test-binding.ts           # Test execution binding
+├── prediction.ts             # Expected outcome predictions
+├── assumption.ts             # Assumption schema with load tracking
+├── assumption-lifecycle.ts   # Assumption state transitions
+├── anomaly.ts                # Anomaly schema with quarantine
+├── critique.ts               # Critique schema with responses
+├── research-program.ts       # Program aggregation schema
+├── scorecard.ts              # 14-criterion scoring schema
+├── session.ts                # Session metadata
+├── session-replay.ts         # Replay format schema
+└── operator-intervention.ts  # Human operator actions
+```
+
+### ID Conventions
+
+All artifacts use stable, session-scoped IDs:
+
+| Artifact | Pattern | Example |
+|----------|---------|---------|
+| Hypothesis | `H-{session}-{seq}` | `H-RS20251230-001` |
+| Test | `T-{session}-{seq}` | `T-RS20251230-001` |
+| Assumption | `A-{session}-{seq}` | `A-RS20251230-001` |
+| Anomaly | `X-{session}-{seq}` | `X-RS20251230-001` |
+| Critique | `C-{session}-{seq}` | `C-RS20251230-001` |
+| Program | `RP-{slug}-{seq}` | `RP-CELL-FATE-001` |
+| Session | `RS{date}` | `RS20251230` |
+
+---
+
+## JSON Output Mode
+
+All CLI commands support structured JSON output for programmatic integration:
+
+```bash
+# Get hypothesis as JSON
+brenner hypothesis show H-RS20251230-001 --json
+
+# List with JSON output
+brenner test list --session RS20251230 --json
+
+# Score with JSON output
+brenner score session RS20251230 --json
+
+# Pipe to jq for processing
+brenner hypothesis list --session RS20251230 --json | jq '.[] | select(.state == "active")'
+```
+
+The JSON output matches the TypeScript schema types, enabling type-safe integration with other tools.
