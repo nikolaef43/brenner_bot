@@ -9,11 +9,19 @@
 export {
   createTestLogger,
   getLogBuffer,
+  getLogBufferByCategory,
   clearLogBuffer,
   formatLogBuffer,
+  formatLogBufferAsJson,
+  getLogSummary,
   setupTestLogging,
+  createLoggingFetch,
+  withStep,
+  LogCategories,
   type LogLevel,
+  type LogCategory,
   type LogEntry,
+  type LogOptions,
 } from "./logging";
 
 // Fixtures
