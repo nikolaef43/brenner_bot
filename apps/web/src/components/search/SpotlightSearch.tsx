@@ -99,6 +99,7 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
     if (!debouncedQuery) {
       setResults(null);
       setSelectedIndex(0);
+      setIsSearching(false);
       return;
     }
 
