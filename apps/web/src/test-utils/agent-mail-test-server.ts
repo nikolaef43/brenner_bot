@@ -218,6 +218,15 @@ export class AgentMailTestServer {
   private async handleJsonRpc(request: JsonRpcRequest): Promise<JsonRpcResponse> {
     const { method, params, id } = request;
 
+    // Check if error mode is enabled (for testing error handling scenarios)
+    if (this.errorMode.enabled) {
+      return {
+        jsonrpc: "2.0",
+        id,
+        error: { code: this.errorMode.code, message: this.errorMode.message },
+      };
+    }
+
     try {
       let result: unknown;
 
@@ -268,25 +277,35 @@ export class AgentMailTestServer {
   private async handleToolsCall(params: {
     name: string;
     arguments: Record<string, unknown>;
-  }): Promise<unknown> {
+  }): Promise<{ structuredContent: unknown }> {
     const { name, arguments: args } = params;
 
+    let result: unknown;
     switch (name) {
       case "ensure_project":
-        return this.ensureProject(args);
+        result = this.ensureProject(args);
+        break;
       case "register_agent":
-        return this.registerAgent(args);
+        result = this.registerAgent(args);
+        break;
       case "send_message":
-        return this.sendMessage(args);
+        result = this.sendMessage(args);
+        break;
       case "fetch_inbox":
-        return this.fetchInbox(args);
+        result = this.fetchInbox(args);
+        break;
       case "mark_message_read":
-        return this.markMessageRead(args);
+        result = this.markMessageRead(args);
+        break;
       case "acknowledge_message":
-        return this.acknowledgeMessage(args);
+        result = this.acknowledgeMessage(args);
+        break;
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
+
+    // Wrap result in structuredContent to match real Agent Mail server format
+    return { structuredContent: result };
   }
 
   private handleResourcesRead(params: { uri: string }): { contents: Array<{ uri: string; text: string }> } {
@@ -362,8 +381,11 @@ export class AgentMailTestServer {
     if (!program) throw new Error("program is required");
     if (!model) throw new Error("model is required");
 
-    const project = this.projects.get(projectKey);
-    if (!project) throw new Error(`Project not found: ${projectKey}`);
+    // Auto-create project if it doesn't exist (for testing convenience)
+    let project = this.projects.get(projectKey);
+    if (!project) {
+      project = this.ensureProject({ human_key: projectKey });
+    }
 
     const agentKey = `${projectKey}:${name}`;
     const existing = this.agents.get(agentKey);
@@ -406,7 +428,8 @@ export class AgentMailTestServer {
 
     if (!projectKey) throw new Error("project_key is required");
     if (!senderName) throw new Error("sender_name is required");
-    if (!to || to.length === 0) throw new Error("to is required");
+    // Allow empty recipients for thread seeding (messages may not have explicit recipients)
+    if (!to) throw new Error("to is required (can be empty array)");
     if (!subject) throw new Error("subject is required");
     if (!bodyMd) throw new Error("body_md is required");
 
@@ -435,7 +458,7 @@ export class AgentMailTestServer {
 
     this.messages.push(message);
 
-    // Create deliveries for all recipients
+    // Create deliveries for all recipients (auto-register if needed)
     const allRecipients = [
       ...to.map((name) => ({ name, kind: "to" as const })),
       ...cc.map((name) => ({ name, kind: "cc" as const })),
@@ -444,8 +467,22 @@ export class AgentMailTestServer {
 
     for (const { name, kind } of allRecipients) {
       const recipientKey = `${projectKey}:${name}`;
-      const recipient = this.agents.get(recipientKey);
-      if (!recipient) continue; // Skip unregistered recipients
+      let recipient = this.agents.get(recipientKey);
+
+      // Auto-register recipient if not already registered
+      if (!recipient) {
+        recipient = {
+          id: this.nextAgentId++,
+          name,
+          program: "auto-registered",
+          model: "unknown",
+          task_description: "",
+          project_id: project.id,
+          inception_ts: new Date().toISOString(),
+          last_active_ts: new Date().toISOString(),
+        };
+        this.agents.set(recipientKey, recipient);
+      }
 
       this.deliveries.push({
         message_id: message.id,
@@ -634,12 +671,74 @@ export class AgentMailTestServer {
     return Array.from(this.projects.values());
   }
 
+  getProject(humanKey: string): TestProject | undefined {
+    return this.projects.get(humanKey);
+  }
+
+  getProjectAgents(humanKey: string): TestAgent[] {
+    const project = this.projects.get(humanKey);
+    if (!project) return [];
+    return Array.from(this.agents.values()).filter((a) => a.project_id === project.id);
+  }
+
   getAllMessages(): TestMessage[] {
     return [...this.messages];
   }
 
   getAllDeliveries(): TestDelivery[] {
     return [...this.deliveries];
+  }
+
+  /**
+   * Seed a thread with pre-defined messages for testing.
+   * Creates project and agents as needed.
+   */
+  seedThread(options: {
+    projectKey: string;
+    threadId: string;
+    messages: Array<{
+      from: string;
+      to?: string[];
+      subject: string;
+      body_md: string;
+      created_ts?: string;
+    }>;
+  }): void {
+    const { projectKey, threadId, messages } = options;
+
+    // Ensure project exists
+    if (!this.projects.has(projectKey)) {
+      this.ensureProject({ human_key: projectKey });
+    }
+
+    for (const msg of messages) {
+      // Register sender if not exists
+      const senderKey = `${projectKey}:${msg.from}`;
+      if (!this.agents.has(senderKey)) {
+        this.registerAgent({
+          project_key: projectKey,
+          program: "seed",
+          model: "test",
+          name: msg.from,
+        });
+      }
+
+      // Send the message
+      this.sendMessage({
+        project_key: projectKey,
+        sender_name: msg.from,
+        to: msg.to || [],
+        subject: msg.subject,
+        body_md: msg.body_md,
+        thread_id: threadId,
+      });
+
+      // Override the created_ts if provided
+      if (msg.created_ts) {
+        const lastMessage = this.messages[this.messages.length - 1];
+        lastMessage.created_ts = msg.created_ts;
+      }
+    }
   }
 
   // For simulating error conditions

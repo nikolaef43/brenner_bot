@@ -48,7 +48,12 @@ describe("AgentMailTestServer", () => {
   }
 
   async function toolsCall(name: string, args: Record<string, unknown>): Promise<unknown> {
-    return callJsonRpc("tools/call", { name, arguments: args });
+    const result = await callJsonRpc("tools/call", { name, arguments: args });
+    // Unwrap structuredContent to match what clients expect after parsing
+    if (result && typeof result === "object" && "structuredContent" in result) {
+      return (result as { structuredContent: unknown }).structuredContent;
+    }
+    return result;
   }
 
   async function resourcesRead(uri: string): Promise<unknown> {
@@ -201,14 +206,25 @@ describe("AgentMailTestServer", () => {
       expect(server.getRegisteredAgents()).toHaveLength(1);
     });
 
-    it("throws if project not found", async () => {
-      await expect(
-        toolsCall("register_agent", {
-          project_key: "/nonexistent",
-          program: "test",
-          model: "test",
-        })
-      ).rejects.toThrow("Project not found");
+    it("auto-creates project if not found", async () => {
+      // Projects are auto-created for testing convenience
+      const result = await toolsCall("register_agent", {
+        project_key: "/auto-created",
+        program: "test",
+        model: "test",
+        name: "AutoAgent",
+      });
+
+      expect(result).toMatchObject({
+        name: "AutoAgent",
+        program: "test",
+        model: "test",
+      });
+
+      // Verify project was auto-created
+      const project = server.getProject("/auto-created");
+      expect(project).toBeDefined();
+      expect(project?.human_key).toBe("/auto-created");
     });
   });
 
@@ -613,6 +629,58 @@ describe("AgentMailTestServer", () => {
       const deliveries = server.getAllDeliveries();
       expect(deliveries).toHaveLength(1);
       expect(deliveries[0].agent_name).toBe("Agent2");
+    });
+  });
+
+  // ============================================================================
+  // Error Mode Tests
+  // ============================================================================
+
+  describe("error mode", () => {
+    it("returns error response when error mode is enabled", async () => {
+      server.enableErrorMode(-32000, "Simulated server error");
+
+      await expect(
+        toolsCall("ensure_project", { human_key: "/test/project" })
+      ).rejects.toThrow("Simulated server error");
+
+      server.disableErrorMode();
+    });
+
+    it("resumes normal operation after disabling error mode", async () => {
+      server.enableErrorMode(-32000, "Temporary error");
+      server.disableErrorMode();
+
+      const result = await toolsCall("ensure_project", {
+        human_key: "/test/project",
+      });
+
+      expect(result).toMatchObject({
+        human_key: "/test/project",
+      });
+    });
+
+    it("uses custom error code", async () => {
+      server.enableErrorMode(-32001, "Custom error");
+
+      const response = await fetch(`${baseUrl}/mcp/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: "test-error",
+          method: "tools/call",
+          params: { name: "ensure_project", arguments: { human_key: "/test" } },
+        }),
+      });
+
+      const json = await response.json();
+      expect(json.error).toMatchObject({
+        code: -32001,
+        message: "Custom error",
+      });
+
+      server.disableErrorMode();
     });
   });
 });
