@@ -253,14 +253,26 @@ describe("POST /api/sessions", () => {
 
     expect(response.status).toBe(200);
 
-    // Note: deduplication is case-sensitive, so "Claude" and "claude" are different
-    // Let's verify by checking messages
+    // Verify message was sent
     const allMessages = server.getAllMessages();
     expect(allMessages).toHaveLength(1);
 
-    // The message should have normalized unique recipients
-    // "Claude" appears twice, so should be deduped to once
-    // "claude" is different case, kept separate
-    // "Codex" is unique
+    // Verify the message's `to` field has deduplicated recipients
+    // Note: deduplication is case-sensitive, so "Claude" and "claude" are different
+    // Input: ["Claude", "Claude", "Codex", "claude"]
+    // Expected: ["Claude", "Codex", "claude"] (Claude appears once, not twice)
+    const message = allMessages[0];
+    expect(message.to).toHaveLength(3);
+    expect(message.to).toContain("Claude");
+    expect(message.to).toContain("Codex");
+    expect(message.to).toContain("claude");
+
+    // Verify deliveries were created for each unique recipient
+    const deliveries = server.getAllDeliveries();
+    expect(deliveries).toHaveLength(3);
+    const deliveryNames = deliveries.map((d) => d.agent_name);
+    expect(deliveryNames).toContain("Claude");
+    expect(deliveryNames).toContain("Codex");
+    expect(deliveryNames).toContain("claude");
   });
 });
