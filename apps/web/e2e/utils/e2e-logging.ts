@@ -203,7 +203,9 @@ export async function withStep<T>(
     return result;
   } catch (error) {
     logger.error(`Failed: ${description}`, {
-      error: error instanceof Error ? error.message : String(error),
+      error: error instanceof Error
+        ? { name: error.name, message: error.message, stack: error.stack }
+        : error,
     });
     throw error;
   }

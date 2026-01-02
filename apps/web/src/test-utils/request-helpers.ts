@@ -103,7 +103,7 @@ export function createAuthenticatedRequest(
  * beforeAll(async () => {
  *   server = new AgentMailTestServer();
  *   await server.start(18765);
- *   originalEnv = setupAgentMailTestEnv(server.port);
+ *   originalEnv = setupAgentMailTestEnv(server.getPort());
  * });
  *
  * afterAll(async () => {
