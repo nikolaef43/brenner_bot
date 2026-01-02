@@ -247,7 +247,8 @@ export function formatNetworkLogsAsText(testTitle: string): string {
   const logLines = context.networkLogs.map((entry) => {
     const statusStr = entry.status ? `${entry.status} ${entry.statusText || ""}` : entry.failure || "pending";
     const durationStr = entry.duration ? ` [${formatDuration(entry.duration)}]` : "";
-    return `${entry.timestamp.slice(11, 23)} ${entry.method.padEnd(6)} ${statusStr.padEnd(12)} ${entry.url.slice(0, 60)}${durationStr}`;
+    const displayUrl = entry.url.length > 60 ? `${entry.url.slice(0, 60)}...` : entry.url;
+    return `${entry.timestamp.slice(11, 23)} ${entry.method.padEnd(6)} ${statusStr.padEnd(12)} ${displayUrl}${durationStr}`;
   });
 
   return header + logLines.join("\n");
