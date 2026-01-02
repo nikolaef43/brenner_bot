@@ -204,17 +204,12 @@ export class InterventionStorage {
    * ID format: INT-{sessionId}-{seq}
    */
   async getInterventionById(id: string): Promise<OperatorIntervention | null> {
-    // Parse ID format: INT-{sessionId}-{seq}
     const match = id.match(/^INT-(.+)-\d{3}$/);
-    if (match) {
-      const sessionId = match[1];
-      const interventions = await this.loadSessionInterventions(sessionId);
-      return interventions.find((i) => i.id === id) ?? null;
-    }
+    if (!match?.[1]) return null;
 
-    // Fallback: scan all sessions
-    const allInterventions = await this.getAllInterventions();
-    return allInterventions.find((i) => i.id === id) ?? null;
+    const sessionId = match[1];
+    const interventions = await this.loadSessionInterventions(sessionId);
+    return interventions.find((i) => i.id === id) ?? null;
   }
 
   /**

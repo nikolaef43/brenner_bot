@@ -144,4 +144,15 @@ describe("proxy()", () => {
       expect(response.headers.get("x-middleware-next")).toBe("1");
     });
   });
+
+  it("rejects lab secret when header has secret as a prefix", () => {
+    withEnv({ BRENNER_LAB_MODE: "1", BRENNER_TRUST_CF_ACCESS_HEADERS: undefined, BRENNER_LAB_SECRET: "secret123" }, () => {
+      const request = makeRequest({
+        pathname: "/api/experiments",
+        headers: { "x-brenner-lab-secret": "secret123x" },
+      });
+      const response = proxy(request);
+      expect(response.status).toBe(404);
+    });
+  });
 });

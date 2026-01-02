@@ -1284,6 +1284,68 @@ describe("renderArtifactMarkdown", () => {
     // Empty anomaly register should be explicit
     expect(md).toContain("None registered.");
   });
+
+  test("renders inference when anchors list contains only whitespace", () => {
+    const artifact = createEmptyArtifact("TEST-ANCHORS-WHITESPACE");
+    artifact.sections.research_thread = {
+      id: "RT",
+      statement: "What is X?",
+      context: "Context",
+      why_it_matters: "Matters",
+      anchors: ["   "],
+    };
+
+    const md = renderArtifactMarkdown(artifact);
+    expect(md).toContain("**Anchors**: inference");
+  });
+
+  test("renders contributor metadata including optional fields", () => {
+    const artifact = createEmptyArtifact("TEST-CONTRIBUTORS");
+    artifact.metadata.contributors = [
+      {
+        agent: "Agent1",
+        program: "codex-cli",
+        model: "gpt-5.2",
+        contributed_at: "2025-01-01T00:00:00Z",
+      },
+    ];
+
+    const md = renderArtifactMarkdown(artifact);
+    expect(md).toContain('  - agent: "Agent1"');
+    expect(md).toContain('    program: "codex-cli"');
+    expect(md).toContain('    model: "gpt-5.2"');
+    expect(md).toContain('    contributed_at: "2025-01-01T00:00:00Z"');
+  });
+
+  test("renders Research Thread section even when missing", () => {
+    const artifact = createEmptyArtifact("TEST-MISSING-RT");
+    artifact.sections.research_thread = null;
+
+    const md = renderArtifactMarkdown(artifact);
+    expect(md).toContain("## 1. Research Thread");
+    expect(md).toContain("**Anchors**: inference");
+  });
+
+  test("renders kill metadata when present", () => {
+    const artifact = createEmptyArtifact("TEST-KILL-METADATA");
+    artifact.sections.research_thread = {
+      id: "RT",
+      statement: "What is X?",
+      context: "Context",
+      why_it_matters: "Matters",
+      anchors: ["§1"],
+      killed: true,
+      killed_by: "human",
+      killed_at: "2025-01-01T00:00:00Z",
+      kill_reason: "Invalid research question",
+    } as any;
+
+    const md = renderArtifactMarkdown(artifact);
+    expect(md).toContain("**Killed**: true");
+    expect(md).toContain("**Killed by**:");
+    expect(md).toContain("**Killed at**:");
+    expect(md).toContain("**Kill reason**:");
+  });
 });
 
 describe("lintArtifact", () => {

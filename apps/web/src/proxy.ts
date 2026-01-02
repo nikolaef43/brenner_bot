@@ -20,10 +20,9 @@ function shouldTrustCloudflareAccessHeaders(): boolean {
  * Edge runtime doesn't have crypto.timingSafeEqual, so we implement manually.
  */
 function safeEquals(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  let result = a.length ^ b.length;
+  for (let i = 0; i < b.length; i++) {
+    result |= (a.charCodeAt(i) | 0) ^ (b.charCodeAt(i) | 0);
   }
   return result === 0;
 }

@@ -71,6 +71,17 @@ describe("InterventionStorage", () => {
       expect(interventions).toEqual([]);
     });
 
+    it("throws for non-ENOENT errors when baseDir is not a directory", async () => {
+      const baseDirFile = join(tempDir, "not-a-dir");
+      await fs.writeFile(baseDirFile, "x");
+
+      const badStorage = new InterventionStorage({ baseDir: baseDirFile });
+
+      await expect(badStorage.loadSessionInterventions("ANY")).rejects.toMatchObject({
+        code: expect.any(String),
+      });
+    });
+
     it("saves and loads session interventions", async () => {
       const intervention = makeIntervention();
       await storage.saveSessionInterventions("TEST", [intervention]);
@@ -99,6 +110,14 @@ describe("InterventionStorage", () => {
         new Date(data.createdAt).getTime()
       );
     });
+
+    it("does not rebuild index when autoRebuildIndex is disabled", async () => {
+      const noIndexStorage = new InterventionStorage({ baseDir: tempDir, autoRebuildIndex: false });
+      await noIndexStorage.saveSessionInterventions("TEST", [makeIntervention()]);
+
+      const indexPath = join(tempDir, ".research", "intervention-index.json");
+      await expect(fs.readFile(indexPath, "utf-8")).rejects.toMatchObject({ code: "ENOENT" });
+    });
   });
 
   describe("Individual Operations", () => {
@@ -113,6 +132,11 @@ describe("InterventionStorage", () => {
 
     it("returns null for non-existent ID", async () => {
       const found = await storage.getInterventionById("INT-FAKE-999");
+      expect(found).toBeNull();
+    });
+
+    it("returns null for invalid ID format", async () => {
+      const found = await storage.getInterventionById("NOT-AN-ID");
       expect(found).toBeNull();
     });
 
@@ -147,6 +171,13 @@ describe("InterventionStorage", () => {
       expect(deleted).toBe(false);
     });
 
+    it("returns false if intervention exists but its session_id points to a missing session file", async () => {
+      await storage.saveSessionInterventions("TEST", [makeIntervention({ session_id: "S2" })]);
+
+      const deleted = await storage.deleteIntervention("INT-TEST-001");
+      expect(deleted).toBe(false);
+    });
+
     it("gets next sequence number", async () => {
       const seq1 = await storage.getNextSequence("TEST");
       expect(seq1).toBe(1);
@@ -158,6 +189,34 @@ describe("InterventionStorage", () => {
   });
 
   describe("Index Operations", () => {
+    it("rebuilds index when interventions directory is missing", async () => {
+      const index = await storage.rebuildIndex();
+      expect(index.entries).toEqual([]);
+
+      const indexPath = join(tempDir, ".research", "intervention-index.json");
+      const content = await fs.readFile(indexPath, "utf-8");
+      const parsed = JSON.parse(content);
+      expect(parsed).toHaveProperty("entries");
+    });
+
+    it("rebuildIndex ignores unrelated files in interventions directory", async () => {
+      const interventionsDir = join(tempDir, ".research", "interventions");
+      await fs.mkdir(interventionsDir, { recursive: true });
+      await fs.writeFile(join(interventionsDir, "notes.txt"), "ignore me");
+
+      await storage.saveIntervention(makeIntervention());
+      const index = await storage.rebuildIndex();
+      expect(index.entries).toHaveLength(1);
+    });
+
+    it("throws when rebuildIndex cannot read interventions directory", async () => {
+      const baseDirFile = join(tempDir, "not-a-dir");
+      await fs.writeFile(baseDirFile, "x");
+
+      const badStorage = new InterventionStorage({ baseDir: baseDirFile });
+      await expect(badStorage.rebuildIndex()).rejects.toBeTruthy();
+    });
+
     it("rebuilds index with entries", async () => {
       await storage.saveIntervention(makeIntervention());
       await storage.saveIntervention(
@@ -202,6 +261,43 @@ describe("InterventionStorage", () => {
 
       const index = await storage.loadIndex();
       expect(index.entries[0].reversed).toBe(true);
+    });
+
+    it("returns empty array when reading all interventions and directory is missing", async () => {
+      const freshDir = await createTempDir();
+      const freshStorage = new InterventionStorage({ baseDir: freshDir });
+
+      const all = await freshStorage.getAllInterventions();
+      expect(all).toEqual([]);
+
+      await cleanupTempDir(freshDir);
+    });
+
+    it("ignores unrelated files when reading all interventions", async () => {
+      const interventionsDir = join(tempDir, ".research", "interventions");
+      await fs.mkdir(interventionsDir, { recursive: true });
+      await fs.writeFile(join(interventionsDir, "notes.txt"), "ignore me");
+
+      await storage.saveIntervention(makeIntervention());
+      const all = await storage.getAllInterventions();
+      expect(all).toHaveLength(1);
+    });
+
+    it("throws when reading all interventions from an invalid baseDir", async () => {
+      const baseDirFile = join(tempDir, "not-a-dir");
+      await fs.writeFile(baseDirFile, "x");
+
+      const badStorage = new InterventionStorage({ baseDir: baseDirFile });
+      await expect(badStorage.getAllInterventions()).rejects.toBeTruthy();
+    });
+
+    it("listSessions filters out invalid intervention filenames", async () => {
+      const interventionsDir = join(tempDir, ".research", "interventions");
+      await fs.mkdir(interventionsDir, { recursive: true });
+      await fs.writeFile(join(interventionsDir, "-interventions.json"), "{}");
+
+      const sessions = await storage.listSessions();
+      expect(sessions).toEqual([]);
     });
   });
 

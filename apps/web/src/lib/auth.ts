@@ -11,8 +11,6 @@
  * explicit enablement.
  */
 
-import { timingSafeEqual } from "node:crypto";
-
 const LAB_SECRET_HEADER = "x-brenner-lab-secret";
 const LAB_SECRET_COOKIE = "brenner_lab_secret";
 
@@ -44,10 +42,15 @@ function getLabSecret(): string | undefined {
 }
 
 function safeEquals(a: string, b: string): boolean {
-  const aBuf = Buffer.from(a);
-  const bBuf = Buffer.from(b);
-  if (aBuf.length !== bBuf.length) return false;
-  return timingSafeEqual(aBuf, bBuf);
+  const candidateBuf = Buffer.from(a);
+  const secretBuf = Buffer.from(b);
+
+  let result = candidateBuf.length ^ secretBuf.length;
+  for (let i = 0; i < secretBuf.length; i++) {
+    result |= (candidateBuf[i] ?? 0) ^ secretBuf[i];
+  }
+
+  return result === 0;
 }
 
 function hasCloudflareAccessHeaders(headers?: { get?: (name: string) => string | null }): boolean {

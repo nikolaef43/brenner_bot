@@ -444,11 +444,34 @@ function SearchResultItem({
     typeof hit.anchor === "string" &&
     /^§\d+$/.test(hit.anchor);
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.shiftKey && canAddToExcerpt) {
+        onAddToExcerpt();
+        return;
+      }
+      onClick();
+      return;
+    }
+
+    if (event.key === " ") {
+      event.preventDefault();
+      event.stopPropagation();
+      onClick();
+    }
+  };
+
   return (
-    <button
+    <div
       data-index={index}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-selected={isSelected}
       className={cn(
         "w-full flex items-start gap-3 px-3 py-2.5 sm:py-3 rounded-xl text-left transition-all",
         isSelected
@@ -529,7 +552,7 @@ function SearchResultItem({
       )}>
         <ArrowRight className="size-4 text-primary" />
       </div>
-    </button>
+    </div>
   );
 }
 

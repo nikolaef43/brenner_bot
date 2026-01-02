@@ -376,7 +376,7 @@ describe("SpotlightSearch", () => {
       await user.keyboard("{ArrowDown}");
 
       // The second result button should be selected (has data-index="1")
-      const secondResult = screen.getByText("Second Result").closest("button");
+      const secondResult = screen.getByText("Second Result").closest("[data-index]");
       expect(secondResult).toHaveAttribute("data-index", "1");
 
       // Press ArrowDown again for third result

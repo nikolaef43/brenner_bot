@@ -235,6 +235,20 @@ describe("hasValidLabSecret", () => {
       });
     });
 
+    it("returns false for header value that is a strict prefix of the secret", () => {
+      withEnv({ BRENNER_LAB_SECRET: TEST_LAB_VALUE }, () => {
+        const headers = makeHeaders({ "x-brenner-lab-secret": TEST_LAB_VALUE.slice(0, -1) });
+        expect(hasValidLabSecret(headers)).toBe(false);
+      });
+    });
+
+    it("returns false for header value that has the secret as a prefix", () => {
+      withEnv({ BRENNER_LAB_SECRET: TEST_LAB_VALUE }, () => {
+        const headers = makeHeaders({ "x-brenner-lab-secret": `${TEST_LAB_VALUE}x` });
+        expect(hasValidLabSecret(headers)).toBe(false);
+      });
+    });
+
     it("returns false for wrong cookie value", () => {
       withEnv({ BRENNER_LAB_SECRET: TEST_LAB_VALUE }, () => {
         const cookies = makeCookies({ brenner_lab_secret: "wrong-value" });
