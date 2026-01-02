@@ -16,7 +16,7 @@ import {
  * - Learning (how do different agents handle the same problem?)
  *
  * @see brenner_bot-4u0u (bead)
- * @see specs/cockpit_runbook_v0.1.md
+ * @see specs/session_replay_spec_v0.1.md
  */
 
 // ============================================================================
