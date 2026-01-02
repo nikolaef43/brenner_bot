@@ -45,3 +45,15 @@ export {
   assertValidTest,
   assertValidScore,
 } from "./assertions";
+
+// Request helpers for API route testing
+export {
+  createMockRequest,
+  createAuthenticatedRequest,
+  setupAgentMailTestEnv,
+  teardownAgentMailTestEnv,
+  type MockRequestOptions,
+} from "./request-helpers";
+
+// Agent Mail test server
+export { AgentMailTestServer, type TestAgent, type TestProject, type TestMessage, type TestDelivery } from "./agent-mail-test-server";

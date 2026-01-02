@@ -1,31 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { AgentMailThread } from "@/lib/agentMail";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  AgentMailTestServer,
+  createMockRequest,
+  setupAgentMailTestEnv,
+  teardownAgentMailTestEnv,
+} from "@/test-utils";
 
-const readThreadMock = vi.hoisted(() =>
-  vi.fn(async (args: { projectKey: string; threadId: string; includeBodies?: boolean }): Promise<AgentMailThread> => ({
-    project: args.projectKey,
-    thread_id: args.threadId,
-    messages: [],
-  }))
-);
-
-const toolsCallMock = vi.hoisted(() =>
-  vi.fn(async (tool: string) => {
-    if (tool === "ensure_project") return { structuredContent: { slug: "test-project" } };
-    if (tool === "send_message") {
-      return { structuredContent: { deliveries: [{ payload: { id: 123 } }] } };
-    }
-    return { structuredContent: {} };
-  })
-);
-
-vi.mock("@/lib/agentMail", () => ({
-  AgentMailClient: class AgentMailClientMock {
-    readThread = readThreadMock;
-    toolsCall = toolsCallMock;
-  },
-}));
-
+// Keep infrastructure mocks - these are Next.js internals that don't work outside request context
 vi.mock("next/headers", () => ({
   headers: async () => new Headers(),
   cookies: async () => ({}),
@@ -35,269 +16,287 @@ vi.mock("@/lib/auth", () => ({
   checkOrchestrationAuth: () => ({ authorized: true, reason: "ok" }),
 }));
 
-import type { NextRequest } from "next/server";
 import { POST } from "./route";
 
-function makeRequest(body: unknown): NextRequest {
-  return { json: async () => body } as unknown as NextRequest;
-}
-
 describe("POST /api/sessions/actions", () => {
-  const originalProjectKey = process.env.BRENNER_PROJECT_KEY;
+  let server: AgentMailTestServer;
+  let originalEnv: Record<string, string | undefined>;
+
+  beforeAll(async () => {
+    server = new AgentMailTestServer();
+    await server.start(18767);
+    originalEnv = setupAgentMailTestEnv(server.getPort());
+  });
+
+  afterAll(async () => {
+    teardownAgentMailTestEnv(originalEnv);
+    await server.stop();
+  });
 
   beforeEach(() => {
-    toolsCallMock.mockClear();
-    readThreadMock.mockClear();
+    server.reset();
   });
 
   afterEach(() => {
-    if (originalProjectKey === undefined) {
-      delete process.env.BRENNER_PROJECT_KEY;
-    } else {
-      process.env.BRENNER_PROJECT_KEY = originalProjectKey;
-    }
+    // Restore BRENNER_PROJECT_KEY to the test-setup value (not the original pre-test value)
+    // This is needed because some tests modify this env var
+    process.env.BRENNER_PROJECT_KEY = "/test/project";
   });
 
-  it("returns a compile preview when DELTA messages exist", async () => {
-    readThreadMock.mockResolvedValueOnce({
-      project: "/data/projects/brenner_bot",
-      thread_id: "TEST-1",
+  // Helper to create delta message body
+  function createDeltaBody(delta: object): string {
+    return ["```delta", JSON.stringify(delta), "```"].join("\n");
+  }
+
+  // Helper to seed a thread with a DELTA message
+  function seedDeltaThread(threadId: string, delta: object): void {
+    server.seedThread({
+      projectKey: "/test/project",
+      threadId,
       messages: [
         {
-          id: 1,
-          thread_id: "TEST-1",
-          subject: "DELTA[gpt]: Research thread seed",
-          created_ts: "2025-01-01T00:00:00Z",
-          body_md: [
-            "```delta",
-            JSON.stringify({
-              operation: "EDIT",
-              section: "research_thread",
-              target_id: null,
-              payload: {
-                statement: "Test statement",
-                context: "Test context",
-                why_it_matters: "Test why",
-                anchors: ["§1"],
-              },
-            }),
-            "```",
-          ].join("\n"),
           from: "Codex",
+          subject: "DELTA[gpt]: Research thread seed",
+          body_md: createDeltaBody(delta),
+          created_ts: "2025-01-01T00:00:00Z",
         },
       ],
     });
+  }
 
-    const response = await POST(makeRequest({ action: "compile", threadId: "TEST-1" }));
-
-    expect(response.status).toBe(200);
-    const json = await response.json();
-    expect(json).toMatchObject({
-      success: true,
-      action: "compile",
-      threadId: "TEST-1",
-      version: 1,
-    });
-    const artifactMarkdown = (json as { artifactMarkdown?: unknown }).artifactMarkdown;
-    expect(String(artifactMarkdown)).toContain("# Brenner Protocol Artifact: TEST-1");
-  });
-
-  it("publishes a COMPILED message with the compiled artifact body", async () => {
-    readThreadMock.mockResolvedValueOnce({
-      project: "/data/projects/brenner_bot",
-      thread_id: "TEST-2",
+  // Helper to seed a thread with a COMPILED message
+  function seedCompiledThread(threadId: string, version: number): void {
+    server.seedThread({
+      projectKey: "/test/project",
+      threadId,
       messages: [
         {
-          id: 1,
-          thread_id: "TEST-2",
-          subject: "DELTA[gpt]: Research thread seed",
-          created_ts: "2025-01-01T00:00:00Z",
-          body_md: [
-            "```delta",
-            JSON.stringify({
-              operation: "EDIT",
-              section: "research_thread",
-              target_id: null,
-              payload: {
-                statement: "Test statement",
-                context: "Test context",
-                why_it_matters: "Test why",
-              },
-            }),
-            "```",
-          ].join("\n"),
-          from: "Codex",
+          from: "Operator",
+          subject: `COMPILED: v${version} artifact`,
+          body_md: `# Brenner Protocol Artifact: ${threadId}\n\nVersion: ${version}`,
+          created_ts: "2025-01-01T00:02:00Z",
         },
       ],
     });
+  }
 
-    const response = await POST(
-      makeRequest({
+  describe("compile action", () => {
+    it("returns a compile preview when DELTA messages exist", async () => {
+      // Seed thread with DELTA message
+      seedDeltaThread("TEST-1", {
+        operation: "EDIT",
+        section: "research_thread",
+        target_id: null,
+        payload: {
+          statement: "Test statement",
+          context: "Test context",
+          why_it_matters: "Test why",
+          anchors: ["§1"],
+        },
+      });
+
+      const response = await POST(
+        createMockRequest({
+          method: "POST",
+          body: { action: "compile", threadId: "TEST-1" },
+        })
+      );
+
+      expect(response.status).toBe(200);
+      const json = await response.json();
+      expect(json).toMatchObject({
+        success: true,
+        action: "compile",
+        threadId: "TEST-1",
+        version: 1,
+      });
+      const artifactMarkdown = (json as { artifactMarkdown?: unknown }).artifactMarkdown;
+      expect(String(artifactMarkdown)).toContain("# Brenner Protocol Artifact: TEST-1");
+    });
+  });
+
+  describe("publish action", () => {
+    it("publishes a COMPILED message with the compiled artifact body", async () => {
+      // Seed thread with DELTA message
+      seedDeltaThread("TEST-2", {
+        operation: "EDIT",
+        section: "research_thread",
+        target_id: null,
+        payload: {
+          statement: "Test statement",
+          context: "Test context",
+          why_it_matters: "Test why",
+        },
+      });
+
+      const response = await POST(
+        createMockRequest({
+          method: "POST",
+          body: {
+            action: "publish",
+            threadId: "TEST-2",
+            sender: "Operator",
+            recipients: ["Claude"],
+          },
+        })
+      );
+
+      expect(response.status).toBe(200);
+      const json = await response.json();
+      expect(json).toMatchObject({
+        success: true,
         action: "publish",
         threadId: "TEST-2",
-        sender: "Operator",
-        recipients: ["Claude"],
-      })
-    );
+        version: 1,
+      });
+      expect(json).toHaveProperty("messageId");
 
-    expect(response.status).toBe(200);
-    const json = await response.json();
-    expect(json).toMatchObject({
-      success: true,
-      action: "publish",
-      threadId: "TEST-2",
-      version: 1,
-      messageId: 123,
+      // Verify COMPILED message was sent
+      const messages = server.getMessagesInThread("TEST-2");
+      const compiledMsg = messages.find((m) => m.subject.startsWith("COMPILED"));
+      expect(compiledMsg).toBeDefined();
     });
-
-    expect(toolsCallMock).toHaveBeenCalledWith("send_message", expect.objectContaining({
-      thread_id: "TEST-2",
-    }));
   });
 
-  it("posts a DELTA message when bodyMd contains a delta block", async () => {
-    const deltaBody = [
-      "Here are experiment deltas.",
-      "",
-      "```delta",
-      JSON.stringify({
+  describe("post_delta action", () => {
+    it("posts a DELTA message when bodyMd contains a delta block", async () => {
+      const deltaBody = createDeltaBody({
         operation: "EDIT",
         section: "research_thread",
         target_id: null,
         payload: { context: "Observed X" },
         rationale: "Record experiment outcome",
-      }),
-      "```",
-      "",
-    ].join("\n");
+      });
 
-    const response = await POST(
-      makeRequest({
+      const response = await POST(
+        createMockRequest({
+          method: "POST",
+          body: {
+            action: "post_delta",
+            threadId: "TEST-DELTA",
+            sender: "Operator",
+            recipients: ["Claude"],
+            subject: "Experiment T1 result",
+            bodyMd: deltaBody,
+          },
+        })
+      );
+
+      expect(response.status).toBe(200);
+      const json = await response.json();
+      expect(json).toMatchObject({
+        success: true,
         action: "post_delta",
         threadId: "TEST-DELTA",
-        sender: "Operator",
-        recipients: ["Claude"],
-        subject: "Experiment T1 result",
-        bodyMd: deltaBody,
-      })
-    );
+      });
+      expect(json).toHaveProperty("messageId");
 
-    expect(response.status).toBe(200);
-    const json = await response.json();
-    expect(json).toMatchObject({
-      success: true,
-      action: "post_delta",
-      threadId: "TEST-DELTA",
-      messageId: 123,
+      // Verify DELTA message was sent
+      const messages = server.getMessagesInThread("TEST-DELTA");
+      expect(messages).toHaveLength(1);
+      expect(messages[0].subject).toMatch(/^DELTA\[/);
+      expect(messages[0].body_md).toContain("```delta");
     });
 
-    expect(toolsCallMock).toHaveBeenCalledWith("send_message", expect.objectContaining({
-      subject: expect.stringMatching(/^DELTA\[/),
-      body_md: deltaBody.trim(),
-      thread_id: "TEST-DELTA",
-    }));
-  });
+    it("rejects post_delta when bodyMd does not include a delta block", async () => {
+      const response = await POST(
+        createMockRequest({
+          method: "POST",
+          body: {
+            action: "post_delta",
+            threadId: "TEST-NO-DELTA",
+            sender: "Operator",
+            recipients: ["Claude"],
+            subject: "DELTA[human]: no blocks",
+            bodyMd: "no delta blocks here",
+          },
+        })
+      );
 
-  it("rejects post_delta when bodyMd does not include a delta block", async () => {
-    const response = await POST(
-      makeRequest({
-        action: "post_delta",
-        threadId: "TEST-NO-DELTA",
-        sender: "Operator",
-        recipients: ["Claude"],
-        subject: "DELTA[human]: no blocks",
-        bodyMd: "no delta blocks here",
-      })
-    );
-
-    expect(response.status).toBe(400);
-    const json = await response.json();
-    expect(json).toMatchObject({
-      success: false,
-      code: "VALIDATION_ERROR",
+      expect(response.status).toBe(400);
+      const json = await response.json();
+      expect(json).toMatchObject({
+        success: false,
+        code: "VALIDATION_ERROR",
+      });
     });
   });
 
-  it("rejects critique requests when no compiled artifact exists", async () => {
-    readThreadMock.mockResolvedValueOnce({
-      project: "/data/projects/brenner_bot",
-      thread_id: "TEST-3",
-      messages: [],
-    });
-
-    const response = await POST(
-      makeRequest({
-        action: "request_critique",
+  describe("request_critique action", () => {
+    it("rejects critique requests when no compiled artifact exists", async () => {
+      // Empty thread - no COMPILED message
+      server.seedThread({
+        projectKey: "/test/project",
         threadId: "TEST-3",
-        sender: "Operator",
-        recipients: ["Codex"],
-      })
-    );
+        messages: [],
+      });
 
-    expect(response.status).toBe(400);
-    const json = await response.json();
-    expect(json).toMatchObject({
-      success: false,
-      code: "VALIDATION_ERROR",
-    });
-  });
+      const response = await POST(
+        createMockRequest({
+          method: "POST",
+          body: {
+            action: "request_critique",
+            threadId: "TEST-3",
+            sender: "Operator",
+            recipients: ["Codex"],
+          },
+        })
+      );
 
-  it("sends a QUESTION critique request when a compiled artifact exists", async () => {
-    readThreadMock.mockResolvedValueOnce({
-      project: "/data/projects/brenner_bot",
-      thread_id: "TEST-4",
-      messages: [
-        {
-          id: 10,
-          thread_id: "TEST-4",
-          subject: "COMPILED: v2 artifact",
-          created_ts: "2025-01-01T00:02:00Z",
-          body_md: "# Brenner Protocol Artifact: TEST-4\n",
-          from: "Operator",
-        },
-      ],
+      expect(response.status).toBe(400);
+      const json = await response.json();
+      expect(json).toMatchObject({
+        success: false,
+        code: "VALIDATION_ERROR",
+      });
     });
 
-    const response = await POST(
-      makeRequest({
+    it("sends a QUESTION critique request when a compiled artifact exists", async () => {
+      // Seed thread with COMPILED message
+      seedCompiledThread("TEST-4", 2);
+
+      const response = await POST(
+        createMockRequest({
+          method: "POST",
+          body: {
+            action: "request_critique",
+            threadId: "TEST-4",
+            sender: "Operator",
+            recipients: ["Codex", "Gemini"],
+          },
+        })
+      );
+
+      expect(response.status).toBe(200);
+      const json = await response.json();
+      expect(json).toMatchObject({
+        success: true,
         action: "request_critique",
         threadId: "TEST-4",
-        sender: "Operator",
-        recipients: ["Codex", "Gemini"],
-      })
-    );
+        version: 2,
+      });
+      expect(json).toHaveProperty("messageId");
 
-    expect(response.status).toBe(200);
-    const json = await response.json();
-    expect(json).toMatchObject({
-      success: true,
-      action: "request_critique",
-      threadId: "TEST-4",
-      version: 2,
-      messageId: 123,
+      // Verify QUESTION message was sent
+      const messages = server.getMessagesInThread("TEST-4");
+      const questionMsg = messages.find((m) => m.subject.startsWith("QUESTION"));
+      expect(questionMsg).toBeDefined();
     });
-
-    expect(toolsCallMock).toHaveBeenCalledWith("send_message", expect.objectContaining({
-      subject: expect.stringMatching(/^QUESTION:/),
-      thread_id: "TEST-4",
-    }));
   });
 
-  it("defaults to BRENNER_PROJECT_KEY when body.projectKey is omitted", async () => {
-    process.env.BRENNER_PROJECT_KEY = "/abs/from/env";
+  describe("project key handling", () => {
+    it("defaults to BRENNER_PROJECT_KEY when body.projectKey is omitted", async () => {
+      process.env.BRENNER_PROJECT_KEY = "/abs/from/env";
 
-    readThreadMock.mockResolvedValueOnce({
-      project: "/abs/from/env",
-      thread_id: "TEST-ENV",
-      messages: [
-        {
-          id: 1,
-          thread_id: "TEST-ENV",
-          subject: "DELTA[gpt]: Research thread seed",
-          created_ts: "2025-01-01T00:00:00Z",
-          body_md: [
-            "```delta",
-            JSON.stringify({
+      // Seed thread in the env-specified project
+      server.seedThread({
+        projectKey: "/abs/from/env",
+        threadId: "TEST-ENV",
+        messages: [
+          {
+            from: "Codex",
+            subject: "DELTA[gpt]: Research thread seed",
+            body_md: createDeltaBody({
               operation: "EDIT",
               section: "research_thread",
               target_id: null,
@@ -307,25 +306,28 @@ describe("POST /api/sessions/actions", () => {
                 why_it_matters: "Test why",
               },
             }),
-            "```",
-          ].join("\n"),
-          from: "Codex",
-        },
-      ],
+            created_ts: "2025-01-01T00:00:00Z",
+          },
+        ],
+      });
+
+      const response = await POST(
+        createMockRequest({
+          method: "POST",
+          body: {
+            action: "publish",
+            threadId: "TEST-ENV",
+            sender: "Operator",
+            recipients: ["Claude"],
+          },
+        })
+      );
+
+      expect(response.status).toBe(200);
+
+      // Verify project was used from env var
+      const project = server.getProject("/abs/from/env");
+      expect(project).toBeDefined();
     });
-
-    const response = await POST(
-      makeRequest({
-        action: "publish",
-        threadId: "TEST-ENV",
-        sender: "Operator",
-        recipients: ["Claude"],
-      })
-    );
-
-    expect(response.status).toBe(200);
-    await response.json();
-
-    expect(toolsCallMock).toHaveBeenCalledWith("ensure_project", { human_key: "/abs/from/env" });
   });
 });
