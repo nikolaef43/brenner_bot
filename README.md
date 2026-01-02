@@ -54,6 +54,13 @@ Deployed on Vercel with Cloudflare DNS at **`brennerbot.org`**.
 - [Why This Matters for AI-Assisted Research](#why-this-matters-for-ai-assisted-research)
 - [Provenance, attribution, and epistemic hygiene](#provenance-attribution-and-epistemic-hygiene)
 - [System Architecture](#system-architecture)
+- [Design Principles](#design-principles)
+- [The Artifact Merge Algorithm](#the-artifact-merge-algorithm)
+- [The Linting System](#the-linting-system)
+- [Performance Characteristics](#performance-characteristics)
+- [Testing Infrastructure](#testing-infrastructure)
+- [Development Workflow](#development-workflow)
+- [Releases](#releases)
 
 ---
 
@@ -1085,3 +1092,519 @@ Production infrastructure:
 - Cloudflare DNS for `brennerbot.org`
 - Cloudflare Access for lab mode protection
 - Content policy enforcement (public doc allowlist vs gated content)
+
+---
+
+## Design Principles
+
+The system embodies several deliberate architectural choices that prioritize auditability, correctness, and practical multi-agent coordination.
+
+### CLI-First, Not API-First
+
+Most AI orchestration systems expose HTTP APIs and expect you to call vendor inference endpoints from your code. Brenner Bot inverts this:
+
+**What we do:**
+- CLI tools (`claude`, `codex`, `gemini`) run in terminal sessions under your subscription
+- Coordination happens via message passing (Agent Mail), not remote inference
+- The web app is for *viewing* artifacts and composing prompts—not executing agents
+
+**Why this matters:**
+- **No API keys in code**: You authenticate via your CLI tool's existing auth (Claude Max, GPT Pro, Gemini Ultra)
+- **No rate limits to manage**: Your subscription handles throttling
+- **Full session context**: CLI agents maintain conversation state naturally
+- **Human-in-the-loop by default**: You see what agents are doing in real-time (tmux panes)
+
+### Deterministic Merging
+
+When multiple agents produce structured deltas concurrently, the artifact compiler must merge them deterministically. Two runs with the same inputs must produce identical outputs.
+
+**The merge algorithm:**
+1. **Timestamp ordering**: Deltas are sorted by creation timestamp (Agent Mail provides this)
+2. **Section-wise application**: Each delta specifies target sections (hypothesis_slate, tests, etc.)
+3. **Operation semantics**:
+   - `ADD`: Append new item with auto-generated ID (H4, T7, etc.)
+   - `EDIT`: Modify existing item by ID (must exist, must not be killed)
+   - `KILL`: Mark item as killed with reason (idempotent; killing twice is a no-op)
+4. **Conflict resolution**: Last-write-wins within the same item ID; conflicts are logged as warnings
+5. **Post-merge validation**: The linter runs after merge to catch constraint violations
+
+**Invariants guaranteed:**
+- Merge order is stable (same inputs → same output, regardless of filesystem ordering)
+- Killed items are preserved in history (audit trail), not deleted
+- ID sequences never regress (if H3 exists, you can't add H2 later)
+
+### Fail-Closed Security
+
+The orchestration layer (session kickoffs, Agent Mail integration) is protected by a fail-closed security model:
+
+**The gating logic:**
+1. **Lab mode check**: `BRENNER_LAB_MODE=1` must be explicitly set
+2. **Authentication**: Either Cloudflare Access headers (when trusted) OR a valid lab secret
+3. **Timing-safe comparison**: Secret comparison uses constant-time algorithms to prevent timing attacks
+4. **404 on failure**: Unauthorized requests get a generic 404, not a 401/403 (no information leakage)
+
+**What this means in practice:**
+- Default deployment is read-only (corpus browsing works, orchestration doesn't)
+- Lab features require explicit opt-in at both infrastructure and application layers
+- Secret validation resists timing attacks even in Edge runtime (where `crypto.timingSafeEqual` isn't available)
+
+### The "No Mocks" Testing Philosophy
+
+The test suite (2,700+ tests) follows a strict philosophy: **test real implementations with real data fixtures, not mocked abstractions**.
+
+**What we mock (infrastructure only):**
+- `next/headers` and `next/cookies` (Next.js request context doesn't exist outside request lifecycle)
+- `framer-motion` (animation timing is non-deterministic in tests)
+- External network calls (for offline test reliability)
+
+**What we don't mock:**
+- Business logic (artifact merge, delta parsing, linting)
+- Storage layer (real file system operations with temp directories)
+- Agent Mail client (uses real test server with in-memory state)
+
+**Why this matters:**
+- Tests catch real integration bugs, not mock configuration errors
+- Refactoring doesn't require updating mock implementations
+- Test failures correspond to actual production issues
+
+**Coverage thresholds:**
+- Overall: 80% lines, 75% branches (enforced in CI)
+- Critical modules (artifact-merge, delta-parser): 85%+ branches
+- New code: must not regress coverage
+
+---
+
+## The Artifact Merge Algorithm
+
+The artifact compiler is the core of the "structured output" philosophy. Instead of free-form responses, agents produce **deltas** that specify operations on a shared artifact. The compiler merges these deterministically.
+
+### Delta Format
+
+Each agent response contains a structured delta block:
+
+```markdown
+:::delta
+{
+  "operations": [
+    {
+      "type": "ADD",
+      "section": "hypothesis_slate",
+      "payload": {
+        "statement": "The observed depletion follows exponential decay",
+        "anchors": ["§58", "EV-001#E1"],
+        "predictions": { "T1": "recovery < 600ms", "T2": "no recovery if blocked" }
+      }
+    },
+    {
+      "type": "EDIT",
+      "section": "hypothesis_slate",
+      "target_id": "H2",
+      "payload": {
+        "predictions": { "T1": "recovery > 1000ms" }
+      }
+    },
+    {
+      "type": "KILL",
+      "section": "hypothesis_slate",
+      "target_id": "H1",
+      "reason": "Contradicted by EV-002#E3"
+    }
+  ]
+}
+:::
+```
+
+### Merge Semantics
+
+**ADD operations:**
+- Auto-assign next ID in sequence (H1 → H2 → H3)
+- Validate required fields per section schema
+- Check for duplicate content (warning if semantically similar to existing item)
+
+**EDIT operations:**
+- Target item must exist and not be killed
+- Merge payload fields (deep merge for nested objects)
+- Preserve fields not mentioned in payload
+- Track edit history with timestamp and author
+
+**KILL operations:**
+- Mark item as killed (not deleted)
+- Reason is required and preserved
+- Killed items appear in artifact with strikethrough and reason
+- Killing an already-killed item is idempotent (no error)
+
+### Conflict Handling
+
+When multiple agents edit the same item concurrently:
+1. Operations are ordered by timestamp
+2. Last-write-wins for conflicting fields
+3. Non-conflicting fields are merged
+4. Conflict is logged with both values for audit
+
+**Example:**
+- Agent A edits H2.predictions.T1 = "< 500ms" at t=100
+- Agent B edits H2.predictions.T1 = "< 600ms" at t=101
+- Agent B edits H2.predictions.T2 = "> 1000ms" at t=101
+
+Result: H2.predictions = { T1: "< 600ms" (B wins), T2: "> 1000ms" (no conflict) }
+
+---
+
+## The Linting System
+
+The artifact linter enforces 50+ validation rules that encode Brenner-style research hygiene. These are not style preferences—they're constraints designed to catch common failure modes in hypothesis-driven research.
+
+### Rule Categories
+
+**Structural integrity:**
+- All 7 required sections present (research_thread, hypothesis_slate, predictions, tests, assumption_ledger, anomaly_register, adversarial_critique)
+- IDs follow correct format (H1-H9, T1-T99, A1-A99, X1-X99)
+- Cross-references resolve (predictions reference valid hypothesis IDs)
+
+**Hypothesis hygiene:**
+- Minimum 2 hypotheses (avoids false dichotomy)
+- Maximum 5 hypotheses (forces prioritization)
+- Third alternative slot present (explicit "both wrong" option)
+- No duplicate hypothesis content
+
+**Test design:**
+- Each test specifies which hypotheses it discriminates
+- Potency controls present (chastity vs impotence check)
+- At least one test per active hypothesis
+- Tests reference valid anchors (§n or EV-xxx)
+
+**Assumption tracking:**
+- Load-bearing assumptions explicitly listed
+- At least one scale/physics constraint check
+- Assumptions linked to hypotheses they support
+
+**Citation hygiene:**
+- All claims have anchors (§n for transcripts, EV-xxx for evidence)
+- Anchors resolve to valid sources
+- Inference vs verbatim explicitly marked
+
+**Anomaly handling:**
+- Anomalies quarantined with explicit status
+- Promoted anomalies have resolution plan
+- Dismissed anomalies have reason
+
+### Violation Format
+
+The linter outputs structured violations:
+
+```json
+{
+  "violations": [
+    {
+      "id": "HYPO-003",
+      "severity": "error",
+      "section": "hypothesis_slate",
+      "message": "Third alternative slot missing",
+      "suggestion": "Add H3 with statement acknowledging both H1 and H2 could be wrong"
+    },
+    {
+      "id": "TEST-007",
+      "severity": "warning",
+      "section": "tests",
+      "target": "T4",
+      "message": "Test does not discriminate between hypotheses",
+      "suggestion": "Specify which hypotheses T4 separates in the 'discriminates' field"
+    }
+  ],
+  "summary": {
+    "errors": 1,
+    "warnings": 1,
+    "passed": 48
+  }
+}
+```
+
+### Severity Levels
+
+- **error**: Artifact is structurally invalid; must fix before publishing
+- **warning**: Potential issue that should be reviewed; may publish with acknowledgment
+- **info**: Suggestion for improvement; purely advisory
+
+---
+
+## Performance Characteristics
+
+The system is designed for responsive local development and efficient CI runs.
+
+### CLI Startup
+
+The `brenner` binary starts in **< 50ms** (measured on M2 MacBook Air):
+- Bun's compiled binaries bundle the runtime
+- No JIT warmup required
+- Lazy loading for heavy modules (Agent Mail client only initialized when needed)
+
+### Test Suite
+
+Full test suite (2,700+ tests) completes in **< 30 seconds** on CI:
+- Vitest's parallel execution across CPU cores
+- In-memory Agent Mail test server (no real network I/O)
+- Shared test fixtures loaded once per file
+
+### Artifact Compilation
+
+Typical session compilation (3 agents, ~50 operations each):
+- Parse deltas: < 10ms
+- Merge operations: < 5ms
+- Lint validation: < 20ms
+- Render markdown: < 5ms
+
+Total: **< 50ms** for a complete compile-lint-render cycle.
+
+### Web App
+
+- **Corpus pages**: Static generation at build time (instant load)
+- **Session pages**: Server components with streaming (Time to First Byte < 100ms)
+- **Search**: Client-side with debounced queries (< 50ms perceived latency)
+
+---
+
+## Testing Infrastructure
+
+The test suite is structured for comprehensive coverage with fast feedback loops.
+
+### Test Organization
+
+```
+apps/web/
+├── src/
+│   ├── lib/
+│   │   ├── artifact-merge.ts        # 2,800 lines of merge logic
+│   │   ├── artifact-merge.test.ts   # 108 tests, 85%+ branch coverage
+│   │   ├── delta-parser.ts          # 438 lines of parsing
+│   │   └── delta-parser.test.ts     # 19 tests
+│   ├── components/
+│   │   └── *.test.tsx               # Component tests with Testing Library
+│   └── app/
+│       └── api/
+│           └── */route.test.ts      # API route tests
+├── e2e/
+│   ├── *.spec.ts                    # Playwright E2E tests
+│   └── utils/
+│       ├── agent-mail-test-server.ts  # In-memory Agent Mail for E2E
+│       └── test-fixtures.ts           # Shared setup utilities
+└── src/test-utils/
+    ├── index.ts                     # Test utility exports
+    ├── logging.ts                   # Structured test logging
+    ├── fixtures.ts                  # Data fixtures
+    ├── assertions.ts                # Custom assertion helpers
+    └── agent-mail-test-server.ts    # Unit test Agent Mail server
+```
+
+### Agent Mail Test Server
+
+For testing Agent Mail integration without a real server:
+
+```typescript
+import { AgentMailTestServer } from "@/test-utils";
+
+let server: AgentMailTestServer;
+
+beforeAll(async () => {
+  server = new AgentMailTestServer();
+  await server.start(18765);
+});
+
+afterAll(async () => {
+  await server.stop();
+});
+
+beforeEach(() => {
+  server.reset(); // Clear state between tests
+});
+
+it("sends a message", async () => {
+  // Server auto-creates projects and agents for convenience
+  const result = await server.sendMessage({
+    project_key: "/test/project",
+    sender_name: "TestAgent",
+    to: ["Recipient"],
+    subject: "Test",
+    body_md: "Hello",
+  });
+
+  expect(result.id).toBeDefined();
+
+  // Inspection methods for assertions
+  const messages = server.getMessagesTo("Recipient");
+  expect(messages).toHaveLength(1);
+});
+```
+
+### E2E Testing with Playwright
+
+E2E tests run against the real web app with visual regression support:
+
+```typescript
+import { test, expect } from "@playwright/test";
+import { testSession } from "./utils/test-fixtures";
+
+test("corpus search returns results", async ({ page }) => {
+  await page.goto("/corpus");
+  await page.fill('[data-testid="search-input"]', "exclusion");
+  await page.waitForSelector('[data-testid="search-results"]');
+
+  const results = await page.locator('[data-testid="search-result"]').count();
+  expect(results).toBeGreaterThan(0);
+});
+
+test("session page loads", async ({ page }) => {
+  // testSession creates a session with Agent Mail test server
+  const { threadId } = await testSession(page);
+
+  await page.goto(`/sessions/${threadId}`);
+  await expect(page.locator("h1")).toContainText(threadId);
+});
+```
+
+### Running Tests
+
+```bash
+# Unit tests (fast, run frequently)
+cd apps/web
+bun run test
+
+# With coverage
+bun run test:coverage
+
+# Watch mode for development
+bun run test:watch
+
+# E2E tests (slower, run before commit)
+bun run test:e2e
+
+# E2E with UI (for debugging)
+bun run test:e2e:ui
+
+# Full CI suite
+bun run test:coverage && bun run test:e2e
+```
+
+---
+
+## Development Workflow
+
+### Prerequisites
+
+- **Bun** 1.1.38+ (`curl -fsSL https://bun.sh/install | bash`)
+- **Node.js** 20+ (for some tooling compatibility)
+- **Git** with SSH configured for GitHub
+
+### First-Time Setup
+
+```bash
+# Clone the repository
+git clone git@github.com:Dicklesworthstone/brenner_bot.git
+cd brenner_bot
+
+# Install dependencies
+cd apps/web && bun install && cd ../..
+
+# Verify toolchain
+./brenner.ts doctor --skip-ntm --skip-cass --skip-cm
+
+# Run tests to confirm everything works
+cd apps/web && bun run test
+```
+
+### Development Server
+
+```bash
+cd apps/web
+bun run dev
+# Open http://localhost:3000
+```
+
+### Making Changes
+
+```bash
+# Create a feature branch
+git checkout -b feature/your-feature
+
+# Make changes, run tests frequently
+bun run test:watch
+
+# Before committing, run full suite
+bun run test:coverage
+bun run lint
+
+# Commit with conventional format
+git commit -m "feat(component): add new feature"
+```
+
+### Code Style
+
+- **TypeScript**: Strict mode, no `any` in production code (allowed in tests for fixtures)
+- **Formatting**: Prettier with default config
+- **Linting**: ESLint + oxlint for fast local checks
+- **Imports**: Absolute paths via `@/` alias
+
+### Commit Convention
+
+```
+type(scope): description
+
+feat:     New feature
+fix:      Bug fix
+docs:     Documentation only
+test:     Test changes
+refactor: Code change that neither fixes a bug nor adds a feature
+chore:    Build process or auxiliary tool changes
+```
+
+---
+
+## Releases
+
+Releases are automated via GitHub Actions. Pushing a version tag triggers the release workflow.
+
+### Creating a Release
+
+```bash
+# Update version in package.json (if applicable)
+# Then tag and push
+
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+### What the Release Workflow Does
+
+1. **Checkout** repository with full history
+2. **Install** dependencies
+3. **Build** binaries for all platforms:
+   - `brenner-linux-x64` (baseline for older CPUs)
+   - `brenner-linux-arm64`
+   - `brenner-darwin-arm64` (Apple Silicon)
+   - `brenner-darwin-x64` (Intel Mac)
+   - `brenner-win-x64.exe` (Windows)
+4. **Generate** SHA256 checksums for each binary
+5. **Publish** GitHub Release with auto-generated notes
+6. **Upload** all binaries and checksums as release assets
+
+### Dry-Run Releases
+
+To test the release workflow without publishing:
+
+1. Go to Actions → Release → Run workflow
+2. Select the branch to build from
+3. Artifacts are uploaded but not published as a release
+
+### Version Metadata
+
+The CLI embeds build metadata at compile time:
+
+```bash
+./brenner --version
+# brenner v0.1.0 (abc1234, 2025-01-02T12:00:00Z, linux-x64)
+```
+
+This is set via environment variables during build:
+- `BRENNER_VERSION`: Semantic version from tag
+- `BRENNER_GIT_SHA`: Full commit SHA
+- `BRENNER_BUILD_DATE`: ISO 8601 timestamp
+- `BRENNER_TARGET`: Platform identifier
