@@ -2544,7 +2544,6 @@ function diffResearchThread(
  * Calculate progress level based on diff summary.
  */
 function calculateProgressLevel(summary: Omit<DiffSummary, "progress_score">): ProgressLevel {
-  const netHypotheses = summary.hypotheses_net;
   const testProgress = summary.tests_added;
   const critiquesResolved = summary.critiques_resolved;
   const anomaliesResolved = summary.anomalies_resolved;
