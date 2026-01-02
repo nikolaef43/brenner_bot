@@ -5,7 +5,7 @@
  * Philosophy: Every test should produce detailed, actionable output.
  */
 
-import { test as base, expect, type Page } from "@playwright/test";
+import { test as base, expect, type Page, type Response } from "@playwright/test";
 import {
   createE2ELogger,
   withStep,
@@ -133,9 +133,9 @@ export async function navigateTo(
   logger: ReturnType<typeof createE2ELogger>,
   path: string,
   options?: { waitUntil?: "load" | "networkidle" | "domcontentloaded" }
-): Promise<void> {
-  await withStep(logger, page, `Navigate to ${path}`, async () => {
-    await page.goto(path, { waitUntil: options?.waitUntil || "networkidle" });
+): Promise<Response | null> {
+  return await withStep(logger, page, `Navigate to ${path}`, async () => {
+    return await page.goto(path, { waitUntil: options?.waitUntil || "networkidle" });
   });
 }
 
@@ -209,21 +209,25 @@ export async function takeScreenshot(
       });
     } catch (err) {
       const errMessage = err instanceof Error ? err.message : String(err);
-      // If fullPage screenshot fails due to size, try viewport only
-      if (fullPage && errMessage.includes("32767")) {
-        logger.warn(`Full page screenshot too large, falling back to viewport`);
+      // Screenshot failures are diagnostic; don't fail the test.
+      // If fullPage capture fails (common for very tall pages), fall back to viewport.
+      if (fullPage) {
+        const sizeHint = errMessage.includes("32767") ? " (too large)" : "";
+        logger.warn(`Full page screenshot failed${sizeHint}, falling back to viewport: ${name}`);
         try {
           await page.screenshot({
             path: `./screenshots/${name}.png`,
             fullPage: false,
           });
-        } catch {
-          logger.warn(`Screenshot failed (viewport fallback): ${name}`);
+        } catch (fallbackErr) {
+          const fallbackMessage =
+            fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr);
+          logger.warn(`Screenshot failed (viewport fallback): ${name} - ${fallbackMessage}`);
         }
-      } else {
-        // Log other screenshot failures as warnings, don't fail the test
-        logger.warn(`Screenshot failed: ${name} - ${errMessage}`);
+        return;
       }
+
+      logger.warn(`Screenshot failed: ${name} - ${errMessage}`);
     }
   });
 }

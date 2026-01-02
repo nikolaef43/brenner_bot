@@ -512,7 +512,9 @@ test.describe("Error Handling - Recovery", () => {
 
     await withStep(logger, page, "Restore connection and reload", async () => {
       await context.setOffline(false);
-      await page.goto("/corpus", { timeout: 30000 });
+      // Small delay to let the failed navigation settle before new navigation
+      await page.waitForTimeout(100);
+      await page.goto("/corpus", { timeout: 30000, waitUntil: "load" });
       await waitForNetworkIdle(page, logger);
     });
 
