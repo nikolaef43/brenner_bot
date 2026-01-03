@@ -1477,6 +1477,7 @@ let server: AgentMailTestServer;
 beforeAll(async () => {
   server = new AgentMailTestServer();
   await server.start(18765);
+  process.env.AGENT_MAIL_BASE_URL = `http://localhost:18765`;
 });
 
 afterAll(async () => {
@@ -1487,21 +1488,20 @@ beforeEach(() => {
   server.reset(); // Clear state between tests
 });
 
-it("sends a message", async () => {
-  // Server auto-creates projects and agents for convenience
-  const result = await server.sendMessage({
-    project_key: "/test/project",
-    sender_name: "TestAgent",
-    to: ["Recipient"],
-    subject: "Test",
-    body_md: "Hello",
+it("seeds a thread for testing", () => {
+  // seedThread creates projects and agents as needed
+  server.seedThread({
+    projectKey: "/test/project",
+    threadId: "TEST-001",
+    messages: [
+      { from: "TestAgent", to: ["Recipient"], subject: "Test", body_md: "Hello" },
+    ],
   });
-
-  expect(result.id).toBeDefined();
 
   // Inspection methods for assertions
   const messages = server.getMessagesTo("Recipient");
   expect(messages).toHaveLength(1);
+  expect(server.getMessagesInThread("TEST-001")).toHaveLength(1);
 });
 ```
 
@@ -1510,8 +1510,7 @@ it("sends a message", async () => {
 E2E tests run against the real web app with visual regression support:
 
 ```typescript
-import { test, expect } from "@playwright/test";
-import { testSession } from "./utils/test-fixtures";
+import { test, expect } from "./utils/test-fixtures";
 
 test("corpus search returns results", async ({ page }) => {
   await page.goto("/corpus");
@@ -1522,12 +1521,21 @@ test("corpus search returns results", async ({ page }) => {
   expect(results).toBeGreaterThan(0);
 });
 
-test("session page loads", async ({ page }) => {
-  // testSession creates a session with Agent Mail test server
-  const { threadId } = await testSession(page);
+test("session page loads", async ({ page, testSession }) => {
+  // testSession.seed() creates a session with Agent Mail test server
+  const threadId = `E2E-TEST-${Date.now()}`;
+  await testSession.seed({
+    threadId,
+    messages: [{
+      from: "operator",
+      subject: "Research Session",
+      body: "Kickoff content here",
+      type: "KICKOFF",
+    }],
+  });
 
   await page.goto(`/sessions/${threadId}`);
-  await expect(page.locator("h1")).toContainText(threadId);
+  await expect(page.locator("body")).toContainText(threadId);
 });
 ```
 
