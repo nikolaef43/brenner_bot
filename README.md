@@ -1687,43 +1687,42 @@ Hypotheses are the core currency of scientific inquiry. The CLI tracks them thro
 
 ```bash
 # List all hypotheses in a session
-brenner hypothesis list --session RS20251230
+brenner hypothesis list --session-id RS20251230
 
 # Show detailed hypothesis information
 brenner hypothesis show H-RS20251230-001
 
 # Create a new hypothesis
 brenner hypothesis create \
-  --session RS20251230 \
+  --session-id RS20251230 \
   --statement "Positional information is encoded in morphogen gradients" \
   --mechanism "Cells read concentration thresholds to determine fate" \
-  --category causal \
+  --category mechanistic \
   --confidence medium
 
-# Transition hypothesis state
-brenner hypothesis transition H-RS20251230-001 active \
-  --reason "Initial evidence supports investigation"
+# Activate a proposed hypothesis for testing
+brenner hypothesis activate H-RS20251230-001
 
-# Kill a hypothesis with evidence
+# Kill a hypothesis with discriminative test evidence
 brenner hypothesis kill H-RS20251230-001 \
-  --reason "T-RS20251230-002 showed no gradient correlation" \
-  --test-id T-RS20251230-002
+  --test T-RS20251230-002 \
+  --reason "Test showed no gradient correlation"
 
-# Validate a hypothesis
+# Validate a hypothesis with supporting test
 brenner hypothesis validate H-RS20251230-001 \
-  --reason "Three independent tests confirmed gradient dependency"
+  --test T-RS20251230-003
 
-# Mark as third alternative (the "both could be wrong" move)
+# Create a third alternative (the "both could be wrong" move)
 brenner hypothesis create \
-  --session RS20251230 \
+  --session-id RS20251230 \
   --statement "Neither gradient nor timing — mechanical forces drive fate" \
-  --third-alternative \
-  --spawned-from X-RS20251230-001  # From an anomaly
+  --category third_alternative \
+  --origin third_alternative
 ```
 
-**Categories**: `causal`, `correlational`, `mechanistic`, `phenomenological`, `comparative`, `historical`
+**Categories**: `mechanistic`, `phenomenological`, `boundary`, `auxiliary`, `third_alternative`
 
-**Origins**: `original`, `third_alternative`, `anomaly_spawned`, `literature`, `discussion`
+**Origins**: `proposed`, `third_alternative`, `refinement`, `anomaly_spawned`
 
 ### Test Management
 
@@ -1733,33 +1732,35 @@ Discriminative tests are designed to eliminate hypotheses, not confirm them. "Ex
 
 ```bash
 # List tests for a session
-brenner test list --session RS20251230
+brenner test list --session-id RS20251230
 
 # Show test details with expected outcomes
 brenner test show T-RS20251230-001
 
-# Create a new discriminative test
-brenner test create \
-  --session RS20251230 \
-  --name "Gradient ablation assay" \
-  --procedure "Laser-ablate source tissue, measure downstream fates" \
-  --expected-outcomes '{
-    "H-RS20251230-001": "No fate change",
-    "H-RS20251230-002": "Random fate assignment",
-    "H-RS20251230-003": "Delayed but correct fate"
-  }' \
-  --potency-check "Verify source ablation via marker loss" \
-  --feasibility "Requires confocal access; 2-day turnaround"
-
-# Record test execution
+# Execute a test and record results
 brenner test execute T-RS20251230-001 \
-  --outcome "Random fate assignment observed" \
-  --supports H-RS20251230-002 \
-  --contradicts H-RS20251230-001 \
+  --result "Random fate assignment observed" \
+  --potency-pass \
+  --confidence high \
+  --by GreenCastle \
   --notes "n=15 embryos, p<0.001"
+
+# Bind test result to hypothesis outcomes
+brenner test bind T-RS20251230-001 H-RS20251230-002 --matched \
+  --reason "Result consistent with prediction" \
+  --by GreenCastle
+
+brenner test bind T-RS20251230-001 H-RS20251230-001 --violated \
+  --reason "Gradient model predicted no fate change" \
+  --by GreenCastle
+
+# Suggest which hypotheses this test could kill
+brenner test suggest-kills T-RS20251230-001 --confidence high
 ```
 
-**Potency checks** are mandatory — they distinguish "no effect" from "assay failed."
+**Potency checks** are mandatory — they distinguish "no effect" from "assay failed." Use `--potency-pass` or `--potency-fail` to record the potency check result.
+
+> **Note:** Tests are typically created as part of session artifacts. The CLI focuses on execution, binding, and kill suggestion rather than test creation.
 
 ### Assumption Management
 
@@ -1771,33 +1772,32 @@ Assumptions are load-bearing beliefs that underpin hypotheses and tests. The Bre
 
 ```bash
 # List assumptions
-brenner assumption list --session RS20251230
+brenner assumption list --session-id RS20251230
 
 # Create a scale/physics assumption (mandatory for every research program)
 brenner assumption create \
-  --session RS20251230 \
+  --session-id RS20251230 \
   --statement "Morphogen diffusion is fast enough for pattern formation" \
   --type scale_physics \
-  --load-hypotheses H-RS20251230-001,H-RS20251230-002 \
-  --load-tests T-RS20251230-001 \
-  --calculation '{
-    "quantities": "D ≈ 10 μm²/s, L ≈ 100 μm",
-    "result": "τ ≈ L²/D ≈ 1000s ≈ 17 min",
-    "units": "seconds, micrometers",
-    "implication": "Gradient-based signaling is physically plausible within cell cycle"
-  }'
+  --load-description "Underpins gradient-based models" \
+  --affects-hypotheses H-RS20251230-001,H-RS20251230-002 \
+  --affects-tests T-RS20251230-001 \
+  --calculation '{"quantities":"D ≈ 10 μm²/s, L ≈ 100 μm","result":"τ ≈ L²/D ≈ 1000s ≈ 17 min"}'
 
 # Challenge an assumption
 brenner assumption challenge A-RS20251230-001 \
-  --reason "New evidence suggests D may be 10x lower in tissue context"
+  --reason "New evidence suggests D may be 10x lower in tissue context" \
+  --by GreenCastle
 
 # Verify an assumption
 brenner assumption verify A-RS20251230-001 \
-  --evidence "FRAP measurements confirm D = 8-12 μm²/s in vivo"
+  --evidence "FRAP measurements confirm D = 8-12 μm²/s in vivo" \
+  --by GreenCastle
 
 # Falsify an assumption (triggers propagation to linked hypotheses/tests)
 brenner assumption falsify A-RS20251230-001 \
-  --evidence "D measured at 0.5 μm²/s — gradient takes hours, not minutes"
+  --evidence "D measured at 0.5 μm²/s — gradient takes hours, not minutes" \
+  --by GreenCastle
 ```
 
 The `scale_physics` type is special — it represents "the imprisoned imagination" constraint from Brenner. **Every research program must have at least one.**
@@ -1810,20 +1810,20 @@ Anomalies are surprising observations that don't fit the current framework. They
 
 ```bash
 # List anomalies
-brenner anomaly list --session RS20251230
+brenner anomaly list --session-id RS20251230
 
 # Create an anomaly from experimental observation
 brenner anomaly create \
-  --session RS20251230 \
+  --session-id RS20251230 \
   --observation "Cells at boundary show oscillating fate markers" \
   --source-type experiment \
-  --source-reference T-RS20251230-003 \
+  --source-ref T-RS20251230-003 \
   --conflicts-with H-RS20251230-001,H-RS20251230-002 \
   --conflict-description "Neither gradient nor timing models predict oscillation"
 
 # Resolve an anomaly with a hypothesis
 brenner anomaly resolve X-RS20251230-001 \
-  --resolved-by H-RS20251230-004 \
+  --by H-RS20251230-004 \
   --notes "Third alternative explains oscillation as bistable switch"
 
 # Defer an anomaly (must provide reason — prevents Occam's broom)
@@ -1835,9 +1835,11 @@ brenner anomaly reactivate X-RS20251230-001
 
 # Spawn a hypothesis from an anomaly (paradox grounding)
 brenner hypothesis create \
-  --session RS20251230 \
+  --session-id RS20251230 \
+  --category third_alternative \
   --statement "Fate oscillation reflects bistable genetic circuit" \
-  --spawned-from X-RS20251230-001
+  --origin anomaly_spawned \
+  --notes "Spawned from X-RS20251230-001"
 ```
 
 **Key insight**: "We didn't conceal them; we put them in an appendix." (§110) — Anomalies are quarantined, not hidden or allowed to destroy coherent frameworks prematurely.
@@ -1852,47 +1854,49 @@ Critiques are adversarial attacks on hypotheses, tests, assumptions, framing, or
 
 ```bash
 # List critiques
-brenner critique list --session RS20251230
+brenner critique list --session-id RS20251230
 
 # Create a critique targeting a hypothesis
 brenner critique create \
-  --session RS20251230 \
-  --target-type hypothesis \
-  --target-id H-RS20251230-001 \
+  --session-id RS20251230 \
+  --target H-RS20251230-001 \
   --attack "Gradient model assumes linear readout, but evidence suggests threshold switching" \
   --evidence-to-confirm "Test non-linear response curves in dose-response assays" \
-  --severity serious \
-  --alternative "Threshold-based discrete switch with hysteresis"
+  --severity serious
 
 # Create a framing critique (attacks the research question itself)
 brenner critique create \
-  --session RS20251230 \
-  --target-type framing \
+  --session-id RS20251230 \
+  --target framing \
   --attack "Wrong level of description — should be asking about information flow, not substance" \
   --evidence-to-confirm "Show equivalent patterning with different morphogens" \
   --severity critical
 
-# Address a critique
-brenner critique address C-RS20251230-001 \
+# Respond to a critique
+brenner critique respond C-RS20251230-001 \
   --response "Added non-linear model variant; does not change discriminative power" \
   --action modified \
-  --responded-by "Codex"
+  --by GreenCastle
 
 # Dismiss a critique (must provide reason)
 brenner critique dismiss C-RS20251230-001 \
-  --reason "Evidence cited is from non-comparable system (Drosophila vs. vertebrate)"
+  --reason "Evidence cited is from non-comparable system (Drosophila vs. vertebrate)" \
+  --by GreenCastle
 
 # Accept a critique and take action
 brenner critique accept C-RS20251230-001 \
   --action killed \
-  --response "Critique was correct; hypothesis killed in favor of threshold model"
+  --response "Critique was correct; hypothesis killed in favor of threshold model" \
+  --by GreenCastle
 ```
 
 ---
 
 ## Scoring & Evaluation System
 
-The CLI implements the 14-criterion evaluation rubric for scoring Brenner method adherence. Scores are computed per-contribution and aggregated at the session level.
+> **Note:** The scoring CLI commands (`brenner score`, `brenner feedback`, `brenner leaderboard`) are **planned but not yet implemented**. The rubric below documents the intended evaluation framework. Currently, scoring happens during session compilation and is embedded in compiled artifacts.
+
+The project implements a 14-criterion evaluation rubric for scoring Brenner method adherence. Scores are computed per-contribution and aggregated at the session level.
 
 ### The 7-Dimension Session Score
 
@@ -1909,20 +1913,6 @@ Sessions are scored across seven dimensions that capture the essence of rigorous
 | Adversarial Pressure | 20 | Has adversarial critique been applied? |
 
 **Grades**: A (90%+), B (80%+), C (70%+), D (60%+), F (<60%)
-
-```bash
-# Score a session
-brenner score session RS20251230
-
-# Score with detailed dimension breakdown
-brenner score session RS20251230 --verbose
-
-# Score with JSON output for programmatic use
-brenner score session RS20251230 --json
-
-# Get scoring feedback with Brenner quotes
-brenner feedback session RS20251230
-```
 
 ### Role-Specific Scoring
 
@@ -1948,15 +1938,6 @@ Each agent role is scored on criteria relevant to their function:
 - Theory Kill Justification (×1.5) — "When they go ugly, kill them"
 - Real Third Alternative (×1.5)
 
-```bash
-# Score a specific contribution
-brenner score contribution --delta-id D-RS20251230-003
-
-# View the leaderboard
-brenner leaderboard --session RS20251230
-brenner leaderboard --program RP-CELL-FATE-001
-```
-
 ### Pass/Fail Gates
 
 Certain failures are disqualifying regardless of other scores:
@@ -1978,8 +1959,7 @@ Research Programs aggregate multiple sessions into a coherent multi-session rese
 # Create a new research program
 brenner program create \
   --name "Cell Fate Determination in Vertebrate Embryos" \
-  --description "Investigating the computational basis of positional information encoding" \
-  --slug CELL-FATE
+  --description "Investigating the computational basis of positional information encoding"
 
 # List programs
 brenner program list
@@ -1990,11 +1970,11 @@ brenner program show RP-CELL-FATE-001
 brenner program dashboard RP-CELL-FATE-001
 
 # Add sessions to a program
-brenner program add-session RP-CELL-FATE-001 RS20251230
-brenner program add-session RP-CELL-FATE-001 RS20251231
+brenner program add-session RP-CELL-FATE-001 --session RS20251230
+brenner program add-session RP-CELL-FATE-001 --session RS20251231
 
 # Remove a session
-brenner program remove-session RP-CELL-FATE-001 RS20251231
+brenner program remove-session RP-CELL-FATE-001 --session RS20251231
 
 # Pause a program
 brenner program pause RP-CELL-FATE-001 \
@@ -2038,27 +2018,37 @@ Proposed → Active → Under Attack → Killed/Validated
 
 ## Experiment Capture & Encoding
 
-The CLI provides commands for encoding experiment results and posting them to the session artifact.
+The CLI provides commands for running experiments, capturing results, and sharing them via Agent Mail.
 
 ```bash
-# Encode experiment results
+# Run an experiment and capture output (wraps any shell command)
+brenner experiment run \
+  --thread-id RS-20251230-example \
+  --test-id T-RS20251230-001 \
+  --timeout 60 \
+  --out-file results/experiment_001.json \
+  -- bash -lc "python run_assay.py --marker GFP"
+
+# Record results from an already-executed experiment
+brenner experiment record \
+  --thread-id RS-20251230-example \
+  --test-id T-RS20251230-001 \
+  --exit-code 0 \
+  --stdout-file results/stdout.txt \
+  --stderr-file results/stderr.txt \
+  --out-file results/experiment_001.json
+
+# Encode captured results for sharing
 brenner experiment encode \
-  --test-id T-RS20251230-001 \
-  --outcome "Observed 3-fold reduction in marker expression" \
-  --data-file results/experiment_001.json \
-  --format structured
+  --result-file results/experiment_001.json \
+  --out-file results/experiment_001_encoded.json
 
-# Post encoded results to session
+# Post encoded results to session participants via Agent Mail
 brenner experiment post \
-  --session RS20251230 \
-  --test-id T-RS20251230-001 \
-  --supports H-RS20251230-002 \
-  --contradicts H-RS20251230-001
-
-# Batch import from structured data
-brenner experiment import \
-  --session RS20251230 \
-  --file experiments.yaml
+  --result-file results/experiment_001_encoded.json \
+  --sender GreenCastle \
+  --to BlueLake,PurpleMountain \
+  --project-key "$PWD"
 ```
 
 See [`specs/experiment_result_encoding_v0.1.md`](./specs/experiment_result_encoding_v0.1.md) and [`specs/experiment_capture_protocol_v0.1.md`](./specs/experiment_capture_protocol_v0.1.md) for the encoding specification.
@@ -2231,13 +2221,10 @@ All CLI commands support structured JSON output for programmatic integration:
 brenner hypothesis show H-RS20251230-001 --json
 
 # List with JSON output
-brenner test list --session RS20251230 --json
-
-# Score with JSON output
-brenner score session RS20251230 --json
+brenner test list --session-id RS20251230 --json
 
 # Pipe to jq for processing
-brenner hypothesis list --session RS20251230 --json | jq '.[] | select(.state == "active")'
+brenner hypothesis list --session-id RS20251230 --json | jq '.[] | select(.state == "active")'
 ```
 
 The JSON output matches the TypeScript schema types, enabling type-safe integration with other tools.
