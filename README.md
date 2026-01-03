@@ -2225,7 +2225,15 @@ All artifacts use stable, session-scoped IDs:
 | Anomaly | `X-{session}-{seq}` | `X-RS20251230-001` |
 | Critique | `C-{session}-{seq}` | `C-RS20251230-001` |
 | Program | `RP-{slug}-{seq}` | `RP-CELL-FATE-001` |
-| Session | `RS{date}` | `RS20251230` |
+| Session ID | `RS{date}` | `RS20251230` |
+
+**Note on Session ID vs Thread ID:**
+- **Session ID** (`RS20251230`): Short identifier embedded in artifact item IDs, used with `--session-id` for filtering
+- **Thread ID** (`RS-20251230-cell-fate`): Full identifier for Agent Mail threads, used with `--thread-id` for orchestration
+
+The session ID is typically the date portion extracted from the thread ID. When using CLI commands:
+- Use `--session-id RS20251230` for filtering (hypothesis list, test list, etc.)
+- Use `--thread-id RS-20251230-cell-fate` for orchestration (session start, status, compile)
 
 ---
 
