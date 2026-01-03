@@ -2559,6 +2559,9 @@ The lab mode auth system implements defense-in-depth gating for orchestration fe
 | `BRENNER_LAB_MODE` | Enable lab mode (`1` or `true`) |
 | `BRENNER_LAB_SECRET` | Shared secret for local auth |
 | `BRENNER_TRUST_CF_ACCESS_HEADERS` | Trust Cloudflare Access JWT headers |
+| `BRENNER_PROJECT_KEY` | Default project key for Agent Mail (absolute path) |
+| `BRENNER_AGENT_NAME` | Default agent name for session pages |
+| `BRENNER_PUBLIC_BASE_URL` | Public base URL for fetching corpus/assets |
 
 ### Authentication Methods
 
