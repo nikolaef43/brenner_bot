@@ -15,8 +15,8 @@
  */
 
 import * as React from "react";
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
-import { ChevronDown, Terminal, Code, Command, Copy } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown, Terminal, Code, Command } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/components/ui/copy-button";
 import type { CodeLanguage, CodeDiff } from "@/lib/tutorial-types";

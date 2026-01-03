@@ -123,9 +123,7 @@ function SidebarProgress({
 
   // Keyboard navigation
   const handleKeyDown = React.useCallback(
-    (e: React.KeyboardEvent, index: number) => {
-      const highestCompleted = completedSteps.length > 0 ? Math.max(...completedSteps) : -1;
-
+    (e: React.KeyboardEvent, _index: number) => {
       if (e.key === "ArrowDown" || e.key === "ArrowUp") {
         e.preventDefault();
         const buttons = listRef.current?.querySelectorAll("button:not([disabled])");
@@ -147,7 +145,7 @@ function SidebarProgress({
         if (buttons) (buttons[buttons.length - 1] as HTMLButtonElement)?.focus();
       }
     },
-    [completedSteps]
+    []
   );
 
   return (

@@ -16,7 +16,7 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Clock, Check, BookOpen, Wrench, ChevronLeft, ChevronRight, Target, Zap } from "lucide-react";
+import { Sparkles, Clock, Check, BookOpen, Wrench, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/lib/tutorial-types";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";

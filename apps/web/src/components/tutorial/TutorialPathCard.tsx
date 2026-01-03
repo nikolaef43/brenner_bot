@@ -16,7 +16,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
-import { Check, Lock, Play, Clock, ChevronRight, Rocket, Cpu, Users, Sparkles, Zap, Trophy } from "lucide-react";
+import { Check, Lock, Play, Clock, ChevronRight, Rocket, Cpu, Users, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TutorialPath, DifficultyLevel } from "@/lib/tutorial-types";
 
@@ -133,6 +133,12 @@ export function TutorialPathCard({
 
       mouseX.set(x);
       mouseY.set(y);
+
+      // Update CSS custom properties for spotlight effect
+      const percentX = ((e.clientX - rect.left) / rect.width) * 100;
+      const percentY = ((e.clientY - rect.top) / rect.height) * 100;
+      cardRef.current.style.setProperty("--mouse-x", `${percentX}%`);
+      cardRef.current.style.setProperty("--mouse-y", `${percentY}%`);
     },
     [mouseX, mouseY, prefersReducedMotion, isAccessible]
   );

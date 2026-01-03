@@ -12,8 +12,8 @@
  */
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, CheckCircle, ArrowRight, PartyPopper, Trophy, Star } from "lucide-react";
+import { motion } from "framer-motion";
+import { CheckCircle, ArrowRight, Trophy, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { CheckpointData } from "@/lib/tutorial-types";
@@ -316,7 +316,7 @@ export function TutorialCheckpoint({
               {/* Shimmer effect */}
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                animate={{ x: isButtonHovered ? ["−100%", "200%"] : "−100%" }}
+                animate={{ x: isButtonHovered ? ["-100%", "200%"] : "-100%" }}
                 transition={{ duration: 0.8, ease: "easeInOut" }}
               />
               <span className="relative z-10">Continue</span>
