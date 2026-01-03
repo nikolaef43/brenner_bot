@@ -1321,7 +1321,7 @@ The artifact linter enforces 50+ validation rules that encode Brenner-style rese
 ### Rule Categories
 
 **Structural integrity:**
-- All 7 required sections present (research_thread, hypothesis_slate, predictions, tests, assumption_ledger, anomaly_register, adversarial_critique)
+- All 7 required sections present (research_thread, hypothesis_slate, predictions_table, discriminative_tests, assumption_ledger, anomaly_register, adversarial_critique)
 - IDs follow correct format (H1-H9, T1-T99, A1-A99, X1-X99)
 - Cross-references resolve (predictions reference valid hypothesis IDs)
 

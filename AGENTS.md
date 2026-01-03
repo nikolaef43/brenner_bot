@@ -78,8 +78,8 @@ coordinated via Agent Mail.
 - **Purpose:** Canonical primary source + model writeups for extracting and operationalizing the “Brenner approach”.
 - **Key artifacts:** `complete_brenner_transcript.md`, metaprompts, and the model response folders.
 
-### B) Web app (`apps/web/`) (planned)
-- **Framework:** Next.js **16.10** (App Router) + React **19**
+### B) Web app (`apps/web/`)
+- **Framework:** Next.js **16.x** (App Router) + React **19**
 - **Orchestration:** **no vendor AI APIs**; coordinate **Codex CLI / Claude Code / Gemini CLI** via **Agent Mail**
 - **Runtime/Tooling:** Bun
 - **Hosting:** Vercel
@@ -104,21 +104,22 @@ coordinated via Agent Mail.
 brenner_bot/
 ├── README.md
 ├── AGENTS.md
+├── brenner.ts                     # CLI entrypoint (7500+ lines)
+├── install.sh / install.ps1      # Installer scripts
+├── complete_brenner_transcript.md
 ├── initial_metaprompt.md
 ├── metaprompt_by_gpt_52.md
-├── complete_brenner_transcript.md
 ├── gpt_pro_extended_reasoning_responses/
 ├── gemini_3_deep_think_responses/
-└── opus_45_responses/
-
-# Planned (not necessarily present yet):
-#
-# apps/
-#   web/                           # Next.js 16.10 (App Router) + React 19
-#     app/
-#     components/
-#     lib/
-#     package.json
+├── opus_45_responses/
+├── specs/                         # Protocol specifications
+├── apps/
+│   └── web/                       # Next.js 16.x (App Router) + React 19
+│       ├── src/app/               # App Router pages
+│       ├── src/components/        # UI components
+│       ├── src/lib/               # Shared libraries
+│       └── package.json
+└── .beads/                        # Issue tracking (bd)
 ```
 
 ---
@@ -154,10 +155,6 @@ We optimize for a clean architecture now, not backwards compatibility.
 ---
 
 ## Console Output
-
-This repo currently has **no installer scripts**.
-
-If/when we add a Next.js app and/or CLIs:
 
 - Prefer **structured, minimal logs** (avoid spammy debug output).
 - Treat user-facing UX as UI-first; logs are for operators/debugging.
@@ -268,14 +265,14 @@ cd apps/web
 bun install           # Install dependencies
 bun run dev           # Dev server
 bun run build         # Production build
-bun run lint          # Lint check
-bun run type-check    # TypeScript check
+bun run lint          # ESLint check
+bun run lint:ox       # Oxlint check (faster)
 ```
 
 Key patterns:
 - App Router: all pages in `app/` directory
 - UI components: shadcn/ui + Tailwind CSS
-- React 19 + Next.js 16.10; prefer Server Components where appropriate.
+- React 19 + Next.js 16.x; prefer Server Components where appropriate.
 - Orchestration: use Agent Mail + operator-run CLI agents (Codex/Claude/Gemini); do not wire up vendor AI APIs.
 
 ---
@@ -286,8 +283,8 @@ Key patterns:
 cd apps/web
 bun run test         # unit tests (vitest + happy-dom)
 bun run build        # production build sanity check
-bun run lint         # lint check (if configured)
-bun run type-check   # type-check (if configured)
+bun run lint         # ESLint check
+bun run lint:all     # ESLint + Oxlint
 ```
 
 **⚠️ CRITICAL:** Always use `bun run test`, never `bun test`. The latter runs Bun's native test runner without the DOM environment (happy-dom) configured in vitest.config.ts, causing all React component tests to fail with "document is not defined".
