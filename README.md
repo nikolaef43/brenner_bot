@@ -188,6 +188,44 @@ bun build --compile ./brenner.ts --outfile brenner
 ./brenner --help
 ```
 
+### First Session (Quick Start)
+
+After installation, here's the minimal workflow to run a Brenner session:
+
+**1. Verify installation:**
+```bash
+./brenner doctor --skip-ntm --skip-cass --skip-cm
+```
+
+**2. Search the corpus:**
+```bash
+./brenner corpus search "reduction to one dimension"
+```
+
+**3. Build an excerpt from transcript sections:**
+```bash
+./brenner excerpt build --sections 58,78,161 > excerpt.md
+```
+
+**4. Start a session (requires Agent Mail running):**
+```bash
+# Start Agent Mail first: cd /path/to/mcp_agent_mail && bash scripts/run_server_with_token.sh
+
+# Then start a session (all flags are required):
+./brenner session start \
+  --project-key "$PWD" \
+  --sender YourAgentName \
+  --to BlueLake \
+  --thread-id RS-$(date +%Y%m%d)-test \
+  --excerpt-file excerpt.md \
+  --question "How do cells determine their position in a developing embryo?"
+```
+
+**Common issues:**
+- "Missing --question" → The `--question` flag is required for `session start`
+- "Missing --sender" → Add `--sender YourName` or set `AGENT_NAME=YourName`
+- "Agent Mail not available" → Ensure Agent Mail server is running on localhost:8765
+
 ---
 
 ## What this is ultimately for
@@ -483,16 +521,18 @@ Required flags (today’s implementation):
 - `mail agents`: `--project-key` optional (default: config `defaults.projectKey`, else `"$PWD"`)
 - `mail send`: `--project-key` optional (default: config `defaults.projectKey`, else `"$PWD"`), `--sender` (or `AGENT_NAME`), `--to`, `--subject`, `--body-file`
 - `prompt compose`: `--template` optional (default: config `defaults.template`, else `metaprompt_by_gpt_52.md`), `--excerpt-file`
-- `session start`: `--project-key` optional (default: config `defaults.projectKey`, else `"$PWD"`), `--sender` (or `AGENT_NAME`), `--to`, `--thread-id`, `--excerpt-file`
+- `session start`: `--project-key` optional (default: config `defaults.projectKey`, else `"$PWD"`), `--sender` (or `AGENT_NAME`), `--to`, `--thread-id`, `--excerpt-file`, `--question` (research question)
 - `session status`: `--project-key` optional (default: config `defaults.projectKey`, else `"$PWD"`), `--thread-id` (use `--watch` to poll; `--timeout` optional)
 
 ```bash
 ./brenner.ts mail tools
 ./brenner.ts prompt compose --template metaprompt_by_gpt_52.md --excerpt-file excerpt.md
 # Engineering work: use bead ID as thread-id
-./brenner.ts session start --project-key "$PWD" --sender GreenCastle --to BlueMountain,RedForest --thread-id brenner_bot-5so.3.4.2 --excerpt-file excerpt.md
+./brenner.ts session start --project-key "$PWD" --sender GreenCastle --to BlueMountain,RedForest \
+  --thread-id brenner_bot-5so.3.4.2 --excerpt-file excerpt.md --question "What is the core problem?"
 # Research session: use RS-{YYYYMMDD}-{slug} format
-./brenner.ts session start --project-key "$PWD" --sender GreenCastle --to BlueMountain,RedForest --thread-id RS-20251230-cell-fate --excerpt-file excerpt.md
+./brenner.ts session start --project-key "$PWD" --sender GreenCastle --to BlueMountain,RedForest \
+  --thread-id RS-20251230-cell-fate --excerpt-file excerpt.md --question "How do cells determine position?"
 ```
 
 ### Run a multi-agent session (the cockpit workflow)
@@ -531,7 +571,8 @@ ntm new $THREAD_ID --layout=3-agent
   --sender Operator \
   --to BlueLake,PurpleMountain,GreenValley \
   --role-map "BlueLake=hypothesis_generator,PurpleMountain=test_designer,GreenValley=adversarial_critic" \
-  --excerpt-file excerpt.md
+  --excerpt-file excerpt.md \
+  --question "How do cells determine their position in a developing embryo?"
 
 # Alternative: unified mode (all agents get the same prompt)
 ./brenner.ts session start \
@@ -540,7 +581,8 @@ ntm new $THREAD_ID --layout=3-agent
   --sender Operator \
   --to BlueLake,PurpleMountain,GreenValley \
   --unified \
-  --excerpt-file excerpt.md
+  --excerpt-file excerpt.md \
+  --question "How do cells determine their position in a developing embryo?"
 
 # 6. Run agents in ntm panes (they post responses to Agent Mail)
 ntm broadcast $THREAD_ID "Please check your Agent Mail inbox"
@@ -2027,19 +2069,24 @@ The cockpit provides an ntm-based multi-agent runtime for running collaborative 
 
 ```bash
 # Start a new research session with the cockpit
+# This spawns ntm panes, sends kickoff messages, and broadcasts to agents
 brenner cockpit start \
-  --question "How do cells determine their position in a developing embryo?" \
-  --roster opus=test_designer,codex=hypothesis_generator,gemini=adversarial_critic \
-  --rounds 5
+  --project-key "$PWD" \
+  --thread-id RS-20251230-cell-fate \
+  --sender Operator \
+  --to BlueLake,PurpleMountain,GreenValley \
+  --role-map "BlueLake=hypothesis_generator,PurpleMountain=test_designer,GreenValley=adversarial_critic" \
+  --excerpt-file excerpt.md \
+  --question "How do cells determine their position in a developing embryo?"
 
-# Resume an existing session
-brenner cockpit resume RS20251230
+# Check session status (uses session status command)
+brenner session status --project-key "$PWD" --thread-id RS-20251230-cell-fate
 
-# View session status
-brenner cockpit status RS20251230
+# Watch for completion (polls until all roles respond)
+brenner session status --project-key "$PWD" --thread-id RS-20251230-cell-fate --watch --timeout 3600
 
-# Stop a running session
-brenner cockpit stop RS20251230
+# Compile the artifact once agents have responded
+brenner session compile --project-key "$PWD" --thread-id RS-20251230-cell-fate > artifact.md
 ```
 
 The cockpit:
@@ -2335,7 +2382,8 @@ brenner session start \
   --sender Operator \
   --to BlueLake,PurpleMountain,GreenValley \
   --role-map "BlueLake=hypothesis_generator,PurpleMountain=test_designer,GreenValley=adversarial_critic" \
-  --excerpt-file excerpt.md
+  --excerpt-file excerpt.md \
+  --question "How do cells determine their position in a developing embryo?"
 
 # Unified kickoff
 brenner session start \
@@ -2344,7 +2392,8 @@ brenner session start \
   --sender Operator \
   --to BlueLake,PurpleMountain,GreenValley \
   --unified \
-  --excerpt-file excerpt.md
+  --excerpt-file excerpt.md \
+  --question "How do cells determine their position in a developing embryo?"
 ```
 
 ### Programmatic Usage
