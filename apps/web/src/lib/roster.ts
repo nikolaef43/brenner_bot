@@ -232,9 +232,16 @@ export function formatRosterAsMarkdown(roster: Roster): string {
 
 /**
  * Parse a roster from JSON string (for CLI --roster flag).
+ * @throws {SyntaxError} If the JSON is malformed
  */
 export function parseRosterJson(json: string): Roster {
-  const parsed = JSON.parse(json);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    throw new SyntaxError(`Invalid roster JSON: ${msg}`);
+  }
 
   // Handle array of entries directly
   if (Array.isArray(parsed)) {
