@@ -131,37 +131,35 @@ approaches.
   },
 
   stepTips: {
-    "review-hypothesis": {
-      headline: "Look for level-mixing language",
-      guidance:
-        "Watch for phrases like 'causes', 'leads to', 'results in' that might span multiple organizational levels. Ask: are these at the same scale?",
-      example:
-        "'Social media use causes depression in teens' — this spans technological, behavioral, psychological, and neurochemical levels.",
-      antiPattern:
-        "Don't assume your hypothesis is already at a single level just because it sounds simple.",
-    },
-    "generate-x-levels": {
+    "identify-x-levels": {
       headline: "Decompose the CAUSE",
       guidance:
         "Break down the 'X' (cause) into different levels. What's happening at the mechanism level? At the system level? At the population level?",
       example:
         "For 'coffee causes alertness': molecular (caffeine blocking adenosine), cellular (neuron firing), behavioral (attention), social (coffee culture).",
+      antiPattern:
+        "Don't assume your hypothesis is already at a single level just because it sounds simple.",
     },
-    "generate-y-levels": {
+    "identify-y-levels": {
       headline: "Decompose the EFFECT",
       guidance:
         "Break down the 'Y' (effect) into different levels. How would you measure it at each level?",
       example:
         "For 'depression': neurochemical (serotonin levels), psychological (mood self-report), behavioral (activity reduction), social (withdrawal from relationships).",
     },
-    "generate-combinations": {
+    "review-level-matrix": {
       headline: "Match levels for testable claims",
       guidance:
         "Pair X-levels with Y-levels to create specific, testable sub-hypotheses. The most useful pairs are at the SAME level.",
       example:
         "Instead of 'social media → depression', try 'comparison behavior (behavioral) → negative self-evaluation (psychological)'.",
     },
-    "record-levels": {
+    "generate-sub-hypotheses": {
+      headline: "Review the generated sub-hypotheses",
+      guidance:
+        "Each X-Y combination becomes a focused sub-hypothesis. These are more testable than your original broad claim.",
+    },
+    "choose-focus": {
       headline: "Choose your primary level",
       guidance:
         "Select 1-2 level combinations that are most testable with available methods and most relevant to your core question.",
@@ -344,7 +342,7 @@ to one mechanism were actually caused by something else entirely.
   },
 
   stepTips: {
-    "review-hypothesis": {
+    "state-hypothesis": {
       headline: "State your causal arrow clearly",
       guidance:
         "Make explicit the direction of causation you're claiming. X → Y means X causes Y. Be specific.",
@@ -363,7 +361,7 @@ to one mechanism were actually caused by something else entirely.
       guidance:
         "Rate how plausible each alternative is. Don't dismiss alternatives just because they're inconvenient for your preferred theory.",
     },
-    "generate-discriminating-tests": {
+    "identify-tests": {
       headline: "Design tests that distinguish YOUR hypothesis from alternatives",
       guidance:
         "For each plausible alternative, design a test where your hypothesis and the alternative make different predictions.",
@@ -442,33 +440,40 @@ mechanism, what magnitude of effect should we see? Does that match observations?
   },
 
   stepTips: {
-    "input-effect": {
+    "quantify-effect": {
       headline: "State your effect size clearly",
       guidance:
         "Express your effect in standardized terms if possible (Cohen's d, odds ratio, correlation, percentage change). What is the actual magnitude of change?",
       example:
         "'Treatment group showed d=0.5 improvement' or 'Exposure associated with OR=2.1 for outcome'.",
     },
-    "compare-context": {
+    "contextualize-scale": {
       headline: "Compare to domain benchmarks",
       guidance:
         "What are typical effect sizes in this domain? In psychology, d=0.5 is medium. In medicine, OR=2.0 is substantial. How does your effect compare?",
       example:
         "Psychology: Most effects are d=0.2-0.4. Your d=0.8 is either a major finding or a red flag for measurement problems.",
     },
-    "check-measurement": {
+    "measurement-precision": {
       headline: "Verify measurement isn't inflating or deflating",
       guidance:
         "Are you measuring the effect correctly? Could your measurement be biased, unreliable, or mismatched to the phenomenon?",
       antiPattern:
         "Don't use unreliable measures and then interpret effect sizes as if they were precise.",
     },
-    "assess-practical": {
+    "practical-significance": {
       headline: "Translate to real-world impact",
       guidance:
         "What does this effect mean in practice? If your intervention works, what's the tangible change for real people/systems?",
       example:
         "A d=0.3 improvement in test scores means about 12 percentile points on average — is that meaningful for education policy?",
+    },
+    "population-individual": {
+      headline: "Consider variation across groups",
+      guidance:
+        "Does your average effect hide important variation? Are there subgroups with different (or opposite) effects?",
+      example:
+        "An average d=0.3 might include responders (d=1.0) and non-responders (d=0). Who benefits most?",
     },
   },
 

@@ -686,7 +686,7 @@ export function composeUnifiedKickoff(config: KickoffConfig): {
   if (config.operatorSelection) {
     sections.push("## ROLE OPERATOR ASSIGNMENTS");
     for (const roleKey of AGENT_ROLE_VALUES) {
-      const operators = config.operatorSelection[roleKey];
+      const operators = config.operatorSelection[roleKey] ?? [];
       if (operators.length > 0) {
         sections.push(`- ${ROLE_CONFIG_BY_AGENT_ROLE[roleKey].displayName}: ${operators.join(", ")}`);
       }
