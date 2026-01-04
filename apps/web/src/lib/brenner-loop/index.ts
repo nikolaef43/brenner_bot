@@ -417,3 +417,75 @@ export {
   formatLockTimestamp,
   getShortHash,
 } from "./prediction-lock";
+
+// ============================================================================
+// Evidence Ledger (bead njjo.1)
+// ============================================================================
+
+export type {
+  // Core types
+  TestType,
+  EvidenceResult,
+  DiscriminativePower,
+  TestDescription,
+
+  // Main interface (comprehensive version)
+  EvidenceEntry as FullEvidenceEntry,
+
+  // Validation types
+  EvidenceValidationResult,
+  EvidenceValidationError,
+  EvidenceValidationWarning,
+  EvidenceValidationErrorCode,
+  EvidenceValidationWarningCode,
+} from "./evidence";
+
+export {
+  // Constants
+  TEST_TYPE_LABELS,
+  DISCRIMINATIVE_POWER_LABELS,
+
+  // Type guards
+  isTestType,
+  isEvidenceResult,
+  isDiscriminativePower,
+  isTestDescription,
+  isEvidenceEntry,
+
+  // Validation
+  validateEvidenceEntry,
+
+  // Factory functions
+  generateEvidenceId,
+  createEvidenceEntry,
+
+  // Utility functions
+  calculateConfidenceDelta,
+  summarizeEvidenceResult,
+  getResultColor,
+} from "./evidence";
+
+// ============================================================================
+// Multi-Agent Tribunal System (bead xlk2.1)
+// ============================================================================
+
+export type {
+  // Agent types
+  TribunalAgentRole,
+  TribunalAgentConfig,
+} from "./agents";
+
+export {
+  // Agent configurations
+  TRIBUNAL_AGENTS,
+  TRIBUNAL_ORDER,
+
+  // Agent helpers
+  getTribunalAgentsInOrder,
+  getAgentConfig,
+  loadPrompt,
+  clearPromptCache,
+
+  // Type guards
+  isTribunalAgentRole,
+} from "./agents";
