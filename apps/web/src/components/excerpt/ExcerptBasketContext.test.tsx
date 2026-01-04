@@ -109,15 +109,6 @@ function BasketConsumer() {
   );
 }
 
-function HookErrorCatcher() {
-  try {
-    useExcerptBasket();
-    return <span data-testid="result">no-error</span>;
-  } catch (error) {
-    return <span data-testid="result">error: {(error as Error).message}</span>;
-  }
-}
-
 // ============================================================================
 // localStorage Mock Helpers
 // ============================================================================
@@ -497,7 +488,7 @@ describe("ExcerptBasketTrigger", () => {
     await waitFor(() => {
       expect(screen.getByRole("button")).toHaveAttribute(
         "aria-label",
-        "Open excerpt basket (1 items)"
+        "Open excerpt basket (1 item)"
       );
     });
   });

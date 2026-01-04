@@ -199,7 +199,7 @@ export function ExcerptBasketTrigger({ className }: { className?: string }) {
       size="sm"
       onClick={openBasket}
       className={cn("gap-2", className)}
-      aria-label={items.length > 0 ? `Open excerpt basket (${items.length} items)` : "Open excerpt basket"}
+      aria-label={items.length > 0 ? `Open excerpt basket (${items.length} ${items.length === 1 ? "item" : "items"})` : "Open excerpt basket"}
     >
       <BookIcon className="size-4" />
       <span className="hidden sm:inline">Excerpt</span>
