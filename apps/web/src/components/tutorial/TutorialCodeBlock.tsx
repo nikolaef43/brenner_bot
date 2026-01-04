@@ -215,8 +215,8 @@ export function TutorialCodeBlock({
     };
   }, [updateScrollProgress, displayCode]);
 
-  // Detect platform for keyboard shortcut display
-  const isMac = typeof navigator !== "undefined" && navigator.platform?.toLowerCase().includes("mac");
+  // Detect platform for keyboard shortcut display (use userAgent since platform is deprecated)
+  const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
 
   // Header content - Terminal style with traffic lights (ACFS pattern)
   const headerContent = (
