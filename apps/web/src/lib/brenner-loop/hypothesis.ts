@@ -285,8 +285,10 @@ export type ValidationWarningCode =
  * Format: HC-{session_id}-{sequence}-v{version}
  * Example: HC-RS20260104-001-v1
  *
- * The session_id can contain alphanumeric characters and hyphens,
- * but we use a non-greedy match to avoid capturing version suffixes.
+ * The session_id must start with an alphanumeric character and can
+ * contain alphanumerics and hyphens. The sequence must be exactly
+ * 3 digits (000-999). The pattern uses greedy matching but works
+ * correctly via backtracking to find the last -NNN-vN suffix.
  */
 const HYPOTHESIS_CARD_ID_PATTERN = /^HC-[A-Za-z0-9][A-Za-z0-9-]*-\d{3}-v\d+$/;
 
@@ -737,18 +739,46 @@ export function isIdentifiedConfound(obj: unknown): obj is IdentifiedConfound {
 // ============================================================================
 
 /**
+ * Pattern for valid session IDs: must start with alphanumeric,
+ * followed by alphanumerics or hyphens.
+ */
+const SESSION_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9-]*$/;
+
+/**
  * Generate a new HypothesisCard ID.
  *
- * @param sessionId - The session this hypothesis belongs to
- * @param sequence - The sequence number within the session
- * @param version - The version number (default 1)
+ * @param sessionId - The session this hypothesis belongs to (alphanumeric + hyphens)
+ * @param sequence - The sequence number within the session (0-999)
+ * @param version - The version number (default 1, must be positive integer)
  * @returns A formatted ID string
+ * @throws Error if inputs are invalid
  */
 export function generateHypothesisCardId(
   sessionId: string,
   sequence: number,
   version: number = 1
 ): string {
+  // Validate sessionId
+  if (!sessionId || !SESSION_ID_PATTERN.test(sessionId)) {
+    throw new Error(
+      `Invalid sessionId: must start with alphanumeric and contain only alphanumerics/hyphens (got "${sessionId}")`
+    );
+  }
+
+  // Validate sequence (must be integer 0-999)
+  if (!Number.isInteger(sequence) || sequence < 0 || sequence > 999) {
+    throw new Error(
+      `Invalid sequence: must be an integer from 0-999 (got ${sequence})`
+    );
+  }
+
+  // Validate version (must be positive integer)
+  if (!Number.isInteger(version) || version < 1) {
+    throw new Error(
+      `Invalid version: must be a positive integer (got ${version})`
+    );
+  }
+
   const paddedSeq = sequence.toString().padStart(3, "0");
   return `HC-${sessionId}-${paddedSeq}-v${version}`;
 }
@@ -756,14 +786,29 @@ export function generateHypothesisCardId(
 /**
  * Generate a new confound ID.
  *
- * @param hypothesisId - The parent hypothesis ID
- * @param sequence - The sequence number within the hypothesis
+ * @param hypothesisId - The parent hypothesis ID (must match HypothesisCard ID format)
+ * @param sequence - The sequence number within the hypothesis (0-99)
  * @returns A formatted confound ID
+ * @throws Error if inputs are invalid
  */
 export function generateConfoundId(
   hypothesisId: string,
   sequence: number
 ): string {
+  // Validate hypothesisId matches the expected pattern
+  if (!hypothesisId || !HYPOTHESIS_CARD_ID_PATTERN.test(hypothesisId)) {
+    throw new Error(
+      `Invalid hypothesisId: must match HC-{session}-{seq}-v{version} format (got "${hypothesisId}")`
+    );
+  }
+
+  // Validate sequence (must be integer 0-99)
+  if (!Number.isInteger(sequence) || sequence < 0 || sequence > 99) {
+    throw new Error(
+      `Invalid sequence: must be an integer from 0-99 (got ${sequence})`
+    );
+  }
+
   return `${hypothesisId}-CF${sequence.toString().padStart(2, "0")}`;
 }
 

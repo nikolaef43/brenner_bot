@@ -597,6 +597,9 @@ export function isResolvable(state: HypothesisState): boolean {
 /**
  * Check if hypothesis should auto-transition to dormant.
  *
+ * Handles hypotheses that may have been deserialized from JSON
+ * (where dates are strings, not Date objects).
+ *
  * @param hypothesis - The hypothesis to check
  * @param now - Current time (optional, defaults to Date.now())
  * @returns Whether the hypothesis should become dormant
@@ -607,8 +610,10 @@ export function shouldBeDormant(
 ): boolean {
   if (hypothesis.state !== "active") return false;
 
+  // Use getTimeMs to handle both Date objects and ISO strings
+  const lastActivityMs = getTimeMs(hypothesis.lastActivityAt as Date | string);
   const daysSinceActivity =
-    (now.getTime() - hypothesis.lastActivityAt.getTime()) / (1000 * 60 * 60 * 24);
+    (now.getTime() - lastActivityMs) / (1000 * 60 * 60 * 24);
 
   return daysSinceActivity >= hypothesis.dormancyThresholdDays;
 }
@@ -645,6 +650,9 @@ export function createHypothesisWithLifecycle(
 /**
  * Upgrade an existing HypothesisCard to include lifecycle tracking.
  *
+ * Handles cards that may have been deserialized from JSON
+ * (where dates are strings, not Date objects).
+ *
  * @param card - The existing HypothesisCard
  * @param currentState - The current state to assign
  * @returns A HypothesisWithLifecycle
@@ -655,14 +663,60 @@ export function upgradeToLifecycle(
 ): HypothesisWithLifecycle {
   const now = new Date();
 
+  // Handle updatedAt being either a Date or a string (from JSON deserialization)
+  const lastActivity = card.updatedAt
+    ? toDate(card.updatedAt as Date | string)
+    : now;
+
   return {
     ...card,
     state: currentState,
     stateEnteredAt: now,
     lockedPredictions: [],
-    lastActivityAt: card.updatedAt || now,
+    lastActivityAt: lastActivity,
     dormancyThresholdDays: 30,
   };
+}
+
+// ============================================================================
+// Date Helpers (for JSON serialization compatibility)
+// ============================================================================
+
+/**
+ * Check if a value is a valid Date or ISO date string.
+ * Handles both Date objects and serialized date strings (from JSON).
+ */
+function isValidDateOrString(value: unknown): boolean {
+  if (value instanceof Date) {
+    return !isNaN(value.getTime());
+  }
+  if (typeof value === "string") {
+    const parsed = Date.parse(value);
+    return !isNaN(parsed);
+  }
+  return false;
+}
+
+/**
+ * Convert a Date or ISO date string to a Date object.
+ * Returns the original if already a Date, parses if string.
+ */
+function toDate(value: Date | string): Date {
+  if (value instanceof Date) {
+    return value;
+  }
+  return new Date(value);
+}
+
+/**
+ * Safely get timestamp from a Date or string.
+ * Handles JSON-deserialized dates which are strings.
+ */
+function getTimeMs(value: Date | string): number {
+  if (value instanceof Date) {
+    return value.getTime();
+  }
+  return new Date(value).getTime();
 }
 
 // ============================================================================
@@ -687,6 +741,9 @@ export function isHypothesisState(value: unknown): value is HypothesisState {
 /**
  * Check if an object is a HypothesisWithLifecycle.
  *
+ * Handles both fresh objects (with Date instances) and deserialized
+ * objects (with ISO date strings, e.g., from JSON/localStorage).
+ *
  * @param obj - The object to check
  * @returns Whether the object is a HypothesisWithLifecycle
  */
@@ -699,9 +756,10 @@ export function isHypothesisWithLifecycle(
 
   // Check lifecycle-specific fields
   if (!isHypothesisState(hyp.state)) return false;
-  if (!(hyp.stateEnteredAt instanceof Date)) return false;
+  // Handle both Date objects and ISO date strings (from JSON serialization)
+  if (!isValidDateOrString(hyp.stateEnteredAt)) return false;
   if (!Array.isArray(hyp.lockedPredictions)) return false;
-  if (!(hyp.lastActivityAt instanceof Date)) return false;
+  if (!isValidDateOrString(hyp.lastActivityAt)) return false;
   if (typeof hyp.dormancyThresholdDays !== "number") return false;
 
   return true;
@@ -792,6 +850,9 @@ export interface LifecycleStats {
 /**
  * Calculate lifecycle statistics for a set of hypotheses.
  *
+ * Handles hypotheses that may have been deserialized from JSON
+ * (where dates are strings, not Date objects).
+ *
  * @param hypotheses - The hypotheses to analyze
  * @returns Lifecycle statistics
  */
@@ -824,12 +885,15 @@ export function calculateLifecycleStats(
     // This calculates "time from creation to first state change" which is
     // accurate when hypotheses go directly from draft to their current state.
 
+    // Use getTimeMs to handle both Date objects and ISO strings (from JSON)
+    const stateEnteredMs = getTimeMs(h.stateEnteredAt as Date | string);
+    const createdMs = getTimeMs(h.createdAt as Date | string);
+
     // Calculate time from creation to current state (approximates time in draft)
     if (h.state !== "draft") {
       // This is actually time from creation to current state entry,
       // which equals time in draft only for direct draft→current transitions
-      const daysFromCreation =
-        (h.stateEnteredAt.getTime() - h.createdAt.getTime()) / (1000 * 60 * 60 * 24);
+      const daysFromCreation = (stateEnteredMs - createdMs) / (1000 * 60 * 60 * 24);
       // Only count non-negative values (handles edge case of clock skew)
       if (daysFromCreation >= 0) {
         totalDaysInDraft += daysFromCreation;
@@ -839,8 +903,7 @@ export function calculateLifecycleStats(
 
     // Calculate time to resolution (accurate for terminal states)
     if (isTerminalState(h.state)) {
-      const daysToResolution =
-        (h.stateEnteredAt.getTime() - h.createdAt.getTime()) / (1000 * 60 * 60 * 24);
+      const daysToResolution = (stateEnteredMs - createdMs) / (1000 * 60 * 60 * 24);
       if (daysToResolution >= 0) {
         totalDaysToResolution += daysToResolution;
         resolvedCount++;
