@@ -18,9 +18,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { TutorialProvider, useTutorialOptional } from "@/lib/tutorial-context";
 import {
-  TutorialProgress,
   SidebarProgress,
-  HeaderProgress,
 } from "@/components/tutorial";
 import type { TutorialStepMeta, TutorialPathId } from "@/lib/tutorial-types";
 

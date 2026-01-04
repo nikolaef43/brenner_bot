@@ -19,6 +19,15 @@ import {
   renderArtifactMarkdown,
   validateArtifact,
   type Reference,
+  type ReferenceRelation,
+  type ResearchThreadItem,
+  type HypothesisItem,
+  type PredictionItem,
+  type TestItem,
+  type AssumptionItem,
+  type AnomalyItem,
+  type CritiqueItem,
+  type ArtifactMetadata,
 } from "./artifact-merge";
 import {
   createEmptyInterventionSummary,
@@ -1338,7 +1347,7 @@ describe("renderArtifactMarkdown", () => {
       killed_by: "human",
       killed_at: "2025-01-01T00:00:00Z",
       kill_reason: "Invalid research question",
-    } as any;
+    } as unknown as ResearchThreadItem;
 
     const md = renderArtifactMarkdown(artifact);
     expect(md).toContain("**Killed**: true");
@@ -1469,7 +1478,8 @@ describe("artifact-merge additional coverage", () => {
     const artifact = createEmptyArtifact("TEST-ADD-BAD-PAYLOAD");
     const delta = makeValidDelta("ADD", "hypothesis_slate", null, {});
     // Force payload to be non-object to hit the guardrail
-    (delta as any).payload = ["not-an-object"];
+    const deltaWithPayload = delta as unknown as { payload: unknown };
+    deltaWithPayload.payload = ["not-an-object"];
 
     const result = mergeArtifact(artifact, [delta], "Agent", "2025-01-01T00:00:00Z");
     expect(result.ok).toBe(false);
@@ -1534,11 +1544,11 @@ describe("artifact-merge additional coverage", () => {
     artifact.sections.hypothesis_slate = [
       { id: "H1", name: "H1", claim: "C", mechanism: "M", anchors: ["§2"], killed: true, killed_by: "Agent", killed_at: "t", kill_reason: "r" },
       { id: "HXYZ", name: "Third Alternative", claim: "Both wrong", mechanism: "?", anchors: ["inference"], third_alternative: true },
-    ] as any;
+    ] as unknown as HypothesisItem[];
 
     artifact.sections.predictions_table = [
       { id: "P1", condition: "Cond", predictions: { H1: "A", hxyz: "A" } },
-    ] as any;
+    ] as unknown as PredictionItem[];
 
     artifact.sections.discriminative_tests = [
       {
@@ -1561,19 +1571,19 @@ describe("artifact-merge additional coverage", () => {
         },
         actual_outcomes: { H1: "observed A" },
       },
-    ] as any;
+    ] as unknown as TestItem[];
 
     artifact.sections.anomaly_register = [
       { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: ["H1"], status: "active", resolution_plan: "Plan" },
-    ] as any;
+    ] as unknown as AnomalyItem[];
 
     artifact.sections.assumption_ledger = [
       { id: "A1", name: "A1", statement: "S", load: "L", test: "T", scale_check: true, calculation: "1e3" },
-    ] as any;
+    ] as unknown as AssumptionItem[];
 
     artifact.sections.adversarial_critique = [
       { id: "C1", name: "C1", attack: "Attack", evidence: "Evidence", current_status: "active", real_third_alternative: true },
-    ] as any;
+    ] as unknown as CritiqueItem[];
 
     const md = renderArtifactMarkdown(artifact);
     expect(md).toContain("contributors:");
@@ -1588,10 +1598,10 @@ describe("artifact-merge additional coverage", () => {
 
   test("lintArtifact flags a wide set of metadata + section violations and report formatters cover all sections", () => {
     const artifact = createEmptyArtifact(" ");
-    artifact.metadata.status = "weird" as any;
+    artifact.metadata.status = "weird" as unknown as ArtifactMetadata["status"];
     artifact.metadata.created_at = "not-a-date";
     artifact.metadata.updated_at = "2000-01-01T00:00:00Z";
-    artifact.metadata.version = 1.5 as any;
+    artifact.metadata.version = 1.5;
     artifact.metadata.contributors = [];
 
     artifact.sections.research_thread = {
@@ -1610,28 +1620,28 @@ describe("artifact-merge additional coverage", () => {
       { id: "H5", name: "H5", claim: "C", mechanism: "M", anchors: ["§1"], unresolvedCritiqueCount: 0 },
       { id: "H6", name: "H6", claim: "C", mechanism: "M", anchors: ["§1"], unresolvedCritiqueCount: 0 },
       { id: "H7", name: "H7", claim: "C", mechanism: "M", anchors: ["§1"], unresolvedCritiqueCount: 0 },
-    ] as any;
+    ] as unknown as HypothesisItem[];
 
     artifact.sections.predictions_table = [
       { id: "P1", condition: "Cond", predictions: { H1: "X", H2: "X" } },
-    ] as any;
+    ] as unknown as PredictionItem[];
 
     artifact.sections.discriminative_tests = [
       { id: "T1", name: "T1", procedure: "", discriminates: "", expected_outcomes: {}, potency_check: "", score: undefined },
       { id: "T2", name: "T2", procedure: "P", discriminates: "H1 vs H2", expected_outcomes: { H1: "X" }, potency_check: "Has potency but no §50", score: { likelihood_ratio: 3, cost: 3, speed: 3, ambiguity: 3 } },
       { id: "T3", name: "T3", procedure: "P", discriminates: "H1 vs H2", expected_outcomes: { H1: "X" }, potency_check: "Has potency but no §50", score: { likelihood_ratio: 1, cost: 1, speed: 1, ambiguity: 1 } },
-    ] as any;
+    ] as unknown as TestItem[];
 
     artifact.sections.assumption_ledger = [
       { id: "A1", name: "A1", statement: "", load: "L", test: "T", scale_check: true, calculation: "" },
       { id: "A2", name: "A2", statement: "S", load: "L", test: "T" },
       { id: "A3", name: "A3", statement: "S", load: "L", test: "T" },
-    ] as any;
+    ] as unknown as AssumptionItem[];
 
     artifact.sections.adversarial_critique = [
       { id: "C1", name: "C1", attack: "", evidence: "", current_status: "" },
       { id: "C2", name: "C2", attack: "Attack", evidence: "", current_status: "" },
-    ] as any;
+    ] as unknown as CritiqueItem[];
 
     const report = lintArtifact(artifact);
     expect(report.valid).toBe(false);
@@ -1649,7 +1659,7 @@ describe("artifact-merge additional coverage", () => {
 // Tests: Artifact Semantic Diff
 // ============================================================================
 
-import { diffArtifacts, formatDiffHuman, formatDiffJson, type Artifact } from "./artifact-merge";
+import { diffArtifacts, formatDiffHuman, formatDiffJson } from "./artifact-merge";
 
 describe("diffArtifacts", () => {
   test("detects added hypotheses", () => {
@@ -2542,13 +2552,13 @@ describe("diffArtifacts edge cases", () => {
     const v1 = createEmptyArtifact("TEST-NULL-FIELD");
     v1.metadata.version = 1;
     v1.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "C", mechanism: "M", third_alternative: null } as any,
+      { id: "H1", name: "H1", claim: "C", mechanism: "M", third_alternative: null } as unknown as HypothesisItem,
     ];
 
     const v2 = createEmptyArtifact("TEST-NULL-FIELD");
     v2.metadata.version = 2;
     v2.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "C", mechanism: "M", third_alternative: null } as any,
+      { id: "H1", name: "H1", claim: "C", mechanism: "M", third_alternative: null } as unknown as HypothesisItem,
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -2720,7 +2730,7 @@ describe("Cross-Session References", () => {
           claim: "C",
           mechanism: "M",
           references: [
-            { session: "PREV", item: "H1", relation: "invalid_relation" as any },
+            { session: "PREV", item: "H1", relation: "invalid_relation" as unknown as ReferenceRelation },
           ],
         },
       ];
@@ -2739,7 +2749,7 @@ describe("Cross-Session References", () => {
           name: "H1",
           claim: "C",
           mechanism: "M",
-          references: [{ item: "H1", relation: "extends" } as any],
+          references: [{ item: "H1", relation: "extends" } as unknown as Reference],
         },
       ];
 
@@ -2757,7 +2767,7 @@ describe("Cross-Session References", () => {
           name: "H1",
           claim: "C",
           mechanism: "M",
-          references: [{ session: "PREV", relation: "extends" } as any],
+          references: [{ session: "PREV", relation: "extends" } as unknown as Reference],
         },
       ];
 
@@ -2775,7 +2785,7 @@ describe("Cross-Session References", () => {
           name: "H1",
           claim: "C",
           mechanism: "M",
-          references: { session: "PREV", item: "H1", relation: "extends" } as any,
+          references: { session: "PREV", item: "H1", relation: "extends" } as unknown as Reference[],
         },
       ];
 
@@ -2793,7 +2803,7 @@ describe("Cross-Session References", () => {
           name: "H1",
           claim: "C",
           mechanism: "M",
-          references: ["RS-20251230:H1:extends"] as any,
+          references: ["RS-20251230:H1:extends"] as unknown as Reference[],
         },
       ];
 

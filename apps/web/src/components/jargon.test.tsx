@@ -14,7 +14,10 @@ import { getJargon, jargonDictionary } from "@/lib/jargon";
 
 // Get a real term from the dictionary for testing
 const realTermKey = "level-split";
-const realTerm = getJargon(realTermKey)!;
+const realTerm = getJargon(realTermKey);
+if (!realTerm) {
+  throw new Error(`Missing jargon term for key: ${realTermKey}`);
+}
 
 // Mock matchMedia for mobile detection - required since jsdom doesn't support it
 const mockMatchMedia = (matches: boolean) => {
@@ -281,7 +284,10 @@ describe("Jargon", () => {
     const termKeys = Object.keys(jargonDictionary).slice(0, 5);
 
     it.each(termKeys)("renders term '%s' correctly", (termKey) => {
-      const term = getJargon(termKey)!;
+      const term = getJargon(termKey);
+      if (!term) {
+        throw new Error(`Missing jargon term for key: ${termKey}`);
+      }
       render(<Jargon term={termKey} />);
       expect(screen.getByText(term.term)).toBeInTheDocument();
     });

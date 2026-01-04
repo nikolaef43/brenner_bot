@@ -667,7 +667,7 @@ export function PredictionLock({
           <div className="space-y-3">
             <AnimatePresence mode="popLayout">
               {/* Locked predictions */}
-              {lockedByType.if_true.map((pred, idx) => (
+              {lockedByType.if_true.map((pred) => (
                 <PredictionLockItem
                   key={pred.id}
                   prediction={pred}
@@ -709,7 +709,7 @@ export function PredictionLock({
           </h4>
           <div className="space-y-3">
             <AnimatePresence mode="popLayout">
-              {lockedByType.if_false.map((pred, idx) => (
+              {lockedByType.if_false.map((pred) => (
                 <PredictionLockItem
                   key={pred.id}
                   prediction={pred}
@@ -749,7 +749,7 @@ export function PredictionLock({
           </h4>
           <div className="space-y-3">
             <AnimatePresence mode="popLayout">
-              {lockedByType.impossible_if_true.map((pred, idx) => (
+              {lockedByType.impossible_if_true.map((pred) => (
                 <PredictionLockItem
                   key={pred.id}
                   prediction={pred}

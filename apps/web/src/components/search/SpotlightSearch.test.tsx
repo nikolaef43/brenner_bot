@@ -97,14 +97,6 @@ function createSearchResult(
 }
 
 // ============================================================================
-// Test Wrapper
-// ============================================================================
-
-function SearchTestWrapper({ children }: { children: React.ReactNode }) {
-  return <SearchProvider>{children}</SearchProvider>;
-}
-
-// ============================================================================
 // Tests
 // ============================================================================
 
@@ -575,9 +567,11 @@ describe("SpotlightSearch", () => {
 
       // Find the backdrop by its aria-hidden attribute
       const backdrop = document.querySelector('[aria-hidden="true"]');
-      expect(backdrop).toBeInTheDocument();
+      if (!(backdrop instanceof HTMLElement)) {
+        throw new Error("Expected backdrop element to be present");
+      }
 
-      await user.click(backdrop!);
+      await user.click(backdrop);
 
       expect(onClose).toHaveBeenCalled();
     });

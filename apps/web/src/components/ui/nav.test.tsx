@@ -8,7 +8,7 @@
  * @see @/components/ui/nav.tsx
  */
 
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import {
@@ -305,19 +305,36 @@ describe("ReadingProgress", () => {
       // Trigger scroll event
       window.dispatchEvent(new Event("scroll"));
 
-      // Note: The component uses useState, so we need to test initial render
-      // In real usage, the scroll listener updates the state
+      return waitFor(() => {
+        expect(screen.getByRole("progressbar")).toBeInTheDocument();
+      });
     });
 
     it("has correct aria attributes when rendered", () => {
       // The progressbar role is rendered with proper attributes when progress > 0
-      // This is tested implicitly through the component's rendering
+      Object.defineProperty(window, "scrollY", { value: 100 });
+      Object.defineProperty(document.documentElement, "scrollHeight", { value: 1000 });
+      Object.defineProperty(window, "innerHeight", { value: 500 });
+
+      render(<ReadingProgress />);
+      window.dispatchEvent(new Event("scroll"));
+
+      return waitFor(() => {
+        const progressbar = screen.getByRole("progressbar");
+        expect(progressbar).toHaveAttribute("aria-valuemin", "0");
+        expect(progressbar).toHaveAttribute("aria-valuemax", "100");
+        expect(progressbar.getAttribute("aria-valuenow")).not.toBeNull();
+      });
     });
 
     it("accepts className prop", () => {
       Object.defineProperty(window, "scrollY", { value: 50 });
       render(<ReadingProgress className="custom-class" />);
       window.dispatchEvent(new Event("scroll"));
+
+      return waitFor(() => {
+        expect(screen.getByRole("progressbar")).toHaveClass("custom-class");
+      });
     });
   });
 });
@@ -376,7 +393,9 @@ describe("BackToTop", () => {
       render(<BackToTop />);
       window.dispatchEvent(new Event("scroll"));
 
-      // Initial render state
+      return waitFor(() => {
+        expect(screen.getByRole("button")).toHaveClass("visible");
+      });
     });
   });
 
@@ -585,7 +604,7 @@ describe("ThemeToggle", () => {
       localStorage.setItem("theme", "dark");
       render(<ThemeToggle />);
 
-      // Component should read localStorage on mount
+      expect(document.documentElement.classList.contains("dark")).toBe(true);
     });
   });
 

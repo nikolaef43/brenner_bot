@@ -494,7 +494,11 @@ describe("aggregateRobustness", () => {
     ];
 
     const result = aggregateRobustness(scores);
-    const expectedAvg = (scores[0]!.overall + scores[1]!.overall) / 2;
+    const [first, second] = scores;
+    if (!first || !second) {
+      throw new Error("Expected two robustness scores for average calculation");
+    }
+    const expectedAvg = (first.overall + second.overall) / 2;
 
     expect(result.averageScore).toBe(Math.round(expectedAvg));
   });

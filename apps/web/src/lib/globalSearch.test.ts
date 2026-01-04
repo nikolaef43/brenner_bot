@@ -41,7 +41,10 @@ describe("globalSearch", () => {
     expect(result.hits.length).toBeGreaterThan(0);
     expect(result.totalMatches).toBeGreaterThanOrEqual(result.hits.length);
 
-    const first = result.hits[0]!;
+    const [first] = result.hits;
+    if (!first) {
+      throw new Error("Expected at least one search hit");
+    }
     expect(first.title.length).toBeGreaterThan(0);
     expect(first.snippet.length).toBeGreaterThan(0);
     expect(first.url.startsWith("/")).toBe(true);
@@ -70,10 +73,17 @@ describe("globalSearch", () => {
     const broad = await globalSearch("Brenner", { limit: 3 });
     expect(broad.hits.length).toBeGreaterThan(0);
 
-    const title = broad.hits[0]!.title;
+    const [first] = broad.hits;
+    if (!first) {
+      throw new Error("Expected at least one search hit");
+    }
+    const title = first.title;
     const exact = await globalSearch(title, { limit: 3 });
     expect(exact.hits.length).toBeGreaterThan(0);
-    expect(exact.hits[0]!.score).toBeGreaterThanOrEqual(broad.hits[0]!.score);
+    const [exactFirst] = exact.hits;
+    if (!exactFirst) {
+      throw new Error("Expected at least one exact search hit");
+    }
+    expect(exactFirst.score).toBeGreaterThanOrEqual(first.score);
   });
 });
-

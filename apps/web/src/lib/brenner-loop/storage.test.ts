@@ -134,7 +134,10 @@ describe("LocalStorageSessionStorage", () => {
       const raw = localStorageMock.getItem(`brenner-session-${session.id}`);
       expect(raw).toBeTruthy();
 
-      const saved = JSON.parse(raw!);
+      if (!raw) {
+        throw new Error("Expected session to be saved in localStorage");
+      }
+      const saved = JSON.parse(raw);
       expect(saved.id).toBe(session.id);
     });
 
@@ -143,7 +146,11 @@ describe("LocalStorageSessionStorage", () => {
 
       await storage.save(session);
 
-      const index = JSON.parse(localStorageMock.getItem("brenner-sessions-index")!);
+      const indexRaw = localStorageMock.getItem("brenner-sessions-index");
+      if (!indexRaw) {
+        throw new Error("Expected sessions index to be saved in localStorage");
+      }
+      const index = JSON.parse(indexRaw);
       expect(index.summaries).toHaveLength(1);
       expect(index.summaries[0].id).toBe(session.id);
     });
@@ -169,7 +176,10 @@ describe("LocalStorageSessionStorage", () => {
       await storage.save(session);
 
       const loaded = await storage.load(session.id);
-      expect(loaded!.updatedAt).not.toBe("2020-01-01T00:00:00.000Z");
+      if (!loaded) {
+        throw new Error("Expected session to load after save");
+      }
+      expect(loaded.updatedAt).not.toBe("2020-01-01T00:00:00.000Z");
     });
   });
 
@@ -181,8 +191,11 @@ describe("LocalStorageSessionStorage", () => {
       const loaded = await storage.load(session.id);
 
       expect(loaded).not.toBeNull();
-      expect(loaded!.id).toBe(session.id);
-      expect(loaded!.phase).toBe(session.phase);
+      if (!loaded) {
+        throw new Error("Expected session to load after save");
+      }
+      expect(loaded.id).toBe(session.id);
+      expect(loaded.phase).toBe(session.phase);
     });
 
     test("should return null for non-existent session", async () => {
@@ -323,7 +336,11 @@ describe("Recovery utilities", () => {
       expect(count).toBe(1);
 
       // Verify index was rebuilt
-      const index = JSON.parse(localStorageMock.getItem("brenner-sessions-index")!);
+      const indexRaw = localStorageMock.getItem("brenner-sessions-index");
+      if (!indexRaw) {
+        throw new Error("Expected sessions index to be rebuilt");
+      }
+      const index = JSON.parse(indexRaw);
       expect(index.summaries).toHaveLength(1);
     });
   });

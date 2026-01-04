@@ -23,8 +23,6 @@ import {
   formatLockTimestamp,
   getShortHash,
   type LockedPrediction,
-  type PredictionLockState,
-  type PredictionType,
 } from "./prediction-lock";
 
 // ============================================================================

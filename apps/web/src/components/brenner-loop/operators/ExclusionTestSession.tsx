@@ -48,7 +48,6 @@ import {
   EXCLUSION_TEST_FALLBACK_QUOTES,
   generateExclusionTests,
   createCustomTest,
-  generateProtocols,
   getDiscriminativePowerStars,
   getDiscriminativePowerLabel,
   getFeasibilityColor,

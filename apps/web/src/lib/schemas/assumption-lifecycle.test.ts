@@ -40,6 +40,15 @@ const createTestAssumption = (
   return { ...base, ...overrides };
 };
 
+type FalsificationPropagation = ReturnType<typeof computeFalsificationPropagation>;
+
+function requirePropagation(result: { propagation?: FalsificationPropagation }): FalsificationPropagation {
+  if (!result.propagation) {
+    throw new Error("Expected propagation to be defined");
+  }
+  return result.propagation;
+}
+
 // ============================================================================
 // Schema Tests
 // ============================================================================
@@ -303,10 +312,11 @@ describe("transitionAssumption", () => {
       if (result.success) {
         expect(result.assumption.status).toBe("falsified");
         expect(result.propagation).toBeDefined();
-        expect(result.propagation!.undermindedHypotheses).toHaveLength(2);
-        expect(result.propagation!.invalidatedTests).toHaveLength(2);
-        expect(result.propagation!.summary).toContain("2 hypothesis(es) undermined");
-        expect(result.propagation!.summary).toContain("2 test(s) invalidated");
+        const propagation = requirePropagation(result);
+        expect(propagation.undermindedHypotheses).toHaveLength(2);
+        expect(propagation.invalidatedTests).toHaveLength(2);
+        expect(propagation.summary).toContain("2 hypothesis(es) undermined");
+        expect(propagation.summary).toContain("2 test(s) invalidated");
       }
     });
 
@@ -629,12 +639,13 @@ describe("Falsification Cascade (end-to-end)", () => {
       if (result.success) {
         expect(result.assumption.status).toBe("falsified");
         expect(result.propagation).toBeDefined();
-        expect(result.propagation!.undermindedHypotheses).toHaveLength(3);
-        expect(result.propagation!.invalidatedTests).toHaveLength(2);
-        expect(result.propagation!.summary).toContain("3 hypothesis(es) undermined");
-        expect(result.propagation!.summary).toContain("2 test(s) invalidated");
-        expect(result.propagation!.summary).toContain("H-GRADIENT-001");
-        expect(result.propagation!.summary).toContain("T-DIFF-001");
+        const propagation = requirePropagation(result);
+        expect(propagation.undermindedHypotheses).toHaveLength(3);
+        expect(propagation.invalidatedTests).toHaveLength(2);
+        expect(propagation.summary).toContain("3 hypothesis(es) undermined");
+        expect(propagation.summary).toContain("2 test(s) invalidated");
+        expect(propagation.summary).toContain("H-GRADIENT-001");
+        expect(propagation.summary).toContain("T-DIFF-001");
       }
     });
 
@@ -656,9 +667,10 @@ describe("Falsification Cascade (end-to-end)", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.propagation!.undermindedHypotheses).toEqual([]);
-        expect(result.propagation!.invalidatedTests).toEqual([]);
-        expect(result.propagation!.summary).toContain("No linked hypotheses or tests affected");
+        const propagation = requirePropagation(result);
+        expect(propagation.undermindedHypotheses).toEqual([]);
+        expect(propagation.invalidatedTests).toEqual([]);
+        expect(propagation.summary).toContain("No linked hypotheses or tests affected");
       }
     });
 
@@ -678,10 +690,11 @@ describe("Falsification Cascade (end-to-end)", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.propagation!.undermindedHypotheses).toEqual([]);
-        expect(result.propagation!.invalidatedTests).toEqual(["T1", "T2", "T3"]);
-        expect(result.propagation!.summary).toContain("3 test(s) invalidated");
-        expect(result.propagation!.summary).not.toContain("hypothesis");
+        const propagation = requirePropagation(result);
+        expect(propagation.undermindedHypotheses).toEqual([]);
+        expect(propagation.invalidatedTests).toEqual(["T1", "T2", "T3"]);
+        expect(propagation.summary).toContain("3 test(s) invalidated");
+        expect(propagation.summary).not.toContain("hypothesis");
       }
     });
   });
@@ -751,8 +764,9 @@ describe("Falsification Cascade (end-to-end)", () => {
       if (falsify.success) {
         store.add(falsify.transition);
         assumption = falsify.assumption;
-        expect(falsify.propagation!.undermindedHypotheses).toContain("H-MAIN-001");
-        expect(falsify.propagation!.invalidatedTests).toContain("T-MAIN-001");
+        const propagation = requirePropagation(falsify);
+        expect(propagation.undermindedHypotheses).toContain("H-MAIN-001");
+        expect(propagation.invalidatedTests).toContain("T-MAIN-001");
       }
 
       // Check terminal state - cannot transition further
@@ -800,7 +814,8 @@ describe("Falsification Cascade (end-to-end)", () => {
       if (falsify.success) {
         store.add(falsify.transition);
         assumption = falsify.assumption;
-        expect(falsify.propagation!.undermindedHypotheses).toContain("H-REVISED-001");
+        const propagation = requirePropagation(falsify);
+        expect(propagation.undermindedHypotheses).toContain("H-REVISED-001");
       }
 
       // Check complete history
@@ -872,10 +887,11 @@ describe("Falsification Cascade (end-to-end)", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.propagation!.undermindedHypotheses).toHaveLength(20);
-        expect(result.propagation!.invalidatedTests).toHaveLength(15);
-        expect(result.propagation!.summary).toContain("20 hypothesis(es) undermined");
-        expect(result.propagation!.summary).toContain("15 test(s) invalidated");
+        const propagation = requirePropagation(result);
+        expect(propagation.undermindedHypotheses).toHaveLength(20);
+        expect(propagation.invalidatedTests).toHaveLength(15);
+        expect(propagation.summary).toContain("20 hypothesis(es) undermined");
+        expect(propagation.summary).toContain("15 test(s) invalidated");
       }
     });
 

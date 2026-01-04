@@ -154,8 +154,10 @@ describe("BottomSheet", () => {
 
       // Click the backdrop (aria-hidden element)
       const backdrop = document.querySelector('[aria-hidden="true"]');
-      expect(backdrop).toBeInTheDocument();
-      await user.click(backdrop!);
+      if (!(backdrop instanceof HTMLElement)) {
+        throw new Error("Expected backdrop element to be present");
+      }
+      await user.click(backdrop);
 
       expect(handleClose).toHaveBeenCalledTimes(1);
     });

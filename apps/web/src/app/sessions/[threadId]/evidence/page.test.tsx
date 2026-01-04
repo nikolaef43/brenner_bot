@@ -6,8 +6,7 @@
  * indirectly through E2E tests.
  */
 
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 
 // ----- Types (matching the page types) -----
 
@@ -341,27 +340,27 @@ describe("validateEvidencePack", () => {
     });
 
     it("rejects missing version", () => {
-      const { version, ...rest } = validEvidencePack;
+      const { version: _version, ...rest } = validEvidencePack;
       expect(() => validateEvidencePack(rest)).toThrow("Missing or invalid 'version' field");
     });
 
     it("rejects missing thread_id", () => {
-      const { thread_id, ...rest } = validEvidencePack;
+      const { thread_id: _thread_id, ...rest } = validEvidencePack;
       expect(() => validateEvidencePack(rest)).toThrow("Missing or invalid 'thread_id' field");
     });
 
     it("rejects missing created_at", () => {
-      const { created_at, ...rest } = validEvidencePack;
+      const { created_at: _created_at, ...rest } = validEvidencePack;
       expect(() => validateEvidencePack(rest)).toThrow("Missing or invalid 'created_at' field");
     });
 
     it("rejects missing updated_at", () => {
-      const { updated_at, ...rest } = validEvidencePack;
+      const { updated_at: _updated_at, ...rest } = validEvidencePack;
       expect(() => validateEvidencePack(rest)).toThrow("Missing or invalid 'updated_at' field");
     });
 
     it("rejects missing next_id", () => {
-      const { next_id, ...rest } = validEvidencePack;
+      const { next_id: _next_id, ...rest } = validEvidencePack;
       expect(() => validateEvidencePack(rest)).toThrow("Missing or invalid 'next_id' field");
     });
 
@@ -371,7 +370,7 @@ describe("validateEvidencePack", () => {
     });
 
     it("rejects missing records", () => {
-      const { records, ...rest } = validEvidencePack;
+      const { records: _records, ...rest } = validEvidencePack;
       expect(() => validateEvidencePack(rest)).toThrow("Missing or invalid 'records' field");
     });
 

@@ -322,7 +322,8 @@ export function getDescendants(
   const queue: string[] = [...(store.versions[versionId]?.children ?? [])];
 
   while (queue.length > 0) {
-    const childId = queue.shift()!;
+    const childId = queue.shift();
+    if (!childId) break;
     const version = store.versions[childId];
     if (version) {
       descendants.push(version);

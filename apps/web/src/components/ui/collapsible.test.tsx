@@ -7,7 +7,7 @@
  * @see @/components/ui/collapsible.tsx
  */
 
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
@@ -328,7 +328,10 @@ describe("CollapsibleContent", () => {
       const triggerId = button.getAttribute("id");
       const contentId = button.getAttribute("aria-controls");
 
-      const content = document.getElementById(contentId!);
+      if (!contentId) {
+        throw new Error("Expected aria-controls to be set on trigger");
+      }
+      const content = document.getElementById(contentId);
       expect(content).toHaveAttribute("aria-labelledby", triggerId);
     });
   });

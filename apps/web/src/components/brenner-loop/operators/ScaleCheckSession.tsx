@@ -54,7 +54,6 @@ import {
   getDomainContext,
   generateContextComparison,
   generatePopulationConsiderations,
-  varianceExplained,
   approximateSampleSize,
   SCALE_CHECK_FALLBACK_QUOTES,
 } from "@/lib/brenner-loop/operators/scale-check";
@@ -1004,7 +1003,10 @@ export function ScaleCheckSession({
   const contextComparison = getContent<ContextComparison>(SCALE_CHECK_STEP_IDS.CONTEXTUALIZE);
   const measurementAssessment = getSelection<MeasurementAssessment>(SCALE_CHECK_STEP_IDS.PRECISION);
   const practicalSignificance = getSelection<PracticalSignificance>(SCALE_CHECK_STEP_IDS.PRACTICAL);
-  const populationConsiderations = getSelection<PopulationConsideration[]>(SCALE_CHECK_STEP_IDS.POPULATION) ?? [];
+  const emptyPopulationConsiderations = React.useMemo(() => [] as PopulationConsideration[], []);
+  const populationConsiderations =
+    getSelection<PopulationConsideration[]>(SCALE_CHECK_STEP_IDS.POPULATION) ??
+    emptyPopulationConsiderations;
 
   // Generate context comparison when entering that step
   React.useEffect(() => {

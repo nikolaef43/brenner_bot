@@ -646,8 +646,9 @@ export function composeKickoffMessages(config: KickoffConfig): KickoffMessage[] 
   }
 
   return config.recipients.map((recipient) => {
-    const role = explicitRoles
-      ? ROLE_CONFIG_BY_AGENT_ROLE[explicitRoles.get(normalizeRecipientKey(recipient))!]
+    const explicitRoleKey = explicitRoles?.get(normalizeRecipientKey(recipient));
+    const role = explicitRoleKey
+      ? ROLE_CONFIG_BY_AGENT_ROLE[explicitRoleKey]
       : getAgentRole(recipient);
     const subject = `KICKOFF: [${config.threadId}] ${config.researchQuestion.slice(0, 60)}${config.researchQuestion.length > 60 ? "..." : ""}`;
     const body = composeKickoffBody(config, role);

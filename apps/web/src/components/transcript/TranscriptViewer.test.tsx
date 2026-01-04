@@ -33,21 +33,6 @@ function createTestSection(
 }
 
 /**
- * Minimal transcript fixture for basic rendering tests.
- */
-const minimalTranscript: ParsedTranscript = {
-  title: "A Life in Science",
-  subtitle: "Sydney Brenner in Conversation with Lewis Wolpert",
-  totalSections: 3,
-  sections: [
-    createTestSection(1, "Early Years", [
-      createTestContent("brenner-quote", "I grew up in South Africa, in a small town called Germiston."),
-      createTestContent("interviewer-question", "What drew you to science?"),
-    ]),
-  ],
-};
-
-/**
  * Comprehensive transcript with multiple sections and content types.
  */
 const comprehensiveTranscript: ParsedTranscript = {

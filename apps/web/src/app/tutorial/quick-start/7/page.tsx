@@ -13,7 +13,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { TutorialStep } from "@/components/tutorial";
-import { TutorialCodeBlock, ProTip, Note } from "@/components/tutorial";
+import { ProTip } from "@/components/tutorial";
 import { TutorialCheckpoint } from "@/components/tutorial";
 import { useTutorial } from "@/lib/tutorial-context";
 import type { TutorialStep as TutorialStepType, CheckpointData } from "@/lib/tutorial-types";

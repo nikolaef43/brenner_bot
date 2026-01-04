@@ -16,9 +16,7 @@
 import * as React from "react";
 import type {
   TutorialPathId,
-  TutorialProgress,
   TutorialProgressJSON,
-  TutorialStepMeta,
 } from "./tutorial-types";
 
 // ============================================================================

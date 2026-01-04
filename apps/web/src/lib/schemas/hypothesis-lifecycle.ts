@@ -343,7 +343,7 @@ export function transitionHypothesis(
       success: false,
       error: {
         code: errorCode,
-        message: reqCheck.error!,
+        message: reqCheck.error ?? "Missing transition requirement.",
         fromState,
         toState,
         trigger,

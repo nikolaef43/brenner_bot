@@ -16,10 +16,9 @@ import type {
   CritiqueItem,
   PredictionItem,
   ResearchThreadItem,
-  ArtifactSections,
 } from "../lib/artifact-merge";
-import type { Session, SessionParticipant, SessionExcerpt, SessionStatus } from "./sessions";
-import type { User, UserRole, AuthSession, UserPreferences } from "./users";
+import type { Session, SessionParticipant, SessionExcerpt } from "./sessions";
+import type { User, AuthSession } from "./users";
 import type { AgentMailMessage, AgentMailInbox, AgentProfile } from "./api";
 import type { TranscriptDocument, DistillationDocument, DocumentSection } from "./documents";
 

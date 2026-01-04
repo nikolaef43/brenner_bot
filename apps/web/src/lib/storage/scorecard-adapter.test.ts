@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { resolve } from "node:path";
+import type { Assumption } from "../schemas/assumption";
+import type { Anomaly } from "../schemas/anomaly";
+import type { Critique } from "../schemas/critique";
+import type { Hypothesis } from "../schemas/hypothesis";
+import type { TestRecord } from "../schemas/test-record";
 import {
   ScorecardAdapter,
   assumptionToArtifactItem,
@@ -20,7 +25,7 @@ describe("scorecard-adapter", () => {
       load: { affectedHypotheses: ["H-RS20251230-001"], affectedTests: ["T1"], description: "load" },
       testMethod: "measure it",
       calculation: { result: "1e3", implication: "ok" },
-    } as any;
+    } as unknown as Assumption;
     expect(assumptionToArtifactItem(assumption)).toMatchObject({
       id: "A1",
       statement: assumption.statement,
@@ -31,7 +36,7 @@ describe("scorecard-adapter", () => {
       id: "AN-1",
       observation: "Something surprising happened.",
       conflictsWith: { hypotheses: ["H-RS20251230-001"] },
-    } as any;
+    } as unknown as Anomaly;
     expect(anomalyToArtifactItem(anomaly)).toMatchObject({
       id: "AN-1",
       observation: anomaly.observation,
@@ -46,7 +51,7 @@ describe("scorecard-adapter", () => {
       evidenceToConfirm: "Evidence",
       status: "addressed",
       proposedAlternative: { description: "A third alternative exists." },
-    } as any;
+    } as unknown as Critique;
     expect(critiqueToArtifactItem(critique)).toMatchObject({
       id: "C-1",
       proposed_alternative: "A third alternative exists.",
@@ -59,7 +64,7 @@ describe("scorecard-adapter", () => {
       origin: "third_alternative",
       state: "refuted",
       notes: "Killed by T-XYZ",
-    } as any;
+    } as unknown as Hypothesis;
     expect(hypothesisToArtifactItem(hypothesis)).toMatchObject({
       id: hypothesis.id,
       third_alternative: true,
@@ -75,7 +80,7 @@ describe("scorecard-adapter", () => {
       potencyCheck: { positiveControl: "control" },
       status: "completed",
       feasibility: { requirements: "easy" },
-    } as any;
+    } as unknown as TestRecord;
     expect(testToArtifactItem(testRecord)).toMatchObject({
       id: "T1",
       expected_outcomes: { "H-RS20251230-001": "pass" },
@@ -91,7 +96,7 @@ describe("scorecard-adapter", () => {
       type: "background",
       status: "unchecked",
       load: { affectedHypotheses: [], affectedTests: [], description: "load" },
-    } as any;
+    } as unknown as Assumption;
     expect(assumptionToArtifactItem(assumptionUnchecked).status).toBe("unchecked");
     expect(assumptionToArtifactItem(assumptionUnchecked).scale_check).toBe(false);
 
@@ -101,14 +106,14 @@ describe("scorecard-adapter", () => {
       type: "background",
       status: "weird-status",
       load: { affectedHypotheses: [], affectedTests: [], description: "load" },
-    } as any;
+    } as unknown as Assumption;
     expect(assumptionToArtifactItem(assumptionUnknownStatus).status).toBeUndefined();
 
     const anomalyWithName = {
       id: "AN-2",
       name: "Named anomaly",
       observation: "Observation text",
-    } as any;
+    } as unknown as Anomaly;
     expect(anomalyToArtifactItem(anomalyWithName).name).toBe("Named anomaly");
 
     const critiqueActiveNoAlt = {
@@ -117,7 +122,7 @@ describe("scorecard-adapter", () => {
       attack: "Attack text",
       status: "active",
       evidenceToConfirm: "",
-    } as any;
+    } as unknown as Critique;
     const c2 = critiqueToArtifactItem(critiqueActiveNoAlt);
     expect(c2.current_status).toBe("active");
     expect(c2.real_third_alternative).toBeUndefined();
@@ -130,7 +135,7 @@ describe("scorecard-adapter", () => {
       status: "accepted",
       evidenceToConfirm: "Evidence",
       proposedAlternative: { description: "An orthogonal alternative exists." },
-    } as any;
+    } as unknown as Critique;
     const c3 = critiqueToArtifactItem(critiqueAcceptedOrthogonal);
     expect(c3.current_status).toBe("addressed");
     expect(c3.real_third_alternative).toBe(true);
@@ -140,7 +145,7 @@ describe("scorecard-adapter", () => {
       statement: "Statement",
       updatedAt: "2025-01-01T00:00:00Z",
       state: "active",
-    } as any;
+    } as unknown as Hypothesis;
     expect(hypothesisToArtifactItem(hypothesisActive).killed).toBeUndefined();
 
     const testDesigned = {
@@ -149,19 +154,19 @@ describe("scorecard-adapter", () => {
       expectedOutcomes: [],
       discriminates: ["H1", "H2"],
       status: "designed",
-    } as any;
+    } as unknown as TestRecord;
     expect(testToArtifactItem(testDesigned).status).toBe("untested");
 
-    const testReady = { ...testDesigned, id: "T-2", status: "ready" as const };
+    const testReady = { ...testDesigned, id: "T-2", status: "ready" } as unknown as TestRecord;
     expect(testToArtifactItem(testReady).status).toBe("untested");
 
-    const testBlocked = { ...testDesigned, id: "T-3", status: "blocked" as const };
+    const testBlocked = { ...testDesigned, id: "T-3", status: "blocked" } as unknown as TestRecord;
     expect(testToArtifactItem(testBlocked).status).toBe("blocked");
 
-    const testAbandoned = { ...testDesigned, id: "T-4", status: "abandoned" as const };
+    const testAbandoned = { ...testDesigned, id: "T-4", status: "abandoned" } as unknown as TestRecord;
     expect(testToArtifactItem(testAbandoned).status).toBe("error");
 
-    const testUnknown = { ...testDesigned, id: "T-5", status: "weird" as any };
+    const testUnknown = { ...testDesigned, id: "T-5", status: "weird" } as unknown as TestRecord;
     expect(testToArtifactItem(testUnknown).status).toBeUndefined();
   });
 
@@ -170,7 +175,7 @@ describe("scorecard-adapter", () => {
       { id: "H1", state: "refuted", notes: "Refuted by T-ABC", updatedAt: "2025-01-01T00:00:00Z" },
       { id: "H2", state: "superseded", notes: "Superseded", updatedAt: "2025-01-01T00:00:00Z" },
       { id: "H3", state: "active", updatedAt: "2025-01-01T00:00:00Z" },
-    ] as any[];
+    ] as unknown as Hypothesis[];
 
     const transitions = extractHypothesisTransitions(hypotheses);
     expect(transitions.some((t) => t.hypothesisId === "H1" && t.toState === "refuted")).toBe(true);
@@ -180,7 +185,7 @@ describe("scorecard-adapter", () => {
   it("extractHypothesisTransitions handles refuted hypotheses without test IDs", () => {
     const hypotheses = [
       { id: "H1", state: "refuted", notes: "Refuted by observation", updatedAt: "2025-01-01T00:00:00Z" },
-    ] as any[];
+    ] as unknown as Hypothesis[];
     const transitions = extractHypothesisTransitions(hypotheses);
     expect(transitions[0]?.triggeredBy).toBeUndefined();
     expect(transitions[0]?.reason).toContain("Refuted");
@@ -190,7 +195,7 @@ describe("scorecard-adapter", () => {
     const adapter = new ScorecardAdapter();
     const sessionData = adapter.buildSessionDataFromLoaded(
       "RS-TEST",
-      [{ id: "H1", statement: "H", updatedAt: "2025-01-01T00:00:00Z" } as any],
+      [{ id: "H1", statement: "H", updatedAt: "2025-01-01T00:00:00Z" } as unknown as Hypothesis],
       [],
       [],
       [],
@@ -215,30 +220,30 @@ describe("scorecard-adapter", () => {
   it("buildProgramSessionData aggregates data across sessions and uses derived aggregatedSessionId", async () => {
     const adapter = new ScorecardAdapter({ baseDir: resolve(process.cwd(), "../..") });
 
-    const stub = (returnValue: unknown) => ({
-      loadSessionHypotheses: async () => returnValue,
-      loadSessionAssumptions: async () => returnValue,
-      loadSessionAnomalies: async () => returnValue,
-      loadSessionCritiques: async () => returnValue,
-      loadSessionTests: async () => returnValue,
-    });
-
     // Per-session data: first session has 1 hypothesis, second session has 2 hypotheses.
     const hypoStore = {
       loadSessionHypotheses: async (sessionId: string) =>
         sessionId === "S1"
-          ? ([{ id: "H1", statement: "H1", updatedAt: "2025-01-01T00:00:00Z" }] as any[])
+          ? ([{ id: "H1", statement: "H1", updatedAt: "2025-01-01T00:00:00Z" }] as unknown as Hypothesis[])
           : ([
               { id: "H2", statement: "H2", updatedAt: "2025-01-01T00:00:00Z" },
               { id: "H3", statement: "H3", updatedAt: "2025-01-01T00:00:00Z" },
-            ] as any[]),
+            ] as unknown as Hypothesis[]),
     };
 
-    (adapter as any).hypothesisStorage = hypoStore;
-    (adapter as any).assumptionStorage = stub([]);
-    (adapter as any).anomalyStorage = stub([]);
-    (adapter as any).critiqueStorage = stub([]);
-    (adapter as any).testStorage = stub([]);
+    const adapterStores = adapter as unknown as {
+      hypothesisStorage: typeof hypoStore;
+      assumptionStorage: { loadSessionAssumptions: (sessionId: string) => Promise<Assumption[]> };
+      anomalyStorage: { loadSessionAnomalies: (sessionId: string) => Promise<Anomaly[]> };
+      critiqueStorage: { loadSessionCritiques: (sessionId: string) => Promise<Critique[]> };
+      testStorage: { loadSessionTests: (sessionId: string) => Promise<TestRecord[]> };
+    };
+
+    adapterStores.hypothesisStorage = hypoStore;
+    adapterStores.assumptionStorage = { loadSessionAssumptions: async () => [] as Assumption[] };
+    adapterStores.anomalyStorage = { loadSessionAnomalies: async () => [] as Anomaly[] };
+    adapterStores.critiqueStorage = { loadSessionCritiques: async () => [] as Critique[] };
+    adapterStores.testStorage = { loadSessionTests: async () => [] as TestRecord[] };
 
     const data = await adapter.buildProgramSessionData(["S1", "S2"], "RQ");
     expect(data.sessionId).toBe("program-S1-2");

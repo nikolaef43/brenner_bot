@@ -9,7 +9,6 @@
 
 import type {
   Artifact,
-  ArtifactMetadata,
   HypothesisItem,
   TestItem,
   AssumptionItem,

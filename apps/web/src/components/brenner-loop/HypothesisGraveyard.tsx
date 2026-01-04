@@ -396,7 +396,7 @@ function GraveyardFilters({
 
 export function HypothesisGraveyard({
   entries,
-  onSelect,
+  onSelect: _onSelect,
   onViewSuccessor,
   className,
 }: HypothesisGraveyardProps) {

@@ -15,7 +15,7 @@ import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search } from "lucide-react";
 import { PromptCard } from "@/components/tutorial";
-import { getAllPrompts, getAllTags, type PromptTemplate } from "@/lib/tutorial-data/prompts";
+import { getAllPrompts, getAllTags } from "@/lib/tutorial-data/prompts";
 
 // ============================================================================
 // Main Component

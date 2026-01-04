@@ -347,7 +347,7 @@ describe("MetapromptViewer Edge Cases", () => {
       ],
     };
 
-    const { container } = render(<MetapromptViewer data={nestedMetaprompt} />);
+    render(<MetapromptViewer data={nestedMetaprompt} />);
 
     expect(screen.getByRole("heading", { level: 2, name: "Level 1" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 3, name: "Level 2" })).toBeInTheDocument();

@@ -301,7 +301,10 @@ describe("Test Logging Utilities", () => {
       expect(errorEntry).toBeDefined();
 
       // Error should be properly serialized with name, message, and stack
-      const errorData = errorEntry!.data as { error: { name: string; message: string; stack?: string } };
+      if (!errorEntry) {
+        throw new Error("Expected error log entry to be present");
+      }
+      const errorData = errorEntry.data as { error: { name: string; message: string; stack?: string } };
       expect(errorData.error.name).toBe("TestError");
       expect(errorData.error.message).toBe("Serialization test");
       expect(errorData.error.stack).toBeDefined();
@@ -358,7 +361,10 @@ describe("Test Logging Utilities", () => {
       expect(errorEntry).toBeDefined();
 
       // Error should be properly serialized
-      const errorData = errorEntry!.data as { error: { name: string; message: string; stack?: string } };
+      if (!errorEntry) {
+        throw new Error("Expected error log entry to be present");
+      }
+      const errorData = errorEntry.data as { error: { name: string; message: string; stack?: string } };
       expect(errorData.error.name).toBe("StepError");
       expect(errorData.error.message).toBe("Step failure");
       expect(errorData.error.stack).toBeDefined();

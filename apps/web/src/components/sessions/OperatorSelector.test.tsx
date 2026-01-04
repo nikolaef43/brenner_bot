@@ -94,7 +94,6 @@ describe("OperatorSelector", () => {
     });
 
     it("shows Custom badge when operators differ from defaults", async () => {
-      const user = userEvent.setup();
       const customValue: OperatorSelection = {
         ...DEFAULT_OPERATORS,
         hypothesis_generator: ["⊘ Level-Split"], // Only 1 instead of 3

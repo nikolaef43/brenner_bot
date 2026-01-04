@@ -233,7 +233,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
     if (useRoleSeparated) {
       // Build recipientRoles mapping from roster
       const recipientRoles: Record<string, SessionAgentRole> = {};
-      for (const entry of body.roster!) {
+      const roster = body.roster ?? [];
+      for (const entry of roster) {
         recipientRoles[entry.agentName] = entry.role;
       }
 

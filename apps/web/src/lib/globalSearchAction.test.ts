@@ -3,7 +3,7 @@ import { searchAction, warmSearchIndex } from "./globalSearchAction";
 
 describe("globalSearchAction", () => {
   it("warmSearchIndex completes without throwing", async () => {
-    await warmSearchIndex();
+    await expect(warmSearchIndex()).resolves.toBeUndefined();
   });
 
   it("searchAction returns structured hits", async () => {
@@ -12,4 +12,3 @@ describe("globalSearchAction", () => {
     expect(result.totalMatches).toBeGreaterThanOrEqual(result.hits.length);
   });
 });
-
