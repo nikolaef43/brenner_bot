@@ -153,16 +153,19 @@ export interface TutorialProviderProps {
 
 export function TutorialProvider({
   children,
-  initialPath = null as unknown as TutorialPathId,
+  initialPath,
   initialTotalSteps = 0,
 }: TutorialProviderProps) {
   // State
-  const [currentPath, setCurrentPath] = React.useState<TutorialPathId | null>(initialPath);
+  const [currentPath, setCurrentPath] = React.useState<TutorialPathId | null>(initialPath ?? null);
   const [currentStep, setCurrentStep] = React.useState(0);
   const [totalSteps, setTotalSteps] = React.useState(initialTotalSteps);
   const [completedSteps, setCompletedSteps] = React.useState<number[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isHydrated, setIsHydrated] = React.useState(false);
+
+  // Track original start time (preserved across saves)
+  const startedAtRef = React.useRef<string | null>(null);
 
   // Hydrate from localStorage on mount
   React.useEffect(() => {
@@ -171,6 +174,7 @@ export function TutorialProvider({
       if (stored) {
         setCurrentStep(stored.currentStep);
         setCompletedSteps(stored.completedSteps.map(Number));
+        startedAtRef.current = stored.startedAt ?? null;
       }
     }
     setIsLoading(false);
@@ -181,11 +185,16 @@ export function TutorialProvider({
   React.useEffect(() => {
     if (!isHydrated || !currentPath) return;
 
+    // Preserve original startedAt, only set if this is a new session
+    if (!startedAtRef.current) {
+      startedAtRef.current = new Date().toISOString();
+    }
+
     const progress: TutorialProgressJSON = {
       pathId: currentPath,
       currentStep,
       completedSteps: completedSteps.map(String),
-      startedAt: new Date().toISOString(),
+      startedAt: startedAtRef.current,
       lastActivityAt: new Date().toISOString(),
     };
     saveProgress(progress);
@@ -253,9 +262,11 @@ export function TutorialProvider({
       if (stored) {
         setCurrentStep(stored.currentStep);
         setCompletedSteps(stored.completedSteps.map(Number));
+        startedAtRef.current = stored.startedAt ?? null;
       } else {
         setCurrentStep(0);
         setCompletedSteps([]);
+        startedAtRef.current = null;
       }
     }
   }, [currentPath]);
@@ -265,6 +276,7 @@ export function TutorialProvider({
       clearProgress(currentPath);
       setCurrentStep(0);
       setCompletedSteps([]);
+      startedAtRef.current = null;
     }
   }, [currentPath]);
 
@@ -273,6 +285,7 @@ export function TutorialProvider({
     paths.forEach(clearProgress);
     setCurrentStep(0);
     setCompletedSteps([]);
+    startedAtRef.current = null;
   }, []);
 
   // Computed values

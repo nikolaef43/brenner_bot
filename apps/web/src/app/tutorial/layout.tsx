@@ -278,8 +278,9 @@ function MobileHeader({
   totalSteps,
   onMenuClick,
 }: MobileHeaderProps) {
+  // Note: This component is wrapped with md:hidden in parent, so no responsive hiding needed here
   return (
-    <div className="fixed top-16 left-0 right-0 z-40 lg:hidden">
+    <div className="fixed top-16 left-0 right-0 z-40">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card/95 backdrop-blur-sm">
         <button
           onClick={onMenuClick}
@@ -499,11 +500,9 @@ function TutorialLayoutContent({ children }: { children: React.ReactNode }) {
       <main
         className={cn(
           "min-h-screen transition-all duration-300",
-          // Desktop with sidebar
-          "lg:pl-72",
-          // Tablet with collapsed sidebar
+          // Tablet: collapsed sidebar (16px), Desktop: full sidebar (72rem = 288px)
           "md:pl-16 lg:pl-72",
-          // Mobile with header
+          // Mobile: header offset, Tablet+: no offset (sidebar handles spacing)
           "pt-[60px] md:pt-0"
         )}
       >
