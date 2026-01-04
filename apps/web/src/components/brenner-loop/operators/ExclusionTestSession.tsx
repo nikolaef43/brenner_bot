@@ -738,11 +738,11 @@ export function ExclusionTestSession({
       const existingProtocols = getContent<TestProtocol[]>(EXCLUSION_TEST_STEP_IDS.GENERATE_PROTOCOLS) ?? [];
       const testsNeedingProtocols = selectedTests.filter((t) => t.selected);
 
-      // Check if we need to regenerate: no protocols, or selected tests changed
+      // Check if we need to regenerate: count mismatch (tests added/removed), or new test without protocol
       const existingTestIds = new Set(existingProtocols.map((p) => p.testId));
       const selectedTestIds = testsNeedingProtocols.map((t) => t.id);
       const needsRegeneration =
-        existingProtocols.length === 0 ||
+        existingProtocols.length !== testsNeedingProtocols.length ||
         selectedTestIds.some((id) => !existingTestIds.has(id));
 
       if (needsRegeneration) {
