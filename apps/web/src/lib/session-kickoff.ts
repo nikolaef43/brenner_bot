@@ -24,12 +24,22 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { parseOperatorCards, resolveOperatorCard, type OperatorCard } from "./operator-library";
+import {
+  AGENT_ROLE_VALUES,
+  type AgentRole as SchemaAgentRole,
+  type OperatorSelection as SchemaOperatorSelection,
+} from "./schemas/session";
+
 // ============================================================================
 // Types
 // ============================================================================
 
 /** Agent role assignment for Brenner Protocol sessions */
-export type AgentRole = "hypothesis_generator" | "test_designer" | "adversarial_critic";
+export type AgentRole = SchemaAgentRole;
+
+/** Operator selection per agent role */
+export type OperatorSelection = SchemaOperatorSelection;
 
 /** Role configuration with model and operator info */
 export interface RoleConfig {
@@ -135,6 +145,8 @@ export interface KickoffConfig {
   constraints?: string;
   /** Optional specific requested outputs */
   requestedOutputs?: string;
+  /** Optional operator focus per role (from OperatorSelector / prompt builder UI) */
+  operatorSelection?: OperatorSelection;
 }
 
 /** A composed kickoff message ready to send */
@@ -155,11 +167,17 @@ export interface KickoffMessage {
 // Triangulated Kernel (single source of truth lives in specs/role_prompts_v0.1.md)
 // ============================================================================
 
-const KERNEL_SPEC_PATH = "specs/role_prompts_v0.1.md";
+const ROLE_PROMPTS_SPEC_PATH = "specs/role_prompts_v0.1.md";
 const KERNEL_START_MARKER = "<!-- BRENNER_TRIANGULATED_KERNEL_START -->";
 const KERNEL_END_MARKER = "<!-- BRENNER_TRIANGULATED_KERNEL_END -->";
+const ROLE_PROMPT_START_PREFIX = "<!-- BRENNER_ROLE_PROMPT_START ";
+const ROLE_PROMPT_END_PREFIX = "<!-- BRENNER_ROLE_PROMPT_END ";
+const OPERATOR_LIBRARY_SPEC_PATH = "specs/operator_library_v0.1.md";
 
 let triangulatedKernelCache: string | null | undefined = undefined;
+let rolePromptsSpecCache: string | null | undefined = undefined;
+const rolePromptCache = new Map<AgentRole, string | null>();
+let operatorCardsCache: OperatorCard[] | null | undefined = undefined;
 
 function tryReadFromFilesystem(relativePathFromRepoRoot: string): string | null {
   const candidates = [
@@ -192,10 +210,16 @@ function extractBetweenMarkers(markdown: string, startMarker: string, endMarker:
   return markdown.slice(from, end).trim();
 }
 
+function readRolePromptsSpecMarkdown(): string | null {
+  if (rolePromptsSpecCache !== undefined) return rolePromptsSpecCache;
+  rolePromptsSpecCache = tryReadFromFilesystem(ROLE_PROMPTS_SPEC_PATH);
+  return rolePromptsSpecCache;
+}
+
 export function getTriangulatedBrennerKernelMarkdown(): string | null {
   if (triangulatedKernelCache !== undefined) return triangulatedKernelCache;
 
-  const spec = tryReadFromFilesystem(KERNEL_SPEC_PATH);
+  const spec = readRolePromptsSpecMarkdown();
   if (!spec) {
     triangulatedKernelCache = null;
     return triangulatedKernelCache;
@@ -209,11 +233,38 @@ export function getTriangulatedBrennerKernelMarkdown(): string | null {
 // Role Prompt Sections
 // ============================================================================
 
+function rolePromptMarkers(role: AgentRole): { start: string; end: string } {
+  return {
+    start: `${ROLE_PROMPT_START_PREFIX}${role} -->`,
+    end: `${ROLE_PROMPT_END_PREFIX}${role} -->`,
+  };
+}
+
+function getRolePromptMarkdown(role: AgentRole): string | null {
+  if (rolePromptCache.has(role)) return rolePromptCache.get(role) ?? null;
+
+  const spec = readRolePromptsSpecMarkdown();
+  if (!spec) {
+    rolePromptCache.set(role, null);
+    return null;
+  }
+
+  const { start, end } = rolePromptMarkers(role);
+  const extracted = extractBetweenMarkers(spec, start, end);
+  rolePromptCache.set(role, extracted);
+  return extracted;
+}
+
 /**
  * Get the role-specific system prompt section.
  * These are condensed versions of the prompts in role_prompts_v0.1.md
  */
 function getRolePromptSection(role: RoleConfig): string {
+  const fromSpec = getRolePromptMarkdown(role.role);
+  if (fromSpec) {
+    return ["## Role Prompt (System)", fromSpec].join("\n");
+  }
+
   let promptSection: string;
 
   switch (role.role) {
@@ -308,10 +359,98 @@ ${role.description}
 }
 
 // ============================================================================
-// Message Composition
+// Operator Cards (from specs/operator_library_v0.1.md)
 // ============================================================================
 
-const AGENT_ROLE_VALUES: AgentRole[] = ["hypothesis_generator", "test_designer", "adversarial_critic"];
+function getOperatorCards(): OperatorCard[] | null {
+  if (operatorCardsCache !== undefined) return operatorCardsCache;
+
+  const spec = tryReadFromFilesystem(OPERATOR_LIBRARY_SPEC_PATH);
+  if (!spec) {
+    operatorCardsCache = null;
+    return operatorCardsCache;
+  }
+
+  try {
+    operatorCardsCache = parseOperatorCards(spec);
+  } catch {
+    operatorCardsCache = null;
+  }
+
+  return operatorCardsCache;
+}
+
+function renderOperatorCardMarkdown(card: OperatorCard): string {
+  const lines: string[] = [];
+  const tag = card.canonicalTag ? ` (${card.canonicalTag})` : "";
+
+  lines.push(`### ${card.symbol} ${card.title}${tag}`);
+  lines.push("");
+  lines.push(`**Definition**: ${card.definition}`);
+  lines.push("");
+
+  if (card.whenToUseTriggers.length > 0) {
+    lines.push("**When-to-use triggers**:");
+    for (const trigger of card.whenToUseTriggers.slice(0, 3)) {
+      lines.push(`- ${trigger}`);
+    }
+    lines.push("");
+  }
+
+  if (card.failureModes.length > 0) {
+    lines.push("**Failure modes**:");
+    for (const mode of card.failureModes.slice(0, 3)) {
+      lines.push(`- ${mode}`);
+    }
+    lines.push("");
+  }
+
+  if (card.promptModule) {
+    lines.push("**Prompt module (copy/paste)**:");
+    lines.push("```text");
+    lines.push(card.promptModule.trim());
+    lines.push("```");
+    lines.push("");
+  }
+
+  lines.push(`**Transcript anchors**: ${card.transcriptAnchors}`);
+  lines.push("");
+
+  return lines.join("\n").trimEnd();
+}
+
+function renderOperatorCardsSection(selectedOperators: string[]): string | null {
+  const cards = getOperatorCards();
+  if (!cards) return null;
+
+  const resolved: OperatorCard[] = [];
+  for (const query of selectedOperators) {
+    const card = resolveOperatorCard(cards, query);
+    if (card) resolved.push(card);
+  }
+
+  if (resolved.length === 0) return null;
+
+  const lines: string[] = [];
+  lines.push("## Operator Focus (selected)");
+  lines.push(
+    "Apply these explicitly; name them in your rationales. If an operator doesn’t fit, say why and propose the next operator to apply."
+  );
+  lines.push("");
+  lines.push(`Selected: ${selectedOperators.join(", ")}`);
+  lines.push("");
+
+  for (const card of resolved) {
+    lines.push(renderOperatorCardMarkdown(card));
+    lines.push("");
+  }
+
+  return lines.join("\n").trimEnd();
+}
+
+// ============================================================================
+// Message Composition
+// ============================================================================
 
 function isAgentRole(value: unknown): value is AgentRole {
   return typeof value === "string" && AGENT_ROLE_VALUES.includes(value as AgentRole);
@@ -413,6 +552,16 @@ function composeKickoffBody(config: KickoffConfig, role: RoleConfig): string {
   // Role assignment
   sections.push(getRolePromptSection(role));
   sections.push("");
+
+  // Optional: operator focus cards (from operatorSelection)
+  const selectedOperators = config.operatorSelection?.[role.role];
+  if (Array.isArray(selectedOperators) && selectedOperators.length > 0) {
+    const operatorCards = renderOperatorCardsSection(selectedOperators);
+    if (operatorCards) {
+      sections.push(operatorCards);
+      sections.push("");
+    }
+  }
 
   // Research question (becomes RT in artifact)
   sections.push("## Research Question");
@@ -531,6 +680,17 @@ export function composeUnifiedKickoff(config: KickoffConfig): {
   if (kernel) {
     sections.push("## Triangulated Brenner Kernel (single)");
     sections.push(kernel);
+    sections.push("");
+  }
+
+  if (config.operatorSelection) {
+    sections.push("## ROLE OPERATOR ASSIGNMENTS");
+    for (const roleKey of AGENT_ROLE_VALUES) {
+      const operators = config.operatorSelection[roleKey];
+      if (operators.length > 0) {
+        sections.push(`- ${ROLE_CONFIG_BY_AGENT_ROLE[roleKey].displayName}: ${operators.join(", ")}`);
+      }
+    }
     sections.push("");
   }
 

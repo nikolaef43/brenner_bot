@@ -1,4 +1,4 @@
-import { copyFile, mkdir, stat } from "node:fs/promises";
+import { copyFile, mkdir, readFile, stat } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 import { CORPUS_DOCS } from "../src/lib/corpus";
 
@@ -27,24 +27,27 @@ async function main(): Promise<void> {
     const parentDir = dirname(outputPath);
     await mkdir(parentDir, { recursive: true });
 
-    // Check if the output file already exists and is not a stub
+    // Try to copy from repo root
+    if (!(await fileExists(sourcePath))) {
+      console.warn(`[copy-corpus] WARNING: Source not found: ${relativePath}`);
+      return;
+    }
+
+    // If output exists and content is identical, skip (prevents stale corpus copies)
     if (await fileExists(outputPath)) {
-      const stats = await stat(outputPath);
-      // If file is larger than 1KB, assume it's already the real file
-      if (stats.size > 1024) {
-        console.log(`[copy-corpus] Skipping ${relativePath} - already exists (${Math.round(stats.size / 1024)}KB)`);
-        return;
+      const [sourceStats, outputStats] = await Promise.all([stat(sourcePath), stat(outputPath)]);
+      if (sourceStats.size === outputStats.size) {
+        const [sourceBuf, outputBuf] = await Promise.all([readFile(sourcePath), readFile(outputPath)]);
+        if (sourceBuf.equals(outputBuf)) {
+          console.log(`[copy-corpus] Skipping ${relativePath} - unchanged (${Math.round(outputStats.size / 1024)}KB)`);
+          return;
+        }
       }
     }
 
-    // Try to copy from repo root
-    if (await fileExists(sourcePath)) {
-      await copyFile(sourcePath, outputPath);
-      const stats = await stat(outputPath);
-      console.log(`[copy-corpus] Copied ${relativePath} (${Math.round(stats.size / 1024)}KB)`);
-    } else {
-      console.warn(`[copy-corpus] WARNING: Source not found: ${relativePath}`);
-    }
+    await copyFile(sourcePath, outputPath);
+    const stats = await stat(outputPath);
+    console.log(`[copy-corpus] Updated ${relativePath} (${Math.round(stats.size / 1024)}KB)`);
   }
 
   for (const doc of CORPUS_DOCS) {

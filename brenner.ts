@@ -23,6 +23,7 @@ import { globalSearch, type SearchCategory } from "./apps/web/src/lib/globalSear
 import type { Json } from "./apps/web/src/lib/json";
 import { parseQuoteBank } from "./apps/web/src/lib/quotebank-parser";
 import {
+  AGENT_ROLES,
   composeKickoffMessages,
   getTriangulatedBrennerKernelMarkdown,
   type AgentRole,
@@ -6107,6 +6108,11 @@ ${JSON.stringify(delta, null, 2)}
       initialHypotheses: asStringFlag(flags, "hypotheses"),
       constraints: asStringFlag(flags, "constraints"),
       requestedOutputs: asStringFlag(flags, "outputs"),
+      operatorSelection: {
+        hypothesis_generator: AGENT_ROLES["Codex"].operators,
+        test_designer: AGENT_ROLES["Opus"].operators,
+        adversarial_critic: AGENT_ROLES["Gemini"].operators,
+      },
     };
 
     if (withMemory) {
@@ -6316,6 +6322,11 @@ ${JSON.stringify(delta, null, 2)}
       initialHypotheses: asStringFlag(flags, "hypotheses"),
       constraints: asStringFlag(flags, "constraints"),
       requestedOutputs: asStringFlag(flags, "outputs"),
+      operatorSelection: {
+        hypothesis_generator: AGENT_ROLES["Codex"].operators,
+        test_designer: AGENT_ROLES["Opus"].operators,
+        adversarial_critic: AGENT_ROLES["Gemini"].operators,
+      },
     };
 
     if (withMemory) {

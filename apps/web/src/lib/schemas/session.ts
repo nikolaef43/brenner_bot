@@ -26,6 +26,15 @@ export const AGENT_ROLE_LABELS: Record<AgentRole, string> = {
   adversarial_critic: "Adversarial Critic",
 };
 
+/** Operator selection per agent role (used by kickoff prompt builder) */
+export const operatorSelectionSchema = z.object({
+  hypothesis_generator: z.array(z.string()).default([]),
+  test_designer: z.array(z.string()).default([]),
+  adversarial_critic: z.array(z.string()).default([]),
+});
+
+export type OperatorSelection = z.infer<typeof operatorSelectionSchema>;
+
 /** Single recipient with role assignment */
 export const recipientRoleEntrySchema = z.object({
   agentName: z.string().min(1, "Agent name required"),

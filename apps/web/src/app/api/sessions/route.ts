@@ -5,18 +5,13 @@ import { AgentMailClient } from "@/lib/agentMail";
 import { checkOrchestrationAuth } from "@/lib/auth";
 import { composePrompt } from "@/lib/prompts";
 import { composeKickoffMessages, type AgentRole as SessionAgentRole } from "@/lib/session-kickoff";
+import type { OperatorSelection } from "@/lib/schemas/session";
 
 export const runtime = "nodejs";
 
 // ============================================================================
 // Types
 // ============================================================================
-
-interface OperatorSelection {
-  hypothesis_generator: string[];
-  test_designer: string[];
-  adversarial_critic: string[];
-}
 
 /** Single recipient-to-role mapping */
 interface RecipientRole {
@@ -207,14 +202,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
     const client = new AgentMailClient();
     const subject = normalizeKickoffSubject(cleanThreadId, body.subject);
 
-    const composedBody = await composePrompt({
-      templatePathFromRepoRoot: "metaprompt_by_gpt_52.md",
-      excerpt,
-      theme: body.theme?.trim(),
-      domain: body.domain?.trim(),
-      question: body.question?.trim(),
-      operatorSelection: body.operatorSelection,
-    });
+    // Check if using role-separated mode with explicit roster
+    const useRoleSeparated = body.rosterMode === "role_separated" && body.roster && body.roster.length > 0;
 
     // Ensure project exists (tools expect project_key to be the human_key / absolute path).
     // NOTE: Treat Windows absolute paths as absolute even on non-Windows runtimes.
@@ -241,9 +230,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
 
     let messageId: number | undefined;
 
-    // Check if using role-separated mode with explicit roster
-    const useRoleSeparated = body.rosterMode === "role_separated" && body.roster && body.roster.length > 0;
-
     if (useRoleSeparated) {
       // Build recipientRoles mapping from roster
       const recipientRoles: Record<string, SessionAgentRole> = {};
@@ -259,6 +245,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
         excerpt: excerpt.trim(),
         recipients: normalizedRecipients,
         recipientRoles,
+        operatorSelection: body.operatorSelection,
       });
 
       // Send role-specific message to each recipient
@@ -278,6 +265,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<SessionKi
         }
       }
     } else {
+      const composedBody = await composePrompt({
+        templatePathFromRepoRoot: "metaprompt_by_gpt_52.md",
+        excerpt,
+        theme: body.theme?.trim(),
+        domain: body.domain?.trim(),
+        question: body.question?.trim(),
+        operatorSelection: body.operatorSelection,
+      });
+
       // Unified mode: send same message to all recipients
       const sendResult = await client.toolsCall("send_message", {
         project_key: projectKey,

@@ -9,17 +9,13 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import type { AgentRole } from "@/lib/session-kickoff";
+import type { AgentRole, OperatorSelection as SessionOperatorSelection } from "@/lib/schemas/session";
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export interface OperatorSelection {
-  hypothesis_generator: string[];
-  test_designer: string[];
-  adversarial_critic: string[];
-}
+export type OperatorSelection = SessionOperatorSelection;
 
 interface OperatorSelectorProps {
   /** Current operator selections */

@@ -2,13 +2,9 @@ import { readFile, access } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { getTriangulatedBrennerKernelMarkdown } from "./session-kickoff";
+import type { OperatorSelection as SessionOperatorSelection } from "./schemas/session";
 
-/** Operator selection per agent role */
-export type OperatorSelection = {
-  hypothesis_generator: string[];
-  test_designer: string[];
-  adversarial_critic: string[];
-};
+export type OperatorSelection = SessionOperatorSelection;
 
 export type ComposePromptInput = {
   templatePathFromRepoRoot: string;

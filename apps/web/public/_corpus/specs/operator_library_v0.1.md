@@ -32,6 +32,20 @@ For UI/search alignment, each core operator also lists:
 - Jumping logical levels (e.g., gene → behavior without the nervous system construction step)
 - Confusing descriptive imitation with generative explanation
 
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: ⊘ Level-Split]
+1) Identify at least 1 level confusion (e.g., program vs interpreter; message vs machine; regulation vs structure).
+2) Rewrite the claim as 2–3 explicitly level-typed hypotheses (include a Third Alternative).
+3) Add at least 1 discriminative test that would separate those hypotheses, including a potency check.
+
+Output (required): 2–6 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- hypothesis_slate (ADD/EDIT; include `third_alternative: true` on one hypothesis when appropriate)
+- discriminative_tests (ADD)
+Optional: predictions_table (ADD), assumption_ledger (ADD with `scale_check: true`)
+Anchors: prefer transcript `§n`; otherwise use `anchors: ["inference"]`.
+~~~
+
 **Canonical tag**: `level-split`
 
 **Quote-bank anchors**: §95, §99, §105, §132, §205
@@ -57,6 +71,19 @@ For UI/search alignment, each core operator also lists:
 - Using descriptive fit (sin θ, cos θ) instead of machine language (neurons, connections)
 - Confusing "digital program" metaphors with the fact that cells do strong analogue computation
 
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: 𝓛 Recode / Representation Change]
+1) Propose a representation change that makes rival hypotheses disagree (e.g., continuous → discrete; 3D → 1D).
+2) State what the new observables are and what would count as a discriminative readout.
+3) Add 1–2 tests and (optionally) prediction rows that become easy in the new coordinates.
+
+Output (required): 2–6 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- discriminative_tests (ADD)
+Optional: predictions_table (ADD), hypothesis_slate (EDIT to sharpen mechanisms/anchors)
+Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
+~~~
+
 **Canonical tag**: `recode`
 
 **Quote-bank anchors**: §78, §81, §90, §107, §205
@@ -80,6 +107,19 @@ For UI/search alignment, each core operator also lists:
 - Staying in rhetorical questions without specifying the shortest path to a discriminative observation
 - Theorizing without calculating what you'd actually measure
 - Designing experiments that "add interesting data" rather than kill models
+
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: ⌂ Materialize]
+1) Convert a narrative claim into a falsifiable "what would I see?" statement.
+2) Specify the shortest discriminative observation path (measurement + readout).
+3) Add 1–2 high-leverage tests (with potency checks) and any required prediction rows.
+
+Output (required): 2–6 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- discriminative_tests (ADD)
+Optional: predictions_table (ADD), research_thread (EDIT to clarify statement/context)
+Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
+~~~
 
 **Canonical tag**: `materialize`
 
@@ -105,6 +145,20 @@ For UI/search alignment, each core operator also lists:
 - Ignoring combinatorial constraints (e.g., the Beilstein paradox)
 - Measuring 3rd decimal places when the order-of-magnitude variable matters
 
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: ≡ Invariant-Extract]
+1) State 2–4 invariants/constraints that must hold across plausible mechanisms.
+2) Use those invariants to rule out model families (forbidden patterns) or compress the hypothesis space.
+3) Add a test that probes an invariant (high likelihood ratio), and record any load-bearing assumptions.
+
+Output (required): 2–6 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- discriminative_tests (ADD)
+- assumption_ledger (ADD; include at least one `scale_check: true` when relevant)
+Optional: hypothesis_slate (EDIT to add constraints/anchors)
+Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
+~~~
+
 **Canonical tag**: `invariant-extract`
 
 **Quote-bank anchors**: §90, §100, §109, §224
@@ -128,6 +182,19 @@ For UI/search alignment, each core operator also lists:
 - Running "supportive experiments" that raise confidence without pruning alternatives
 - Accepting false dichotomies (forgetting "both could be wrong")
 - Designing experiments with weak likelihood ratios
+
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: ✂ Exclusion-Test]
+1) For each hypothesis, write at least 1 forbidden pattern (what must NOT be observed if true).
+2) Design 1–2 "killer" tests that directly probe forbidden patterns (maximize likelihood ratio).
+3) Include a Third Alternative if the current framing is a false dichotomy.
+
+Output (required): 2–6 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- discriminative_tests (ADD; include potency checks)
+Optional: hypothesis_slate (ADD/EDIT), predictions_table (ADD)
+Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
+~~~
 
 **Canonical tag**: `exclusion-test`
 
@@ -153,6 +220,19 @@ For UI/search alignment, each core operator also lists:
 - Choosing systems for convenience rather than discriminative power
 - Ignoring "discount" organisms (like Fugu) that offer the same information cheaper
 
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: ⟂ Object-Transpose]
+1) Propose an alternate organism/system where the decisive observation is cheaper/faster/cleaner.
+2) State what changes: readout, timescale, perturbation availability, ambiguity.
+3) Add 1–2 tests designed for the transposed system and note any new assumptions/risks.
+
+Output (required): 2–6 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- discriminative_tests (ADD)
+Optional: assumption_ledger (ADD), research_thread (EDIT context to justify system choice)
+Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
+~~~
+
 **Canonical tag**: `object-transpose`
 
 **Quote-bank anchors**: §87, §127, §221
@@ -176,6 +256,19 @@ For UI/search alignment, each core operator also lists:
 - Measuring subtle analog effects when a selection/threshold readout is available
 - Fighting noise with statistics rather than with better system design
 - Ignoring abundance tricks (e.g., phage infection where one protein is 70% of synthesis)
+
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: ↑ Amplify]
+1) Identify a natural amplifier (selection, replication, dominance, abundance, threshold readout).
+2) Redesign the experiment so the signal becomes large/robust (avoid subtle effects).
+3) Add 1–2 tests that use the amplifier + include potency checks.
+
+Output (required): 2–6 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- discriminative_tests (ADD)
+Optional: predictions_table (ADD), assumption_ledger (ADD)
+Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
+~~~
 
 **Canonical tag**: `amplify`
 
@@ -201,6 +294,19 @@ For UI/search alignment, each core operator also lists:
 - Waiting indefinitely for the "right" tool when a crude version would suffice
 - Letting infrastructure become the bottleneck
 
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: 🔧 DIY / Bricolage]
+1) Identify the missing capability that blocks a discriminative test.
+2) Propose the smallest workable DIY substitute (enough to decide; no gold-plating).
+3) Add 1–2 tests that use the DIY tool and include potency checks.
+
+Output (required): 2–6 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- discriminative_tests (ADD)
+Optional: assumption_ledger (ADD), anomaly_register (ADD if tool limitations introduce ambiguity)
+Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
+~~~
+
 **Canonical tag**: `diy`
 
 **Quote-bank anchors**: §77, §102, §114
@@ -224,6 +330,20 @@ For UI/search alignment, each core operator also lists:
 - Confusing ignorance with lack of taste/rigor (the point is wide priors, not no priors)
 - Forcing analogies that don't fit
 - Staying ignorant when you need specific technical knowledge
+
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: ⊕ Cross-Domain / Productive Ignorance]
+1) Import 1–2 analogies from other fields and explicitly map parts (what corresponds to what?).
+2) Use the analogy to generate at least 1 Third Alternative hypothesis or a new discriminative readout.
+3) Add 1–2 tests that would separate the imported framing from the baseline framing.
+
+Output (required): 2–6 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- hypothesis_slate (ADD; include a Third Alternative when applicable)
+- discriminative_tests (ADD)
+Optional: adversarial_critique (ADD), research_thread (EDIT context)
+Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
+~~~
 
 **Canonical tag**: `cross-domain`
 
@@ -249,6 +369,20 @@ For UI/search alignment, each core operator also lists:
 - Ignoring contradictions by keeping them in separate mental compartments
 - Missing the paradox because you've normalized the inconsistency
 
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: ◊ Paradox-Hunt]
+1) State the paradox as two sentences that cannot both be true under current language.
+2) Propose at least 2 resolutions (level-split, recode, hidden variable, both wrong).
+3) Add 1–2 tests that would discriminate between resolutions.
+
+Output (required): 2–6 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- adversarial_critique (ADD; capture the paradox + attack)
+- discriminative_tests (ADD)
+Optional: hypothesis_slate (ADD/EDIT), anomaly_register (ADD if unresolved)
+Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
+~~~
+
 **Canonical tag**: `paradox-hunt`
 
 **Quote-bank anchors**: §95, §163
@@ -272,6 +406,20 @@ For UI/search alignment, each core operator also lists:
 - Sweeping anomalies under the carpet forever (Occam's broom abuse)
 - Discarding a coherent "house of cards" framework too early
 - Letting noisy exceptions destroy a high-compression theory
+
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: ΔE Exception-Quarantine]
+1) List anomalies/exceptions explicitly (no hiding); separate signal from noise.
+2) For each anomaly, state what it conflicts with and what would resolve it.
+3) Add 1–2 tests aimed at resolving the highest-leverage anomaly.
+
+Output (required): 2–6 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- anomaly_register (ADD)
+- discriminative_tests (ADD)
+Optional: assumption_ledger (ADD), adversarial_critique (ADD)
+Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
+~~~
 
 **Canonical tag**: `exception-quarantine`
 
@@ -297,6 +445,20 @@ For UI/search alignment, each core operator also lists:
 - Being out of phase in a direction that's just noise (not an emerging/neglected field)
 - Abandoning productive work purely for novelty
 
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: ∿ Dephase]
+1) Identify the “industrialized midgame” assumptions in the current plan (what everyone is doing).
+2) Propose 1 neglected angle that still preserves discriminative leverage (not novelty-for-novelty).
+3) Add a Third Alternative hypothesis or a test that probes the neglected angle.
+
+Output (required): 2–6 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- hypothesis_slate (ADD; Third Alternative when applicable)
+- discriminative_tests (ADD)
+Optional: adversarial_critique (ADD), research_thread (EDIT context)
+Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
+~~~
+
 **Canonical tag**: `dephase`
 
 **Quote-bank anchors**: §79, §210, §231
@@ -321,6 +483,19 @@ For UI/search alignment, each core operator also lists:
 - Killing theories too early before giving them a fair test
 - Never finishing anything because you kill prematurely
 
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: † Theory-Kill]
+1) Identify which hypothesis/test/assumption is now contradicted (or made redundant).
+2) State the kill reason in one sentence (what new evidence/test makes it obsolete?).
+3) If killing creates a vacuum, add a replacement hypothesis/test (often a Third Alternative).
+
+Output (required): 1–4 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- hypothesis_slate / discriminative_tests / assumption_ledger (KILL)
+Optional: hypothesis_slate (ADD), discriminative_tests (ADD)
+Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
+~~~
+
 **Canonical tag**: `theory-kill`
 
 **Quote-bank anchors**: §83, §106
@@ -344,6 +519,20 @@ For UI/search alignment, each core operator also lists:
 - Building beautiful theories that violate diffusion rates, packing limits, or molecular counts
 - Ignoring that DNA in bacteria is folded 1000x
 - Using cartoons that look good but can't work physically
+
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: ⊞ Scale-Check]
+1) Write the minimum numeric constraints (orders of magnitude; geometry; time; copy numbers).
+2) Use those constraints to rule out at least 1 mechanism or to sharpen predictions.
+3) Add an explicit scale/physics assumption (⊞) and at least 1 test that depends on it.
+
+Output (required): 2–6 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- assumption_ledger (ADD with `scale_check: true`)
+- discriminative_tests (ADD)
+Optional: hypothesis_slate (EDIT), predictions_table (ADD)
+Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
+~~~
 
 **Canonical tag**: `scale-check`
 
@@ -370,6 +559,19 @@ For UI/search alignment, each core operator also lists:
 - Doing pilots forever without committing to decisive experiments
 - Pilots that don't actually discriminate (low likelihood ratio)
 
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: ⚡ Quickie / Pilot]
+1) Identify the flagship expensive experiment and the single key uncertainty it depends on.
+2) Design a cheap pilot that would kill the key alternative (maximize speed/clarity).
+3) Add the pilot test with explicit potency checks and scoring.
+
+Output (required): 1–4 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- discriminative_tests (ADD)
+Optional: predictions_table (ADD), assumption_ledger (ADD)
+Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
+~~~
+
 **Transcript Anchors**: §99 ("I'll do a quickie")
 
 **Sources**: GPT-5.2 (Step 7), Gemini (§6.3)
@@ -389,6 +591,19 @@ For UI/search alignment, each core operator also lists:
 - Looking without knowing what to look for
 - Trusting observation over theory when theory should guide interpretation
 
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: 👁 HAL (Have A Look)]
+1) Identify what could be directly observed instead of inferred (shorten the inference chain).
+2) Specify what to look for and how it would discriminate hypotheses.
+3) Add a “have a look” test + potency check.
+
+Output (required): 1–4 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- discriminative_tests (ADD)
+Optional: predictions_table (ADD)
+Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
+~~~
+
 **Transcript Anchors**: §198 ("I had invented something called HAL biology. HAL... stood for Have A Look biology")
 
 **Sources**: Opus (HAL Biology), GPT-5.2 (§1)
@@ -407,6 +622,19 @@ For UI/search alignment, each core operator also lists:
 **Failure Modes**:
 - Abandoning a good hypothesis because your intervention didn't work
 - Ignoring potency checks because you're excited about a result
+
+**Prompt module (copy/paste)**:
+~~~text
+[OPERATOR: 🎭 Chastity-vs-Impotence Check]
+1) For a negative/kill-result, list at least 1 way the intervention could have failed.
+2) Add a potency/viability control that distinguishes “won’t” from “can’t”.
+3) Apply the potency check to the highest-risk test(s).
+
+Output (required): 1–4 fenced `delta` JSON blocks per specs/delta_output_format_v0.1.md targeting:
+- discriminative_tests (EDIT to strengthen `potency_check`)
+Optional: assumption_ledger (ADD) if the check reveals a new load-bearing assumption
+Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
+~~~
 
 **Transcript Anchors**: §50 (chastity vs impotence: same outcome, different reasons)
 

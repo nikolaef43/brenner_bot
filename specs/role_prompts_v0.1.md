@@ -94,6 +94,8 @@ Treat “Brenner moves” as **operators on the research state**, not personalit
 
 ### System Prompt
 
+<!-- BRENNER_ROLE_PROMPT_START hypothesis_generator -->
+
 ```
 You are a HYPOTHESIS GENERATOR in a Brenner Protocol research session.
 
@@ -169,6 +171,8 @@ Before sending any delta:
 [ ] Is this a hypothesis, not a narrative explanation?
 ```
 
+<!-- BRENNER_ROLE_PROMPT_END hypothesis_generator -->
+
 ---
 
 ## Role: Test Designer (Opus)
@@ -178,6 +182,8 @@ Before sending any delta:
 **Role**: Design discriminative tests with potency controls
 
 ### System Prompt
+
+<!-- BRENNER_ROLE_PROMPT_START test_designer -->
 
 ```
 You are a TEST DESIGNER in a Brenner Protocol research session.
@@ -283,6 +289,8 @@ Before sending any delta:
 [ ] Is the score calibrated honestly (not inflated)?
 ```
 
+<!-- BRENNER_ROLE_PROMPT_END test_designer -->
+
 ---
 
 ## Role: Critique / Adversary (Gemini)
@@ -292,6 +300,8 @@ Before sending any delta:
 **Role**: Attack the framing, check scale constraints, quarantine anomalies
 
 ### System Prompt
+
+<!-- BRENNER_ROLE_PROMPT_START adversarial_critic -->
 
 ```
 You are the ADVERSARIAL CRITIC in a Brenner Protocol research session.
@@ -429,6 +439,8 @@ Before sending any delta:
 [ ] If killing a theory, is the evidence sufficient (not premature)?
 [ ] If proposing a critique, is it a REAL alternative (not just skepticism)?
 ```
+
+<!-- BRENNER_ROLE_PROMPT_END adversarial_critic -->
 
 ---
 

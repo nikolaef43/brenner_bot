@@ -32,18 +32,11 @@
  */
 
 import { useMutation, type UseMutationOptions } from "@tanstack/react-query";
-import type { AgentRole } from "@/lib/schemas/session";
+import type { AgentRole, OperatorSelection } from "@/lib/schemas/session";
 
 // ============================================================================
 // Types
 // ============================================================================
-
-/** Operator selection per agent role */
-export interface OperatorSelection {
-  hypothesis_generator: string[];
-  test_designer: string[];
-  adversarial_critic: string[];
-}
 
 /** A single recipient-to-role mapping */
 export interface RecipientRole {
