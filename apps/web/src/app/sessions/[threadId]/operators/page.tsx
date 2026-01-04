@@ -1,76 +1,382 @@
+"use client";
+
+/**
+ * Operators Workspace Page
+ *
+ * Interactive workspace for applying Brenner methodology operators
+ * to refine hypotheses: Level Split (Σ), Exclusion Test (⊘),
+ * Object Transpose (⟳), Scale Check (⊙).
+ *
+ * @see brenner_bot-pts6 (routes bead)
+ */
+
+import * as React from "react";
 import Link from "next/link";
-import type { Metadata } from "next";
+import { useParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
-export const metadata: Metadata = {
-  title: "Operators",
-  description: "Apply Brenner methodology operators to refine your hypothesis.",
-};
+// ============================================================================
+// Icons
+// ============================================================================
 
-interface PageProps {
-  params: Promise<{ threadId: string }>;
+const ChevronLeftIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+  </svg>
+);
+
+const CheckIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+  </svg>
+);
+
+const PlusIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+  </svg>
+);
+
+const LightBulbIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+  </svg>
+);
+
+const BeakerIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-5", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 5.07a1.125 1.125 0 01-1.135 1.416H3.933a1.125 1.125 0 01-1.135-1.416L5 14.5" />
+  </svg>
+);
+
+const TrashIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+  </svg>
+);
+
+// ============================================================================
+// Operator Configuration
+// ============================================================================
+
+interface OperatorConfig {
+  id: string;
+  symbol: string;
+  name: string;
+  shortName: string;
+  description: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  question: string;
+  quote: {
+    text: string;
+    anchor: string;
+  };
+  inputFields: Array<{
+    id: string;
+    label: string;
+    placeholder: string;
+    type: "textarea" | "input";
+  }>;
 }
 
-function ChevronLeftIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-    </svg>
-  );
-}
-
-function OperatorsIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M9 3.75H5.25A1.5 1.5 0 003.75 5.25V9A1.5 1.5 0 005.25 10.5H9A1.5 1.5 0 0010.5 9V5.25A1.5 1.5 0 009 3.75zM18.75 3.75H15A1.5 1.5 0 0013.5 5.25V9A1.5 1.5 0 0015 10.5h3.75A1.5 1.5 0 0020.25 9V5.25a1.5 1.5 0 00-1.5-1.5zM9 13.5H5.25a1.5 1.5 0 00-1.5 1.5v3.75a1.5 1.5 0 001.5 1.5H9a1.5 1.5 0 001.5-1.5V15a1.5 1.5 0 00-1.5-1.5zM18.75 13.5H15a1.5 1.5 0 00-1.5 1.5v3.75a1.5 1.5 0 001.5 1.5h3.75a1.5 1.5 0 001.5-1.5V15a1.5 1.5 0 00-1.5-1.5z"
-      />
-    </svg>
-  );
-}
-
-const OPERATORS = [
+const OPERATORS: OperatorConfig[] = [
   {
+    id: "level_split",
     symbol: "\u03A3",
     name: "Level Split",
-    description: "Identify different levels of explanation",
+    shortName: "Levels",
+    description: "Identify different levels of explanation that might be conflated in your hypothesis.",
+    color: "text-blue-500",
+    bgColor: "bg-blue-500/10",
+    borderColor: "border-blue-500/30",
+    question: "Are there different levels of explanation being conflated?",
+    quote: {
+      text: "The confusion of levels is the most profound error in biology.",
+      anchor: "\u00A7147",
+    },
+    inputFields: [
+      { id: "current_level", label: "Current Level of Explanation", placeholder: "What level is your hypothesis currently operating at?", type: "textarea" },
+      { id: "levels_identified", label: "Other Possible Levels", placeholder: "What other levels might be relevant? (molecular, cellular, organismal, ecological...)", type: "textarea" },
+      { id: "confounds", label: "Potential Confounds", placeholder: "What confounds arise from level confusion?", type: "textarea" },
+    ],
   },
   {
+    id: "exclusion_test",
     symbol: "\u2298",
     name: "Exclusion Test",
-    description: "Design discriminative tests",
+    shortName: "Exclude",
+    description: "Design tests that could definitively rule out your hypothesis.",
+    color: "text-red-500",
+    bgColor: "bg-red-500/10",
+    borderColor: "border-red-500/30",
+    question: "What would definitively rule out this hypothesis?",
+    quote: {
+      text: "Not merely unlikely\u2014impossible if the alternative is true.",
+      anchor: "\u00A789",
+    },
+    inputFields: [
+      { id: "test_design", label: "Exclusion Test Design", placeholder: "Describe a test that would definitively exclude your hypothesis", type: "textarea" },
+      { id: "expected_null", label: "Expected Result (If Hypothesis False)", placeholder: "What specific result would falsify your hypothesis?", type: "textarea" },
+      { id: "feasibility", label: "Feasibility Assessment", placeholder: "How feasible is this test? What resources are needed?", type: "textarea" },
+    ],
   },
   {
+    id: "object_transpose",
     symbol: "\u27F3",
     name: "Object Transpose",
-    description: "Change reference frames",
+    shortName: "Transpose",
+    description: "Consider alternative experimental systems or reference frames where the problem is cleaner.",
+    color: "text-purple-500",
+    bgColor: "bg-purple-500/10",
+    borderColor: "border-purple-500/30",
+    question: "Is there a different system where this problem would be cleaner?",
+    quote: {
+      text: "Change the object. Use a different experimental system where the problem is cleaner.",
+      anchor: "\u00A7112",
+    },
+    inputFields: [
+      { id: "current_system", label: "Current Experimental System", placeholder: "What system/context are you currently using?", type: "textarea" },
+      { id: "alternative_systems", label: "Alternative Systems", placeholder: "What alternative systems might offer cleaner tests?", type: "textarea" },
+      { id: "tradeoffs", label: "Trade-offs", placeholder: "What are the trade-offs of switching systems?", type: "textarea" },
+    ],
   },
   {
+    id: "scale_check",
     symbol: "\u2299",
     name: "Scale Check",
-    description: "Check scale-dependence",
+    shortName: "Scale",
+    description: "Verify physical and mathematical plausibility before investing in experiments.",
+    color: "text-amber-500",
+    bgColor: "bg-amber-500/10",
+    borderColor: "border-amber-500/30",
+    question: "Do the numbers work out? Is this physically plausible?",
+    quote: {
+      text: "Before you start, do your sums.",
+      anchor: "\u00A758",
+    },
+    inputFields: [
+      { id: "key_quantities", label: "Key Quantities", placeholder: "What are the key quantities involved? (concentrations, rates, distances...)", type: "textarea" },
+      { id: "calculations", label: "Order of Magnitude Calculations", placeholder: "Show your back-of-envelope calculations", type: "textarea" },
+      { id: "plausibility", label: "Plausibility Assessment", placeholder: "Based on your calculations, is the hypothesis plausible?", type: "textarea" },
+    ],
   },
 ];
 
-export default async function OperatorsPage({ params }: PageProps) {
-  const { threadId } = await params;
+// ============================================================================
+// Operator Card Component
+// ============================================================================
+
+interface OperatorCardProps {
+  operator: OperatorConfig;
+  isActive: boolean;
+  isCompleted: boolean;
+  onClick: () => void;
+}
+
+function OperatorCard({ operator, isActive, isCompleted, onClick }: OperatorCardProps) {
+  return (
+    <motion.button
+      onClick={onClick}
+      className={cn(
+        "relative p-4 rounded-xl border-2 text-left transition-all w-full",
+        "hover:shadow-lg hover:-translate-y-0.5",
+        isActive
+          ? `${operator.borderColor} ${operator.bgColor} shadow-lg`
+          : isCompleted
+          ? "border-green-500/30 bg-green-500/5"
+          : "border-border bg-card hover:border-primary/30"
+      )}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+    >
+      {/* Completion indicator */}
+      {isCompleted && (
+        <div className="absolute top-2 right-2 size-6 rounded-full bg-green-500 flex items-center justify-center">
+          <CheckIcon className="size-4 text-white" />
+        </div>
+      )}
+
+      <div className="flex items-center gap-3">
+        <div className={cn(
+          "flex items-center justify-center size-12 rounded-xl text-2xl font-bold font-mono",
+          operator.bgColor, operator.color
+        )}>
+          {operator.symbol}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-foreground">{operator.name}</h3>
+          <p className="text-xs text-muted-foreground truncate">{operator.question}</p>
+        </div>
+      </div>
+    </motion.button>
+  );
+}
+
+// ============================================================================
+// Operator Workspace Component
+// ============================================================================
+
+interface OperatorWorkspaceProps {
+  operator: OperatorConfig;
+  values: Record<string, string>;
+  onChange: (fieldId: string, value: string) => void;
+  onComplete: () => void;
+}
+
+function OperatorWorkspace({ operator, values, onChange, onComplete }: OperatorWorkspaceProps) {
+  const allFieldsFilled = operator.inputFields.every(
+    (field) => values[field.id]?.trim()
+  );
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="space-y-6"
+    >
+      {/* Header */}
+      <div className="flex items-start gap-4">
+        <div className={cn(
+          "flex items-center justify-center size-16 rounded-2xl text-3xl font-bold font-mono shadow-lg",
+          operator.bgColor, operator.color
+        )}>
+          {operator.symbol}
+        </div>
+        <div className="flex-1">
+          <h2 className="text-xl font-bold text-foreground">{operator.name}</h2>
+          <p className="text-muted-foreground mt-1">{operator.description}</p>
+        </div>
+      </div>
+
+      {/* Brenner Quote */}
+      <Card className={cn("border-l-4", operator.borderColor)}>
+        <CardContent className="py-4">
+          <blockquote className="text-sm italic text-muted-foreground">
+            "{operator.quote.text}"
+          </blockquote>
+          <footer className="text-xs text-muted-foreground/70 mt-2">
+            — Sydney Brenner, {operator.quote.anchor}
+          </footer>
+        </CardContent>
+      </Card>
+
+      {/* Core Question */}
+      <div className={cn("p-4 rounded-xl", operator.bgColor)}>
+        <div className="flex items-center gap-2 mb-2">
+          <LightBulbIcon className={cn("size-5", operator.color)} />
+          <span className="text-sm font-medium text-foreground">Core Question</span>
+        </div>
+        <p className={cn("text-lg font-medium", operator.color)}>{operator.question}</p>
+      </div>
+
+      {/* Input Fields */}
+      <div className="space-y-4">
+        {operator.inputFields.map((field, index) => (
+          <motion.div
+            key={field.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <label className="block text-sm font-medium text-foreground mb-2">
+              {field.label}
+            </label>
+            {field.type === "textarea" ? (
+              <Textarea
+                value={values[field.id] || ""}
+                onChange={(e) => onChange(field.id, e.target.value)}
+                placeholder={field.placeholder}
+                className="min-h-[100px] resize-none"
+              />
+            ) : (
+              <Input
+                value={values[field.id] || ""}
+                onChange={(e) => onChange(field.id, e.target.value)}
+                placeholder={field.placeholder}
+              />
+            )}
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Complete Button */}
+      <div className="flex justify-end pt-4 border-t">
+        <Button
+          onClick={onComplete}
+          disabled={!allFieldsFilled}
+          className="min-w-[140px]"
+        >
+          <CheckIcon className="size-4 mr-2" />
+          Mark Complete
+        </Button>
+      </div>
+    </motion.div>
+  );
+}
+
+// ============================================================================
+// Main Page Component
+// ============================================================================
+
+export default function OperatorsPage() {
+  const params = useParams();
+  const threadId = params.threadId as string;
+
+  const [activeOperator, setActiveOperator] = React.useState<string>("level_split");
+  const [completedOperators, setCompletedOperators] = React.useState<Set<string>>(new Set());
+  const [operatorValues, setOperatorValues] = React.useState<Record<string, Record<string, string>>>({});
+
+  const currentOperator = OPERATORS.find((op) => op.id === activeOperator);
+
+  const handleFieldChange = (fieldId: string, value: string) => {
+    setOperatorValues((prev) => ({
+      ...prev,
+      [activeOperator]: {
+        ...prev[activeOperator],
+        [fieldId]: value,
+      },
+    }));
+  };
+
+  const handleComplete = () => {
+    setCompletedOperators((prev) => new Set([...prev, activeOperator]));
+
+    // Move to next incomplete operator
+    const currentIndex = OPERATORS.findIndex((op) => op.id === activeOperator);
+    const nextOperator = OPERATORS.find(
+      (op, i) => i > currentIndex && !completedOperators.has(op.id)
+    );
+    if (nextOperator) {
+      setActiveOperator(nextOperator.id);
+    }
+  };
+
+  const progress = (completedOperators.size / OPERATORS.length) * 100;
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-8">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-muted-foreground animate-fade-in-up">
-        <Link
-          href="/sessions"
-          className="hover:text-foreground transition-colors"
-        >
+        <Link href="/sessions" className="hover:text-foreground transition-colors">
           Sessions
         </Link>
         <span>/</span>
-        <Link
-          href={`/sessions/${threadId}`}
-          className="hover:text-foreground transition-colors font-mono"
-        >
+        <Link href={`/sessions/${threadId}`} className="hover:text-foreground transition-colors font-mono">
           {threadId.slice(0, 12)}...
         </Link>
         <span>/</span>
@@ -87,44 +393,132 @@ export default async function OperatorsPage({ params }: PageProps) {
       </Link>
 
       {/* Header */}
-      <header className="animate-fade-in-up">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="flex items-center justify-center size-10 rounded-xl bg-primary/10 text-primary">
-            <OperatorsIcon className="size-5" />
+      <motion.header
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-start justify-between gap-4"
+      >
+        <div className="flex items-start gap-4">
+          <div className="flex items-center justify-center size-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary shadow-lg shadow-primary/10">
+            <BeakerIcon className="size-7" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Operators</h1>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Operators</h1>
+            <p className="text-muted-foreground">
+              Apply Brenner methodology operators to refine your hypothesis
+            </p>
+          </div>
         </div>
-        <p className="text-muted-foreground">
-          Apply Brenner methodology operators to refine your hypothesis.
-        </p>
-      </header>
 
-      {/* Operator Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 animate-fade-in-up stagger-2">
-        {OPERATORS.map((op, index) => (
-          <div
-            key={op.name}
-            className={`rounded-xl border border-border bg-card p-5 hover:border-primary/30 hover:bg-muted/30 transition-all animate-fade-in-up stagger-${index + 2}`}
-          >
-            <div className="flex items-start gap-4">
-              <div className="flex items-center justify-center size-12 rounded-xl bg-primary/10 text-primary text-2xl font-bold font-mono">
-                {op.symbol}
-              </div>
-              <div className="space-y-1">
-                <h3 className="font-semibold text-foreground">{op.name}</h3>
-                <p className="text-sm text-muted-foreground">{op.description}</p>
-              </div>
-            </div>
-          </div>
-        ))}
+        <div className="text-right">
+          <div className="text-sm text-muted-foreground mb-1">Progress</div>
+          <div className="text-lg font-bold text-foreground">{completedOperators.size}/{OPERATORS.length} Complete</div>
+        </div>
+      </motion.header>
+
+      {/* Progress Bar */}
+      <motion.div
+        initial={{ opacity: 0, scaleX: 0 }}
+        animate={{ opacity: 1, scaleX: 1 }}
+        className="h-2 bg-muted rounded-full overflow-hidden"
+      >
+        <motion.div
+          className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        />
+      </motion.div>
+
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Operator Selection */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-muted-foreground mb-4">Select Operator</h3>
+          {OPERATORS.map((operator, index) => (
+            <motion.div
+              key={operator.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <OperatorCard
+                operator={operator}
+                isActive={operator.id === activeOperator}
+                isCompleted={completedOperators.has(operator.id)}
+                onClick={() => setActiveOperator(operator.id)}
+              />
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Workspace */}
+        <Card className="lg:col-span-2">
+          <CardContent className="p-6">
+            <AnimatePresence mode="wait">
+              {currentOperator && (
+                <OperatorWorkspace
+                  key={currentOperator.id}
+                  operator={currentOperator}
+                  values={operatorValues[currentOperator.id] || {}}
+                  onChange={handleFieldChange}
+                  onComplete={handleComplete}
+                />
+              )}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Placeholder */}
-      <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-8 text-center animate-fade-in-up stagger-6">
-        <p className="text-sm text-muted-foreground">
-          Interactive operator application workspace coming soon.
-        </p>
-      </div>
+      {/* Summary Section */}
+      {completedOperators.size > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <CheckIcon className="size-5 text-green-500" />
+                Completed Operators
+              </CardTitle>
+              <CardDescription>
+                Summary of your operator applications
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {Array.from(completedOperators).map((opId) => {
+                  const op = OPERATORS.find((o) => o.id === opId);
+                  if (!op) return null;
+
+                  return (
+                    <div
+                      key={opId}
+                      className={cn(
+                        "p-4 rounded-xl border",
+                        op.bgColor, op.borderColor
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={cn("text-xl font-mono font-bold", op.color)}>
+                          {op.symbol}
+                        </span>
+                        <div>
+                          <h4 className="font-medium text-foreground">{op.name}</h4>
+                          <p className="text-xs text-muted-foreground">
+                            {Object.keys(operatorValues[opId] || {}).length} fields completed
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
     </div>
   );
 }

@@ -1,132 +1,593 @@
+"use client";
+
+/**
+ * Agent Tribunal Page
+ *
+ * Multi-agent synthesis interface for rigorous hypothesis refinement.
+ * Shows agent responses, disagreements, and synthesis results.
+ *
+ * @see brenner_bot-pts6 (routes bead)
+ */
+
+import * as React from "react";
 import Link from "next/link";
-import type { Metadata } from "next";
+import { useParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-export const metadata: Metadata = {
-  title: "Agent Tribunal",
-  description: "Multi-agent synthesis for research hypothesis refinement.",
-};
+// ============================================================================
+// Icons
+// ============================================================================
 
-interface PageProps {
-  params: Promise<{ threadId: string }>;
+const ChevronLeftIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+  </svg>
+);
+
+const UsersIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-5", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+  </svg>
+);
+
+const CheckIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+  </svg>
+);
+
+const ClockIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+const ExclamationTriangleIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+  </svg>
+);
+
+const SparklesIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+  </svg>
+);
+
+const ChatBubbleIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+  </svg>
+);
+
+const PlayIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z" />
+  </svg>
+);
+
+// ============================================================================
+// Agent Configuration
+// ============================================================================
+
+interface AgentConfig {
+  id: string;
+  name: string;
+  role: string;
+  description: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  avatar: string;
+  model?: string;
 }
 
-function ChevronLeftIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-    </svg>
-  );
-}
-
-function UsersIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-    </svg>
-  );
-}
-
-const AGENTS = [
+const AGENTS: AgentConfig[] = [
   {
+    id: "devils_advocate",
     name: "Devil's Advocate",
     role: "Challenger",
-    description: "Actively challenges hypotheses and finds weaknesses",
+    description: "Actively challenges hypotheses, finds weaknesses, and proposes alternative explanations.",
     color: "text-red-500",
     bgColor: "bg-red-500/10",
+    borderColor: "border-red-500/30",
+    avatar: "DA",
+    model: "claude-opus-4-5",
   },
   {
+    id: "experiment_designer",
     name: "Experiment Designer",
     role: "Methodologist",
-    description: "Designs discriminative tests between hypotheses",
+    description: "Designs discriminative tests between competing hypotheses with practical constraints.",
     color: "text-blue-500",
     bgColor: "bg-blue-500/10",
+    borderColor: "border-blue-500/30",
+    avatar: "ED",
+    model: "gpt-5-codex",
   },
   {
+    id: "brenner_channeler",
     name: "Brenner Channeler",
     role: "Mentor",
-    description: "Channels Sydney Brenner's scientific wisdom",
+    description: "Channels Sydney Brenner's scientific wisdom and methodology from the corpus.",
     color: "text-amber-500",
     bgColor: "bg-amber-500/10",
+    borderColor: "border-amber-500/30",
+    avatar: "BC",
+    model: "gemini-2.5-pro",
   },
 ];
 
-export default async function AgentsPage({ params }: PageProps) {
-  const { threadId } = await params;
+// ============================================================================
+// Types
+// ============================================================================
+
+type AgentStatus = "idle" | "thinking" | "responded" | "error";
+
+interface AgentResponse {
+  agentId: string;
+  content: string;
+  timestamp: Date;
+  confidence?: number;
+  disagreements?: string[];
+  suggestions?: string[];
+}
+
+interface Disagreement {
+  id: string;
+  agents: [string, string];
+  topic: string;
+  resolutionStatus: "open" | "resolved" | "escalated";
+}
+
+// ============================================================================
+// Agent Card Component
+// ============================================================================
+
+interface AgentCardProps {
+  agent: AgentConfig;
+  status: AgentStatus;
+  response?: AgentResponse;
+  onInvoke?: () => void;
+}
+
+function AgentCard({ agent, status, response, onInvoke }: AgentCardProps) {
+  const statusConfig = {
+    idle: { label: "Ready", color: "text-muted-foreground", bg: "bg-muted" },
+    thinking: { label: "Thinking...", color: "text-blue-500", bg: "bg-blue-500/10" },
+    responded: { label: "Responded", color: "text-green-500", bg: "bg-green-500/10" },
+    error: { label: "Error", color: "text-red-500", bg: "bg-red-500/10" },
+  };
+
+  const statusInfo = statusConfig[status];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-muted-foreground animate-fade-in-up">
-        <Link
-          href="/sessions"
-          className="hover:text-foreground transition-colors"
-        >
-          Sessions
-        </Link>
-        <span>/</span>
-        <Link
-          href={`/sessions/${threadId}`}
-          className="hover:text-foreground transition-colors font-mono"
-        >
-          {threadId.slice(0, 12)}...
-        </Link>
-        <span>/</span>
-        <span className="text-foreground">Agent Tribunal</span>
-      </nav>
-
-      {/* Back link */}
-      <Link
-        href={`/sessions/${threadId}`}
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors group"
-      >
-        <ChevronLeftIcon className="size-4 group-hover:-translate-x-0.5 transition-transform" />
-        Back to Session
-      </Link>
-
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn(
+        "rounded-xl border-2 overflow-hidden transition-all",
+        status === "thinking" && "animate-pulse",
+        agent.borderColor
+      )}
+    >
       {/* Header */}
-      <header className="animate-fade-in-up">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="flex items-center justify-center size-10 rounded-xl bg-primary/10 text-primary">
-            <UsersIcon className="size-5" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">Agent Tribunal</h1>
-        </div>
-        <p className="text-muted-foreground">
-          Multi-agent synthesis for rigorous hypothesis refinement.
-        </p>
-      </header>
-
-      {/* Agent Cards */}
-      <div className="space-y-4">
-        {AGENTS.map((agent, index) => (
-          <div
-            key={agent.name}
-            className={`rounded-xl border border-border bg-card p-5 hover:border-primary/30 transition-all animate-fade-in-up stagger-${index + 2}`}
-          >
-            <div className="flex items-start gap-4">
-              <div className={`flex items-center justify-center size-12 rounded-xl ${agent.bgColor} ${agent.color}`}>
-                <UsersIcon className="size-6" />
-              </div>
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-foreground">{agent.name}</h3>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${agent.bgColor} ${agent.color}`}>
-                    {agent.role}
+      <div className={cn("p-4", agent.bgColor)}>
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            {/* Avatar */}
+            <div className={cn(
+              "flex items-center justify-center size-12 rounded-xl text-lg font-bold shadow-lg",
+              agent.bgColor, agent.color
+            )}>
+              {agent.avatar}
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground">{agent.name}</h3>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant="secondary" className="text-xs">
+                  {agent.role}
+                </Badge>
+                {agent.model && (
+                  <span className="text-xs text-muted-foreground font-mono">
+                    {agent.model}
                   </span>
-                </div>
-                <p className="text-sm text-muted-foreground">{agent.description}</p>
+                )}
               </div>
             </div>
           </div>
-        ))}
+
+          {/* Status Badge */}
+          <div className={cn(
+            "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
+            statusInfo.bg, statusInfo.color
+          )}>
+            {status === "thinking" && (
+              <div className="size-2 rounded-full bg-current animate-pulse" />
+            )}
+            {status === "responded" && <CheckIcon className="size-3" />}
+            {statusInfo.label}
+          </div>
+        </div>
+
+        <p className="text-sm text-muted-foreground mt-3">{agent.description}</p>
       </div>
 
-      {/* Placeholder */}
-      <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-8 text-center animate-fade-in-up stagger-5">
-        <p className="text-sm text-muted-foreground">
-          Agent interaction panel coming soon. Agents coordinate via Agent Mail.
-        </p>
+      {/* Response Content */}
+      {response ? (
+        <div className="p-4 bg-background">
+          <div className="prose prose-sm max-w-none dark:prose-invert">
+            <p className="text-foreground leading-relaxed">{response.content}</p>
+          </div>
+
+          {/* Suggestions */}
+          {response.suggestions && response.suggestions.length > 0 && (
+            <div className="mt-4 pt-4 border-t">
+              <h4 className="text-xs font-medium text-muted-foreground mb-2">Suggestions</h4>
+              <ul className="space-y-1">
+                {response.suggestions.map((suggestion, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-foreground">
+                    <SparklesIcon className={cn("size-4 mt-0.5 shrink-0", agent.color)} />
+                    {suggestion}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Disagreements */}
+          {response.disagreements && response.disagreements.length > 0 && (
+            <div className="mt-4 pt-4 border-t">
+              <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                <ExclamationTriangleIcon className="size-3 text-warning" />
+                Points of Contention
+              </h4>
+              <ul className="space-y-1">
+                {response.disagreements.map((disagreement, i) => (
+                  <li key={i} className="text-sm text-warning">
+                    {disagreement}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Timestamp */}
+          <div className="flex items-center gap-1 mt-4 text-xs text-muted-foreground">
+            <ClockIcon className="size-3" />
+            {response.timestamp.toLocaleTimeString()}
+          </div>
+        </div>
+      ) : (
+        <div className="p-4 bg-background">
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            {status === "thinking" ? (
+              <>
+                <div className="flex gap-1 mb-3">
+                  {[0, 1, 2].map((i) => (
+                    <motion.div
+                      key={i}
+                      className={cn("size-2 rounded-full", agent.bgColor)}
+                      animate={{ y: [0, -6, 0] }}
+                      transition={{
+                        duration: 0.6,
+                        repeat: Infinity,
+                        delay: i * 0.2,
+                      }}
+                    />
+                  ))}
+                </div>
+                <p className="text-sm text-muted-foreground">Agent is analyzing...</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Agent hasn't responded yet
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={onInvoke}
+                  className={cn("gap-2", agent.color)}
+                >
+                  <PlayIcon className="size-3" />
+                  Invoke Agent
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+// ============================================================================
+// Synthesis Panel Component
+// ============================================================================
+
+interface SynthesisPanelProps {
+  responses: AgentResponse[];
+  disagreements: Disagreement[];
+}
+
+function SynthesisPanel({ responses, disagreements }: SynthesisPanelProps) {
+  const hasAllResponses = responses.length === AGENTS.length;
+  const openDisagreements = disagreements.filter((d) => d.resolutionStatus === "open");
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <SparklesIcon className="size-5 text-primary" />
+          Synthesis
+        </CardTitle>
+        <CardDescription>
+          Consolidated insights from agent tribunal
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Status */}
+        <div className="flex items-center gap-4 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Responses:</span>
+            <Badge variant={hasAllResponses ? "default" : "secondary"}>
+              {responses.length}/{AGENTS.length}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Disagreements:</span>
+            <Badge variant={openDisagreements.length > 0 ? "destructive" : "secondary"}>
+              {openDisagreements.length} open
+            </Badge>
+          </div>
+        </div>
+
+        {/* Open Disagreements */}
+        {openDisagreements.length > 0 && (
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
+              <ExclamationTriangleIcon className="size-4 text-warning" />
+              Unresolved Disagreements
+            </h4>
+            <div className="space-y-2">
+              {openDisagreements.map((d) => {
+                const agent1 = AGENTS.find((a) => a.id === d.agents[0]);
+                const agent2 = AGENTS.find((a) => a.id === d.agents[1]);
+
+                return (
+                  <div
+                    key={d.id}
+                    className="p-3 rounded-lg border border-warning/30 bg-warning/5"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline" className={agent1?.color}>
+                        {agent1?.avatar}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">vs</span>
+                      <Badge variant="outline" className={agent2?.color}>
+                        {agent2?.avatar}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-foreground">{d.topic}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Consensus Points */}
+        {hasAllResponses && (
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
+              <CheckIcon className="size-4 text-green-500" />
+              Consensus Points
+            </h4>
+            <div className="p-4 rounded-lg bg-green-500/5 border border-green-500/20">
+              <ul className="space-y-2 text-sm text-foreground">
+                <li className="flex items-start gap-2">
+                  <CheckIcon className="size-4 text-green-500 mt-0.5 shrink-0" />
+                  Hypothesis is testable with current resources
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckIcon className="size-4 text-green-500 mt-0.5 shrink-0" />
+                  Mechanism is plausible at the proposed scale
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckIcon className="size-4 text-green-500 mt-0.5 shrink-0" />
+                  Exclusion tests have been identified
+                </li>
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {/* Generate Synthesis Button */}
+        <Button className="w-full" disabled={!hasAllResponses}>
+          <SparklesIcon className="size-4 mr-2" />
+          Generate Full Synthesis
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ============================================================================
+// Main Page Component
+// ============================================================================
+
+export default function AgentsPage() {
+  const params = useParams();
+  const threadId = params.threadId as string;
+
+  const [agentStatuses, setAgentStatuses] = React.useState<Record<string, AgentStatus>>({
+    devils_advocate: "idle",
+    experiment_designer: "idle",
+    brenner_channeler: "idle",
+  });
+
+  const [responses, setResponses] = React.useState<AgentResponse[]>([
+    {
+      agentId: "devils_advocate",
+      content: "I challenge the assumption that dopamine-driven feedback loops are the primary mechanism. Alternative explanations include: (1) selection effects where anxious individuals gravitate toward social media, (2) sleep disruption as the mediating factor, and (3) social comparison rather than reward mechanisms driving anxiety.",
+      timestamp: new Date(Date.now() - 1000 * 60 * 15),
+      confidence: 72,
+      disagreements: ["The proposed mechanism may be too specific"],
+      suggestions: [
+        "Include a control group with similar screen time but no social features",
+        "Measure dopamine activity directly via neuroimaging",
+      ],
+    },
+  ]);
+
+  const [disagreements] = React.useState<Disagreement[]>([
+    {
+      id: "d1",
+      agents: ["devils_advocate", "experiment_designer"],
+      topic: "Whether neuroimaging is feasible within resource constraints",
+      resolutionStatus: "open",
+    },
+  ]);
+
+  const handleInvokeAgent = (agentId: string) => {
+    setAgentStatuses((prev) => ({ ...prev, [agentId]: "thinking" }));
+
+    // Simulate agent response
+    setTimeout(() => {
+      setAgentStatuses((prev) => ({ ...prev, [agentId]: "responded" }));
+
+      const mockResponses: Record<string, Omit<AgentResponse, "agentId">> = {
+        experiment_designer: {
+          content: "I propose a 2x2 factorial design: (Social Media + Notifications vs Social Media + No Notifications) x (Active Use vs Passive Scrolling). This separates the reward mechanism from the content exposure. Primary outcome: validated anxiety scale (GAD-7). Power analysis suggests n=120 per cell.",
+          timestamp: new Date(),
+          suggestions: [
+            "Use smartphone logging apps for objective usage data",
+            "Include physiological measures (heart rate variability)",
+            "Pre-register the analysis plan to prevent p-hacking",
+          ],
+        },
+        brenner_channeler: {
+          content: "\"Before you start, do your sums.\" The scale check reveals that the proposed dopamine mechanism operates on millisecond timescales, while anxiety is measured over weeks. We need to specify the bridging mechanism. Consider: what is the minimum exposure duration that could produce detectable anxiety changes?",
+          timestamp: new Date(),
+          suggestions: [
+            "Apply the Level Split operator to distinguish acute vs. chronic effects",
+            "Define falsification criteria before collecting data",
+            "Consider object transpose: are there animal models with cleaner causality?",
+          ],
+        },
+      };
+
+      if (mockResponses[agentId]) {
+        setResponses((prev) => [
+          ...prev,
+          { agentId, ...mockResponses[agentId] },
+        ]);
+      }
+    }, 3000);
+  };
+
+  const invokeAllAgents = () => {
+    AGENTS.forEach((agent) => {
+      if (agentStatuses[agent.id] === "idle") {
+        handleInvokeAgent(agent.id);
+      }
+    });
+  };
+
+  return (
+    <TooltipProvider>
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-2 text-sm text-muted-foreground animate-fade-in-up">
+          <Link href="/sessions" className="hover:text-foreground transition-colors">
+            Sessions
+          </Link>
+          <span>/</span>
+          <Link href={`/sessions/${threadId}`} className="hover:text-foreground transition-colors font-mono">
+            {threadId.slice(0, 12)}...
+          </Link>
+          <span>/</span>
+          <span className="text-foreground">Agent Tribunal</span>
+        </nav>
+
+        {/* Back link */}
+        <Link
+          href={`/sessions/${threadId}`}
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+        >
+          <ChevronLeftIcon className="size-4 group-hover:-translate-x-0.5 transition-transform" />
+          Back to Session
+        </Link>
+
+        {/* Header */}
+        <motion.header
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-start justify-between gap-4"
+        >
+          <div className="flex items-start gap-4">
+            <div className="flex items-center justify-center size-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary shadow-lg shadow-primary/10">
+              <UsersIcon className="size-7" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Agent Tribunal</h1>
+              <p className="text-muted-foreground">
+                Multi-agent synthesis for rigorous hypothesis refinement
+              </p>
+            </div>
+          </div>
+
+          <Button onClick={invokeAllAgents} className="gap-2">
+            <PlayIcon className="size-4" />
+            Invoke All Agents
+          </Button>
+        </motion.header>
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Agent Cards */}
+          <div className="lg:col-span-2 space-y-4">
+            {AGENTS.map((agent, index) => (
+              <motion.div
+                key={agent.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <AgentCard
+                  agent={agent}
+                  status={agentStatuses[agent.id]}
+                  response={responses.find((r) => r.agentId === agent.id)}
+                  onInvoke={() => handleInvokeAgent(agent.id)}
+                />
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Synthesis Sidebar */}
+          <div>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <SynthesisPanel responses={responses} disagreements={disagreements} />
+            </motion.div>
+          </div>
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }
