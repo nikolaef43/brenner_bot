@@ -6,6 +6,8 @@
  *
  * Budgets:
  * - LCP (Largest Contentful Paint): < 2.5s
+ * - INP (Interaction to Next Paint): < 500ms (lenient for test/CI environments)
+ * - CLS (Cumulative Layout Shift): < 0.25
  * - FCP (First Contentful Paint): < 1.8s
  * - TTFB (Time to First Byte): < 500ms (lenient for test/CI environments)
  * - DOM Content Loaded: < 3s
@@ -25,6 +27,8 @@ import {
 interface PerformanceBudget {
   fcp?: number; // First Contentful Paint
   lcp?: number; // Largest Contentful Paint
+  inp?: number; // Interaction to Next Paint
+  cls?: number; // Cumulative Layout Shift (unitless)
   domContentLoaded?: number;
   load?: number;
 }
@@ -32,6 +36,8 @@ interface PerformanceBudget {
 const DEFAULT_BUDGET: PerformanceBudget = {
   fcp: 1800, // 1.8s
   lcp: 2500, // 2.5s
+  inp: 500, // 0.5s (lenient CI ceiling)
+  cls: 0.25, // upper bound for "needs improvement"
   domContentLoaded: 3000, // 3s
   load: 5000, // 5s
 };
@@ -68,6 +74,11 @@ function formatMetric(value: number | undefined): string {
   if (value === undefined) return "N/A";
   if (value < 1000) return `${Math.round(value)}ms`;
   return `${(value / 1000).toFixed(2)}s`;
+}
+
+function formatCLS(value: number | undefined): string {
+  if (value === undefined) return "N/A";
+  return value.toFixed(3);
 }
 
 async function collectMetrics(
@@ -115,6 +126,9 @@ test.describe("Performance: Core Web Vitals", () => {
       console.log(`\n${name} Performance Metrics:`);
       console.log(`  FCP:  ${formatMetric(metrics.firstContentfulPaint)} (budget: ${formatMetric(budget.fcp)})`);
       console.log(`  LCP:  ${formatMetric(metrics.largestContentfulPaint)} (budget: ${formatMetric(budget.lcp)})`);
+      console.log(`  LCP element: ${metrics.lcpElement || "N/A"}`);
+      console.log(`  INP:  ${formatMetric(metrics.interactionToNextPaint)} (budget: ${formatMetric(budget.inp)})`);
+      console.log(`  CLS:  ${formatCLS(metrics.cumulativeLayoutShift)} (budget: ${formatCLS(budget.cls)})`);
       console.log(`  DCL:  ${formatMetric(metrics.domContentLoaded)} (budget: ${formatMetric(budget.domContentLoaded)})`);
       console.log(`  Load: ${formatMetric(metrics.load)} (budget: ${formatMetric(budget.load)})`);
       console.log(`  TTFB: ${formatMetric(metrics.ttfb)}`);
@@ -127,6 +141,9 @@ test.describe("Performance: Core Web Vitals", () => {
             metrics: {
               fcp: metrics.firstContentfulPaint,
               lcp: metrics.largestContentfulPaint,
+              lcpElement: metrics.lcpElement,
+              inp: metrics.interactionToNextPaint,
+              cls: metrics.cumulativeLayoutShift,
               domContentLoaded: metrics.domContentLoaded,
               load: metrics.load,
               ttfb: metrics.ttfb,
@@ -154,6 +171,22 @@ test.describe("Performance: Core Web Vitals", () => {
         if (metrics.largestContentfulPaint > budget.lcp) {
           errors.push(
             `LCP ${formatMetric(metrics.largestContentfulPaint)} exceeds budget ${formatMetric(budget.lcp)}`
+          );
+        }
+      }
+
+      if (budget.inp && metrics.interactionToNextPaint !== undefined) {
+        if (metrics.interactionToNextPaint > budget.inp) {
+          errors.push(
+            `INP ${formatMetric(metrics.interactionToNextPaint)} exceeds budget ${formatMetric(budget.inp)}`
+          );
+        }
+      }
+
+      if (budget.cls && metrics.cumulativeLayoutShift !== undefined) {
+        if (metrics.cumulativeLayoutShift > budget.cls) {
+          errors.push(
+            `CLS ${formatCLS(metrics.cumulativeLayoutShift)} exceeds budget ${formatCLS(budget.cls)}`
           );
         }
       }

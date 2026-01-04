@@ -30,6 +30,9 @@ export interface PerformanceTimingData {
   load?: number;
   firstContentfulPaint?: number;
   largestContentfulPaint?: number;
+  lcpElement?: string;
+  cumulativeLayoutShift?: number;
+  interactionToNextPaint?: number;
 }
 
 export interface NetworkContext {
@@ -179,48 +182,101 @@ export async function collectPerformanceTiming(page: Page, testTitle: string): P
   const context = getNetworkContext(testTitle);
 
   try {
-    const timing = await page.evaluate(() => {
+    const performanceData = await page.evaluate(async () => {
       const perf = window.performance;
       const navigation = perf.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
       const paint = perf.getEntriesByType("paint");
-
       const fcp = paint.find((p) => p.name === "first-contentful-paint");
+
+      const lcpData = await new Promise<{
+        value?: number;
+        element?: string;
+      }>((resolve) => {
+        try {
+          const observer = new PerformanceObserver((list) => {
+            const entries = list.getEntries();
+            const lastEntry = entries[entries.length - 1] as PerformanceEntry | undefined;
+            const lcpEntry = lastEntry as PerformanceEntry & { element?: Element };
+            const element = lcpEntry?.element;
+            const tag = element?.tagName?.toLowerCase();
+            const id = element?.id ? `#${element.id}` : "";
+            const className = typeof element?.className === "string" ? element.className : "";
+            const classes = className
+              ? `.${className.trim().split(/\s+/).filter(Boolean).slice(0, 3).join(".")}`
+              : "";
+            const text = element?.textContent?.trim().slice(0, 80);
+            const elementLabel = tag ? `${tag}${id}${classes}${text ? ` "${text}"` : ""}` : undefined;
+
+            observer.disconnect();
+            resolve({ value: lcpEntry?.startTime, element: elementLabel });
+          });
+
+          observer.observe({ type: "largest-contentful-paint", buffered: true });
+          setTimeout(() => resolve({}), 100);
+        } catch {
+          resolve({});
+        }
+      });
+
+      const cls = await new Promise<number | undefined>((resolve) => {
+        try {
+          let total = 0;
+          const observer = new PerformanceObserver((list) => {
+            const entries = list.getEntries() as Array<PerformanceEntry & { hadRecentInput?: boolean; value?: number }>;
+            for (const entry of entries) {
+              if (!entry.hadRecentInput && typeof entry.value === "number") {
+                total += entry.value;
+              }
+            }
+          });
+          observer.observe({ type: "layout-shift", buffered: true });
+          setTimeout(() => {
+            observer.disconnect();
+            resolve(total || undefined);
+          }, 100);
+        } catch {
+          resolve(undefined);
+        }
+      });
+
+      const inp = await new Promise<number | undefined>((resolve) => {
+        try {
+          let max = 0;
+          const observer = new PerformanceObserver((list) => {
+            const entries = list.getEntries() as Array<
+              PerformanceEntry & { interactionId?: number; duration?: number }
+            >;
+            for (const entry of entries) {
+              if (!entry.interactionId) continue;
+              if (typeof entry.duration === "number" && entry.duration > max) {
+                max = entry.duration;
+              }
+            }
+          });
+          observer.observe({ type: "event", buffered: true, durationThreshold: 0 });
+          setTimeout(() => {
+            observer.disconnect();
+            resolve(max || undefined);
+          }, 100);
+        } catch {
+          resolve(undefined);
+        }
+      });
 
       return {
         startTime: navigation?.startTime || 0,
         domContentLoaded: navigation?.domContentLoadedEventEnd || undefined,
         load: navigation?.loadEventEnd || undefined,
         firstContentfulPaint: fcp?.startTime || undefined,
+        largestContentfulPaint: lcpData.value,
+        lcpElement: lcpData.element,
+        cumulativeLayoutShift: cls,
+        interactionToNextPaint: inp,
       };
     });
 
-    // Try to get LCP
-    const lcp = await page.evaluate(() => {
-      return new Promise<number | undefined>((resolve) => {
-        const observer = new PerformanceObserver((list) => {
-          const entries = list.getEntries();
-          const lastEntry = entries[entries.length - 1];
-          resolve(lastEntry?.startTime);
-          observer.disconnect();
-        });
-
-        try {
-          observer.observe({ type: "largest-contentful-paint", buffered: true });
-        } catch {
-          resolve(undefined);
-        }
-
-        setTimeout(() => resolve(undefined), 100);
-      });
-    }).catch(() => undefined);
-
-    const performanceData: PerformanceTimingData = {
-      ...timing,
-      largestContentfulPaint: lcp,
-    };
-
     context.performanceTiming = performanceData;
-    console.log(`\x1b[32m  Performance: FCP=${timing.firstContentfulPaint?.toFixed(0) || "N/A"}ms, Load=${timing.load?.toFixed(0) || "N/A"}ms\x1b[0m`);
+    console.log(`\x1b[32m  Performance: FCP=${performanceData.firstContentfulPaint?.toFixed(0) || "N/A"}ms, Load=${performanceData.load?.toFixed(0) || "N/A"}ms\x1b[0m`);
 
     return performanceData;
   } catch {
