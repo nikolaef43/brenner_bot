@@ -33,6 +33,40 @@ describe("session-kickoff", () => {
   });
 
   describe("composeKickoffMessages", () => {
+    it("injects the role prompt from specs/role_prompts_v0.1.md markers when available", () => {
+      const [msg] = composeKickoffMessages({
+        threadId: "RS-20251231-demo",
+        researchQuestion: "How does X behave under Y?",
+        context: "Minimal context.",
+        excerpt: "§1: excerpt",
+        recipients: ["Codex"],
+      });
+
+      expect(msg.body).toContain("## Role Prompt (System)");
+      expect(msg.body).toContain("You are a HYPOTHESIS GENERATOR");
+    });
+
+    it("injects selected operator cards when operatorSelection is provided", () => {
+      const [msg] = composeKickoffMessages({
+        threadId: "RS-20251231-demo",
+        researchQuestion: "How does X behave under Y?",
+        context: "Minimal context.",
+        excerpt: "§1: excerpt",
+        recipients: ["Codex"],
+        operatorSelection: {
+          hypothesis_generator: ["⊞ Scale-Check", "🎭 Potency-Check"],
+          test_designer: [],
+          adversarial_critic: [],
+        },
+      });
+
+      expect(msg.body).toContain("## Operator Focus (selected)");
+      expect(msg.body).toContain("### ⊞ Scale-Check (scale-check)");
+      expect(msg.body).toContain("[OPERATOR: ⊞ Scale-Check]");
+      expect(msg.body).toContain("### 🎭 Chastity-vs-Impotence Check (potency-check)");
+      expect(msg.body).toContain("[OPERATOR: 🎭 Chastity-vs-Impotence Check]");
+    });
+
     it("uses explicit roster mapping when provided and includes roster section", () => {
       const messages = composeKickoffMessages({
         threadId: "RS-20251231-demo",
@@ -183,4 +217,3 @@ describe("session-kickoff", () => {
     });
   });
 });
-

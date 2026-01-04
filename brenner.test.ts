@@ -142,6 +142,7 @@ describe("help and usage", () => {
     expect(result.stdout).toContain("session compile");
     expect(result.stdout).toContain("session write");
     expect(result.stdout).toContain("session publish");
+    expect(result.stdout).toContain("session nudge");
   });
 
   it("usage includes environment variable documentation", async () => {
@@ -239,6 +240,18 @@ describe("cockpit start", () => {
     expect(parsed.ntm.spawn).toBeNull();
     expect(parsed.ntm.broadcast).toBeNull();
     expect(parsed.kickoff.map((k) => k.to)).toEqual(["BlueLake", "PurpleMountain", "RedForest"]);
+  });
+});
+
+// ============================================================================
+// Tests: Session Nudge
+// ============================================================================
+
+describe("session nudge", () => {
+  it("fails without --thread-id", async () => {
+    const result = await runCli(["session", "nudge"]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("Missing --thread-id");
   });
 });
 

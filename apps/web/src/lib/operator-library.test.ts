@@ -12,9 +12,11 @@ import { resolve } from "node:path";
 import {
   __private,
   getOperatorPalette,
+  parseOperatorCards,
   parseOperatorLibrary,
   readOperatorLibraryMarkdown,
   readQuoteBankMarkdown,
+  resolveOperatorCard,
   resetOperatorPaletteCache,
 } from "./operator-library";
 
@@ -57,6 +59,22 @@ describe("operator-library", () => {
         expect(operator.quoteBankAnchors).toContain(quote.sectionId);
       }
     }
+  });
+
+  it("parses operator cards including derived operators and prompt modules", async () => {
+    const repoRoot = resolve(process.cwd(), "../..");
+    const markdown = await readFile(resolve(repoRoot, "specs/operator_library_v0.1.md"), "utf8");
+
+    const cards = parseOperatorCards(markdown);
+    expect(cards.length).toBeGreaterThanOrEqual(13); // core + derived
+
+    const potency = cards.find((c) => c.symbol === "🎭");
+    expect(potency).toBeDefined();
+    expect(potency?.canonicalTag).toBe("potency-check");
+    expect(potency?.promptModule).toContain("[OPERATOR: 🎭 Chastity-vs-Impotence Check]");
+
+    const resolved = resolveOperatorCard(cards, "🎭 Potency-Check");
+    expect(resolved?.symbol).toBe("🎭");
   });
 
   it("readOperatorLibraryMarkdown reads the operator spec markdown", async () => {

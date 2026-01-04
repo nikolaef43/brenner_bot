@@ -22,6 +22,7 @@ import { CORPUS_DOCS } from "./apps/web/src/lib/corpus";
 import { globalSearch, type SearchCategory } from "./apps/web/src/lib/globalSearch";
 import type { Json } from "./apps/web/src/lib/json";
 import { parseQuoteBank } from "./apps/web/src/lib/quotebank-parser";
+import { parseOperatorCards, resolveOperatorCard, type OperatorCard } from "./apps/web/src/lib/operator-library";
 import {
   AGENT_ROLES,
   composeKickoffMessages,
@@ -1470,6 +1471,8 @@ Commands:
   session write [--project-key <abs-path>] --thread-id <id> [--out-file <path>] [--json]
   session publish [--project-key <abs-path>] --thread-id <id> [--sender <AgentName>] --to <A,B>
                 [--subject <s>] [--ack-required] [--json]
+  session nudge [--project-key <abs-path>] --thread-id <id> [--sender <AgentName>] --to <A,B>
+               [--operator <s>] [--ack-required] [--dry-run] [--json]
 
     By default, sends role-specific prompts to each recipient using name heuristics:
       - Codex/GPT → Hypothesis Generator
@@ -1724,6 +1727,181 @@ async function compileSessionArtifact(args: {
     deltas: { total_blocks: totalBlocks, valid: validCount, invalid: invalidCount },
     invalid_deltas: invalidDeltas,
   };
+}
+
+// ============================================================================
+// Lint -> Operator Recommendations (next-action guidance)
+// ============================================================================
+
+type OperatorRecommendation = {
+  violation_id: string;
+  severity: LintSeverity;
+  message: string;
+  fix: string | null;
+  operators: string[];
+  suggested_role: AgentRole | null;
+  next_action: string;
+};
+
+const LINT_OPERATOR_GUIDANCE: Record<
+  string,
+  {
+    operators: string[];
+    suggested_role: AgentRole | null;
+    next_action: string;
+  }
+> = {
+  // Hypotheses
+  "EH-001": {
+    operators: ["◊ Paradox-Hunt", "⊕ Cross-Domain", "⊘ Level-Split"],
+    suggested_role: "hypothesis_generator",
+    next_action: "Add 2-4 hypotheses (including a third alternative) with claim, mechanism, and anchors.",
+  },
+  "EH-002": {
+    operators: ["≡ Invariant-Extract", "✂ Exclusion-Test", "† Theory-Kill"],
+    suggested_role: "hypothesis_generator",
+    next_action: "Consolidate or kill hypotheses until <= 6; use invariants + exclusion tests to prune model families.",
+  },
+  "EH-003": {
+    operators: ["⊘ Level-Split", "✂ Exclusion-Test", "◊ Paradox-Hunt"],
+    suggested_role: "hypothesis_generator",
+    next_action:
+      "Add an explicit third alternative (both could be wrong / misspecified model class) and mark third_alternative: true.",
+  },
+
+  // Predictions
+  "EP-001": {
+    operators: ["⌂ Materialize", "𝓛 Recode"],
+    suggested_role: "hypothesis_generator",
+    next_action: "Add 3+ prediction rows in observable terms; ensure each row is testable and anchored.",
+  },
+  "WP-001": {
+    operators: ["𝓛 Recode", "⌂ Materialize", "✂ Exclusion-Test"],
+    suggested_role: "test_designer",
+    next_action:
+      "Rewrite prediction(s) so at least two hypotheses disagree on the observable outcome; derive forbidden patterns where possible.",
+  },
+
+  // Tests
+  "ET-001": {
+    operators: ["✂ Exclusion-Test", "⌂ Materialize", "⚡ Quickie / Pilot"],
+    suggested_role: "test_designer",
+    next_action: "Add 2+ discriminative tests with clear procedures, expected outcomes per hypothesis, potency checks, and scores.",
+  },
+  "ET-002": {
+    operators: ["⌂ Materialize"],
+    suggested_role: "test_designer",
+    next_action: "Specify a step-by-step procedure with a concrete measurement/readout.",
+  },
+  "ET-003": {
+    operators: ["⌂ Materialize", "⊘ Level-Split"],
+    suggested_role: "test_designer",
+    next_action: "Add expected_outcomes mapping (H1/H2/...) and ensure outcomes are level-typed and discriminative.",
+  },
+  "WT-001": {
+    operators: ["🎭 Potency-Check"],
+    suggested_role: "test_designer",
+    next_action: "Add potency_check positive controls to distinguish assay failure (impotence) from no effect (chastity).",
+  },
+
+  // Assumptions / scale
+  "EA-001": {
+    operators: ["≡ Invariant-Extract", "⊞ Scale-Check"],
+    suggested_role: "adversarial_critic",
+    next_action: "Add 3+ load-bearing assumptions; include at least one explicit scale/physics assumption.",
+  },
+  "EA-002": {
+    operators: ["⊞ Scale-Check"],
+    suggested_role: "adversarial_critic",
+    next_action: "Add a scale_check: true assumption with explicit numbers/units and what it would rule out if violated.",
+  },
+  "WA-003": {
+    operators: ["⊞ Scale-Check"],
+    suggested_role: "adversarial_critic",
+    next_action: "Add a calculation field with explicit numbers and units (order-of-magnitude is OK).",
+  },
+
+  // Critique / third alternative
+  "EC-001": {
+    operators: ["ΔE Exception-Quarantine", "† Theory-Kill", "⊞ Scale-Check"],
+    suggested_role: "adversarial_critic",
+    next_action: "Add 2+ critiques focusing on framing failure modes, scale impossibilities, and explicit theory-kill conditions.",
+  },
+  "WC-001": {
+    operators: ["◊ Paradox-Hunt", "⊕ Cross-Domain"],
+    suggested_role: "adversarial_critic",
+    next_action: "Propose a specific alternative framing and mark real_third_alternative: true on at least one critique.",
+  },
+};
+
+function deriveOperatorRecommendations(lint: LintReport): OperatorRecommendation[] {
+  const recommendations: OperatorRecommendation[] = [];
+
+  for (const v of lint.violations) {
+    // Keep the list focused on fix-worthy issues
+    if (v.severity === "info") continue;
+
+    const guidance = LINT_OPERATOR_GUIDANCE[v.id];
+    if (!guidance) continue;
+
+    recommendations.push({
+      violation_id: v.id,
+      severity: v.severity,
+      message: v.message,
+      fix: v.fix ?? null,
+      operators: guidance.operators,
+      suggested_role: guidance.suggested_role,
+      next_action: guidance.next_action,
+    });
+  }
+
+  return recommendations;
+}
+
+function pickTopLintGap(lint: LintReport): LintViolation | null {
+  if (lint.violations.length === 0) return null;
+  // violations are already sorted by severity in lintArtifact()
+  return lint.violations[0] ?? null;
+}
+
+function formatOperatorRecommendationsHuman(recommendations: OperatorRecommendation[]): string | null {
+  if (recommendations.length === 0) return null;
+
+  const lines: string[] = [];
+  lines.push("Recommended Next Operators");
+  lines.push("==========================");
+
+  for (const rec of recommendations.slice(0, 8)) {
+    const role = rec.suggested_role ? ` → suggested role: ${rec.suggested_role}` : "";
+    lines.push(`- ${rec.violation_id} (${rec.severity}): ${rec.operators.join(", ")}${role}`);
+    lines.push(`  next: ${rec.next_action}`);
+  }
+
+  return lines.join("\n");
+}
+
+const ROLE_DELTA_SUBJECT_TAG: Record<AgentRole, string> = {
+  hypothesis_generator: "gpt",
+  test_designer: "opus",
+  adversarial_critic: "gemini",
+};
+
+function loadOperatorCardsFromProject(projectKey: string): OperatorCard[] {
+  const candidates = [
+    resolve(projectKey, "specs/operator_library_v0.1.md"),
+    resolve(projectKey, "apps/web/public/_corpus/specs/operator_library_v0.1.md"),
+  ];
+
+  for (const path of candidates) {
+    if (!existsSync(path)) continue;
+    const md = readTextFile(path);
+    return parseOperatorCards(md);
+  }
+
+  throw new Error(
+    `Operator library not found. Expected one of:\n` +
+      candidates.map((c) => `- ${c}`).join("\n"),
+  );
 }
 
 // ============================================================================
@@ -6449,13 +6627,17 @@ ${JSON.stringify(delta, null, 2)}
       process.exit(1);
     }
 
+    const operatorRecommendations = deriveOperatorRecommendations(result.lint);
+
     if (outFile) {
       mkdirSync(dirname(outFile), { recursive: true });
       writeFileSync(outFile, result.markdown, "utf8");
     }
 
     if (jsonMode) {
-      const payload = outFile ? { ...result, out_file: outFile } : result;
+      const payload = outFile
+        ? { ...result, out_file: outFile, operator_recommendations: operatorRecommendations }
+        : { ...result, operator_recommendations: operatorRecommendations };
       stdoutLine(JSON.stringify(payload, null, 2));
       process.exit(0);
     }
@@ -6479,6 +6661,8 @@ ${JSON.stringify(delta, null, 2)}
     }
 
     stderrLine(formatLintReportHuman(result.lint, `artifact v${result.version}`));
+    const recText = formatOperatorRecommendationsHuman(operatorRecommendations);
+    if (recText) stderrLine(recText);
     process.exit(0);
   }
 
@@ -6507,10 +6691,14 @@ ${JSON.stringify(delta, null, 2)}
     writeFileSync(outFile, result.markdown, "utf8");
 
     if (jsonMode) {
-      stdoutLine(JSON.stringify({ ...result, out_file: outFile }, null, 2));
+      stdoutLine(
+        JSON.stringify({ ...result, out_file: outFile, operator_recommendations: deriveOperatorRecommendations(result.lint) }, null, 2)
+      );
     } else {
       stderrLine(`Wrote artifact to ${outFile}.`);
       stderrLine(formatLintReportHuman(result.lint, `artifact v${result.version}`));
+      const recText = formatOperatorRecommendationsHuman(deriveOperatorRecommendations(result.lint));
+      if (recText) stderrLine(recText);
     }
 
     process.exit(0);
@@ -6561,12 +6749,186 @@ ${JSON.stringify(delta, null, 2)}
       ack_required: ackRequired,
     });
 
-    const payload = { compiled, send: sendResult };
+    const payload = { compiled, send: sendResult, operator_recommendations: deriveOperatorRecommendations(compiled.lint) };
     if (jsonMode) {
       stdoutLine(JSON.stringify(payload, null, 2));
     } else {
       stdoutLine(JSON.stringify(sendResult, null, 2));
       stderrLine(formatLintReportHuman(compiled.lint, `artifact v${compiled.version}`));
+      const recText = formatOperatorRecommendationsHuman(deriveOperatorRecommendations(compiled.lint));
+      if (recText) stderrLine(recText);
+    }
+
+    process.exit(isToolError(sendResult) ? 1 : 0);
+  }
+
+  if (normalizedTop === "session" && sub === "nudge") {
+    const client = new AgentMailClient(runtimeConfig.agentMail);
+    const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
+    const threadId = asStringFlag(flags, "thread-id");
+    if (!threadId) throw new Error("Missing --thread-id.");
+
+    let sender = asStringFlag(flags, "sender") ?? process.env.AGENT_NAME;
+    if (!sender) throw new Error("Missing --sender (or set AGENT_NAME).");
+
+    const to = splitCsv(asStringFlag(flags, "to"));
+    if (to.length === 0) throw new Error("Missing --to <A,B>.");
+
+    const operatorQueryRaw = asStringFlag(flags, "operator")?.trim();
+    const ackRequired = asBoolFlag(flags, "ack-required");
+    const dryRun = asBoolFlag(flags, "dry-run");
+    const jsonMode = asBoolFlag(flags, "json");
+
+    // Ensure project + sender identity exist (before reading thread)
+    await client.toolsCall("ensure_project", { human_key: projectKey });
+    const registerResult = await client.toolsCall("register_agent", {
+      project_key: projectKey,
+      name: sender,
+      program: "brenner-cli",
+      model: "orchestrator",
+      task_description: `Brenner Protocol nudge: ${threadId}`,
+    });
+    const actualName = parseAgentNameFromToolResult(registerResult);
+    if (actualName && actualName !== sender) {
+      stderrLine(`Agent Mail assigned sender name "${actualName}" (requested "${sender}").`);
+      sender = actualName;
+    }
+
+    const compiled = await compileSessionArtifact({ client, projectKey, threadId });
+    if (!compiled.ok) {
+      stdoutLine(JSON.stringify(compiled, null, 2));
+      process.exit(1);
+    }
+
+    const operatorRecommendations = deriveOperatorRecommendations(compiled.lint);
+    const topGap = pickTopLintGap(compiled.lint);
+
+    const operatorQuery =
+      operatorQueryRaw ?? (operatorRecommendations[0]?.operators[0] ? operatorRecommendations[0].operators[0] : null);
+
+    if (!operatorQuery) {
+      throw new Error(
+        "No operator specified and no operator recommendation available for this artifact. Pass --operator <symbol|tag|name>.",
+      );
+    }
+
+    const operatorCards = loadOperatorCardsFromProject(projectKey);
+    const operatorCard = resolveOperatorCard(operatorCards, operatorQuery);
+    if (!operatorCard) {
+      throw new Error(
+        `Unknown operator "${operatorQuery}". Use a symbol (e.g. ⊞), canonical tag (e.g. scale-check), or operator title.`,
+      );
+    }
+
+    const matchingRecommendation = operatorRecommendations.find((rec) =>
+      rec.operators.some((op) => op === operatorQuery || op.startsWith(`${operatorCard.symbol} `) || op === operatorCard.symbol),
+    );
+
+    const suggestedRole = matchingRecommendation?.suggested_role ?? null;
+    const suggestedDeltaTag = suggestedRole ? ROLE_DELTA_SUBJECT_TAG[suggestedRole] : null;
+
+    const bodyLines: string[] = [];
+    bodyLines.push(`# Nudge: Apply ${operatorCard.symbol} ${operatorCard.title}`);
+    bodyLines.push("");
+    bodyLines.push(`Thread: ${threadId}`);
+    bodyLines.push(`Compiled artifact: v${compiled.version} (${compiled.lint.valid ? "lint VALID" : "lint INVALID"})`);
+    bodyLines.push("");
+
+    if (topGap) {
+      bodyLines.push("## Top lint gap");
+      bodyLines.push(`- ID: ${topGap.id}`);
+      bodyLines.push(`- Severity: ${topGap.severity}`);
+      bodyLines.push(`- Message: ${topGap.message}`);
+      if (topGap.fix) bodyLines.push(`- Fix: ${topGap.fix}`);
+      bodyLines.push("");
+    }
+
+    bodyLines.push("## Operator module (copy/paste)");
+    if (operatorCard.promptModule) {
+      bodyLines.push("```text");
+      bodyLines.push(operatorCard.promptModule.trim());
+      bodyLines.push("```");
+    } else {
+      bodyLines.push("_No prompt module found in the operator library for this operator._");
+    }
+    bodyLines.push("");
+
+    bodyLines.push("## Instructions");
+    if (suggestedRole && suggestedDeltaTag) {
+      bodyLines.push(`- Suggested role: ${suggestedRole} (reply with subject \`DELTA[${suggestedDeltaTag}]: <description>\`).`);
+    } else {
+      bodyLines.push("- Reply in-thread with subject `DELTA[role]: <description>` and include your delta blocks.");
+    }
+    bodyLines.push("- Close the lint gap directly; say which operator you applied and what changed.");
+    bodyLines.push("");
+
+    const subject = `NUDGE: [${threadId}] ${operatorCard.symbol} ${operatorCard.title}`;
+    const bodyMd = bodyLines.join("\n");
+
+    if (dryRun) {
+      const payload = {
+        ok: true,
+        dry_run: true,
+        threadId,
+        compiled_version: compiled.version,
+        operator: {
+          query: operatorQuery,
+          resolved: {
+            kind: operatorCard.kind,
+            symbol: operatorCard.symbol,
+            title: operatorCard.title,
+            canonicalTag: operatorCard.canonicalTag,
+          },
+        },
+        top_lint_gap: topGap ?? null,
+        operator_recommendations: operatorRecommendations,
+        message: { to, subject, body_md: bodyMd },
+      };
+
+      if (jsonMode) {
+        stdoutLine(JSON.stringify(payload, null, 2));
+      } else {
+        stderrLine(`Dry run: would send nudge to ${to.join(", ")}.`);
+        stdoutLine(bodyMd);
+      }
+
+      process.exit(0);
+    }
+
+    const sendResult = await client.toolsCall("send_message", {
+      project_key: projectKey,
+      sender_name: sender,
+      to,
+      subject,
+      body_md: bodyMd,
+      thread_id: threadId,
+      ack_required: ackRequired,
+    });
+
+    const payload = {
+      ok: true,
+      threadId,
+      compiled_version: compiled.version,
+      operator: {
+        query: operatorQuery,
+        resolved: {
+          kind: operatorCard.kind,
+          symbol: operatorCard.symbol,
+          title: operatorCard.title,
+          canonicalTag: operatorCard.canonicalTag,
+        },
+      },
+      top_lint_gap: topGap ?? null,
+      operator_recommendations: operatorRecommendations,
+      send: sendResult,
+    };
+
+    if (jsonMode) {
+      stdoutLine(JSON.stringify(payload, null, 2));
+    } else {
+      stdoutLine(JSON.stringify(sendResult, null, 2));
+      stderrLine(`Sent nudge: ${operatorCard.symbol} ${operatorCard.title} → ${to.join(", ")}`);
+      if (topGap) stderrLine(`Top lint gap: ${topGap.id} (${topGap.severity})`);
     }
 
     process.exit(isToolError(sendResult) ? 1 : 0);
