@@ -67,14 +67,9 @@ function LearningObjectives({ items }: { items: string[] }) {
           <span className="text-sm font-semibold text-primary">What you&apos;ll learn</span>
           <span className="ml-2 text-xs text-primary/60">({items.length} objectives)</span>
         </div>
-        <motion.div
-          className="text-primary/50"
-          initial={false}
-          animate={{ rotate: 0 }}
-          transition={{ duration: 0.2 }}
-        >
+        <div className="text-primary/50">
           <ChevronRight className="size-4 transition-transform group-data-[state=open]/learn:rotate-90" />
-        </motion.div>
+        </div>
       </CollapsibleTrigger>
       <CollapsibleContent>
         <motion.ul

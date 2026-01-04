@@ -375,8 +375,9 @@ function SidebarProgress({
                     {step.title}
                   </div>
                   <AnimatePresence mode="wait">
-                    {isCurrent && (
+                    {isCurrent && !isCompleted && (
                       <motion.div
+                        key="in-progress"
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
@@ -387,6 +388,7 @@ function SidebarProgress({
                     )}
                     {isCompleted && (
                       <motion.div
+                        key="complete"
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
@@ -522,7 +524,6 @@ function HeaderProgress({
           className
         )}
         aria-label="Tutorial progress"
-        style={{ x: swipeOffset }}
         animate={{ x: swipeOffset }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
       >
