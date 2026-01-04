@@ -100,7 +100,8 @@ function sortSessions(
         comparison = b.confidence - a.confidence;
         break;
       case "phase":
-        comparison = (PHASE_ORDER[a.phase] ?? 0) - (PHASE_ORDER[b.phase] ?? 0);
+        // Higher phase number = more progressed, should come first in "desc"
+        comparison = (PHASE_ORDER[b.phase] ?? 0) - (PHASE_ORDER[a.phase] ?? 0);
         break;
     }
 

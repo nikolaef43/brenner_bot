@@ -133,6 +133,20 @@ interface DeleteConfirmModalProps {
 }
 
 function DeleteConfirmModal({ sessionId, isOpen, onClose, onConfirm }: DeleteConfirmModalProps) {
+  // Handle Escape key to close modal
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
@@ -140,10 +154,7 @@ function DeleteConfirmModal({ sessionId, isOpen, onClose, onConfirm }: DeleteCon
       <div
         className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
-        onKeyDown={(e) => e.key === "Escape" && onClose()}
-        role="button"
-        tabIndex={0}
-        aria-label="Close modal"
+        aria-hidden="true"
       />
       <div className="relative z-10 w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl animate-fade-in-up">
         <h3 className="text-lg font-semibold text-foreground">Delete Session?</h3>
