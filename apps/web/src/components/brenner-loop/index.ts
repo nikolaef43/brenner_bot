@@ -28,3 +28,9 @@ export type { SessionListProps } from "./SessionList";
 
 export { SessionCard } from "./SessionCard";
 export type { SessionCardProps } from "./SessionCard";
+
+export { HypothesisGraveyard } from "./HypothesisGraveyard";
+export type { HypothesisGraveyardProps } from "./HypothesisGraveyard";
+
+export { FalsificationCeremony } from "./FalsificationCeremony";
+export type { FalsificationCeremonyProps, FalsificationCeremonyResult } from "./FalsificationCeremony";

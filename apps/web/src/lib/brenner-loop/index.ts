@@ -593,3 +593,61 @@ export {
   getFallbackContent,
   getDispatchStatus,
 } from "./agents";
+
+// ============================================================================
+// Hypothesis Graveyard (bead an1n.7)
+// ============================================================================
+
+export type {
+  // Core types
+  DeathType,
+  FalsificationLearning,
+  FalsifiedHypothesis,
+
+  // Validation types
+  GraveyardValidationResult,
+  GraveyardValidationError,
+  GraveyardValidationWarning,
+  GraveyardValidationErrorCode,
+  GraveyardValidationWarningCode,
+
+  // Statistics types
+  GraveyardStats,
+  FailurePattern,
+} from "./graveyard";
+
+export {
+  // Constants
+  DEATH_TYPE_LABELS,
+  DEATH_TYPE_DESCRIPTIONS,
+  DEATH_TYPE_ICONS,
+  BRENNER_FALSIFICATION_QUOTES,
+  GRAVEYARD_ID_PATTERN,
+
+  // Type guards
+  isDeathType,
+  isFalsifiedHypothesis,
+
+  // Validation
+  validateFalsifiedHypothesis,
+
+  // Factory functions
+  generateGraveyardId,
+  createFalsifiedHypothesis,
+
+  // Operations
+  addSuccessor,
+  addContributedTo,
+  updateEpitaph,
+  updateLearning,
+
+  // Statistics & Analysis
+  calculateGraveyardStats,
+  analyzeFailurePatterns,
+
+  // Display helpers
+  getRandomBrennerQuote,
+  getDeathTypeDisplay,
+  formatFalsificationDate,
+  summarizeFalsification,
+} from "./graveyard";
