@@ -264,7 +264,10 @@ describe("LocalStorageSessionStorage", () => {
     });
 
     test("should not throw for non-existent session", async () => {
-      await expect(storage.delete("non-existent")).resolves.not.toThrow();
+      // Should complete without throwing
+      await storage.delete("non-existent");
+      // If we get here, the test passed
+      expect(true).toBe(true);
     });
   });
 
