@@ -57,6 +57,10 @@ export type {
   PathStatus,
 } from "./TutorialPathCard";
 
+// Prompt cards
+export { PromptCard, PromptListItem } from "./PromptCard";
+export type { PromptCardProps, PromptListItemProps } from "./PromptCard";
+
 // Re-export types from lib
 export type {
   TutorialPath,

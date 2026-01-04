@@ -25,3 +25,6 @@ export type { SessionDashboardProps } from "./SessionDashboard";
 
 export { SessionList } from "./SessionList";
 export type { SessionListProps } from "./SessionList";
+
+export { SessionCard } from "./SessionCard";
+export type { SessionCardProps } from "./SessionCard";
