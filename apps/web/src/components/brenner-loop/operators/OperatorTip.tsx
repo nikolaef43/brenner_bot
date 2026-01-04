@@ -82,7 +82,7 @@ function InlineTip({
   className,
 }: InlineTipProps) {
   const [expanded, setExpanded] = React.useState(!defaultCollapsed);
-  const hasExpandableContent = showExample && tip.example || showAntiPattern && tip.antiPattern;
+  const hasExpandableContent = (showExample && tip.example) || (showAntiPattern && tip.antiPattern);
 
   const content = (
     <>

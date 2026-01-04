@@ -12,10 +12,9 @@
  */
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   HelpCircle,
-  X,
   BookOpen,
   Lightbulb,
   AlertTriangle,
@@ -121,7 +120,6 @@ export function OperatorHelpPanel({
   currentStepId,
   className,
 }: OperatorHelpPanelProps) {
-  const metadata = OPERATOR_METADATA[operatorType];
   const docs = getOperatorDocumentation(operatorType);
   const currentTip = currentStepId ? getStepTip(operatorType, currentStepId) : undefined;
 
