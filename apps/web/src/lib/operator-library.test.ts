@@ -47,6 +47,39 @@ describe("operator-library", () => {
     }
   });
 
+  it("parseOperatorLibrary excludes prompt-module bullets from failure modes", () => {
+    const markdown = [
+      "## Core Operators",
+      "",
+      "### ⊘ Level-Split",
+      "",
+      "**Definition**:",
+      "X",
+      "",
+      "**When-to-Use Triggers**:",
+      "- A",
+      "",
+      "**Failure Modes**:",
+      "- Real failure mode",
+      "",
+      "**Prompt module (copy/paste)**:",
+      "~~~text",
+      "- hypothesis_slate (ADD)",
+      "~~~",
+      "",
+      "**Canonical tag**: `level-split`",
+      "",
+      "**Quote-bank anchors**: §1",
+      "",
+      "**Transcript Anchors**: §1",
+      "",
+      "## Derived Operators",
+    ].join("\n");
+
+    const operators = parseOperatorLibrary(markdown);
+    expect(operators[0]?.failureModes).toEqual(["Real failure mode"]);
+  });
+
   it("links each operator to at least one supporting quote", async () => {
     resetOperatorPaletteCache(); // Clear any cached data from other tests
     const palette = await getOperatorPalette();

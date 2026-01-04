@@ -48,82 +48,90 @@ const CheckCircleIcon = () => (
 const steps = [
   {
     number: 1,
-    title: "Set Up Your Agent",
-    duration: "~5 min",
-    description: "Configure Claude Code or Codex CLI with the brenner.ts metaprompt for research-oriented reasoning.",
+    title: "Why Agent-Assisted?",
+    duration: "~3 min",
+    href: "/tutorial/agent-assisted/1",
+    description: "Understand the leverage of having AI internalize methodology, not just follow instructions.",
     whatYouLearn: [
-      "How to inject domain expertise into your coding agent",
-      "The metaprompt structure for research workflows",
+      "Why agents that internalize methodology outperform prompt-following",
+      "The human-AI collaboration model for research",
     ],
   },
   {
     number: 2,
-    title: "Ingest the Brenner Corpus",
-    duration: "~10 min",
-    description: "Have your agent read and index the transcript distillations and operator library.",
+    title: "Prerequisites",
+    duration: "~5 min",
+    href: "/tutorial/agent-assisted/2",
+    description: "Verify you have Claude Code or Codex installed and ready to go.",
     whatYouLearn: [
-      "How agents build working memory from corpus documents",
-      "Which documents to prioritize for which research styles",
+      "How to verify your coding agent is installed",
+      "The subscription requirements for each tool",
     ],
   },
   {
     number: 3,
-    title: "Present Your Research Question",
-    duration: "~3 min",
-    description: "Describe your research problem in natural language. Let the agent help structure it.",
+    title: "Clone into Agent Context",
+    duration: "~5 min",
+    href: "/tutorial/agent-assisted/3",
+    description: "Clone the BrennerBot repository and give your agent access to the codebase.",
     whatYouLearn: [
-      "How to frame questions for maximum agent utility",
-      "The difference between human and agent question framing",
+      "How to give your agent access to the Brenner corpus",
+      "The key files your agent will read",
     ],
   },
   {
     number: 4,
-    title: "Collaborative Hypothesis Generation",
+    title: "Agent Studies the System",
     duration: "~10 min",
-    description: "Work with your agent to generate and refine hypotheses using Brenner operators.",
+    href: "/tutorial/agent-assisted/4",
+    description: "Have your agent systematically study the Brenner documentation and internalize the methodology.",
     whatYouLearn: [
-      "Level-splitting for hypothesis refinement",
-      "Object transposition for alternative generation",
+      "How to have your agent build a working understanding",
+      "What the agent should extract from each document",
     ],
   },
   {
     number: 5,
-    title: "Agent-Guided Test Design",
-    duration: "~10 min",
-    description: "Let your agent propose discriminative tests and help identify weaknesses in your approach.",
+    title: "Define Your Research Problem",
+    duration: "~5 min",
+    href: "/tutorial/agent-assisted/5",
+    description: "Formulate your research question and have the agent help refine it using Brenner criteria.",
     whatYouLearn: [
-      "How agents can surface blind spots",
-      "The role of adversarial feedback in hypothesis strengthening",
+      "Brenner's criteria for good research questions",
+      "How to sharpen vague questions into testable ones",
     ],
   },
   {
     number: 6,
-    title: "Execute and Document",
-    duration: "~5 min",
-    description: "Run your tests (or thought experiments) and have the agent help document findings.",
+    title: "Agent Builds the Inputs",
+    duration: "~10 min",
+    href: "/tutorial/agent-assisted/6",
+    description: "Generate hypothesis slate, assumption ledger, and third alternatives using Brenner operators.",
     whatYouLearn: [
-      "Structured documentation formats for research",
-      "How to create reusable research artifacts",
+      "What artifacts the Brenner loop requires",
+      "How the agent uses operators to generate alternatives",
     ],
   },
   {
     number: 7,
-    title: "Iterate with Agent Memory",
-    duration: "~5 min",
-    description: "Use the agent's session memory to build on previous iterations without repeating context.",
+    title: "Agent Runs the Brenner Loop",
+    duration: "~10 min",
+    href: "/tutorial/agent-assisted/7",
+    description: "Full loop execution: generate discriminative tests, rank by potency, identify exclusions.",
     whatYouLearn: [
-      "Long-context research workflows",
-      "How to maintain research continuity across sessions",
+      "How to design tests that distinguish hypotheses",
+      "What makes a test 'potent' vs. weak",
     ],
   },
   {
     number: 8,
-    title: "Export Your Research Brief",
-    duration: "~2 min",
-    description: "Generate a structured research brief from your agent-assisted session.",
+    title: "Human Review",
+    duration: "~5 min",
+    href: "/tutorial/agent-assisted/8",
+    description: "Work through an interactive checklist to evaluate output quality before using results.",
     whatYouLearn: [
-      "The Research Brief format",
-      "How to share agent-assisted research with collaborators",
+      "How to evaluate agent-generated research artifacts",
+      "Common failure modes and how to fix them",
     ],
   },
 ];
@@ -160,7 +168,7 @@ export default function AgentAssistedPage() {
           </div>
 
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs sm:text-sm font-medium">
-            Intermediate Path
+            Highest-Leverage Path
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
@@ -168,14 +176,14 @@ export default function AgentAssistedPage() {
           </h1>
 
           <p className="max-w-xl mx-auto text-base sm:text-lg text-muted-foreground leading-relaxed">
-            Let your AI coding agent learn and apply the methodology alongside you.
-            The highest-leverage path for power users.
+            Let your AI coding agent internalize and apply the Brenner methodology.
+            The most powerful path for users with Claude Code or Codex.
           </p>
 
           <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <ClockIcon />
-              ~45 min
+              ~50 min
             </span>
             <span>•</span>
             <span>8 steps</span>
@@ -210,7 +218,7 @@ export default function AgentAssistedPage() {
       <section className="px-4 sm:px-0">
         <div className="max-w-3xl mx-auto space-y-8">
           <div className="text-center space-y-2">
-            <h2 className="text-xl sm:text-2xl font-semibold">What You&apos;ll Do</h2>
+            <h2 className="text-xl sm:text-2xl font-semibold">Tutorial Steps</h2>
             <p className="text-sm text-muted-foreground">
               Eight steps to agent-augmented research
             </p>
@@ -218,12 +226,13 @@ export default function AgentAssistedPage() {
 
           <div className="space-y-4">
             {steps.map((step, index) => (
-              <div
+              <Link
                 key={step.number}
-                className="group relative flex gap-4 p-4 sm:p-6 rounded-xl border border-border bg-card hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5 transition-all"
+                href={step.href}
+                className="group relative flex gap-4 p-4 sm:p-6 rounded-xl border border-border bg-card hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5 transition-all block"
               >
                 {/* Step number */}
-                <div className="flex-shrink-0 flex items-center justify-center size-10 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold">
+                <div className="flex-shrink-0 flex items-center justify-center size-10 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold group-hover:bg-amber-500/20 transition-colors">
                   {step.number}
                 </div>
 
@@ -252,11 +261,16 @@ export default function AgentAssistedPage() {
                   </div>
                 </div>
 
+                {/* Arrow indicator */}
+                <div className="flex-shrink-0 self-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <ArrowRightIcon />
+                </div>
+
                 {/* Connection line to next step */}
                 {index < steps.length - 1 && (
                   <div className="absolute left-[36px] top-full h-4 w-px bg-gradient-to-b from-border to-transparent" />
                 )}
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -265,24 +279,24 @@ export default function AgentAssistedPage() {
       {/* CTA */}
       <section className="py-8 px-4 sm:px-0">
         <div className="max-w-xl mx-auto text-center space-y-6 p-8 rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/5 via-amber-500/10 to-accent/5">
-          <h3 className="text-xl font-semibold">Coming Soon</h3>
+          <h3 className="text-xl font-semibold">Ready to Begin?</h3>
           <p className="text-sm text-muted-foreground">
-            The full interactive tutorial with step-by-step guidance is under development.
-            In the meantime, explore the method documentation or try the Quick Start path.
+            Start with Step 1 to understand what makes agent-assisted research different,
+            then proceed through the tutorial at your own pace.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
-              href="/tutorial/quick-start"
-              className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] touch-manipulation"
+              href="/tutorial/agent-assisted/1"
+              className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-amber-500 text-white font-medium shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] touch-manipulation"
             >
-              Try Quick Start
+              Start Tutorial
               <ArrowRightIcon />
             </Link>
             <Link
-              href="/method"
+              href="/tutorial/quick-start"
               className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-border bg-card text-foreground font-medium shadow-sm hover:shadow-md hover:border-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] touch-manipulation"
             >
-              Explore the Method
+              Try Quick Start Instead
               <ArrowRightIcon />
             </Link>
           </div>

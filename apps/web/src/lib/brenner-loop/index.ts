@@ -482,7 +482,8 @@ export type {
   ResearchBriefStatus,
   ResearchBriefMetadata,
   HypothesisStatement,
-  HypothesisEvolution,
+  // Note: HypothesisEvolution omitted - already exported from types.ts
+  // The artifacts version uses a different shape for template rendering
   DiscriminativeStructure,
   OperatorAppliedSummary,
   AgentAnalysis,

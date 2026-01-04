@@ -181,7 +181,7 @@ export function parseOperatorLibrary(markdown: string): OperatorDefinition[] {
       /\*\*When-to-Use Triggers\*\*:\s*\n([\s\S]*?)\n\n\*\*Failure Modes\*\*:/m
     );
     const failureModesMatch = block.match(
-      /\*\*Failure Modes\*\*:\s*\n([\s\S]*?)\n\n\*\*Canonical tag\*\*:/m
+      /\*\*Failure Modes\*\*:\s*\n([\s\S]*?)\n\n\*\*(?:Prompt module \(copy\/paste\)\*\*|Canonical tag\*\*):/m
     );
     const canonicalTagMatch = block.match(/\*\*Canonical tag\*\*:\s*`([^`]+)`/m);
     const quoteBankAnchorsMatch = block.match(/\*\*Quote-bank anchors\*\*:\s*([^\n]+)/m);
