@@ -527,7 +527,13 @@ function ProtocolEditor({ test, protocol, onChange }: ProtocolEditorProps) {
                 <Input
                   value={protocol.dataSources.join(", ")}
                   onChange={(e) =>
-                    onChange({ ...protocol, dataSources: e.target.value.split(", ").filter(Boolean) })
+                    onChange({
+                      ...protocol,
+                      dataSources: e.target.value
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean),
+                    })
                   }
                   placeholder="Public datasets, surveys, existing studies..."
                   className="mt-1"
@@ -561,7 +567,13 @@ function ProtocolEditor({ test, protocol, onChange }: ProtocolEditorProps) {
                 <Input
                   value={protocol.limitations.join(", ")}
                   onChange={(e) =>
-                    onChange({ ...protocol, limitations: e.target.value.split(", ").filter(Boolean) })
+                    onChange({
+                      ...protocol,
+                      limitations: e.target.value
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean),
+                    })
                   }
                   placeholder="What could go wrong or confound results?"
                   className="mt-1"
@@ -719,13 +731,37 @@ export function ExclusionTestSession({
   }, [currentStepConfig?.id, getContent, getSelection, setSelection]);
 
   // Generate protocols when entering protocol step
+  // Must regenerate if selected tests changed (e.g., user went back and selected more)
   React.useEffect(() => {
     if (currentStepConfig?.id === EXCLUSION_TEST_STEP_IDS.GENERATE_PROTOCOLS) {
       const selectedTests = getSelection<ExclusionTest[]>(EXCLUSION_TEST_STEP_IDS.SELECT_TESTS) ?? [];
-      const existingProtocols = getContent<TestProtocol[]>(EXCLUSION_TEST_STEP_IDS.GENERATE_PROTOCOLS);
+      const existingProtocols = getContent<TestProtocol[]>(EXCLUSION_TEST_STEP_IDS.GENERATE_PROTOCOLS) ?? [];
+      const testsNeedingProtocols = selectedTests.filter((t) => t.selected);
 
-      if (!existingProtocols) {
-        const protocols = generateProtocols(selectedTests);
+      // Check if we need to regenerate: no protocols, or selected tests changed
+      const existingTestIds = new Set(existingProtocols.map((p) => p.testId));
+      const selectedTestIds = testsNeedingProtocols.map((t) => t.id);
+      const needsRegeneration =
+        existingProtocols.length === 0 ||
+        selectedTestIds.some((id) => !existingTestIds.has(id));
+
+      if (needsRegeneration) {
+        // Preserve any existing protocol data for tests that already have protocols
+        const existingProtocolMap = new Map(existingProtocols.map((p) => [p.testId, p]));
+        const protocols = testsNeedingProtocols.map((test) => {
+          const existing = existingProtocolMap.get(test.id);
+          if (existing) return existing;
+          return {
+            testId: test.id,
+            dataRequired: "",
+            dataSources: [],
+            passingCriteria: test.supportCondition,
+            failingCriteria: test.falsificationCondition,
+            limitations: [],
+            estimatedEffort: test.feasibility === "high" ? "days" : test.feasibility === "medium" ? "weeks" : "months",
+            notes: "",
+          } as TestProtocol;
+        });
         setContent(EXCLUSION_TEST_STEP_IDS.GENERATE_PROTOCOLS, protocols);
       }
     }
