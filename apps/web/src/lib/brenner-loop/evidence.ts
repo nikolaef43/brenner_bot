@@ -115,10 +115,15 @@ export function isEvidenceResult(value: unknown): value is EvidenceResult {
 export type DiscriminativePower = 1 | 2 | 3 | 4 | 5;
 
 /**
+ * Valid discriminative power values for type guard
+ */
+const VALID_DISCRIMINATIVE_POWERS: readonly number[] = [1, 2, 3, 4, 5];
+
+/**
  * Type guard for DiscriminativePower
  */
 export function isDiscriminativePower(value: unknown): value is DiscriminativePower {
-  return typeof value === "number" && [1, 2, 3, 4, 5].includes(value);
+  return typeof value === "number" && VALID_DISCRIMINATIVE_POWERS.includes(value);
 }
 
 /**
@@ -661,22 +666,30 @@ export function isEvidenceEntry(obj: unknown): obj is EvidenceEntry {
 // ============================================================================
 
 /**
+ * Pattern for valid session IDs in evidence entries.
+ * Allows alphanumeric characters and hyphens, must start with alphanumeric.
+ */
+const SESSION_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9-]*$/;
+
+/**
  * Pattern for EvidenceEntry IDs.
  * Format: EV-{sessionId}-{sequence}
  */
-const EVIDENCE_ID_PATTERN = /^EV-[A-Za-z0-9-]+-\d{3}$/;
+export const EVIDENCE_ID_PATTERN = /^EV-[A-Za-z0-9][A-Za-z0-9-]*-\d{3}$/;
 
 /**
  * Generate a new EvidenceEntry ID.
  *
- * @param sessionId - The session this evidence belongs to
+ * @param sessionId - The session this evidence belongs to (alphanumeric with hyphens)
  * @param sequence - The sequence number within the session (0-999)
  * @returns A formatted evidence ID
  * @throws Error if inputs are invalid
  */
 export function generateEvidenceId(sessionId: string, sequence: number): string {
-  if (!sessionId || sessionId.trim().length === 0) {
-    throw new Error("Session ID is required");
+  if (!sessionId || !SESSION_ID_PATTERN.test(sessionId)) {
+    throw new Error(
+      `Invalid sessionId: must be alphanumeric with optional hyphens, starting with alphanumeric (got "${sessionId}")`
+    );
   }
 
   if (!Number.isInteger(sequence) || sequence < 0 || sequence > 999) {

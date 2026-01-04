@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ============================================================================
@@ -456,20 +457,13 @@ function QuickAction({
 // Main Page
 // ============================================================================
 
-interface PageProps {
-  params: Promise<{ threadId: string }>;
-}
+export default function BriefPage() {
+  const params = useParams();
+  const threadId = params.threadId as string;
 
-export default function BriefPage({ params }: PageProps) {
-  const [threadId, setThreadId] = useState<string>("");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["hypothesis_slate"]));
   const [exportingFormat, setExportingFormat] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-
-  // Resolve params
-  useState(() => {
-    params.then(p => setThreadId(p.threadId));
-  });
 
   const toggleSection = (id: string) => {
     setExpandedSections(prev => {

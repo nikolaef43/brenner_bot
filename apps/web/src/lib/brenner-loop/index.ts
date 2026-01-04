@@ -444,6 +444,7 @@ export {
   // Constants
   TEST_TYPE_LABELS,
   DISCRIMINATIVE_POWER_LABELS,
+  EVIDENCE_ID_PATTERN,
 
   // Type guards
   isTestType,
