@@ -55,3 +55,4 @@ public/corpus/
 # Local scratch copies (should not be committed)
 src/lib/operators.local.ts
 src/lib/operators.test.ts.disabled
+embeddings.json

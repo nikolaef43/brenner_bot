@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "bun run scripts/copy-corpus.ts && bun run scripts/build-search-index.ts",
+    "prebuild": "bun run scripts/copy-corpus.ts && bun run scripts/build-search-index.ts && bun run scripts/generate-embeddings.ts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -21,6 +21,7 @@
   "dependencies": {
     "@google-analytics/admin": "^9.0.1",
     "@google-analytics/data": "^5.2.1",
+    "@huggingface/transformers": "^3.8.1",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-select": "^2.2.6",
