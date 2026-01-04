@@ -16,7 +16,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
-import { Check, Lock, Play, Clock, ChevronRight, Rocket, Cpu, Users, Sparkles, Zap, Trophy } from "lucide-react";
+import { Lock, Play, Clock, ChevronRight, Rocket, Cpu, Users, Sparkles, Zap, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TutorialPath, DifficultyLevel } from "@/lib/tutorial-types";
 

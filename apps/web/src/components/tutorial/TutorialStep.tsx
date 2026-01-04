@@ -16,7 +16,7 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Clock, Check, BookOpen, Wrench, ChevronLeft, ChevronRight, Target, Zap } from "lucide-react";
+import { Sparkles, Clock, BookOpen, Wrench, ChevronLeft, ChevronRight, Target, Zap, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TutorialStep as TutorialStepType, TroubleshootingItem } from "@/lib/tutorial-types";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
@@ -89,9 +89,8 @@ function ActionChecklist({ items }: { items: string[] }) {
       <ul className="space-y-2">
         {items.map((item, i) => (
           <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="size-4 rounded border border-muted shrink-0 flex items-center justify-center">
-              <Check className="size-2.5 text-muted-foreground/0 group-data-[completed]:text-[oklch(0.72_0.19_145)]" />
-            </span>
+            {/* Empty checkbox visual - represents pending action item */}
+            <span className="size-4 rounded border border-muted shrink-0" aria-hidden="true" />
             {item}
           </li>
         ))}

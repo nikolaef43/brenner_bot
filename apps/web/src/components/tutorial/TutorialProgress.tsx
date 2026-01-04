@@ -120,6 +120,8 @@ function SidebarProgress({
   const completedSet = new Set(completedSteps);
   const timeRemaining = calculateTimeRemaining(steps, completedSteps);
   const listRef = React.useRef<HTMLOListElement>(null);
+  // Calculate once outside the map loop for efficiency
+  const highestCompleted = completedSteps.length > 0 ? Math.max(...completedSteps) : -1;
 
   // Keyboard navigation
   const handleKeyDown = React.useCallback(
@@ -170,7 +172,6 @@ function SidebarProgress({
           const isCompleted = completedSet.has(index);
           const isCurrent = index === currentStep;
           const isLast = index === steps.length - 1;
-          const highestCompleted = completedSteps.length > 0 ? Math.max(...completedSteps) : -1;
           const canClick =
             onStepClick &&
             (isCompleted || isCurrent || index <= highestCompleted + 1 || allowJumpAhead);
