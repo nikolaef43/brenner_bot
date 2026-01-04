@@ -36,6 +36,12 @@ const ArrowRightIcon = () => (
   </svg>
 );
 
+const AcademicCapIcon = () => (
+  <svg className="size-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+  </svg>
+);
+
 const features = [
   {
     href: "/corpus",
@@ -123,6 +129,49 @@ export default function Home() {
 
       {/* What Is This? - First-time visitor onboarding */}
       <WhatIsThis className="px-4 sm:px-0" />
+
+      {/* Tutorial CTA - Primary discovery mechanism for tutorials */}
+      <section className="px-4 sm:px-0 animate-fade-in-up">
+        <Link href="/tutorial" className="block group touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-2xl">
+          <div className="relative overflow-hidden rounded-xl sm:rounded-2xl p-5 sm:p-8 border border-success/30 hover:border-success/50 bg-gradient-to-br from-success/5 via-success/10 to-primary/5 shadow-lg hover:shadow-xl transition-all active:scale-[0.99]">
+            {/* Decorative orbs */}
+            <div className="absolute top-0 right-0 -mt-4 -mr-4 size-24 sm:size-32 bg-success/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 -mb-4 -ml-4 size-20 sm:size-24 bg-primary/10 rounded-full blur-3xl" />
+
+            <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+              <div className="flex items-center justify-center size-12 sm:size-14 rounded-xl sm:rounded-2xl bg-success text-success-foreground shadow-lg">
+                <AcademicCapIcon />
+              </div>
+
+              <div className="flex-1 space-y-2">
+                <h3 className="text-lg sm:text-xl font-semibold text-foreground">
+                  Ready to Apply the Method?
+                </h3>
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                  Three learning paths from quick start to multi-agent orchestration.
+                  Apply Brenner&apos;s scientific method to your own research questions.
+                </p>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md border border-border text-xs font-medium text-muted-foreground bg-background/50">
+                    ~30 min Quick Start
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md border border-border text-xs font-medium text-muted-foreground bg-background/50">
+                    Agent-Assisted
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md border border-border text-xs font-medium text-muted-foreground bg-background/50">
+                    Multi-Agent Cockpit
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 text-success font-medium text-sm sm:text-base">
+                <span>Start Tutorial</span>
+                <ArrowRightIcon />
+              </div>
+            </div>
+          </div>
+        </Link>
+      </section>
 
       {/* Features Section */}
       <section className="space-y-6 sm:space-y-8">
