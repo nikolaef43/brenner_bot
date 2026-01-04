@@ -19,6 +19,9 @@ import { ReadingProgressWidget, ReadingProgressInline } from "./reading-progress
 let scrollY = 0;
 let scrollListeners: Array<(e: Event) => void> = [];
 
+// Capture original querySelector before any mocking
+const originalDocumentQuerySelector = document.querySelector.bind(document);
+
 function triggerScroll(newScrollY: number) {
   scrollY = newScrollY;
   scrollListeners.forEach((handler) => handler(new Event("scroll")));
@@ -68,14 +71,14 @@ beforeEach(() => {
   });
 
   // Mock document.querySelector for main content (used for word count)
+  // Falls back to original for other selectors to avoid breaking library internals
   vi.spyOn(document, "querySelector").mockImplementation((selector: string) => {
     if (selector === "main") {
       return {
         textContent: "word ".repeat(1000), // 1000 words
       } as unknown as Element;
     }
-    // Return null for other selectors, let the actual DOM handle it
-    return null;
+    return originalDocumentQuerySelector(selector);
   });
 });
 
