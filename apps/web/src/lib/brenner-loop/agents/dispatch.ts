@@ -12,8 +12,10 @@
 import type { AgentMailMessage } from "../../agentMail";
 import { AgentMailClient } from "../../agentMail";
 import type { HypothesisCard } from "../hypothesis";
+// NOTE: Import directly from agent-personas to avoid circular dependency with index.ts
+// (index.ts re-exports from both agent-personas.ts and dispatch.ts)
 import type { TribunalAgentRole } from "./index";
-import { getPersona, buildSystemPromptContext } from "./index";
+import { getPersona, buildSystemPromptContext } from "./agent-personas";
 import type {
   LevelSplitResult,
   ExclusionTestResult,
@@ -499,21 +501,26 @@ export async function pollForResponses(
       }
 
       // Look for responses to this task
+      // TODO: This matching logic is fragile - a message with "re:" in subject would
+      // match ANY task. Consider using reply_to field or stricter subject matching
+      // (e.g., require the role name to appear in responses, or use thread structure).
       const responseMessage = thread.messages.find((msg: AgentMailMessage) => {
         // A response should be:
-        // 1. Not from us (check if sender is not the original dispatcher)
-        // 2. Related to this role (contains role name in subject or body)
-        // 3. Has body content
+        // 1. Not the original dispatch message
+        // 2. Have body content
+        // 3. Related to this role (contains role name in subject)
         if (!msg.body_md) return false;
         if (msg.id === task.messageId) return false;
 
         // Check if this message is a response to our dispatch
-        const subjectMatches =
-          msg.subject?.toLowerCase().includes(task.role.toLowerCase()) ||
+        // Prefer role-specific matching, fall back to generic reply indicators
+        const hasRoleName = msg.subject?.toLowerCase().includes(task.role.toLowerCase());
+        const isGenericReply =
           msg.subject?.toLowerCase().includes("re:") ||
           msg.subject?.toLowerCase().includes("response");
 
-        return subjectMatches;
+        // Prioritize role-specific matches
+        return hasRoleName || isGenericReply;
       });
 
       if (responseMessage && responseMessage.body_md) {
@@ -590,9 +597,12 @@ export async function checkAgentAvailability(
 }
 
 /**
- * Get fallback content when agents are unavailable
+ * Get fallback content when agents are unavailable.
+ * Returns self-reflection questions and Brenner quotes to guide the user.
+ *
+ * @param _hypothesis - Reserved for future use (could customize questions based on hypothesis)
  */
-export function getFallbackContent(hypothesis: HypothesisCard): {
+export function getFallbackContent(_hypothesis: HypothesisCard): {
   status: "unavailable";
   quotes: typeof FALLBACK_BRENNER_QUOTES;
   selfReflectionQuestions: string[];
