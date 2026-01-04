@@ -89,3 +89,79 @@ export {
   LEVEL_SPLIT_QUOTE_ANCHORS,
   LEVEL_SPLIT_FALLBACK_QUOTES,
 } from "./level-split";
+
+// ============================================================================
+// Exclusion Test Operator (bead vw6p.3)
+// ============================================================================
+
+export type {
+  ExclusionTestCategory,
+  TestFeasibility,
+  ExclusionTest,
+  TestProtocol,
+  ExclusionTestResult,
+} from "./exclusion-test";
+
+export {
+  // Labels and constants
+  EXCLUSION_TEST_CATEGORY_LABELS,
+  CATEGORY_DEFAULT_POWER,
+  FEASIBILITY_LABELS,
+
+  // Step configurations
+  EXCLUSION_TEST_STEP_IDS,
+  EXCLUSION_TEST_STEPS,
+
+  // Generation functions
+  generateTestId,
+  generateExclusionTests,
+  createCustomTest,
+  generateProtocolTemplate,
+  generateProtocols,
+  buildExclusionTestResult,
+
+  // Display utilities
+  getDiscriminativePowerStars,
+  getDiscriminativePowerLabel,
+  getFeasibilityColor,
+  getCategoryColor,
+
+  // Quote references
+  EXCLUSION_TEST_QUOTE_ANCHORS,
+  EXCLUSION_TEST_FALLBACK_QUOTES,
+} from "./exclusion-test";
+
+// ============================================================================
+// Object Transpose Operator (bead vw6p.4)
+// ============================================================================
+
+export type {
+  AlternativeType,
+  AlternativeExplanation,
+  DiscriminatingTest,
+  PlausibilityRating,
+  ObjectTransposeResult,
+} from "./object-transpose";
+
+export {
+  // Step configurations
+  OBJECT_TRANSPOSE_STEP_IDS,
+  OBJECT_TRANSPOSE_STEPS,
+
+  // Third variable templates
+  THIRD_VARIABLE_TEMPLATES,
+
+  // Generation functions
+  generateReverseCausation,
+  generateThirdVariables,
+  generateSelectionEffect,
+  generateBidirectional,
+  generateCoincidence,
+  generateAlternatives,
+  generateDiscriminatingTests,
+  buildObjectTransposeResult,
+
+  // Quote references
+  OBJECT_TRANSPOSE_QUOTE_ANCHORS,
+  OBJECT_TRANSPOSE_FALLBACK_QUOTES,
+} from "./object-transpose";
