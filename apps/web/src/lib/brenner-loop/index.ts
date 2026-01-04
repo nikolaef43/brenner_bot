@@ -313,3 +313,56 @@ export {
   scorePredictions,
   getAverageBoldness,
 } from "./hypothesis-arena";
+
+// ============================================================================
+// Hypothesis Lifecycle State Machine (bead se2r)
+// ============================================================================
+
+export type {
+  // Core types
+  HypothesisState,
+  HypothesisLifecycleEvent,
+  HypothesisWithLifecycle,
+  LifecycleTransitionResult,
+  LifecycleSideEffect,
+
+  // Configuration types
+  HypothesisStateConfig,
+
+  // Statistics
+  LifecycleStats,
+} from "./hypothesis-lifecycle";
+
+export {
+  // State configuration
+  HYPOTHESIS_STATE_CONFIG,
+
+  // Core transition functions
+  transitionHypothesis,
+  getAvailableTransitions,
+  canTransition,
+
+  // State queries
+  isTerminalState,
+  isResolvable,
+  shouldBeDormant,
+
+  // Factory functions
+  createHypothesisWithLifecycle,
+  upgradeToLifecycle,
+
+  // Type guards
+  isHypothesisState,
+  isHypothesisWithLifecycle,
+
+  // Display helpers
+  getStateLabel,
+  getStateDescription,
+  getStateIcon,
+  getStateColors,
+  isStateEditable,
+  isStateDeletable,
+
+  // Statistics
+  calculateLifecycleStats,
+} from "./hypothesis-lifecycle";
