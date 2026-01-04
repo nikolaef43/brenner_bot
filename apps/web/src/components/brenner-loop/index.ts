@@ -22,3 +22,6 @@ export type { PredictionLockProps } from "./PredictionLock";
 
 export { SessionDashboard, PhaseTimeline, BrennerQuote, PhaseContent, PHASE_CONFIG } from "./SessionDashboard";
 export type { SessionDashboardProps } from "./SessionDashboard";
+
+export { SessionList } from "./SessionList";
+export type { SessionListProps } from "./SessionList";

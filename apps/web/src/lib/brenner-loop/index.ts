@@ -141,6 +141,14 @@ export {
 } from "./storage";
 
 // ============================================================================
+// Export / Import (bead 1v26.4)
+// ============================================================================
+
+export type { SessionExport, SessionExportFormat, SessionImportResult } from "./export";
+
+export { exportSession, importSession } from "./export";
+
+// ============================================================================
 // Session Context Provider & Hooks (bead 1v26.3)
 // ============================================================================
 

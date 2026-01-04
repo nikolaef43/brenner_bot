@@ -577,7 +577,14 @@ export default function BriefPage() {
                 Last updated 2 minutes ago · {completedSections}/{BRIEF_SECTIONS.length} sections complete
               </div>
             </div>
-            <button className="p-2 rounded-lg hover:bg-muted transition-colors">
+            <button
+              onClick={() => {
+                // TODO: Implement refresh functionality
+                console.log("Refresh brief requested");
+              }}
+              className="p-2 rounded-lg hover:bg-muted transition-colors"
+              title="Refresh brief"
+            >
               <RefreshIcon className="size-4 text-muted-foreground" />
             </button>
           </motion.div>

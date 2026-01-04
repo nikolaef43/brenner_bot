@@ -23,6 +23,7 @@ import {
   usePhaseNavigation,
   getPhaseStatusClass,
   getSessionProgress,
+  exportSession,
   type SessionPhase,
 } from "@/lib/brenner-loop";
 
@@ -367,6 +368,7 @@ export function SessionDashboard({
   onViewHistory,
 }: SessionDashboardProps) {
   const { session, primaryHypothesis, isLoading, error } = useSession();
+  const [isExporting, setIsExporting] = React.useState(false);
 
   // useSessionMachine provides computed values (reachablePhases, isComplete, etc.)
   const machine = useSessionMachine(session);
@@ -419,6 +421,22 @@ export function SessionDashboard({
     goTo(phase);
   };
 
+  const handleExport = async (format: "json" | "markdown") => {
+    if (!session) return;
+    setIsExporting(true);
+    try {
+      const blob = await exportSession(session, format);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `brenner-session-${session.id}.${format === "json" ? "json" : "md"}`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className={cn("flex flex-col gap-6", className)}>
       {/* Header */}
@@ -430,6 +448,22 @@ export function SessionDashboard({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExport("json")}
+            disabled={isExporting}
+          >
+            Export JSON
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExport("markdown")}
+            disabled={isExporting}
+          >
+            Export Markdown
+          </Button>
           <span className="text-sm text-muted-foreground">
             {Math.round(getSessionProgress(session.phase))}% complete
           </span>
