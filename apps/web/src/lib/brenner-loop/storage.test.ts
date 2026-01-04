@@ -377,6 +377,10 @@ describe("Recovery utilities", () => {
 });
 
 describe("SessionSummary", () => {
+  beforeEach(() => {
+    localStorageMock.clear();
+  });
+
   test("should include hypothesis preview", async () => {
     const storage = new LocalStorageSessionStorage();
     const session = createTestSession();
