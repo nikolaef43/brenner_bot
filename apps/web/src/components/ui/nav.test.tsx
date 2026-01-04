@@ -73,6 +73,7 @@ describe("HeaderNav", () => {
       expect(screen.getByRole("link", { name: "Distillations" })).toBeInTheDocument();
       expect(screen.getByRole("link", { name: "Glossary" })).toBeInTheDocument();
       expect(screen.getByRole("link", { name: "Method" })).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Sessions" })).toBeInTheDocument();
     });
 
     it("does not render Home link in header (mobile only)", () => {
@@ -91,6 +92,7 @@ describe("HeaderNav", () => {
       expect(screen.getByRole("link", { name: "Distillations" })).toHaveAttribute("href", "/distillations");
       expect(screen.getByRole("link", { name: "Glossary" })).toHaveAttribute("href", "/glossary");
       expect(screen.getByRole("link", { name: "Method" })).toHaveAttribute("href", "/method");
+      expect(screen.getByRole("link", { name: "Sessions" })).toHaveAttribute("href", "/sessions");
     });
 
     it("accepts className prop", () => {
@@ -181,13 +183,14 @@ describe("BottomNav", () => {
       expect(screen.getByRole("link", { name: /distillations/i })).toBeInTheDocument();
       expect(screen.getByRole("link", { name: /glossary/i })).toBeInTheDocument();
       expect(screen.getByRole("link", { name: /method/i })).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: /sessions/i })).toBeInTheDocument();
     });
 
-    it("renders 7 navigation items total", () => {
+    it("renders 8 navigation items total", () => {
       render(<BottomNav />);
 
       const links = screen.getAllByRole("link");
-      expect(links).toHaveLength(7);
+      expect(links).toHaveLength(8);
     });
 
     it("accepts className prop", () => {

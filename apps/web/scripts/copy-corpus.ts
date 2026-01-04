@@ -2,7 +2,7 @@ import { copyFile, mkdir, stat } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 import { CORPUS_DOCS } from "../src/lib/corpus";
 
-const EXTRA_CORPUS_FILES = ["specs/operator_library_v0.1.md"] as const;
+const EXTRA_CORPUS_FILES = ["specs/operator_library_v0.1.md", "specs/role_prompts_v0.1.md"] as const;
 
 async function fileExists(path: string): Promise<boolean> {
   try {

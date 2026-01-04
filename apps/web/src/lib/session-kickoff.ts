@@ -21,6 +21,9 @@
  * ```
  */
 
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -146,6 +149,60 @@ export interface KickoffMessage {
   ackRequired: true;
   /** Role assigned to this agent */
   role: RoleConfig;
+}
+
+// ============================================================================
+// Triangulated Kernel (single source of truth lives in specs/role_prompts_v0.1.md)
+// ============================================================================
+
+const KERNEL_SPEC_PATH = "specs/role_prompts_v0.1.md";
+const KERNEL_START_MARKER = "<!-- BRENNER_TRIANGULATED_KERNEL_START -->";
+const KERNEL_END_MARKER = "<!-- BRENNER_TRIANGULATED_KERNEL_END -->";
+
+let triangulatedKernelCache: string | null | undefined = undefined;
+
+function tryReadFromFilesystem(relativePathFromRepoRoot: string): string | null {
+  const candidates = [
+    // CLI / repo-root execution
+    resolve(process.cwd(), relativePathFromRepoRoot),
+    // Next.js runtime (cwd = apps/web)
+    resolve(process.cwd(), "public/_corpus", relativePathFromRepoRoot),
+    // Next.js runtime (cwd = apps/web) but repo root exists
+    resolve(process.cwd(), "../..", relativePathFromRepoRoot),
+  ];
+
+  for (const path of candidates) {
+    if (!existsSync(path)) continue;
+    try {
+      return readFileSync(path, "utf8");
+    } catch {
+      // continue
+    }
+  }
+
+  return null;
+}
+
+function extractBetweenMarkers(markdown: string, startMarker: string, endMarker: string): string | null {
+  const start = markdown.indexOf(startMarker);
+  if (start === -1) return null;
+  const from = start + startMarker.length;
+  const end = markdown.indexOf(endMarker, from);
+  if (end === -1) return null;
+  return markdown.slice(from, end).trim();
+}
+
+export function getTriangulatedBrennerKernelMarkdown(): string | null {
+  if (triangulatedKernelCache !== undefined) return triangulatedKernelCache;
+
+  const spec = tryReadFromFilesystem(KERNEL_SPEC_PATH);
+  if (!spec) {
+    triangulatedKernelCache = null;
+    return triangulatedKernelCache;
+  }
+
+  triangulatedKernelCache = extractBetweenMarkers(spec, KERNEL_START_MARKER, KERNEL_END_MARKER);
+  return triangulatedKernelCache;
 }
 
 // ============================================================================
@@ -345,6 +402,14 @@ function composeKickoffBody(config: KickoffConfig, role: RoleConfig): string {
     sections.push("");
   }
 
+  // Triangulated kernel (single, shared invariants across roles)
+  const kernel = getTriangulatedBrennerKernelMarkdown();
+  if (kernel) {
+    sections.push("## Triangulated Brenner Kernel (single)");
+    sections.push(kernel);
+    sections.push("");
+  }
+
   // Role assignment
   sections.push(getRolePromptSection(role));
   sections.push("");
@@ -461,6 +526,14 @@ export function composeUnifiedKickoff(config: KickoffConfig): {
 
   sections.push(`# Brenner Protocol Session: ${config.threadId}`);
   sections.push("");
+
+  const kernel = getTriangulatedBrennerKernelMarkdown();
+  if (kernel) {
+    sections.push("## Triangulated Brenner Kernel (single)");
+    sections.push(kernel);
+    sections.push("");
+  }
+
   sections.push("## Research Question");
   sections.push(config.researchQuestion);
   sections.push("");

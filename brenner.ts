@@ -22,7 +22,12 @@ import { CORPUS_DOCS } from "./apps/web/src/lib/corpus";
 import { globalSearch, type SearchCategory } from "./apps/web/src/lib/globalSearch";
 import type { Json } from "./apps/web/src/lib/json";
 import { parseQuoteBank } from "./apps/web/src/lib/quotebank-parser";
-import { composeKickoffMessages, type AgentRole, type KickoffConfig } from "./apps/web/src/lib/session-kickoff";
+import {
+  composeKickoffMessages,
+  getTriangulatedBrennerKernelMarkdown,
+  type AgentRole,
+  type KickoffConfig,
+} from "./apps/web/src/lib/session-kickoff";
 import { parseDeltaMessage, type ValidDelta } from "./apps/web/src/lib/delta-parser";
 import {
   createEmptyArtifact,
@@ -1557,6 +1562,12 @@ function composePrompt(options: {
   chunks.push("");
   chunks.push("---");
   chunks.push("");
+  const kernel = getTriangulatedBrennerKernelMarkdown();
+  if (kernel) {
+    chunks.push("## TRIANGULATED BRENNER KERNEL (single)");
+    chunks.push(kernel);
+    chunks.push("");
+  }
   chunks.push("## TRANSCRIPT EXCERPT(S)");
   chunks.push(options.excerpt.trim());
   chunks.push("");

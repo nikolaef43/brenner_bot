@@ -1,6 +1,8 @@
 import { readFile, access } from "node:fs/promises";
 import { resolve } from "node:path";
 
+import { getTriangulatedBrennerKernelMarkdown } from "./session-kickoff";
+
 /** Operator selection per agent role */
 export type OperatorSelection = {
   hypothesis_generator: string[];
@@ -28,6 +30,12 @@ async function fileExists(path: string): Promise<boolean> {
 }
 
 async function resolveTemplatePath(filename: string): Promise<string> {
+  // First try local working directory (CLI / repo-root execution)
+  const cwdPath = resolve(process.cwd(), filename);
+  if (await fileExists(cwdPath)) {
+    return cwdPath;
+  }
+
   // First try public/_corpus/ (Vercel deployment)
   const publicPath = resolve(process.cwd(), "public/_corpus", filename);
   if (await fileExists(publicPath)) {
@@ -58,6 +66,13 @@ export async function composePrompt(input: ComposePromptInput): Promise<string> 
   chunks.push("");
   chunks.push("---");
   chunks.push("");
+
+  const kernel = getTriangulatedBrennerKernelMarkdown();
+  if (kernel) {
+    chunks.push("## TRIANGULATED BRENNER KERNEL (single)");
+    chunks.push(kernel);
+    chunks.push("");
+  }
 
   // Include operator selection if provided (from prompt builder UI)
   if (input.operatorSelection) {
@@ -92,4 +107,3 @@ export async function composePrompt(input: ComposePromptInput): Promise<string> 
   }
   return chunks.join("\n");
 }
-
