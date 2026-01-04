@@ -1,21 +1,50 @@
 import { AnalyticsAdminServiceClient } from "@google-analytics/admin";
 
+/**
+ * Parse protobuf Timestamp to ISO string
+ * Timestamps from GA Admin API are objects like {seconds: string|number, nanos: number}
+ */
+function formatProtobufTimestamp(timestamp: unknown): string {
+  if (!timestamp || typeof timestamp !== 'object') {
+    return 'unknown';
+  }
+
+  const ts = timestamp as { seconds?: unknown; nanos?: unknown };
+  const rawSeconds = ts.seconds;
+
+  // Handle both string and number types for seconds
+  let seconds: number;
+  if (typeof rawSeconds === 'string') {
+    seconds = parseInt(rawSeconds, 10);
+  } else if (typeof rawSeconds === 'number') {
+    seconds = rawSeconds;
+  } else {
+    return 'unknown';
+  }
+
+  if (Number.isNaN(seconds)) {
+    return 'unknown';
+  }
+
+  return new Date(seconds * 1000).toISOString();
+}
+
 async function listAccounts() {
   const client = new AnalyticsAdminServiceClient();
-  
+
   console.log("Listing Google Analytics accounts...\n");
-  
+
   const [accounts] = await client.listAccounts({});
-  
+
   if (!accounts || accounts.length === 0) {
     console.log("No GA accounts found.");
     return;
   }
-  
+
   for (const account of accounts) {
     console.log(`Account: ${account.displayName}`);
     console.log(`  Name: ${account.name}`);
-    console.log(`  Created: ${account.createTime?.seconds}`);
+    console.log(`  Created: ${formatProtobufTimestamp(account.createTime)}`);
     console.log("");
     
     // List properties for this account

@@ -48,6 +48,18 @@ const CUSTOM_DIMENSIONS = [
   { name: 'dropoff_reason', scope: 'EVENT', description: 'Reason for funnel abandonment' },
   { name: 'excerpt_count', scope: 'EVENT', description: 'Number of excerpts saved' },
   { name: 'session_document_count', scope: 'EVENT', description: 'Documents viewed in session' },
+
+  // Acquisition tracking (EVENT-scoped - sent with session_start_enhanced)
+  { name: 'utm_source', scope: 'EVENT', description: 'UTM source parameter' },
+  { name: 'utm_medium', scope: 'EVENT', description: 'UTM medium parameter' },
+  { name: 'utm_campaign', scope: 'EVENT', description: 'UTM campaign parameter' },
+  { name: 'utm_term', scope: 'EVENT', description: 'UTM term parameter' },
+  { name: 'utm_content', scope: 'EVENT', description: 'UTM content parameter' },
+  { name: 'referrer', scope: 'EVENT', description: 'Full referrer URL' },
+  { name: 'referrer_domain', scope: 'EVENT', description: 'Referrer domain (e.g., google.com)' },
+  { name: 'landing_page', scope: 'EVENT', description: 'Landing page path' },
+  { name: 'is_first_visit', scope: 'EVENT', description: 'Whether this is first visit' },
+  { name: 'platform', scope: 'EVENT', description: 'Platform (macOS, Windows, Linux, iOS, Android)' },
 ];
 
 // Conversion events
