@@ -139,3 +139,24 @@ export {
   // Cross-tab sync
   onStorageChange,
 } from "./storage";
+
+// ============================================================================
+// Session Context Provider & Hooks (bead 1v26.3)
+// ============================================================================
+
+export type { SessionContextValue } from "./session-context";
+
+export {
+  // Provider
+  SessionProvider,
+  SessionContext,
+
+  // Hooks
+  useSession,
+  useHypothesis,
+  useCurrentPhase,
+  usePhaseNavigation,
+
+  // Constants
+  PHASE_ORDER,
+} from "./session-context";
