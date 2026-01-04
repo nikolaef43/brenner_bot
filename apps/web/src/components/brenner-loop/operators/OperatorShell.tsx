@@ -27,6 +27,7 @@ import type { Quote } from "@/lib/quotebank-parser";
 import { OperatorProgress } from "./OperatorProgress";
 import { BrennerQuoteSidebar } from "./BrennerQuoteSidebar";
 import { OperatorNavigation } from "./OperatorNavigation";
+import { OperatorHelp } from "./OperatorHelp";
 
 // ============================================================================
 // Types
@@ -153,6 +154,7 @@ interface OperatorHeaderProps {
   operatorType: OperatorType;
   currentStepIndex: number;
   totalSteps: number;
+  currentStepId?: string;
   onAbandon?: () => void;
 }
 
@@ -160,6 +162,7 @@ function OperatorHeader({
   operatorType,
   currentStepIndex,
   totalSteps,
+  currentStepId,
   onAbandon,
 }: OperatorHeaderProps) {
   const metadata = OPERATOR_METADATA[operatorType];
@@ -188,18 +191,25 @@ function OperatorHeader({
         </div>
       </div>
 
-      {/* Close/abandon button */}
-      {onAbandon && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onAbandon}
-          aria-label="Close session"
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <X className="size-5" />
-        </Button>
-      )}
+      {/* Help and close buttons */}
+      <div className="flex items-center gap-1">
+        <OperatorHelp
+          operatorType={operatorType}
+          currentStepId={currentStepId}
+          variant="icon"
+        />
+        {onAbandon && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onAbandon}
+            aria-label="Close session"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <X className="size-5" />
+          </Button>
+        )}
+      </div>
     </header>
   );
 }
@@ -295,6 +305,7 @@ export function OperatorShell({
         operatorType={operatorType}
         currentStepIndex={currentStepIndex}
         totalSteps={steps.length}
+        currentStepId={currentStep?.config.id}
         onAbandon={onAbandon}
       />
 

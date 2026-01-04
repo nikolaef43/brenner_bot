@@ -29,6 +29,21 @@ export {
   type CompactNavigationProps,
 } from "./OperatorNavigation";
 
+// Help & Tips - bead yh1c
+export {
+  OperatorHelp,
+  OperatorHelpPanel,
+  type OperatorHelpProps,
+  type OperatorHelpPanelProps,
+} from "./OperatorHelp";
+
+export {
+  OperatorTip,
+  CustomTip,
+  type OperatorTipProps,
+  type CustomTipProps,
+} from "./OperatorTip";
+
 // ============================================================================
 // Operator Sessions (bead vw6p.2+)
 // ============================================================================

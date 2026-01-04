@@ -210,3 +210,29 @@ export {
   SCALE_CHECK_QUOTE_ANCHORS,
   SCALE_CHECK_FALLBACK_QUOTES,
 } from "./scale-check";
+
+// ============================================================================
+// Operator Documentation (bead yh1c)
+// ============================================================================
+
+export type {
+  OperatorDocumentation,
+  OperatorStepTip,
+} from "./docs";
+
+export {
+  // Documentation by operator
+  LEVEL_SPLIT_DOCS,
+  EXCLUSION_TEST_DOCS,
+  OBJECT_TRANSPOSE_DOCS,
+  SCALE_CHECK_DOCS,
+
+  // Documentation index
+  OPERATOR_DOCUMENTATION,
+
+  // Utility functions
+  getOperatorDocumentation,
+  getStepTip,
+  getCommonMistakes,
+  getSuccessCriteria,
+} from "./docs";
