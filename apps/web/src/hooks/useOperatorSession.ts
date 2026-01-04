@@ -191,7 +191,7 @@ export function useOperatorSession<TResult = unknown>(
   }, [session, persistKey]);
 
   // Call onChange when session changes
-  const previousSessionRef = useRef<OperatorSession<TResult>>();
+  const previousSessionRef = useRef<OperatorSession<TResult> | null>(null);
   useEffect(() => {
     if (previousSessionRef.current !== session && onChange) {
       onChange(session);

@@ -484,7 +484,8 @@ export type {
   TribunalAgentConfig,
 
   // Agent persona types (beads njiu, oytk)
-  SessionPhase as AgentSessionPhase,
+  PersonaPhaseGroup,
+  SessionPhase as AgentSessionPhase, // Deprecated alias
   InvocationTrigger,
   AgentBehavior,
   InteractionPattern,
@@ -506,6 +507,9 @@ export {
 
   // Type guards
   isTribunalAgentRole,
+
+  // Phase mapping (converts detailed SessionPhase to PersonaPhaseGroup)
+  mapSessionPhaseToPersonaGroup,
 
   // Agent personas (beads njiu, oytk)
   DEVILS_ADVOCATE_PERSONA,

@@ -12,8 +12,8 @@
 import type { AgentMailMessage } from "../../agentMail";
 import { AgentMailClient } from "../../agentMail";
 import type { HypothesisCard } from "../hypothesis";
-import type { TribunalAgentRole, AgentPersona } from "./index";
-import { TRIBUNAL_AGENTS, TRIBUNAL_ORDER, getPersona, buildSystemPromptContext } from "./index";
+import type { TribunalAgentRole } from "./index";
+import { getPersona, buildSystemPromptContext } from "./index";
 import type {
   LevelSplitResult,
   ExclusionTestResult,
@@ -225,18 +225,19 @@ export function formatHypothesisForPrompt(hypothesis: HypothesisCard): string {
   const lines: string[] = [
     "## Hypothesis Under Review",
     "",
-    `**Name**: ${hypothesis.name}`,
+    `**ID**: ${hypothesis.id}`,
     "",
-    `**Claim**: ${hypothesis.claim}`,
+    `**Statement**: ${hypothesis.statement}`,
     "",
-    `**Mechanism**: ${hypothesis.mechanism ?? "Not specified"}`,
+    `**Mechanism**: ${hypothesis.mechanism}`,
     "",
-    `**Category**: ${hypothesis.category ?? "Not specified"}`,
+    `**Domain**: ${hypothesis.domain.length > 0 ? hypothesis.domain.join(", ") : "Not specified"}`,
     "",
   ];
 
-  if (hypothesis.anchors && hypothesis.anchors.length > 0) {
-    lines.push(`**Transcript Anchors**: ${hypothesis.anchors.join(", ")}`);
+  if (hypothesis.impossibleIfTrue && hypothesis.impossibleIfTrue.length > 0) {
+    lines.push("**Would Falsify**:");
+    hypothesis.impossibleIfTrue.forEach((p) => lines.push(`- ${p}`));
     lines.push("");
   }
 
@@ -385,10 +386,9 @@ export async function dispatchAgentTask(
     recipients: string[];
   }
 ): Promise<{ messageId: number } | { error: string }> {
-  const config = TRIBUNAL_AGENTS[role];
   const promptBody = buildAgentPrompt(role, dispatch.hypothesis, dispatch.operatorResults);
 
-  const subject = `${DISPATCH_SUBJECT_PREFIX}${role}]: ${dispatch.hypothesis.name}`;
+  const subject = `${DISPATCH_SUBJECT_PREFIX}${role}]: ${dispatch.hypothesis.id}`;
 
   try {
     const result = await client.toolsCall("send_message", {

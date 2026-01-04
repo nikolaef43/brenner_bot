@@ -13,13 +13,26 @@
 import type { TribunalAgentRole } from "./index";
 
 // ============================================================================
-// Session Phase Types (imported concept from types.ts)
+// Persona Phase Groups
 // ============================================================================
 
 /**
- * Session phases where agents can be invoked
+ * Grouped phase categories for persona activation.
+ *
+ * These are SIMPLIFIED phase groups, NOT the same as the detailed SessionPhase
+ * defined in types.ts. Each group maps to one or more detailed phases:
+ *
+ * - "intake" → types.ts "intake"
+ * - "hypothesis" → types.ts "sharpening"
+ * - "operators" → types.ts "level_split", "exclusion_test", "object_transpose", "scale_check"
+ * - "agents" → types.ts "agent_dispatch"
+ * - "evidence" → types.ts "evidence_gathering"
+ * - "synthesis" → types.ts "synthesis", "revision"
+ * - "complete" → types.ts "complete"
+ *
+ * Use `mapSessionPhaseToPersonaGroup()` to convert detailed phases to groups.
  */
-export type SessionPhase =
+export type PersonaPhaseGroup =
   | "intake"
   | "hypothesis"
   | "operators"
@@ -27,6 +40,42 @@ export type SessionPhase =
   | "evidence"
   | "synthesis"
   | "complete";
+
+/**
+ * @deprecated Use PersonaPhaseGroup instead. This alias exists for backwards compatibility.
+ */
+export type SessionPhase = PersonaPhaseGroup;
+
+/**
+ * Map a detailed SessionPhase (from types.ts) to a PersonaPhaseGroup.
+ * This allows querying which personas are active for a given detailed phase.
+ */
+export function mapSessionPhaseToPersonaGroup(
+  detailedPhase: string
+): PersonaPhaseGroup | null {
+  switch (detailedPhase) {
+    case "intake":
+      return "intake";
+    case "sharpening":
+      return "hypothesis";
+    case "level_split":
+    case "exclusion_test":
+    case "object_transpose":
+    case "scale_check":
+      return "operators";
+    case "agent_dispatch":
+      return "agents";
+    case "evidence_gathering":
+      return "evidence";
+    case "synthesis":
+    case "revision":
+      return "synthesis";
+    case "complete":
+      return "complete";
+    default:
+      return null;
+  }
+}
 
 /**
  * Events that can trigger agent invocation
@@ -140,8 +189,8 @@ export interface AgentPersona {
   /** Triggers that invoke this agent */
   invocationTriggers: InvocationTrigger[];
 
-  /** Session phases where this agent is active */
-  activePhases: SessionPhase[];
+  /** Persona phase groups where this agent is active */
+  activePhases: PersonaPhaseGroup[];
 
   /** Interaction patterns with examples */
   interactionPatterns: InteractionPattern[];
@@ -730,11 +779,18 @@ export function getPersona(role: TribunalAgentRole): AgentPersona {
 }
 
 /**
- * Get all personas that should be active in a given phase
+ * Get all personas that should be active in a given phase.
+ *
+ * @param phase - Either a PersonaPhaseGroup (e.g., "operators") or a detailed
+ *                SessionPhase from types.ts (e.g., "level_split"). Detailed phases
+ *                are automatically mapped to their corresponding group.
  */
-export function getActivePersonasForPhase(phase: SessionPhase): AgentPersona[] {
+export function getActivePersonasForPhase(phase: PersonaPhaseGroup | string): AgentPersona[] {
+  // Try to map detailed phase to group
+  const group = mapSessionPhaseToPersonaGroup(phase) ?? (phase as PersonaPhaseGroup);
+
   return Object.values(AGENT_PERSONAS).filter((persona) =>
-    persona.activePhases.includes(phase)
+    persona.activePhases.includes(group)
   );
 }
 

@@ -191,8 +191,9 @@ export function isTribunalAgentRole(value: unknown): value is TribunalAgentRole 
 // ============================================================================
 
 export type {
-  // Session & invocation types
-  SessionPhase,
+  // Phase & invocation types
+  PersonaPhaseGroup,
+  SessionPhase, // Deprecated alias for PersonaPhaseGroup
   InvocationTrigger,
 
   // Behavior & interaction types
@@ -206,6 +207,9 @@ export type {
 } from "./agent-personas";
 
 export {
+  // Phase mapping
+  mapSessionPhaseToPersonaGroup,
+
   // Individual personas
   DEVILS_ADVOCATE_PERSONA,
   EXPERIMENT_DESIGNER_PERSONA,
