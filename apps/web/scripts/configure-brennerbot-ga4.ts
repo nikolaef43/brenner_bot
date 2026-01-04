@@ -11,6 +11,16 @@ const PROPERTY_ID = '518309558';
 const PROPERTY_NAME = `properties/${PROPERTY_ID}`;
 const DATA_STREAM = `properties/${PROPERTY_ID}/dataStreams/13238961558`;
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string") return message;
+  }
+  return "Unknown error";
+}
+
 // Custom dimensions for BrennerBot research engagement tracking
 const CUSTOM_DIMENSIONS = [
   // Corpus engagement
@@ -84,7 +94,7 @@ async function configureProperty() {
   console.log("Configuring BrennerBot GA4 property...\n");
   
   // 1. Create Measurement Protocol API secret
-  console.log("Creating Measurement Protocol API secret...");
+  console.log("Creating Measurement Protocol API credential...");
   try {
     const [secret] = await client.createMeasurementProtocolSecret({
       parent: DATA_STREAM,
@@ -93,13 +103,16 @@ async function configureProperty() {
       },
     });
     
-    console.log(`✓ API Secret created: ${secret.secretValue}`);
-    console.log(`\nAdd to .env.local:\nGA_API_SECRET=${secret.secretValue}\n`);
-  } catch (error: any) {
-    if (error.message?.includes('already exists')) {
-      console.log("API secret already exists, skipping...");
+    console.log("✓ API credential created.");
+    if (secret.secretValue) {
+      console.log("Store the generated value securely (not printed to avoid leaking).");
+    }
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    if (message.includes("already exists")) {
+      console.log("API credential already exists, skipping...");
     } else {
-      console.error("Error creating API secret:", error.message);
+      console.error("Error creating API credential:", message);
     }
   }
   
@@ -114,8 +127,8 @@ async function configureProperty() {
       existingDimensions.add(name);
     }
     console.log(`Found ${existingDimensions.size} existing dimensions`);
-  } catch (error: any) {
-    console.error("Error listing dimensions:", error.message);
+  } catch (error: unknown) {
+    console.error("Error listing dimensions:", getErrorMessage(error));
   }
   
   // 3. Create missing custom dimensions
@@ -141,8 +154,8 @@ async function configureProperty() {
       });
       created++;
       console.log(`  ✓ ${dim.name}`);
-    } catch (error: any) {
-      console.error(`  ✗ ${dim.name}: ${error.message}`);
+    } catch (error: unknown) {
+      console.error(`  ✗ ${dim.name}: ${getErrorMessage(error)}`);
     }
   }
   
@@ -159,11 +172,12 @@ async function configureProperty() {
         },
       });
       console.log(`  ✓ ${eventName}`);
-    } catch (error: any) {
-      if (error.message?.includes('already exists')) {
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
+      if (message.includes("already exists")) {
         console.log(`  • ${eventName} (exists)`);
       } else {
-        console.error(`  ✗ ${eventName}: ${error.message}`);
+        console.error(`  ✗ ${eventName}: ${message}`);
       }
     }
   }
@@ -203,8 +217,8 @@ async function addUserDimensions() {
     for (const dim of dimensions || []) {
       existingDimensions.add(dim.parameterName || '');
     }
-  } catch (e) {
-    console.error("Error listing dimensions");
+  } catch (error: unknown) {
+    console.error("Error listing dimensions:", getErrorMessage(error));
   }
   
   for (const dim of ADDITIONAL_USER_DIMENSIONS) {
@@ -224,8 +238,8 @@ async function addUserDimensions() {
         },
       });
       console.log(`  ✓ ${dim.name}`);
-    } catch (error: any) {
-      console.error(`  ✗ ${dim.name}: ${error.message}`);
+    } catch (error: unknown) {
+      console.error(`  ✗ ${dim.name}: ${getErrorMessage(error)}`);
     }
   }
 }

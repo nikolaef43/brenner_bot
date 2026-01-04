@@ -366,8 +366,9 @@ function determineInterpretation(
  */
 function generateExplanation(
   score: Omit<RobustnessScore, "explanation">,
-  _hypothesis: HypothesisCard
+  hypothesis: HypothesisCard
 ): string {
+  void hypothesis;
   const { components, interpretation } = score;
 
   if (interpretation === "untested") {

@@ -405,6 +405,7 @@ export function CrosswalkTable({ className }: CrosswalkTableProps) {
   );
 
   // Create table instance
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table hook is stable; safe to skip compiler memoization.
   const table = useReactTable({
     data: CROSSWALK_DATA,
     columns,

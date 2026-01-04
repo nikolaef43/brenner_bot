@@ -677,6 +677,7 @@ export function TranscriptViewer({ data, estimatedReadTime, wordCount }: Transcr
   }, [searchQuery]);
 
   // Virtualizer for efficient rendering of large section lists
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual hook is stable; skip compiler memoization warning.
   const virtualizer = useVirtualizer({
     count: data.sections.length,
     getScrollElement: () => scrollContainerRef.current,

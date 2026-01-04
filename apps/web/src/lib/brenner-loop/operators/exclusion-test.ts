@@ -158,7 +158,8 @@ export const EXCLUSION_TEST_STEP_IDS = {
  * Check if hypothesis has been reviewed (we always consider this complete
  * since it's informational)
  */
-function hasReviewedHypothesis(_session: OperatorSession): boolean {
+function hasReviewedHypothesis(session: OperatorSession): boolean {
+  void session;
   // The review step is informational - always complete
   return true;
 }

@@ -18,7 +18,6 @@ import {
   navigateTo,
   takeScreenshot,
   assertTextContent,
-  assertUrl,
   waitForNetworkIdle,
 } from "./utils";
 import { withStep } from "./utils/e2e-logging";

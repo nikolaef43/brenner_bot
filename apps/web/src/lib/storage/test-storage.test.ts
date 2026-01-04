@@ -130,7 +130,8 @@ describe("TestStorage", () => {
       class FlakyStorage extends TestStorage {
         private calls = 0;
 
-        override async loadSessionTests(_sessionId: string) {
+        override async loadSessionTests(sessionId: string) {
+          void sessionId;
           this.calls++;
           return this.calls === 1 ? [test] : [];
         }

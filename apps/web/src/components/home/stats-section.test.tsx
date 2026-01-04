@@ -29,8 +29,8 @@ class MockIntersectionObserver {
     this.elements.push(element);
   }
 
-  unobserve(_element: Element) {
-    // No-op for tests
+  unobserve(element: Element) {
+    void element;
   }
 
   disconnect() {

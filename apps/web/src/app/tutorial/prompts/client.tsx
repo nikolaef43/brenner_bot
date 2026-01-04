@@ -110,7 +110,7 @@ export function PromptLibraryClient() {
           {searchQuery && (
             <span>
               {" "}
-              matching <span className="text-primary font-medium">"{searchQuery}"</span>
+              matching <span className="text-primary font-medium">&ldquo;{searchQuery}&rdquo;</span>
             </span>
           )}
         </div>

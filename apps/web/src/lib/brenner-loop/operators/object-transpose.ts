@@ -386,7 +386,8 @@ export function generateSelectionEffect(hypothesis: HypothesisCard): Alternative
 /**
  * Generate bidirectional alternative
  */
-export function generateBidirectional(_hypothesis: HypothesisCard): AlternativeExplanation {
+export function generateBidirectional(hypothesis: HypothesisCard): AlternativeExplanation {
+  void hypothesis;
   return {
     id: "alt-bidirectional",
     type: "bidirectional",

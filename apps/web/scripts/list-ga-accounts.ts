@@ -1,5 +1,15 @@
 import { AnalyticsAdminServiceClient } from "@google-analytics/admin";
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string") return message;
+  }
+  return "Unknown error";
+}
+
 /**
  * Parse protobuf Timestamp to ISO string
  * Timestamps from GA Admin API are objects like {seconds: string|number, nanos: number}
@@ -64,8 +74,8 @@ async function listAccounts() {
       } else {
         console.log("  Properties: None");
       }
-    } catch (e: any) {
-      console.log(`  Properties: Error listing - ${e.message}`);
+    } catch (error: unknown) {
+      console.log(`  Properties: Error listing - ${getErrorMessage(error)}`);
     }
     console.log("\n" + "=".repeat(60) + "\n");
   }

@@ -125,7 +125,7 @@ Take your time. Be thorough. This is the foundation for everything that follows.
       <section className="space-y-6">
         {/* What We're Building */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">What We're Building</h2>
+          <h2 className="text-xl font-semibold">What We&apos;re Building</h2>
           <p className="text-muted-foreground">
             The Brenner loop needs structured inputs to work with. Your agent will
             generate these using the operators it learned earlier:
@@ -207,8 +207,8 @@ Take your time. Be thorough. This is the foundation for everything that follows.
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p><strong>H1 (Obvious):</strong> X directly causes Y through mechanism M.</p>
                 <p><strong>H2 (Alternative mechanism):</strong> X causes Y, but through mechanism N, not M.</p>
-                <p><strong>H3 (Reversed causation):</strong> Y causes X, and we've misidentified the direction.</p>
-                <p><strong>H4 (Third variable):</strong> Z causes both X and Y; they're correlated but neither causes the other.</p>
+                <p><strong>H3 (Reversed causation):</strong> Y causes X, and we&apos;ve misidentified the direction.</p>
+                <p><strong>H4 (Third variable):</strong> Z causes both X and Y; they&apos;re correlated but neither causes the other.</p>
                 <p><strong>H5 (Level shift):</strong> The relationship holds at molecular level but not at systems level (or vice versa).</p>
               </div>
             </div>
@@ -219,9 +219,9 @@ Take your time. Be thorough. This is the foundation for everything that follows.
                 Good Assumption Ledger
               </h4>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p><strong>Theoretical:</strong> "We assume X and Y are distinct entities, not different manifestations of the same process."</p>
-                <p><strong>Methodological:</strong> "We assume our measurement of X doesn't itself affect Y."</p>
-                <p><strong>Background:</strong> "We assume the standard model of [domain] is correct in this context."</p>
+                <p><strong>Theoretical:</strong> &quot;We assume X and Y are distinct entities, not different manifestations of the same process.&quot;</p>
+                <p><strong>Methodological:</strong> &quot;We assume our measurement of X doesn&apos;t itself affect Y.&quot;</p>
+                <p><strong>Background:</strong> &quot;We assume the standard model of [domain] is correct in this context.&quot;</p>
               </div>
             </div>
           </div>
@@ -278,16 +278,16 @@ Take your time. Be thorough. This is the foundation for everything that follows.
         </div>
 
         <ProTip>
-          Save the agent's output! Copy it to a file or note. You'll reference these
-          artifacts throughout the rest of the loop, and you'll want them for
-          documentation when you're done.
+          Save the agent&apos;s output! Copy it to a file or note. You&apos;ll reference these
+          artifacts throughout the rest of the loop, and you&apos;ll want them for
+          documentation when you&apos;re done.
         </ProTip>
 
         {/* Success Criteria */}
         <div className="p-5 rounded-xl border border-[oklch(0.72_0.19_145/0.3)] bg-[oklch(0.72_0.19_145/0.05)]">
           <h3 className="font-semibold text-[oklch(0.72_0.19_145)] mb-3">Success Criteria</h3>
           <p className="text-sm text-muted-foreground mb-3">
-            You're ready to proceed when you have:
+            You&apos;re ready to proceed when you have:
           </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-center gap-2">
@@ -300,7 +300,7 @@ Take your time. Be thorough. This is the foundation for everything that follows.
             </li>
             <li className="flex items-center gap-2">
               <span className="size-1.5 rounded-full bg-[oklch(0.72_0.19_145)]" />
-              At least one "third alternative" you hadn't considered
+              At least one &quot;third alternative&quot; you hadn&apos;t considered
             </li>
             <li className="flex items-center gap-2">
               <span className="size-1.5 rounded-full bg-[oklch(0.72_0.19_145)]" />
@@ -312,7 +312,7 @@ Take your time. Be thorough. This is the foundation for everything that follows.
         {/* Next Step Preview */}
         <div className="p-4 rounded-xl border border-border bg-card/50">
           <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">Next up:</strong> In Step 7, you'll
+            <strong className="text-foreground">Next up:</strong> In Step 7, you&apos;ll
             have your agent run the full Brenner loop &mdash; designing discriminative
             tests and ranking them by potency.
           </p>

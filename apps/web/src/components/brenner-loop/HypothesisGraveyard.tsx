@@ -229,7 +229,7 @@ function GraveyardEntryCard({
               {/* Brenner Quote */}
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
                 <p className="text-sm italic text-foreground">
-                  "{entry.brennerQuote}"
+                  &ldquo;{entry.brennerQuote}&rdquo;
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">— Brenner</p>
               </div>
@@ -396,7 +396,6 @@ function GraveyardFilters({
 
 export function HypothesisGraveyard({
   entries,
-  onSelect: _onSelect,
   onViewSuccessor,
   className,
 }: HypothesisGraveyardProps) {
@@ -536,7 +535,7 @@ export function HypothesisGraveyard({
                 <p className="text-2xl mb-2">🌱</p>
                 <p className="text-muted-foreground">The graveyard is empty.</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  No hypotheses have been falsified yet. That's either very good or very bad.
+                  No hypotheses have been falsified yet. That&apos;s either very good or very bad.
                 </p>
               </>
             ) : (

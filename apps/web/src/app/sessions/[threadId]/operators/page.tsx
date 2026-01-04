@@ -250,7 +250,7 @@ function OperatorWorkspace({ operator, values, onChange, onComplete }: OperatorW
       <Card className={cn("border-l-4", operator.borderColor)}>
         <CardContent className="py-4">
           <blockquote className="text-sm italic text-muted-foreground">
-            "{operator.quote.text}"
+            &ldquo;{operator.quote.text}&rdquo;
           </blockquote>
           <footer className="text-xs text-muted-foreground/70 mt-2">
             — Sydney Brenner, {operator.quote.anchor}

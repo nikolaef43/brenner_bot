@@ -531,7 +531,7 @@ describe("ROBUSTNESS_LABELS", () => {
   });
 
   it("each entry has required fields", () => {
-    for (const [_key, value] of Object.entries(ROBUSTNESS_LABELS)) {
+    for (const value of Object.values(ROBUSTNESS_LABELS)) {
       expect(value.label).toBeTruthy();
       expect(value.color).toBeTruthy();
       expect(value.description).toBeTruthy();

@@ -411,7 +411,7 @@ function PredictionLockItem({
             </DialogTitle>
             <DialogDescription>
               <span className="text-amber-600 font-medium">Warning:</span> Amending a prediction
-              after seeing evidence will be flagged and may reduce your hypothesis's credibility score.
+              after seeing evidence will be flagged and may reduce your hypothesis&apos;s credibility score.
               The original prediction will be preserved for audit.
             </DialogDescription>
           </DialogHeader>
@@ -556,7 +556,7 @@ function UnlockedPredictionItem({
             </DialogTitle>
             <DialogDescription>
               Once locked, this prediction <strong>cannot be changed</strong>. This is
-              the key anti-rationalization mechanism - you're committing to this prediction
+              the key anti-rationalization mechanism - you&apos;re committing to this prediction
               before seeing evidence.
             </DialogDescription>
           </DialogHeader>

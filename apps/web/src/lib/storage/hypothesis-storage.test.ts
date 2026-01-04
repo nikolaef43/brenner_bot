@@ -194,7 +194,8 @@ describe("Individual Hypothesis Operations", () => {
       private calls = 0;
 
       // Simulate a race: first call finds hypothesis, second call returns empty session list.
-      override async loadSessionHypotheses(_sessionId: string) {
+      override async loadSessionHypotheses(sessionId: string) {
+        void sessionId;
         this.calls++;
         return this.calls === 1 ? [hypothesis] : [];
       }

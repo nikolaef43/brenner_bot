@@ -58,7 +58,7 @@ test.describe("Visual Regression", () => {
         test.use({ viewport: { width: viewport.width, height: viewport.height } });
 
         for (const page of PUBLIC_PAGES) {
-          test(`${page.name} page`, async ({ page: pw, logger }, testInfo) => {
+          test(`${page.name} page`, async ({ page: pw, logger }) => {
             let status = 0;
 
             await withStep(logger, pw, `Navigate to ${page.path}`, async () => {

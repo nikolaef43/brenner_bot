@@ -465,7 +465,7 @@ function StepEpitaph({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm text-muted-foreground mb-2">Brenner says:</p>
-              <p className="italic text-foreground">"{brennerQuote}"</p>
+              <p className="italic text-foreground">&ldquo;{brennerQuote}&rdquo;</p>
             </div>
             <Button variant="ghost" size="sm" onClick={refreshQuote}>
               Refresh

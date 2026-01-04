@@ -20,8 +20,6 @@
 import { AnalyticsAdminServiceClient } from '@google-analytics/admin';
 
 // Configuration - Property already created in JeffCo Industries
-const PROPERTY_ID = '518309558';
-const PROPERTY_NAME = `properties/${PROPERTY_ID}`;
 const BRENNERBOT_DISPLAY_NAME = 'BrennerBot';
 const BRENNERBOT_TIMEZONE = 'America/New_York';
 const BRENNERBOT_CURRENCY = 'USD';
@@ -222,7 +220,7 @@ async function listAccountsAndCreateProperty(adminClient: AnalyticsAdminServiceC
   console.log(`✓ Created data stream with Measurement ID: ${measurementId}`);
 
   // Create Measurement Protocol API secret
-  console.log('\n🔐 Creating Measurement Protocol API secret...\n');
+  console.log('\n🔐 Creating Measurement Protocol API credential...\n');
 
   const [secret] = await adminClient.createMeasurementProtocolSecret({
     parent: dataStream.name,
@@ -231,7 +229,10 @@ async function listAccountsAndCreateProperty(adminClient: AnalyticsAdminServiceC
     },
   });
 
-  console.log(`✓ Created API secret: ${secret.secretValue}`);
+  console.log("✓ Created API credential.");
+  if (secret.secretValue) {
+    console.log("Store the generated value securely (not printed to avoid leaking).");
+  }
 
   // Configure custom dimensions and conversions
   await configureProperty(adminClient, newProperty.name!, propertyId!);
@@ -241,8 +242,8 @@ async function listAccountsAndCreateProperty(adminClient: AnalyticsAdminServiceC
   console.log('📝 ADD THESE TO YOUR .env.local FILE:');
   console.log('='.repeat(60) + '\n');
   console.log(`NEXT_PUBLIC_GA_MEASUREMENT_ID=${measurementId}`);
-  console.log(`GA_API_SECRET=${secret.secretValue}`);
   console.log(`GA_PROPERTY_ID=${propertyId}`);
+  console.log("Add the Measurement Protocol value manually (not printed).");
   console.log('\n' + '='.repeat(60));
   console.log(`\n🎉 GA4 setup complete!`);
   console.log(`\nView your property at:`);
@@ -272,13 +273,13 @@ async function getDataStreamInfo(adminClient: AnalyticsAdminServiceClient, prope
     console.log(`   Measurement ID: ${webStream.webStreamData?.measurementId}`);
     console.log(`   Stream URL: ${webStream.webStreamData?.defaultUri}`);
 
-    // List API secrets
-    const [secrets] = await adminClient.listMeasurementProtocolSecrets({
+    // List Measurement Protocol entries
+    const [apiEntries] = await adminClient.listMeasurementProtocolSecrets({
       parent: webStream.name,
     });
 
-    if (secrets && secrets.length > 0) {
-      console.log(`   API Secrets: ${secrets.length} configured`);
+    if (apiEntries && apiEntries.length > 0) {
+      console.log(`   API entries configured: ${apiEntries.length}`);
     }
   }
 }

@@ -12,6 +12,8 @@
 import { test, expect, waitForNetworkIdle } from "./utils";
 import { withStep } from "./utils/e2e-logging";
 
+type E2ELogger = ReturnType<typeof import("./utils/e2e-logging").createE2ELogger>;
+
 function baseUrlHost(): string {
   const raw = (process.env.BASE_URL || "https://brennerbot.org").trim();
   try {
@@ -29,7 +31,7 @@ function isLocalE2EEnvironment(): boolean {
 async function tryOpenAuthenticatedSessionForm(params: {
   page: import("@playwright/test").Page;
   context: import("@playwright/test").BrowserContext;
-  logger: any;
+  logger: E2ELogger;
 }): Promise<
   | { ok: true }
   | { ok: false; reason: "lab_disabled" | "locked" | "unexpected"; status: number; pageText: string }
@@ -65,7 +67,7 @@ async function tryOpenAuthenticatedSessionForm(params: {
 
 async function fillMinimalKickoffForm(params: {
   page: import("@playwright/test").Page;
-  logger: any;
+  logger: E2ELogger;
   threadId: string;
 }): Promise<void> {
   await withStep(params.logger, params.page, "Fill minimal kickoff form fields", async () => {

@@ -94,7 +94,7 @@ export const test = base.extend<{
     clearNetworkContext(testInfo.title);
   },
 
-  testSession: async ({}, use) => {
+  testSession: async ({}, provideFixture) => {
     // Lazy-load the seeder module to avoid Playwright config-time loading issues
     const seeder = await getAgentMailSeeder();
 
@@ -116,7 +116,7 @@ export const test = base.extend<{
     };
 
     // Provide the fixture
-    await use(fixture);
+    await provideFixture(fixture);
 
     // Cleanup after test
     for (const threadId of seededSessions) {

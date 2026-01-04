@@ -54,7 +54,9 @@ function stripAnimationProps<T extends Record<string, unknown>>(props: T): Parti
     const styleValue = sanitizedEntries[styleEntryIndex]?.[1];
     if (styleValue && typeof styleValue === "object" && !Array.isArray(styleValue)) {
       const styleObj = styleValue as Record<string, unknown>;
-      const { x: _x, y: _y, ...rest } = styleObj;
+      const { x, y, ...rest } = styleObj;
+      void x;
+      void y;
       sanitizedEntries[styleEntryIndex] = ["style", rest];
     }
   }

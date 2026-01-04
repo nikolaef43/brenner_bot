@@ -7,6 +7,16 @@ import { AnalyticsAdminServiceClient } from "@google-analytics/admin";
 
 const JEFFCO_ACCOUNT = "accounts/375919294";
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string") return message;
+  }
+  return "Unknown error";
+}
+
 async function createProperty() {
   const client = new AnalyticsAdminServiceClient();
   
@@ -58,14 +68,14 @@ async function createProperty() {
       console.log(`${"=".repeat(60)}`);
       console.log(`\nNEXT_PUBLIC_GA_MEASUREMENT_ID=${dataStream.webStreamData.measurementId}`);
       console.log(`GA_PROPERTY_ID=${propertyId}`);
-      console.log(`\nNote: You'll also need to create an API secret in GA4 console:`);
-      console.log(`Admin > Data Streams > [BrennerBot Web] > Measurement Protocol API secrets`);
+    console.log(`\nNote: You'll also need to create a Measurement Protocol API key in GA4 console:`);
+    console.log(`Admin > Data Streams > [BrennerBot Web] > Measurement Protocol API keys`);
     }
     
     return { property, dataStream, propertyId };
     
-  } catch (error: any) {
-    console.error("Error creating property:", error.message);
+  } catch (error: unknown) {
+    console.error("Error creating property:", getErrorMessage(error));
     throw error;
   }
 }

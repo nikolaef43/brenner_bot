@@ -163,7 +163,7 @@ Take your time. Be critical. I want a question that will actually lead somewhere
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary font-bold">2.</span>
-                <span>What's the current consensus (if any)?</span>
+                <span>What&apos;s the current consensus (if any)?</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary font-bold">3.</span>
@@ -195,8 +195,8 @@ Take your time. Be critical. I want a question that will actually lead somewhere
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">What to Expect</h2>
           <p className="text-muted-foreground">
-            Your agent should respond with a thorough critique. Don't be discouraged if
-            it finds problems &mdash; that's exactly what you want at this stage.
+            Your agent should respond with a thorough critique. Don&apos;t be discouraged if
+            it finds problems &mdash; that&apos;s exactly what you want at this stage.
           </p>
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -230,14 +230,14 @@ Take your time. Be critical. I want a question that will actually lead somewhere
         </div>
 
         <Warning>
-          Don't skip the critique step! It's tempting to rush ahead with your original
+          Don&apos;t skip the critique step! It&apos;s tempting to rush ahead with your original
           question, but taking 5 minutes now to sharpen it will save you from building
           elaborate tests for the wrong question.
         </Warning>
 
         <ProTip>
-          If your agent's critique reveals that your question is actually several
-          questions bundled together, that's a valuable discovery. Pick the most
+          If your agent&apos;s critique reveals that your question is actually several
+          questions bundled together, that&apos;s a valuable discovery. Pick the most
           important sub-question to proceed with.
         </ProTip>
 
@@ -263,7 +263,7 @@ Does this address the issues you raised? What's still weak about it?`}
         <div className="p-5 rounded-xl border border-[oklch(0.72_0.19_145/0.3)] bg-[oklch(0.72_0.19_145/0.05)]">
           <h3 className="font-semibold text-[oklch(0.72_0.19_145)] mb-3">Success Criteria</h3>
           <p className="text-sm text-muted-foreground mb-3">
-            You're ready to proceed when:
+            You&apos;re ready to proceed when:
           </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-center gap-2">
@@ -276,11 +276,11 @@ Does this address the issues you raised? What's still weak about it?`}
             </li>
             <li className="flex items-center gap-2">
               <span className="size-1.5 rounded-full bg-[oklch(0.72_0.19_145)]" />
-              The question could be answered "no" (it's falsifiable)
+              The question could be answered &quot;no&quot; (it&apos;s falsifiable)
             </li>
             <li className="flex items-center gap-2">
               <span className="size-1.5 rounded-full bg-[oklch(0.72_0.19_145)]" />
-              You know what you'd do differently with the answer
+              You know what you&apos;d do differently with the answer
             </li>
           </ul>
         </div>

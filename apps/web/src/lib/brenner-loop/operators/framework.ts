@@ -464,7 +464,8 @@ export function sessionReducer<TResult = unknown>(
     }
 
     case "CLEAR_SELECTION": {
-      const { [action.key]: _, ...rest } = session.userSelections;
+      const { [action.key]: removed, ...rest } = session.userSelections;
+      void removed;
       return {
         ...session,
         userSelections: rest,

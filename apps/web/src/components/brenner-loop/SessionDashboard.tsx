@@ -294,7 +294,7 @@ function BrennerQuote({ phase, className }: BrennerQuoteProps) {
     <Card className={cn("bg-muted/50", className)}>
       <CardContent className="pt-4">
         <div className="flex items-start gap-2">
-          <span className="text-2xl leading-none" aria-hidden="true">"</span>
+          <span className="text-2xl leading-none" aria-hidden="true">&ldquo;</span>
           <div className="flex-1">
             <blockquote className="text-sm italic text-muted-foreground">
               {config.quote.text}
@@ -339,7 +339,7 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
       <CardContent>
         {/* Phase-specific content will be injected here */}
         <div className="min-h-[200px] flex items-center justify-center text-muted-foreground">
-          <p>Phase content for "{config.name}" will appear here.</p>
+          <p>Phase content for &ldquo;{config.name}&rdquo; will appear here.</p>
         </div>
       </CardContent>
     </Card>
@@ -501,7 +501,7 @@ export function SessionDashboard({
             <HypothesisCard
               hypothesis={primaryHypothesis}
               mode="compact"
-              onEdit={onEditHypothesis ? (_updates) => onEditHypothesis() : undefined}
+              onEdit={onEditHypothesis ? () => onEditHypothesis() : undefined}
               onEvolve={onEvolveHypothesis}
               onViewHistory={onViewHistory}
               showConfounds={false}

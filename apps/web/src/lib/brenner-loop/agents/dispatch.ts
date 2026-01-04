@@ -600,13 +600,14 @@ export async function checkAgentAvailability(
  * Get fallback content when agents are unavailable.
  * Returns self-reflection questions and Brenner quotes to guide the user.
  *
- * @param _hypothesis - Reserved for future use (could customize questions based on hypothesis)
+ * @param hypothesis - Reserved for future use (could customize questions based on hypothesis)
  */
-export function getFallbackContent(_hypothesis: HypothesisCard): {
+export function getFallbackContent(hypothesis: HypothesisCard): {
   status: "unavailable";
   quotes: typeof FALLBACK_BRENNER_QUOTES;
   selfReflectionQuestions: string[];
 } {
+  void hypothesis;
   const selfReflectionQuestions = [
     "What would it take to convince you that your hypothesis is wrong?",
     "What is the strongest alternative explanation you can think of?",

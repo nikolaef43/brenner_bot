@@ -119,6 +119,8 @@ const AGENTS: AgentConfig[] = [
   },
 ];
 
+const MOCK_RESPONSE_TIMESTAMP = new Date(Date.now() - 1000 * 60 * 15);
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -283,7 +285,7 @@ function AgentCard({ agent, status, response, onInvoke }: AgentCardProps) {
             ) : (
               <>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Agent hasn't responded yet
+                  Agent hasn&apos;t responded yet
                 </p>
                 <Button
                   size="sm"
@@ -432,7 +434,7 @@ export default function AgentsPage() {
     {
       agentId: "devils_advocate",
       content: "I challenge the assumption that dopamine-driven feedback loops are the primary mechanism. Alternative explanations include: (1) selection effects where anxious individuals gravitate toward social media, (2) sleep disruption as the mediating factor, and (3) social comparison rather than reward mechanisms driving anxiety.",
-      timestamp: new Date(Date.now() - 1000 * 60 * 15),
+      timestamp: MOCK_RESPONSE_TIMESTAMP,
       confidence: 72,
       disagreements: ["The proposed mechanism may be too specific"],
       suggestions: [

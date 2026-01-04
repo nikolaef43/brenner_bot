@@ -331,7 +331,8 @@ describe("Test Record Schema", () => {
     });
 
     it("requires potencyCheck", () => {
-      const { potencyCheck: _potencyCheck, ...withoutPotency } = validTest;
+      const { potencyCheck, ...withoutPotency } = validTest;
+      void potencyCheck;
       expect(() => TestRecordSchema.parse(withoutPotency)).toThrow();
     });
   });

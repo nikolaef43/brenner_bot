@@ -172,7 +172,7 @@ function SidebarProgress({
 
   // Keyboard navigation
   const handleKeyDown = React.useCallback(
-    (e: React.KeyboardEvent, _index: number) => {
+    (e: React.KeyboardEvent) => {
       if (e.key === "ArrowDown" || e.key === "ArrowUp") {
         e.preventDefault();
         const buttons = listRef.current?.querySelectorAll("button:not([disabled])");
@@ -261,7 +261,7 @@ function SidebarProgress({
               <button
                 type="button"
                 onClick={() => canClick && onStepClick?.(index)}
-                onKeyDown={(e) => handleKeyDown(e, index)}
+                onKeyDown={(e) => handleKeyDown(e)}
                 disabled={!canClick}
                 className={cn(
                   "group relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200",
