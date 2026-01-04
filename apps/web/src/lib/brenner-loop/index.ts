@@ -475,6 +475,28 @@ export {
 } from "./evidence";
 
 // ============================================================================
+// Artifact Templates (bead nu8g.1)
+// ============================================================================
+
+export type {
+  ResearchBriefStatus,
+  ResearchBriefMetadata,
+  HypothesisStatement,
+  HypothesisEvolution,
+  DiscriminativeStructure,
+  OperatorAppliedSummary,
+  AgentAnalysis,
+  EvidenceSummary,
+  ResearchBriefTemplateInput,
+} from "./artifacts/research-brief-template";
+
+export {
+  RESEARCH_BRIEF_TEMPLATE_VERSION,
+  renderResearchBriefTemplate,
+  createResearchBriefTemplate,
+} from "./artifacts/research-brief-template";
+
+// ============================================================================
 // Multi-Agent Tribunal System (bead xlk2.1)
 // ============================================================================
 

@@ -44,6 +44,7 @@ export interface HypothesisEvolution {
   summary?: string;
   changes?: string[];
   triggers?: string[];
+  diagram?: string;
 }
 
 export interface DiscriminativeStructure {
@@ -107,11 +108,11 @@ export function renderResearchBriefTemplate(input: ResearchBriefTemplateInput = 
   lines.push(`created_at: ${metadata.createdAt}`);
   lines.push(`final_confidence: ${formatConfidence(metadata.finalConfidence)}`);
   lines.push(`status: ${metadata.status}`);
-  lines.push(`operators_applied: ${formatYamlList(metadata.operatorsApplied)}`);
-  lines.push(`agents_consulted: ${formatYamlList(metadata.agentsConsulted)}`);
+  lines.push(`operators_applied:${formatYamlList(metadata.operatorsApplied)}`);
+  lines.push(`agents_consulted:${formatYamlList(metadata.agentsConsulted)}`);
   lines.push(`tests_identified: ${metadata.testsIdentified}`);
   lines.push(`tests_completed: ${metadata.testsCompleted}`);
-  lines.push(`brenner_citations: ${formatYamlList(metadata.brennerCitations)}`);
+  lines.push(`brenner_citations:${formatYamlList(metadata.brennerCitations)}`);
   lines.push("---");
   lines.push("");
 
@@ -131,6 +132,7 @@ export function renderResearchBriefTemplate(input: ResearchBriefTemplateInput = 
   lines.push(formatParagraph(input.hypothesisEvolution?.summary, "Describe how the hypothesis changed (if at all)."));
   lines.push(formatList("Evolution steps", input.hypothesisEvolution?.changes));
   lines.push(formatList("Triggers", input.hypothesisEvolution?.triggers));
+  lines.push(formatField("Diagram / sketch", input.hypothesisEvolution?.diagram));
   lines.push("");
 
   lines.push("## Discriminative Structure");
@@ -166,7 +168,7 @@ export function renderResearchBriefTemplate(input: ResearchBriefTemplateInput = 
   lines.push(formatList("Confidence trajectory", input.evidenceSummary?.confidenceTrajectory));
   lines.push("");
 
-  lines.push("## Brenner Principles" );
+  lines.push("## Brenner Principles");
   lines.push(formatList("Relevant sections", input.brennerPrinciples));
   lines.push("");
 
@@ -211,7 +213,7 @@ function formatConfidence(value: number | null): string {
 }
 
 function formatYamlList(items?: string[]): string {
-  if (!items || items.length === 0) return "[]";
+  if (!items || items.length === 0) return " []";
   return `\n${items.map((item) => `  - ${item}`).join("\n")}`;
 }
 
