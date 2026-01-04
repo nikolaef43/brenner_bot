@@ -160,3 +160,59 @@ export {
   // Constants
   PHASE_ORDER,
 } from "./session-context";
+
+// ============================================================================
+// Session State Machine (bead reew.3)
+// ============================================================================
+
+export type {
+  // Event types
+  SessionEvent,
+  SessionEventType,
+
+  // Configuration types
+  TransitionGuard,
+  TransitionAction,
+  TransitionDef,
+  StateConfig,
+  SessionMachineConfig,
+
+  // Result types
+  TransitionResult,
+} from "./session-machine";
+
+export {
+  // Machine config
+  sessionMachineConfig,
+
+  // Core functions
+  transition,
+  getAvailableEvents,
+  getReachablePhases,
+  canSend,
+  canGoBack,
+  isComplete,
+  getDefaultNextPhase,
+
+  // Display helpers
+  getPhaseName,
+  getPhaseDescription,
+  getPhaseSymbol,
+
+  // Guards (for custom use)
+  hasPrimaryHypothesis,
+  hasPredictions,
+  canTransitionTo,
+  hasPendingAgentRequests,
+  hasAgentResponses,
+  hasEvidence,
+} from "./session-machine";
+
+// Hook and helpers
+export type { SessionMachineState, UseSessionMachineOptions } from "./use-session-machine";
+
+export {
+  useSessionMachine,
+  getPhaseStatusClass,
+  getSessionProgress,
+} from "./use-session-machine";
