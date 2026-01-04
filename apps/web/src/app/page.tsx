@@ -185,17 +185,17 @@ export default function Home() {
                 Apply the Method to Your Research
               </h2>
               <p className="text-sm sm:text-base text-muted-foreground max-w-2xl leading-relaxed">
-                The <Jargon term="brenner-loop">Brenner Loop</Jargon> is an interactive research framework that helps you develop <Jargon term="discriminative-hypothesis">discriminative hypotheses</Jargon> using four cognitive operators. Run structured sessions and track your evolving understanding.
+                The <Jargon term="brenner-loop">Brenner Loop</Jargon> is an interactive research framework that helps you develop <Jargon term="discriminative-test">discriminative tests</Jargon> using four cognitive operators. Run structured sessions and track your evolving understanding.
               </p>
             </div>
 
             {/* Operator preview */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { symbol: "Σ", name: "Level Split", description: "Decompose into measurable levels" },
-                { symbol: "⊘", name: "Exclusion Test", description: "Design decisive experiments" },
-                { symbol: "⟳", name: "Object Transpose", description: "Challenge causal assumptions" },
-                { symbol: "⊙", name: "Scale Check", description: "Verify effect magnitudes" },
+                { symbol: "Σ", name: "Level Split" },
+                { symbol: "⊘", name: "Exclusion Test" },
+                { symbol: "⟳", name: "Object Transpose" },
+                { symbol: "⊙", name: "Scale Check" },
               ].map((op) => (
                 <div key={op.symbol} className="flex flex-col items-center gap-2 p-3 sm:p-4 rounded-xl bg-background/60 border border-border/50">
                   <span className="text-xl sm:text-2xl font-bold text-primary">{op.symbol}</span>
