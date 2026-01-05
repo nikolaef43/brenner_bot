@@ -27,6 +27,7 @@ import { sessionFormSchema, sessionFieldValidators } from "@/lib/schemas/session
 import { Jargon } from "@/components/jargon";
 import { OperatorSelector, DEFAULT_OPERATORS, type OperatorSelection } from "./OperatorSelector";
 import { RosterAssignment, type RosterEntry } from "./RosterAssignment";
+import { useNetworkStatus } from "@/lib/offline";
 
 // ============================================================================
 // Icons
@@ -108,6 +109,12 @@ export function SessionForm({ defaultSender = "", defaultProjectKey = "" }: Sess
   const router = useRouter();
   const searchParams = useSearchParams();
   const mutation = useSessionMutation();
+  const { isOnline } = useNetworkStatus();
+
+  const [queuedSession, setQueuedSession] = React.useState<{
+    threadId: string;
+    queuedAt?: string;
+  } | null>(null);
 
   // Operator selection state (for prompt builder)
   const [operatorSelection, setOperatorSelection] = React.useState<OperatorSelection>(DEFAULT_OPERATORS);
@@ -156,6 +163,10 @@ export function SessionForm({ defaultSender = "", defaultProjectKey = "" }: Sess
         },
         {
           onSuccess: (result) => {
+            if (result.queued) {
+              setQueuedSession({ threadId: result.threadId, queuedAt: result.queuedAt });
+              return;
+            }
             router.push(`/sessions/new?sent=1&thread=${encodeURIComponent(result.threadId)}`);
           },
         }
@@ -200,6 +211,37 @@ export function SessionForm({ defaultSender = "", defaultProjectKey = "" }: Sess
             <div className="font-semibold text-destructive">Failed to send kickoff</div>
             <p className="text-sm text-muted-foreground mt-1">
               {getSessionErrorMessage(mutation.error)}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {!isOnline && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 flex items-start gap-3 animate-fade-in-up">
+          <div className="text-amber-600 dark:text-amber-400 mt-0.5">
+            <AlertCircleIcon />
+          </div>
+          <div>
+            <div className="font-semibold text-amber-700 dark:text-amber-300">You’re offline</div>
+            <p className="text-sm text-muted-foreground mt-1">
+              Submissions will be queued and sent automatically once you’re back online.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {queuedSession && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 flex items-start gap-3 animate-fade-in-up">
+          <div className="text-amber-600 dark:text-amber-400 mt-0.5">
+            <AlertCircleIcon />
+          </div>
+          <div>
+            <div className="font-semibold text-amber-700 dark:text-amber-300">
+              Session queued for delivery
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              Thread <span className="font-mono">{queuedSession.threadId}</span> will send when
+              connectivity is restored.
             </p>
           </div>
         </div>

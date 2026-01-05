@@ -18,6 +18,7 @@ import { QueryProvider } from "./QueryProvider";
 import { ExcerptBasketProvider } from "@/components/excerpt";
 import { SectionDataProvider } from "@/components/section-data-provider";
 import { AnalyticsProvider } from "@/components/analytics-provider";
+import { registerServiceWorker } from "@/lib/offline";
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -48,6 +49,12 @@ interface ProvidersProps {
  * ```
  */
 export function Providers({ children }: ProvidersProps) {
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === "production") {
+      void registerServiceWorker();
+    }
+  }, []);
+
   return (
     <AnalyticsProvider>
       <QueryProvider>

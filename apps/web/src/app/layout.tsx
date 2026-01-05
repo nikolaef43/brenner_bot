@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
-import { HeaderNav, BottomNav, ReadingProgress, BackToTop, ThemeToggle } from "@/components/ui/nav";
+import { HeaderNav, BottomNav, ReadingProgress, BackToTop, ThemeToggle, NetworkStatusBadge } from "@/components/ui/nav";
 import { Button } from "@/components/ui/button";
 import { SearchProvider, SearchTrigger } from "@/components/search";
 import { ExcerptBasketTrigger } from "@/components/excerpt";
@@ -155,6 +155,7 @@ export default function RootLayout({
                         </Button>
                       )}
 
+                      <NetworkStatusBadge className="flex" />
                       <ThemeToggle />
                     </div>
                   </div>

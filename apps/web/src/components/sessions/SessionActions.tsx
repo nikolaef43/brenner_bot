@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { enqueueOfflineAction, useOfflineQueue } from "@/lib/offline";
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -302,6 +303,7 @@ export function SessionActions({
 
   const [deltaSubject, setDeltaSubject] = React.useState<string>("");
   const [deltaBodyMd, setDeltaBodyMd] = React.useState<string>("");
+  const { isOnline } = useOfflineQueue();
 
   const recipients = parseRecipients(recipientsText);
   const canSend = sender.trim().length > 0 && recipients.length > 0;
@@ -318,6 +320,12 @@ export function SessionActions({
       if (action !== "compile") {
         payload.sender = sender.trim();
         payload.recipients = recipients;
+      }
+
+      if (!isOnline) {
+        enqueueOfflineAction("session-action", payload);
+        setLastOk(`Queued ${action.replace("_", " ")} for offline delivery`);
+        return;
       }
 
       const result = await postAction(payload);
@@ -376,6 +384,10 @@ export function SessionActions({
       const cwd = experimentCwd.trim();
       if (cwd) payload.cwd = cwd;
 
+      if (!isOnline) {
+        throw new Error("Offline: experiments require a live server connection.");
+      }
+
       const result = await postExperiment(payload);
       setExperimentResult(result.result);
       setExperimentResultFile(result.resultFile);
@@ -417,7 +429,7 @@ export function SessionActions({
         throw new Error("Missing DELTA body");
       }
 
-      const result = await postAction({
+      const payload = {
         action: "post_delta",
         threadId,
         projectKey,
@@ -425,7 +437,15 @@ export function SessionActions({
         recipients,
         subject,
         bodyMd,
-      });
+      };
+
+      if (!isOnline) {
+        enqueueOfflineAction("session-action", payload);
+        setLastOk("Queued DELTA for offline delivery");
+        return;
+      }
+
+      const result = await postAction(payload);
 
       if (result.action !== "post_delta") {
         throw new Error("Unexpected response");
@@ -478,6 +498,12 @@ export function SessionActions({
           </Button>
         </div>
       </div>
+
+      {!isOnline && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">
+          Offline mode: actions will be queued and sent once connectivity is restored.
+        </div>
+      )}
 
       <Collapsible className="group rounded-xl border border-border bg-muted/30 overflow-hidden">
         <CollapsibleTrigger className="p-4 text-sm text-muted-foreground group-data-[state=open]:text-foreground hover:bg-muted/50 active:bg-muted/70 transition-all duration-150">

@@ -33,6 +33,7 @@
 
 import { useMutation, type UseMutationOptions } from "@tanstack/react-query";
 import type { AgentRole, OperatorSelection } from "@/lib/schemas/session";
+import { enqueueOfflineAction, isOnline } from "@/lib/offline";
 
 // ============================================================================
 // Types
@@ -77,6 +78,8 @@ export interface SessionKickoffResult {
   success: true;
   threadId: string;
   messageId?: number;
+  queued?: boolean;
+  queuedAt?: string;
 }
 
 export interface SessionKickoffError {
@@ -116,16 +119,45 @@ export class SessionMutationError extends Error {
 // ============================================================================
 
 async function createSession(input: SessionKickoffInput): Promise<SessionKickoffResult> {
-  const response = await fetch("/api/sessions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
+  if (!isOnline()) {
+    const payload = input as unknown as Record<string, unknown>;
+    const queued = enqueueOfflineAction("session-kickoff", payload);
+    return { success: true, threadId: input.threadId, queued: true, queuedAt: queued.createdAt };
+  }
 
-  const data = await response.json();
+  let response: Response;
+  try {
+    response = await fetch("/api/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+  } catch {
+    if (!isOnline()) {
+      const payload = input as unknown as Record<string, unknown>;
+      const queued = enqueueOfflineAction("session-kickoff", payload);
+      return { success: true, threadId: input.threadId, queued: true, queuedAt: queued.createdAt };
+    }
+    throw new SessionMutationError({
+      success: false,
+      error: "Network request failed",
+      code: "NETWORK_ERROR",
+    });
+  }
 
-  if (!response.ok || !data.success) {
-    throw new SessionMutationError(data as SessionKickoffError);
+  let data: unknown = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
+
+  if (!response.ok || !(data as SessionKickoffResult | SessionKickoffError | null)?.success) {
+    const payload: SessionKickoffError =
+      data && typeof data === "object"
+        ? (data as SessionKickoffError)
+        : ({ success: false, error: "Request failed", code: "NETWORK_ERROR" } satisfies SessionKickoffError);
+    throw new SessionMutationError(payload);
   }
 
   return data as SessionKickoffResult;

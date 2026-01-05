@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { useThemePreference } from "@/lib/theme"
+import { useOfflineQueue } from "@/lib/offline"
 
 // Icons
 const HomeIcon = () => (
@@ -465,5 +466,50 @@ export function ThemeToggle({ className }: { className?: string }) {
         </svg>
       )}
     </button>
+  )
+}
+
+// Network Status Badge
+export function NetworkStatusBadge({ className }: { className?: string }) {
+  const { isOnline, queuedCount, isFlushing, flush } = useOfflineQueue()
+
+  if (isOnline && queuedCount === 0) {
+    return null
+  }
+
+  const isOffline = !isOnline
+  const badgeLabel = isOffline
+    ? "Offline"
+    : `Queued: ${queuedCount}`
+
+  return (
+    <div className={cn("flex items-center gap-2", className)}>
+      <span
+        className={cn(
+          "rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide",
+          isOffline
+            ? "bg-red-500/15 text-red-700 dark:text-red-400"
+            : "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+        )}
+        aria-live="polite"
+      >
+        {badgeLabel}
+      </span>
+      {!isOffline && queuedCount > 0 && (
+        <button
+          type="button"
+          onClick={() => void flush()}
+          disabled={isFlushing}
+          className={cn(
+            "rounded-full px-2.5 py-1 text-xs font-medium",
+            "border border-border/60 text-muted-foreground hover:text-foreground hover:border-border",
+            "transition-colors disabled:opacity-60 disabled:pointer-events-none"
+          )}
+          aria-label="Sync queued actions"
+        >
+          {isFlushing ? "Syncing..." : "Sync now"}
+        </button>
+      )}
+    </div>
   )
 }
