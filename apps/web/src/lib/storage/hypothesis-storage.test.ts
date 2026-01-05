@@ -112,6 +112,39 @@ describe("Session File Operations", () => {
     expect(index.warnings?.some((w) => w.file.includes("BAD-hypotheses.json"))).toBe(true);
   });
 
+  test("returns empty array when hypotheses field is not an array", async () => {
+    await fs.mkdir(join(testDir, ".research", "hypotheses"), { recursive: true });
+    await fs.writeFile(
+      join(testDir, ".research", "hypotheses", "MALFORMED-hypotheses.json"),
+      JSON.stringify({ sessionId: "MALFORMED", createdAt: "2025-01-01", hypotheses: "not-an-array" })
+    );
+
+    const loaded = await storage.loadSessionHypotheses("MALFORMED");
+    expect(loaded).toEqual([]);
+  });
+
+  test("skips individual invalid hypothesis entries during load", async () => {
+    const validHypothesis = createTestHypothesisData({ id: "H-MIXED-001", sessionId: "MIXED" });
+    await fs.mkdir(join(testDir, ".research", "hypotheses"), { recursive: true });
+    await fs.writeFile(
+      join(testDir, ".research", "hypotheses", "MIXED-hypotheses.json"),
+      JSON.stringify({
+        sessionId: "MIXED",
+        createdAt: "2025-01-01",
+        updatedAt: "2025-01-01",
+        hypotheses: [
+          validHypothesis,
+          { invalid: "entry", missing: "required fields" },
+          { id: "also-invalid" },
+        ],
+      })
+    );
+
+    const loaded = await storage.loadSessionHypotheses("MIXED");
+    expect(loaded).toHaveLength(1);
+    expect(loaded[0].id).toBe(validHypothesis.id);
+  });
+
   test("preserves createdAt on update", async () => {
     const hypothesis = createTestHypothesisData();
     await storage.saveSessionHypotheses("TEST", [hypothesis]);
@@ -297,6 +330,49 @@ describe("Index Operations", () => {
     expect(index.version).toBe("1.0.0");
   });
 
+  test("loadIndex rebuilds when entries field is not an array", async () => {
+    const hypothesis = createTestHypothesisData({ id: "H-TEST-001" });
+    await storage.saveSessionHypotheses("TEST", [hypothesis]);
+
+    const indexPath = join(testDir, ".research", "hypothesis-index.json");
+    await fs.mkdir(join(testDir, ".research"), { recursive: true });
+    await fs.writeFile(indexPath, JSON.stringify({ version: "1.0.0", entries: "not-array" }));
+
+    const index = await storage.loadIndex();
+    expect(index.entries).toHaveLength(1);
+    expect(Array.isArray(index.entries)).toBe(true);
+  });
+
+  test("rebuildIndex records warning for session files with non-array hypotheses field", async () => {
+    await fs.mkdir(join(testDir, ".research", "hypotheses"), { recursive: true });
+    await fs.writeFile(
+      join(testDir, ".research", "hypotheses", "NOARRAY-hypotheses.json"),
+      JSON.stringify({ sessionId: "NOARRAY", hypotheses: { not: "an-array" } })
+    );
+
+    const index = await storage.rebuildIndex();
+    expect(index.warnings?.some((w) => w.message.includes("missing hypotheses[]"))).toBe(true);
+  });
+
+  test("rebuildIndex records warning for session files with invalid hypothesis entries", async () => {
+    await fs.mkdir(join(testDir, ".research", "hypotheses"), { recursive: true });
+    await fs.writeFile(
+      join(testDir, ".research", "hypotheses", "HASINVALID-hypotheses.json"),
+      JSON.stringify({
+        sessionId: "HASINVALID",
+        createdAt: "2025-01-01",
+        updatedAt: "2025-01-01",
+        hypotheses: [
+          { invalid: "hypothesis1" },
+          { invalid: "hypothesis2" },
+        ],
+      })
+    );
+
+    const index = await storage.rebuildIndex();
+    expect(index.warnings?.some((w) => w.message.includes("Skipped 2 invalid hypotheses"))).toBe(true);
+  });
+
   test("index entries contain correct metadata", async () => {
     const hypothesis = createTestHypothesisData({
       id: "H-TEST-001",
@@ -394,6 +470,25 @@ describe("Bulk Operations", () => {
     expect(sessions).toHaveLength(2);
     expect(sessions).toContain("S1");
     expect(sessions).toContain("S2");
+  });
+
+  test("listSessions returns empty array when hypotheses directory does not exist", async () => {
+    // Fresh temp dir with no .research/hypotheses directory
+    const freshDir = join(testDir, "fresh-subdir");
+    await fs.mkdir(freshDir, { recursive: true });
+    const freshStorage = new HypothesisStorage({ baseDir: freshDir, autoRebuildIndex: false });
+
+    const sessions = await freshStorage.listSessions();
+    expect(sessions).toEqual([]);
+  });
+
+  test("getAllHypotheses returns empty array when hypotheses directory does not exist", async () => {
+    const freshDir = join(testDir, "another-fresh-subdir");
+    await fs.mkdir(freshDir, { recursive: true });
+    const freshStorage = new HypothesisStorage({ baseDir: freshDir, autoRebuildIndex: false });
+
+    const all = await freshStorage.getAllHypotheses();
+    expect(all).toEqual([]);
   });
 });
 

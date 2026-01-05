@@ -1,9 +1,10 @@
 /**
- * Evidence Recording Components
+ * Evidence Components
  *
- * UI components for recording and displaying evidence in the Brenner Loop.
+ * UI components for recording, displaying, and analyzing evidence
+ * in the Brenner Loop hypothesis testing system.
  *
- * @see brenner_bot-njjo.3 (bead)
+ * @see brenner_bot-njjo (Evidence Ledger epic)
  * @module components/brenner-loop/evidence
  */
 
@@ -11,3 +12,13 @@ export {
   EvidenceRecorder,
   type EvidenceRecorderProps,
 } from "./EvidenceRecorder";
+
+export {
+  EvidenceTimeline,
+  type EvidenceTimelineProps,
+} from "./EvidenceTimeline";
+
+export {
+  ConfidenceChart,
+  type ConfidenceChartProps,
+} from "./ConfidenceChart";

@@ -56,6 +56,8 @@ import {
   generateAlternatives,
   generateDiscriminatingTests,
   generateThirdVariables,
+  type AlternativeExplanation,
+  type PlausibilityRating,
 } from "./object-transpose";
 import {
   SCALE_CHECK_STEP_IDS,
@@ -594,7 +596,7 @@ describe("operators/exclusion-test", () => {
     expect(tests2.some((t) => t.name.includes("Caffeine"))).toBe(true);
 
     const missingMechanism = { ...hypothesis, mechanism: "" } as HypothesisCard;
-    const tests3 = generateExclusionTests(missingMechanism as never);
+    const tests3 = generateExclusionTests(missingMechanism);
     expect(JSON.stringify(tests3)).toContain("the proposed mechanism");
   });
 });
@@ -725,12 +727,12 @@ describe("operators/object-transpose", () => {
   });
 
   it("skips alternatives with no discriminating test template", () => {
-    const alternatives = [
+    const alternatives: AlternativeExplanation[] = [
       { id: "alt-other", type: "other", name: "Other", description: "Other", implications: [] },
-    ] as never;
-    const ratings = [
+    ];
+    const ratings: PlausibilityRating[] = [
       { alternativeId: "alt-other", plausibility: 4, evidenceDiscrimination: "poor", notes: "" },
-    ] as never;
+    ];
 
     const tests = generateDiscriminatingTests(alternatives, ratings);
     expect(tests).toEqual([]);

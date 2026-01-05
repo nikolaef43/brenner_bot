@@ -202,6 +202,39 @@ describe("TestStorage", () => {
       expect(index.entries.map((e) => e.id)).toContain(good.id);
       expect(index.warnings?.some((w) => w.file.includes("BAD-tests.json"))).toBe(true);
     });
+
+    it("returns empty array when tests field is not an array", async () => {
+      await fs.mkdir(join(tempDir, ".research", "tests"), { recursive: true });
+      await fs.writeFile(
+        join(tempDir, ".research", "tests", "MALFORMED-tests.json"),
+        JSON.stringify({ sessionId: "MALFORMED", createdAt: "2025-01-01", tests: "not-an-array" })
+      );
+
+      const loaded = await storage.loadSessionTests("MALFORMED");
+      expect(loaded).toEqual([]);
+    });
+
+    it("skips individual invalid test entries during load", async () => {
+      const validTest = createTestTestRecord("MIXED", 1);
+      await fs.mkdir(join(tempDir, ".research", "tests"), { recursive: true });
+      await fs.writeFile(
+        join(tempDir, ".research", "tests", "MIXED-tests.json"),
+        JSON.stringify({
+          sessionId: "MIXED",
+          createdAt: "2025-01-01",
+          updatedAt: "2025-01-01",
+          tests: [
+            validTest,
+            { invalid: "entry", missing: "required fields" },
+            { id: "also-invalid" },
+          ],
+        })
+      );
+
+      const loaded = await storage.loadSessionTests("MIXED");
+      expect(loaded).toHaveLength(1);
+      expect(loaded[0].id).toBe(validTest.id);
+    });
   });
 
   // ============================================================================
@@ -241,6 +274,48 @@ describe("TestStorage", () => {
 
       const index = await storageNoAuto.loadIndex();
       expect(index.entries).toHaveLength(1);
+    });
+
+    it("rebuilds index when entries field is not an array", async () => {
+      const storageNoAuto = new TestStorage({ baseDir: tempDir, autoRebuildIndex: false });
+      await storageNoAuto.saveTest(createTestTestRecord("RS20251230", 1));
+
+      const indexPath = join(tempDir, ".research", "test-index.json");
+      await fs.writeFile(indexPath, JSON.stringify({ version: "1.0.0", entries: "not-array" }));
+
+      const index = await storageNoAuto.loadIndex();
+      expect(index.entries).toHaveLength(1);
+      expect(Array.isArray(index.entries)).toBe(true);
+    });
+
+    it("records warning for session files with non-array tests field", async () => {
+      await fs.mkdir(join(tempDir, ".research", "tests"), { recursive: true });
+      await fs.writeFile(
+        join(tempDir, ".research", "tests", "NOARRAY-tests.json"),
+        JSON.stringify({ sessionId: "NOARRAY", tests: { not: "an-array" } })
+      );
+
+      const index = await storage.rebuildIndex();
+      expect(index.warnings?.some((w) => w.message.includes("missing tests[]"))).toBe(true);
+    });
+
+    it("records warning for session files with invalid test entries", async () => {
+      await fs.mkdir(join(tempDir, ".research", "tests"), { recursive: true });
+      await fs.writeFile(
+        join(tempDir, ".research", "tests", "HASINVALID-tests.json"),
+        JSON.stringify({
+          sessionId: "HASINVALID",
+          createdAt: "2025-01-01",
+          updatedAt: "2025-01-01",
+          tests: [
+            { invalid: "test1" },
+            { invalid: "test2" },
+          ],
+        })
+      );
+
+      const index = await storage.rebuildIndex();
+      expect(index.warnings?.some((w) => w.message.includes("Skipped 2 invalid tests"))).toBe(true);
     });
 
     it("includes discriminates information in index", async () => {
