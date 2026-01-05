@@ -38,18 +38,26 @@ export interface SearchResult {
 // Section Loading
 // ============================================================================
 
+let sectionsCache: Section[] | null = null;
+let cacheTimestamp: number | null = null;
+
 /**
  * Load all transcript sections from the corpus.
  *
- * NOTE: This function does NOT cache internally. When using TanStack Query,
- * caching is handled by the query client. For server-side usage, consider
- * wrapping in a server action and using the useCorpusSearch hook.
+ * NOTE: This function caches in-memory for repeated server-side calls.
+ * When using TanStack Query, this complements client-side caching.
  *
  * @returns Promise resolving to array of parsed sections
  */
 async function loadSections(): Promise<Section[]> {
+  if (sectionsCache) return sectionsCache;
+
   const { content } = await readCorpusDoc("transcript");
   const { sections } = parseTranscript(content);
+
+  sectionsCache = sections;
+  cacheTimestamp = Date.now();
+
   return sections;
 }
 
@@ -269,6 +277,16 @@ export async function getSectionByNumber(num: number): Promise<Section | undefin
  */
 export async function getAllSections(): Promise<Section[]> {
   return loadSections();
+}
+
+/**
+ * Return basic cache stats for diagnostics/tests.
+ */
+export function getCacheStats(): { cached: boolean; timestamp: number } {
+  return {
+    cached: Boolean(sectionsCache),
+    timestamp: cacheTimestamp ?? 0,
+  };
 }
 
 /**

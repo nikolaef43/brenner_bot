@@ -13,13 +13,8 @@ import {
   getSectionByAnchor,
   getSectionByNumber,
   getAllSections,
+  getCacheStats,
 } from "./corpusSearch";
-
-// Placeholder for unimplemented function - tests are skipped
-const getCacheStats = (): { cached: boolean; timestamp: number } => ({
-  cached: false,
-  timestamp: 0,
-});
 
 // ============================================================================
 // Setup
@@ -302,7 +297,7 @@ describe("getAllSections", () => {
 // Tests: getCacheStats
 // ============================================================================
 
-describe.skip("getCacheStats", () => {
+describe("getCacheStats", () => {
   // TODO: Implement getCacheStats function in corpusSearch.ts
   it("reports cache as active after loading", async () => {
     // Ensure sections are loaded
