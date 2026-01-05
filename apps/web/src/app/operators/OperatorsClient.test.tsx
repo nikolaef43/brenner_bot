@@ -28,6 +28,23 @@ vi.mock("framer-motion", async () => {
   };
 });
 
+// Mock quote for testing
+const mockQuote58 = {
+  sectionId: "§58",
+  title: "Levels of explanation",
+  quote: "You need to separate the levels.",
+  context: "Core insight about levels",
+  tags: ["levels", "decomposition"],
+};
+
+const mockQuote120 = {
+  sectionId: "§120",
+  title: "Making things real",
+  quote: "You have to materialize it.",
+  context: "Importance of concrete experiments",
+  tags: ["experiment", "concrete"],
+};
+
 // Mock operators data
 const mockOperators: BrennerOperatorPaletteEntry[] = [
   {
@@ -38,15 +55,10 @@ const mockOperators: BrennerOperatorPaletteEntry[] = [
     whenToUseTriggers: ["When mixing levels causes confusion", "When debugging complex systems"],
     failureModes: ["Over-splitting", "Missing cross-level interactions"],
     transcriptAnchors: "§58-61, §112",
-    supportingQuotes: [
-      {
-        sectionId: "§58",
-        title: "Levels of explanation",
-        quote: "You need to separate the levels.",
-        context: "Core insight about levels",
-        tags: ["levels", "decomposition"],
-      },
-    ],
+    quoteBankAnchors: ["§58"],
+    promptModule: null,
+    quotes: [mockQuote58],
+    supportingQuotes: [mockQuote58],
   },
   {
     title: "Recode",
@@ -56,6 +68,9 @@ const mockOperators: BrennerOperatorPaletteEntry[] = [
     whenToUseTriggers: ["When the current framing obscures the answer"],
     failureModes: ["Losing information in translation"],
     transcriptAnchors: "§45-47",
+    quoteBankAnchors: [],
+    promptModule: null,
+    quotes: [],
     supportingQuotes: [],
   },
   {
@@ -66,15 +81,10 @@ const mockOperators: BrennerOperatorPaletteEntry[] = [
     whenToUseTriggers: ["When theory needs grounding"],
     failureModes: ["Oversimplifying the abstraction"],
     transcriptAnchors: "§120-125",
-    supportingQuotes: [
-      {
-        sectionId: "§120",
-        title: "Making things real",
-        quote: "You have to materialize it.",
-        context: "Importance of concrete experiments",
-        tags: ["experiment", "concrete"],
-      },
-    ],
+    quoteBankAnchors: ["§120"],
+    promptModule: null,
+    quotes: [mockQuote120],
+    supportingQuotes: [mockQuote120],
   },
   {
     title: "Cross-domain",
@@ -84,6 +94,9 @@ const mockOperators: BrennerOperatorPaletteEntry[] = [
     whenToUseTriggers: ["When stuck in one perspective"],
     failureModes: ["Forced analogies"],
     transcriptAnchors: "§200-205",
+    quoteBankAnchors: [],
+    promptModule: null,
+    quotes: [],
     supportingQuotes: [],
   },
 ];

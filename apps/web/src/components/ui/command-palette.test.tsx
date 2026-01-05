@@ -349,6 +349,11 @@ describe("CommandPalette", () => {
       const mockPush = vi.fn();
       vi.mocked(await import("next/navigation")).useRouter = () => ({
         push: mockPush,
+        back: vi.fn(),
+        forward: vi.fn(),
+        refresh: vi.fn(),
+        replace: vi.fn(),
+        prefetch: vi.fn(),
       });
 
       renderCommandPalette();

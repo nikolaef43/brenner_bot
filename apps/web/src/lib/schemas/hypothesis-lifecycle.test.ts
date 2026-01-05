@@ -719,9 +719,9 @@ describe("TransitionHistoryStore", () => {
           {
             id: "not-a-uuid", // Invalid
             hypothesisId: "H-TEST-001",
-            fromState: "proposed",
-            toState: "active",
-            trigger: "activate",
+            fromState: "proposed" as const,
+            toState: "active" as const,
+            trigger: "activate" as const,
             timestamp: "2025-12-30T01:00:00Z",
           },
         ],
