@@ -4499,16 +4499,22 @@ ${JSON.stringify(delta, null, 2)}
         process.exit(1);
       }
 
-      await storage.saveHypothesis(result.hypothesis!);
+      const hypothesisToSave = result.hypothesis;
+      const transition = result.transition;
+      if (!hypothesisToSave || !transition) {
+        throw new Error("Invariant violation: activateHypothesis succeeded without returning hypothesis/transition");
+      }
+
+      await storage.saveHypothesis(hypothesisToSave);
 
       // Log transition history
-      appendHypothesisTransition(projectKey, result.transition!);
+      appendHypothesisTransition(projectKey, transition);
 
       if (jsonMode) {
         stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
       } else {
         stdoutLine(`✓ Activated hypothesis ${hypothesisId}`);
-        stdoutLine(`  State: ${result.transition!.fromState} → ${result.transition!.toState}`);
+        stdoutLine(`  State: ${transition.fromState} → ${transition.toState}`);
       }
       process.exit(0);
     }
@@ -4547,15 +4553,21 @@ ${JSON.stringify(delta, null, 2)}
         process.exit(1);
       }
 
-      await storage.saveHypothesis(result.hypothesis!);
+      const hypothesisToSave = result.hypothesis;
+      const transition = result.transition;
+      if (!hypothesisToSave || !transition) {
+        throw new Error("Invariant violation: refuteHypothesis succeeded without returning hypothesis/transition");
+      }
 
-      appendHypothesisTransition(projectKey, result.transition!);
+      await storage.saveHypothesis(hypothesisToSave);
+
+      appendHypothesisTransition(projectKey, transition);
 
       if (jsonMode) {
         stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
       } else {
         stdoutLine(`✓ Killed hypothesis ${hypothesisId}`);
-        stdoutLine(`  State: ${result.transition!.fromState} → ${result.transition!.toState}`);
+        stdoutLine(`  State: ${transition.fromState} → ${transition.toState}`);
         if (testId) stdoutLine(`  Killed by: ${testId}`);
         if (reason) stdoutLine(`  Reason: ${reason}`);
       }
@@ -4593,15 +4605,21 @@ ${JSON.stringify(delta, null, 2)}
         process.exit(1);
       }
 
-      await storage.saveHypothesis(result.hypothesis!);
+      const hypothesisToSave = result.hypothesis;
+      const transition = result.transition;
+      if (!hypothesisToSave || !transition) {
+        throw new Error("Invariant violation: supersedeHypothesis succeeded without returning hypothesis/transition");
+      }
 
-      appendHypothesisTransition(projectKey, result.transition!);
+      await storage.saveHypothesis(hypothesisToSave);
+
+      appendHypothesisTransition(projectKey, transition);
 
       if (jsonMode) {
         stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
       } else {
         stdoutLine(`✓ Refined hypothesis ${hypothesisId}`);
-        stdoutLine(`  State: ${result.transition!.fromState} → ${result.transition!.toState}`);
+        stdoutLine(`  State: ${transition.fromState} → ${transition.toState}`);
         stdoutLine(`  Replaced by: ${childId}`);
       }
       process.exit(0);
@@ -4633,15 +4651,21 @@ ${JSON.stringify(delta, null, 2)}
         process.exit(1);
       }
 
-      await storage.saveHypothesis(result.hypothesis!);
+      const hypothesisToSave = result.hypothesis;
+      const transition = result.transition;
+      if (!hypothesisToSave || !transition) {
+        throw new Error("Invariant violation: confirmHypothesis succeeded without returning hypothesis/transition");
+      }
 
-      appendHypothesisTransition(projectKey, result.transition!);
+      await storage.saveHypothesis(hypothesisToSave);
+
+      appendHypothesisTransition(projectKey, transition);
 
       if (jsonMode) {
         stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
       } else {
         stdoutLine(`✓ Validated hypothesis ${hypothesisId}`);
-        stdoutLine(`  State: ${result.transition!.fromState} → ${result.transition!.toState}`);
+        stdoutLine(`  State: ${transition.fromState} → ${transition.toState}`);
         stdoutLine(`  Validated by: ${testId}`);
         stdoutLine(`  ⚠️  Note: Validation is provisional. New tests may still refute this hypothesis.`);
       }
@@ -4671,15 +4695,21 @@ ${JSON.stringify(delta, null, 2)}
         process.exit(1);
       }
 
-      await storage.saveHypothesis(result.hypothesis!);
+      const hypothesisToSave = result.hypothesis;
+      const transition = result.transition;
+      if (!hypothesisToSave || !transition) {
+        throw new Error("Invariant violation: deferHypothesis succeeded without returning hypothesis/transition");
+      }
 
-      appendHypothesisTransition(projectKey, result.transition!);
+      await storage.saveHypothesis(hypothesisToSave);
+
+      appendHypothesisTransition(projectKey, transition);
 
       if (jsonMode) {
         stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
       } else {
         stdoutLine(`✓ Parked hypothesis ${hypothesisId}`);
-        stdoutLine(`  State: ${result.transition!.fromState} → ${result.transition!.toState}`);
+        stdoutLine(`  State: ${transition.fromState} → ${transition.toState}`);
         if (reason) stdoutLine(`  Reason: ${reason}`);
       }
       process.exit(0);
@@ -4706,15 +4736,21 @@ ${JSON.stringify(delta, null, 2)}
         process.exit(1);
       }
 
-      await storage.saveHypothesis(result.hypothesis!);
+      const hypothesisToSave = result.hypothesis;
+      const transition = result.transition;
+      if (!hypothesisToSave || !transition) {
+        throw new Error("Invariant violation: reactivateHypothesis succeeded without returning hypothesis/transition");
+      }
 
-      appendHypothesisTransition(projectKey, result.transition!);
+      await storage.saveHypothesis(hypothesisToSave);
+
+      appendHypothesisTransition(projectKey, transition);
 
       if (jsonMode) {
         stdoutLine(JSON.stringify({ ok: true, hypothesis: result.hypothesis, transition: result.transition }, null, 2));
       } else {
         stdoutLine(`✓ Reactivated hypothesis ${hypothesisId}`);
-        stdoutLine(`  State: ${result.transition!.fromState} → ${result.transition!.toState}`);
+        stdoutLine(`  State: ${transition.fromState} → ${transition.toState}`);
       }
       process.exit(0);
     }
