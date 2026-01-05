@@ -141,6 +141,27 @@ export {
 } from "./storage";
 
 // ============================================================================
+// Error Recovery (bead ft14)
+// ============================================================================
+
+export type {
+  RecoverySeverity,
+  RecoveryAction,
+  RecoveryNotice,
+  RetryOptions,
+  TimeoutOptions,
+  RecoveryResult,
+} from "./errorRecovery";
+
+export {
+  TimeoutError,
+  withRetry,
+  withTimeout,
+  loadSessionWithRecovery,
+  createRecoveryNotice,
+} from "./errorRecovery";
+
+// ============================================================================
 // Export / Import (bead 1v26.4)
 // ============================================================================
 
@@ -323,6 +344,23 @@ export {
 } from "./hypothesis-arena";
 
 // ============================================================================
+// Hypothesis Comparison View (bead y8px)
+// ============================================================================
+
+export type {
+  ComparisonField,
+  ComparisonResult,
+  PredictionConflictRow,
+  ComparisonEvidenceSummary,
+} from "./comparison";
+
+export {
+  buildComparisonResults,
+  buildPredictionConflictMatrix,
+  buildEvidenceSummary,
+} from "./comparison";
+
+// ============================================================================
 // Hypothesis Lifecycle State Machine (bead se2r)
 // ============================================================================
 
@@ -487,7 +525,7 @@ export type {
   DiscriminativeStructure,
   OperatorAppliedSummary,
   AgentAnalysis,
-  EvidenceSummary,
+  EvidenceSummary as ResearchBriefEvidenceSummary,
   ResearchBriefTemplateInput,
 } from "./artifacts/research-brief-template";
 

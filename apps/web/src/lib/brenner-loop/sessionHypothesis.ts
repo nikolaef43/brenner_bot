@@ -422,7 +422,7 @@ export function resolveCompetition(
   // Build updated state
   let newPrimaryId = session.primaryHypothesisId;
   let newAlternatives = [...session.alternativeHypothesisIds];
-  let newArchived = [...session.archivedHypothesisIds];
+  const newArchived = [...session.archivedHypothesisIds];
 
   // If loser was primary, winner becomes primary
   if (session.primaryHypothesisId === loserId) {

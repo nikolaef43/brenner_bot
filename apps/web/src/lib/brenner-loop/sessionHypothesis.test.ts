@@ -5,7 +5,7 @@
  * @module brenner-loop/sessionHypothesis.test
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   getSessionHypotheses,
   getAllHypothesisIds,
