@@ -8,14 +8,22 @@ import { describe, it, expect, beforeEach } from "vitest";
 import type { Session } from "./types";
 import {
   createUndoStack,
+  generateCommandId,
   createConfidenceCommand,
   createSetPrimaryCommand,
   createArchiveCommand,
   createRestoreCommand,
+  createEvidenceCommand,
   createPhaseCommand,
   createNotesCommand,
   createAddTagCommand,
   createRemoveTagCommand,
+  applyCommand,
+  reverseCommand,
+  isConfidenceCommand,
+  isHypothesisStateCommand,
+  isEvidenceCommand,
+  isPhaseCommand,
   executeCommand,
   undo,
   redo,
@@ -157,6 +165,11 @@ describe("UndoStack creation", () => {
 // ============================================================================
 
 describe("Command creation", () => {
+  it("generates command IDs with a stable prefix", () => {
+    const id = generateCommandId();
+    expect(id).toMatch(/^CMD-\d+-[a-z0-9]{6}$/);
+  });
+
   it("creates a confidence command", () => {
     const cmd = createConfidenceCommand("hypo-1", 50, 75, "New evidence");
     expect(cmd.type).toBe("update_confidence");
@@ -186,6 +199,19 @@ describe("Command creation", () => {
     expect(cmd.executeData.hypothesisId).toBe("hypo-3");
   });
 
+  it("creates an evidence command", () => {
+    const evidence = {
+      id: "EV-1",
+      type: "observation",
+      content: "Observed outcome",
+      addedAt: new Date().toISOString(),
+    } as never;
+
+    const cmd = createEvidenceCommand(evidence);
+    expect(cmd.type).toBe("record_evidence");
+    expect((cmd.executeData as { evidence: { id: string } }).evidence.id).toBe("EV-1");
+  });
+
   it("creates a phase command", () => {
     const cmd = createPhaseCommand("sharpening", "level_split");
     expect(cmd.type).toBe("phase_transition");
@@ -209,6 +235,27 @@ describe("Command creation", () => {
     expect(removeCmd.type).toBe("remove_tag");
     expect(removeCmd.executeData.tag).toBe("important");
   });
+
+  it("supports command type guards", () => {
+    const confidence = createConfidenceCommand("hypo-1", 50, 60, "reason");
+    const phase = createPhaseCommand("intake", "sharpening");
+    const archive = createArchiveCommand("hypo-1");
+    const evidence = createEvidenceCommand({
+      id: "EV-2",
+      type: "observation",
+      content: "x",
+      addedAt: new Date().toISOString(),
+    } as never);
+
+    expect(isConfidenceCommand(confidence)).toBe(true);
+    expect(isConfidenceCommand(phase)).toBe(false);
+    expect(isHypothesisStateCommand(archive)).toBe(true);
+    expect(isHypothesisStateCommand(confidence)).toBe(false);
+    expect(isEvidenceCommand(evidence)).toBe(true);
+    expect(isEvidenceCommand(archive)).toBe(false);
+    expect(isPhaseCommand(phase)).toBe(true);
+    expect(isPhaseCommand(evidence)).toBe(false);
+  });
 });
 
 // ============================================================================
@@ -231,6 +278,36 @@ describe("Command execution", () => {
     expect(result.session.hypothesisCards["hypo-1"].confidence).toBe(75);
     expect(result.stack.history).toHaveLength(1);
     expect(result.stack.redoStack).toHaveLength(0);
+  });
+
+  it("executes evidence recording and supports reversing it", () => {
+    const evidence = {
+      id: "EV-3",
+      type: "observation",
+      content: "Observed",
+      addedAt: new Date().toISOString(),
+    } as never;
+
+    const cmd = createEvidenceCommand(evidence);
+    const applied = applyCommand(session, cmd);
+    expect(applied.evidenceLedger.length).toBe(session.evidenceLedger.length + 1);
+
+    const reversed = reverseCommand(applied, cmd);
+    expect(reversed.evidenceLedger.find((e) => (e as { id: string }).id === "EV-3")).toBeUndefined();
+  });
+
+  it("returns the original session for unknown/invalid commands", () => {
+    const unknown = {
+      id: "CMD-unknown",
+      type: "update_prediction",
+      timestamp: new Date().toISOString(),
+      description: "noop",
+      executeData: { predictionId: "P-1", field: "x", value: 1 },
+      undoData: { predictionId: "P-1", field: "x", value: 0 },
+    } as never;
+
+    expect(applyCommand(session, unknown)).toEqual(session);
+    expect(reverseCommand(session, unknown)).toEqual(session);
   });
 
   it("executes set primary hypothesis", () => {

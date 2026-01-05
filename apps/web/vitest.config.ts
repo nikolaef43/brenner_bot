@@ -39,7 +39,6 @@ export default defineConfig({
       // We keep `perFile: true` to preserve strong guardrails on touched modules,
       // while allowing uninvoked (and often data-like) modules to land safely until
       // dedicated tests exist. (See brenner_bot-momc.)
-      all: false,
       include: ["src/lib/**/*.ts"],
       exclude: [
         "src/**/*.test.ts",
@@ -52,11 +51,11 @@ export default defineConfig({
         "src/lib/agentMail.ts",
         "src/lib/operators.local.ts",
         "src/lib/tutorial-data/**",
-        // Brenner Loop internals are still churning; tests land incrementally.
-        // Keep them out of global coverage gates for now (see brenner_bot-momc).
-        "src/lib/brenner-loop/**",
         // Integration-y / environment-dependent helpers.
         "src/lib/offline.ts",
+        // Heavy React context / hooks (covered indirectly by UI tests; unit coverage gates are too noisy).
+        "src/lib/brenner-loop/session-context.tsx",
+        "src/lib/brenner-loop/use-session-machine.ts",
         // Mostly style tokens / light glue; not worth coverage gating yet.
         "src/lib/theme.ts",
         "node_modules/**",

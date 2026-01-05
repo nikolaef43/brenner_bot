@@ -2,7 +2,6 @@ import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { SessionDashboard } from "./SessionDashboard";
 
 const mocks = vi.hoisted(() => ({
   prev: vi.fn(),
@@ -118,6 +117,7 @@ describe("SessionDashboard keyboard shortcuts", () => {
     mocks.prev.mockClear();
     mocks.next.mockClear();
 
+    const { SessionDashboard } = await import("./SessionDashboard");
     render(<SessionDashboard />);
 
     await user.keyboard("{ArrowLeft}");
@@ -131,6 +131,7 @@ describe("SessionDashboard keyboard shortcuts", () => {
     const user = userEvent.setup();
     mocks.prev.mockClear();
 
+    const { SessionDashboard } = await import("./SessionDashboard");
     render(<SessionDashboard />);
 
     await user.keyboard("{Shift>}{ArrowLeft}{/Shift}");
@@ -141,6 +142,7 @@ describe("SessionDashboard keyboard shortcuts", () => {
     const user = userEvent.setup();
     mocks.goTo.mockClear();
 
+    const { SessionDashboard } = await import("./SessionDashboard");
     render(<SessionDashboard />);
 
     await user.keyboard("2");
@@ -151,6 +153,7 @@ describe("SessionDashboard keyboard shortcuts", () => {
     const user = userEvent.setup();
     mocks.prev.mockClear();
 
+    const { SessionDashboard } = await import("./SessionDashboard");
     render(<SessionDashboard />);
 
     const input = document.createElement("input");
@@ -166,6 +169,7 @@ describe("SessionDashboard keyboard shortcuts", () => {
   it("toggles the shortcuts dialog with ?", async () => {
     const user = userEvent.setup();
 
+    const { SessionDashboard } = await import("./SessionDashboard");
     render(<SessionDashboard />);
 
     await user.keyboard("?");

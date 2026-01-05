@@ -1,8 +1,67 @@
-import { describe, expect, it, vi } from "vitest";
-import { TimeoutError, withRetry, withTimeout } from "./errorRecovery";
+import { describe, expect, it, vi, beforeEach } from "vitest";
+
+// ============================================================================//
+// Mock localStorage (errorRecovery relies on sessionStorage/recoverSessions)
+// ============================================================================//
+
+type StorageSequence = { first: string; then: string; calls: number };
+
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+  const sequences = new Map<string, StorageSequence>();
+
+  return {
+    __setGetItemSequence: (key: string, first: string, then: string) => {
+      sequences.set(key, { first, then, calls: 0 });
+    },
+    getItem: (key: string) => {
+      const sequence = sequences.get(key);
+      if (sequence) {
+        sequence.calls += 1;
+        return sequence.calls === 1 ? sequence.first : sequence.then;
+      }
+      return store[key] ?? null;
+    },
+    setItem: (key: string, value: string) => {
+      store[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      store = {};
+      sequences.clear();
+    },
+    get length() {
+      return Object.keys(store).length + sequences.size;
+    },
+    key: (index: number) => {
+      const keys = [...Object.keys(store), ...Array.from(sequences.keys())];
+      return keys[index] ?? null;
+    },
+  };
+})();
+
+Object.defineProperty(global, "window", {
+  value: {
+    localStorage: localStorageMock,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  },
+});
+
+async function loadModule() {
+  return await import("./errorRecovery");
+}
 
 describe("errorRecovery", () => {
+  beforeEach(() => {
+    localStorageMock.clear();
+    vi.useRealTimers();
+  });
+
   it("retries transient failures and eventually succeeds", async () => {
+    const { withRetry } = await loadModule();
     let attempts = 0;
 
     const result = await withRetry(
@@ -20,7 +79,37 @@ describe("errorRecovery", () => {
     expect(attempts).toBe(3);
   });
 
+  it("honors shouldRetry=false and fails without additional attempts", async () => {
+    const { withRetry } = await loadModule();
+    let attempts = 0;
+
+    await expect(
+      withRetry(
+        async () => {
+          attempts += 1;
+          throw new Error("nope");
+        },
+        { maxAttempts: 3, baseDelayMs: 0, maxDelayMs: 0, jitterRatio: 0, shouldRetry: () => false }
+      )
+    ).rejects.toThrow(/nope/);
+
+    expect(attempts).toBe(1);
+  });
+
+  it("wraps non-Error throwables after exhausting attempts", async () => {
+    const { withRetry } = await loadModule();
+    await expect(
+      withRetry(
+        async () => {
+          throw "not-an-error";
+        },
+        { maxAttempts: 2, baseDelayMs: 0, maxDelayMs: 0, jitterRatio: 0 }
+      )
+    ).rejects.toThrow(/Retry attempts exhausted/);
+  });
+
   it("fails fast when timeout elapses", async () => {
+    const { TimeoutError, withTimeout } = await loadModule();
     vi.useFakeTimers();
 
     const promise = withTimeout(
@@ -35,5 +124,78 @@ describe("errorRecovery", () => {
     await expectation;
 
     vi.useRealTimers();
+  });
+
+  it("returns successfully when the wrapped promise resolves before timeout", async () => {
+    const { withTimeout } = await loadModule();
+
+    vi.useFakeTimers();
+    const promise = withTimeout(Promise.resolve("ok"), { timeoutMs: 50 });
+
+    await vi.runAllTimersAsync();
+    await expect(promise).resolves.toBe("ok");
+
+    vi.useRealTimers();
+  });
+
+  it("creates user-facing recovery notices", async () => {
+    const { createRecoveryNotice } = await loadModule();
+
+    const notice = createRecoveryNotice(
+      "Title",
+      "Message",
+      "warning",
+      [{ label: "Retry", variant: "default" }],
+      "detail",
+      "safe"
+    );
+
+    expect(notice.title).toBe("Title");
+    expect(notice.severity).toBe("warning");
+    expect(notice.actions?.[0]?.label).toBe("Retry");
+    expect(notice.detail).toBe("detail");
+    expect(notice.safeStateMessage).toBe("safe");
+  });
+
+  it("recovers from corrupted sessions when storage becomes valid again", async () => {
+    const { loadSessionWithRecovery } = await loadModule();
+
+    const sessionId = "SESSION-RECOVER";
+    const sessionKey = `brenner-session-${sessionId}`;
+
+    // Ensure recoverSessions() finds at least one valid session while scanning.
+    localStorageMock.setItem(
+      "brenner-session-OTHER",
+      JSON.stringify({
+        id: "OTHER",
+        _version: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        phase: "intake",
+        primaryHypothesisId: "",
+        alternativeHypothesisIds: [],
+        hypothesisCards: {},
+      })
+    );
+
+    // First load sees corrupted JSON; second load sees a valid session.
+    localStorageMock.__setGetItemSequence(
+      sessionKey,
+      "not-json",
+      JSON.stringify({
+        id: sessionId,
+        _version: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        phase: "intake",
+        primaryHypothesisId: "",
+        alternativeHypothesisIds: [],
+        hypothesisCards: {},
+      })
+    );
+
+    const result = await loadSessionWithRecovery(sessionId);
+    expect(result.recovered).toBe(true);
+    expect(result.data?.id).toBe(sessionId);
   });
 });

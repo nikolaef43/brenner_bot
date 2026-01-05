@@ -15,9 +15,14 @@ import {
   cleanupOldSessions,
   loadAssumptionLedger,
   saveAssumptionLedger,
+  upsertAssumptionLedger,
   rollbackSessionMigration,
   recordSessionResumeEntry,
   getSessionResumeEntry,
+  listSessionResumeEntries,
+  removeSessionResumeEntry,
+  buildSessionPath,
+  onStorageChange,
 } from "./storage";
 import type { Session, SessionPhase } from "./types";
 
@@ -413,6 +418,40 @@ describe("LocalStorageSessionStorage", () => {
       expect(getSessionResumeEntry(session1.id)).toBeNull();
       expect(getSessionResumeEntry(session2.id)).toBeNull();
     });
+
+    test("should ignore non-local session IDs and support listing/removal", () => {
+      recordSessionResumeEntry("REMOTE-TEST-001", "overview");
+      expect(getSessionResumeEntry("REMOTE-TEST-001")).toBeNull();
+
+      recordSessionResumeEntry("SESSION-TEST-003", "overview");
+      expect(Object.keys(listSessionResumeEntries())).toContain("SESSION-TEST-003");
+
+      removeSessionResumeEntry("SESSION-TEST-003");
+      expect(getSessionResumeEntry("SESSION-TEST-003")).toBeNull();
+    });
+
+    test("should tolerate corrupted resume index payloads", () => {
+      localStorageMock.setItem("brenner-sessions-resume-index", "not-json");
+      expect(listSessionResumeEntries()).toEqual({});
+
+      localStorageMock.setItem(
+        "brenner-sessions-resume-index",
+        JSON.stringify({
+          __proto__: { location: "overview", visitedAt: new Date().toISOString() },
+          "SESSION-OK": { location: "overview", visitedAt: new Date().toISOString() },
+          "BAD-SESSION": { location: "overview", visitedAt: new Date().toISOString() },
+        })
+      );
+      const entries = listSessionResumeEntries();
+      expect(Object.keys(entries)).toEqual(["SESSION-OK"]);
+    });
+
+    test("buildSessionPath maps locations to routes", () => {
+      expect(buildSessionPath("SESSION-1", "overview")).toBe("/sessions/SESSION-1");
+      expect(buildSessionPath("SESSION-1", "hypothesis")).toBe("/sessions/SESSION-1/hypothesis");
+      expect(buildSessionPath("SESSION-1", "test-queue")).toBe("/sessions/SESSION-1/test-queue");
+      expect(buildSessionPath("SESSION-1", "brief")).toBe("/sessions/SESSION-1/brief");
+    });
   });
 
   describe("clear", () => {
@@ -556,6 +595,100 @@ describe("Recovery utilities", () => {
       const removed = await cleanupOldSessions(30);
       expect(removed).toBe(1);
     });
+  });
+});
+
+describe("Assumption ledger upserts", () => {
+  beforeEach(() => {
+    localStorageMock.clear();
+  });
+
+  test("upsertAssumptionLedger preserves createdAt and merges by id", () => {
+    const sessionId = "SESSION-ASSUMPTIONS";
+    const createdAt = "2026-01-01T00:00:00Z";
+
+    saveAssumptionLedger(sessionId, [
+      {
+        id: "A-1",
+        statement: "Initial",
+        criticality: "important",
+        dependsOn: [],
+        createdAt,
+        updatedAt: createdAt,
+      },
+    ]);
+
+    upsertAssumptionLedger(sessionId, [
+      {
+        id: "A-1",
+        statement: "Updated",
+        criticality: "important",
+        dependsOn: [],
+        createdAt: "2099-01-01T00:00:00Z",
+        updatedAt: "2099-01-01T00:00:00Z",
+      },
+      {
+        id: "A-2",
+        statement: "New",
+        criticality: "minor",
+        dependsOn: ["A-1"],
+        createdAt: "2026-01-02T00:00:00Z",
+        updatedAt: "2026-01-02T00:00:00Z",
+      },
+    ]);
+
+    const entries = loadAssumptionLedger(sessionId);
+    expect(entries).toHaveLength(2);
+    const a1 = entries.find((e) => e.id === "A-1")!;
+    expect(a1.statement).toBe("Updated");
+    expect(a1.createdAt).toBe(createdAt);
+  });
+});
+
+describe("storage change events", () => {
+  beforeEach(() => {
+    localStorageMock.clear();
+    vi.clearAllMocks();
+  });
+
+  test("onStorageChange attaches/detaches listeners and routes events", () => {
+    const cb = vi.fn();
+    const unsubscribe = onStorageChange(cb);
+
+    expect(window.addEventListener).toHaveBeenCalledWith("storage", expect.any(Function));
+    const handler = (window.addEventListener as unknown as { mock: { calls: unknown[][] } }).mock.calls.find(
+      (call) => call[0] === "storage"
+    )?.[1] as ((event: StorageEvent) => void) | undefined;
+
+    if (!handler) {
+      throw new Error("Expected storage handler to be registered");
+    }
+
+    handler({ key: null } as StorageEvent);
+    expect(cb).toHaveBeenCalledWith("clear");
+
+    const oldIndex = JSON.stringify({
+      version: 1,
+      summaries: [
+        { id: "A", updatedAt: "t1" },
+        { id: "B", updatedAt: "t1" },
+      ],
+    });
+    const newIndex = JSON.stringify({
+      version: 1,
+      summaries: [
+        { id: "A", updatedAt: "t2" },
+        { id: "C", updatedAt: "t1" },
+      ],
+    });
+
+    handler({ key: "brenner-sessions-index", oldValue: oldIndex, newValue: newIndex } as StorageEvent);
+    expect(cb).toHaveBeenCalledWith("delete", "B");
+    expect(cb).toHaveBeenCalledWith("save", "A");
+    expect(cb).toHaveBeenCalledWith("save", "C");
+
+    unsubscribe();
+    expect(window.removeEventListener).toHaveBeenCalledWith("storage", handler);
   });
 });
 

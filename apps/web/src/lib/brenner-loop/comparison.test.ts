@@ -85,6 +85,55 @@ describe("comparison", () => {
     expect(predictions?.similarity).toBeLessThan(0.8);
   });
 
+  it("handles edge-case similarity and unknown fields", () => {
+    const hypothesisA = makeHypothesis({
+      id: "H-empty-a",
+      statement: "",
+      mechanism: "",
+      confidence: Number.POSITIVE_INFINITY,
+      predictionsIfTrue: [],
+      predictionsIfFalse: [],
+      impossibleIfTrue: [],
+      assumptions: [],
+    });
+    const hypothesisB = makeHypothesis({
+      id: "H-empty-b",
+      statement: "",
+      mechanism: "",
+      confidence: Number.NaN,
+      predictionsIfTrue: [],
+      predictionsIfFalse: [],
+      impossibleIfTrue: [],
+      assumptions: [],
+    });
+
+    const results = buildComparisonResults(hypothesisA, hypothesisB, [
+      "statement",
+      "mechanism",
+      "confidence",
+      "assumptions",
+      "not_real" as unknown as Parameters<typeof buildComparisonResults>[2][number],
+    ]);
+
+    const statement = results.find((result) => result.field === "statement");
+    expect(statement?.similarity).toBe(1);
+
+    const mechanism = results.find((result) => result.field === "mechanism");
+    expect(mechanism?.similarity).toBe(1);
+
+    const confidence = results.find((result) => result.field === "confidence");
+    expect(confidence?.valueA).toBe("");
+    expect(confidence?.valueB).toBe("");
+
+    const assumptions = results.find((result) => result.field === "assumptions");
+    expect(assumptions?.valueA).toBe("");
+    expect(assumptions?.valueB).toBe("");
+
+    const unknown = results.find((result) => result.label === "not_real");
+    expect(unknown?.valueA).toBe("");
+    expect(unknown?.similarity).toBe(0);
+  });
+
   it("builds prediction conflict matrix and summary", () => {
     const matrix = makeMatrix();
     const rows = buildPredictionConflictMatrix(matrix, "H1", "H2");
@@ -95,5 +144,23 @@ describe("comparison", () => {
     expect(summary.discriminating).toBe(1);
     expect(summary.favorsA).toBe(1);
     expect(summary.favorsB).toBe(0);
+  });
+
+  it("handles null matrices, missing rows, and pending/ties", () => {
+    expect(buildPredictionConflictMatrix(null, "H1", "H2")).toEqual([]);
+
+    const missingRow = makeMatrix();
+    expect(buildPredictionConflictMatrix(missingRow, "H1", "missing")).toEqual([]);
+
+    const matrix = makeMatrix();
+    matrix.rows[0]!.testResults = { T1: "supports" };
+    matrix.rows[1]!.testResults = { T1: "supports", T2: "pending" as never };
+
+    const rows = buildPredictionConflictMatrix(matrix, "H1", "H2");
+    expect(rows.some((row) => row.resultA === "pending" || row.resultB === "pending")).toBe(true);
+
+    const summary = buildEvidenceSummary(rows);
+    expect(summary.pending).toBeGreaterThan(0);
+    expect(summary.ties).toBeGreaterThan(0);
   });
 });

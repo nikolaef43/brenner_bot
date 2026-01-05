@@ -1,10 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   addExclusionTestsToQueue,
+  addManualQueueItem,
+  clearTestQueue,
   getTestQueueStats,
   loadTestQueue,
   lockQueueItemPredictions,
   priorityFromPower,
+  saveTestQueue,
+  generateQueueItemId,
+  isPredictionsLocked,
   updateQueueItem,
 } from "./test-queue";
 import type { ExclusionTest } from "./operators/exclusion-test";
@@ -171,6 +176,85 @@ describe("test-queue", () => {
     const after = attempted.find((i) => i.id === item.id);
     expect(after?.predictionIfTrue).not.toBe("edited");
     expect(after?.predictionIfFalse).not.toBe("edited");
+  });
+
+  it("supports manual queue items and stable de-duplication", () => {
+    const test = makeExclusionTest({ id: "ET-manual", discriminativePower: 3 });
+    const first = addManualQueueItem({ sessionId, hypothesisId, test, source: "manual" });
+    expect(first).toHaveLength(1);
+
+    const second = addManualQueueItem({ sessionId, hypothesisId, test, source: "manual" });
+    expect(second).toHaveLength(1);
+    expect(second[0]?.assumptionIds).toEqual([]);
+
+    const withAssumptions = addManualQueueItem({
+      sessionId,
+      hypothesisId,
+      test: makeExclusionTest({ id: "ET-manual-2" }),
+      assumptionIds: ["A-1"],
+      source: "manual",
+    });
+    expect(withAssumptions[1]?.assumptionIds).toEqual(["A-1"]);
+  });
+
+  it("generates unique queue item ids and detects locked predictions", () => {
+    const id1 = generateQueueItemId(sessionId);
+    const id2 = generateQueueItemId(sessionId);
+    expect(id1).toMatch(new RegExp(`^TQ-${sessionId}-`));
+    expect(id2).toMatch(new RegExp(`^TQ-${sessionId}-`));
+    expect(id1).not.toBe(id2);
+
+    const items = addExclusionTestsToQueue({
+      sessionId,
+      hypothesisId,
+      tests: [makeExclusionTest({ id: "ET-lock-2" })],
+      source: "exclusion_test",
+    });
+    const item = items[0]!;
+    expect(isPredictionsLocked(item)).toBe(false);
+
+    const locked = lockQueueItemPredictions(sessionId, item.id);
+    expect(isPredictionsLocked(locked[0]!)).toBe(true);
+  });
+
+  it("gracefully handles storage failures", () => {
+    const originalGetItem = localStorageMock.getItem;
+    const originalSetItem = localStorageMock.setItem;
+    const originalRemoveItem = localStorageMock.removeItem;
+
+    localStorageMock.getItem = () => {
+      throw new Error("boom");
+    };
+    expect(loadTestQueue(sessionId)).toEqual([]);
+
+    localStorageMock.getItem = originalGetItem;
+    localStorageMock.setItem = () => {
+      throw new Error("quota exceeded");
+    };
+    saveTestQueue(sessionId, []);
+
+    localStorageMock.setItem = originalSetItem;
+    localStorageMock.removeItem = () => {
+      throw new Error("boom");
+    };
+    clearTestQueue(sessionId);
+
+    localStorageMock.removeItem = originalRemoveItem;
+  });
+
+  it("does not lock predictions when they are blank", () => {
+    const items = addExclusionTestsToQueue({
+      sessionId,
+      hypothesisId,
+      tests: [makeExclusionTest({ id: "ET-empty" })],
+      source: "exclusion_test",
+    });
+
+    const item = items[0]!;
+    updateQueueItem(sessionId, item.id, { predictionIfTrue: "", predictionIfFalse: "" });
+
+    const next = lockQueueItemPredictions(sessionId, item.id);
+    expect(next[0]?.predictionsLockedAt).toBeUndefined();
   });
 
   it("computes stats", () => {

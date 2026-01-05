@@ -123,4 +123,70 @@ describe("exportSession / importSession", () => {
     expect(markdown).toContain("Sydney Brenner Transcript");
     expect(markdown).toContain("transcript-42");
   });
+
+  test("renders markdown even when primary card is missing", async () => {
+    const session = buildTestSession();
+    session.primaryHypothesisId = "HC-MISSING";
+    session.hypothesisCards = {};
+    session.alternativeHypothesisIds = ["HC-ALT-1"];
+
+    const blob = await exportSession(session, "markdown");
+    const markdown = await blob.text();
+
+    expect(markdown).toContain("- Primary Hypothesis ID: HC-MISSING");
+    expect(markdown).toContain("Missing hypothesis card for HC-ALT-1");
+  });
+
+  test("throws on missing file or invalid JSON payloads", async () => {
+    await expect(importSession(undefined as never)).rejects.toThrow(/No file provided/);
+
+    const invalid = new File(["not-json"], "session.json", { type: "application/json" });
+    await expect(importSession(invalid)).rejects.toThrow(/not valid JSON/);
+
+    const malformed = new File([JSON.stringify([])], "session.json", { type: "application/json" });
+    await expect(importSession(malformed)).rejects.toThrow(/malformed export payload/);
+  });
+
+  test("collects warnings and normalizes imported sessions", async () => {
+    const session = buildTestSession({ withAttachedQuote: true });
+
+    const payload = {
+      format: "wrong-format",
+      exportedAt: null,
+      session: {
+        ...session,
+        _version: 999,
+        predictionIds: [123, "P-1"],
+        commits: [{ id: "commit-import-1" }],
+        headCommitId: "",
+        attachedQuotes: [
+          { nope: true },
+          {
+            hypothesisId: session.primaryHypothesisId,
+            docId: "transcript",
+            docTitle: "Transcript",
+            category: "transcript",
+            title: "A quote",
+            snippet: "Some snippet",
+            url: "/corpus/transcript#transcript-1",
+            field: "not-a-field",
+          },
+        ],
+      },
+    };
+
+    const file = new File([JSON.stringify(payload)], "session.json", { type: "application/json" });
+    const result = await importSession(file);
+
+    expect(result.warnings.join(" ")).toMatch(/Unexpected export format/);
+    expect(result.warnings.join(" ")).toMatch(/Export timestamp missing or invalid/);
+    expect(result.warnings.join(" ")).toMatch(/Checksum missing/);
+    expect(result.warnings.join(" ")).toMatch(/newer than supported/);
+
+    expect(result.session.predictionIds).toEqual(["P-1"]);
+    expect(result.session.headCommitId).toBe("commit-import-1");
+    expect(result.session.attachedQuotes?.length).toBe(1);
+    expect(result.session.attachedQuotes?.[0]?.field).toBe("general");
+    expect(result.session.attachedQuotes?.[0]?.id).toMatch(/^AQ-import-/);
+  });
 });

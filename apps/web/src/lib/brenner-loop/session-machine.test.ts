@@ -8,7 +8,7 @@
  * @see brenner-loop/session-machine.ts
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   transition,
   getAvailableEvents,
@@ -29,6 +29,16 @@ import {
   hasEvidence,
   type SessionEvent,
 } from "./session-machine";
+import {
+  CURRENT_SESSION_VERSION,
+  createSession as createEmptySession,
+  generateSessionId,
+  isAgentRole,
+  isSession,
+  isSessionPhase,
+  isValidTransition,
+  toSimplifiedPhase,
+} from "./types";
 import type { Session, SessionPhase, HypothesisCard } from "./types";
 
 // ============================================================================
@@ -924,5 +934,38 @@ describe("Full Session Flow", () => {
     const result = transition(session, { type: "RESTART_OPERATORS" });
     expect(result.success).toBe(true);
     expect(result.newState).toBe("level_split");
+  });
+});
+
+describe("types utilities", () => {
+  it("maps detailed phases and validates transitions", () => {
+    expect(toSimplifiedPhase("intake")).toBe("intake");
+    expect(toSimplifiedPhase("level_split")).toBe("refinement");
+    expect(toSimplifiedPhase("agent_dispatch")).toBe("testing");
+    expect(toSimplifiedPhase("complete")).toBe("synthesis");
+
+    expect(isValidTransition("intake", "sharpening")).toBe(true);
+    expect(isValidTransition("intake", "complete")).toBe(false);
+    expect(isValidTransition("complete", "intake")).toBe(false);
+  });
+
+  it("supports basic type guards and factories", () => {
+    expect(isSessionPhase("intake")).toBe(true);
+    expect(isSessionPhase("not-a-phase")).toBe(false);
+    expect(isAgentRole("test_designer")).toBe(true);
+    expect(isAgentRole("not-a-role")).toBe(false);
+
+    const session = createEmptySession({ id: "SESSION-TYPES-001", researchQuestion: "Q" });
+    expect(session._version).toBe(CURRENT_SESSION_VERSION);
+    expect(isSession(session)).toBe(true);
+    expect(isSession({})).toBe(false);
+
+    // Test ID format matches pattern SESSION-YYYYMMDD-NNN
+    const first = generateSessionId();
+    expect(first).toMatch(/^SESSION-\d{8}-001$/);
+
+    // Test sequence increment with existing IDs
+    const next = generateSessionId([first, first.replace("-001", "-002")]);
+    expect(next).toMatch(/^SESSION-\d{8}-003$/);
   });
 });
