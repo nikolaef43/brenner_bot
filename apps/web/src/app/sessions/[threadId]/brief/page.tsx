@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { recordSessionResumeEntry } from "@/lib/brenner-loop";
 
@@ -454,6 +454,20 @@ function QuickAction({
   );
 }
 
+function formatRelativeTime(timestampMs: number, nowMs: number): string {
+  const deltaMs = Math.max(0, nowMs - timestampMs);
+  const minutes = Math.floor(deltaMs / 60_000);
+
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+
+  const days = Math.floor(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
+}
+
 // ============================================================================
 // Main Page
 // ============================================================================
@@ -461,6 +475,7 @@ function QuickAction({
 export default function BriefPage() {
   const params = useParams();
   const threadId = params.threadId as string;
+  const router = useRouter();
 
   useEffect(() => {
     recordSessionResumeEntry(threadId, "brief");
@@ -469,6 +484,16 @@ export default function BriefPage() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["hypothesis_slate"]));
   const [exportingFormat, setExportingFormat] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(() => Date.now());
+  const [now, setNow] = useState(() => Date.now());
+  const [isRefreshing, startRefresh] = useTransition();
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setNow(Date.now());
+    }, 60_000);
+    return () => clearInterval(intervalId);
+  }, []);
 
   const toggleSection = (id: string) => {
     setExpandedSections(prev => {
@@ -494,8 +519,16 @@ export default function BriefPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleRefresh = () => {
+    startRefresh(() => {
+      router.refresh();
+      setLastUpdatedAt(Date.now());
+    });
+  };
+
   const completedSections = BRIEF_SECTIONS.filter(s => s.status === "complete").length;
   const qualityScore = Math.round((completedSections / BRIEF_SECTIONS.length) * 100);
+  const lastUpdatedLabel = formatRelativeTime(lastUpdatedAt, now);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -579,18 +612,18 @@ export default function BriefPage() {
             <div className="flex-1">
               <div className="font-medium text-foreground">Brief Generated Successfully</div>
               <div className="text-sm text-muted-foreground">
-                Last updated 2 minutes ago · {completedSections}/{BRIEF_SECTIONS.length} sections complete
+                Last updated {lastUpdatedLabel} · {completedSections}/{BRIEF_SECTIONS.length} sections complete
               </div>
             </div>
             <button
-              onClick={() => {
-                // TODO: Implement refresh functionality
-                console.log("Refresh brief requested");
-              }}
+              onClick={handleRefresh}
+              disabled={isRefreshing}
               className="p-2 rounded-lg hover:bg-muted transition-colors"
               title="Refresh brief"
             >
-              <RefreshIcon className="size-4 text-muted-foreground" />
+              <RefreshIcon
+                className={`size-4 text-muted-foreground ${isRefreshing ? "animate-spin" : ""}`}
+              />
             </button>
           </motion.div>
 
