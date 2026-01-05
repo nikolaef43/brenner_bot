@@ -133,7 +133,7 @@ export interface TestScore {
   ambiguity?: number;
 }
 
-/** Experiment run result attached to a test */
+/** Experiment result attached to a test */
 export interface TestLastRun {
   result_id: string;
   result_path: string;
@@ -881,73 +881,6 @@ const VALID_REFERENCE_RELATIONS: ReferenceRelation[] = [
   "replicates",
 ];
 
-/** Validate a single reference object */
-function validateReference(
-  ref: unknown,
-  itemId: string
-): MergeWarning | null {
-  if (!ref || typeof ref !== "object") {
-    return {
-      code: "INVALID_REFERENCE",
-      message: `Invalid reference in ${itemId}: reference must be an object`,
-    };
-  }
-
-  const r = ref as Record<string, unknown>;
-
-  if (typeof r.session !== "string" || r.session.trim() === "") {
-    return {
-      code: "INVALID_REFERENCE",
-      message: `Invalid reference in ${itemId}: missing or empty 'session' field`,
-    };
-  }
-
-  if (typeof r.item !== "string" || r.item.trim() === "") {
-    return {
-      code: "INVALID_REFERENCE",
-      message: `Invalid reference in ${itemId}: missing or empty 'item' field`,
-    };
-  }
-
-  if (
-    typeof r.relation !== "string" ||
-    !VALID_REFERENCE_RELATIONS.includes(r.relation as ReferenceRelation)
-  ) {
-    return {
-      code: "INVALID_REFERENCE",
-      message: `Invalid reference in ${itemId}: 'relation' must be one of: ${VALID_REFERENCE_RELATIONS.join(", ")}`,
-    };
-  }
-
-  return null;
-}
-
-/** Validate references in an item */
-function validateItemReferences(
-  item: { id: string; references?: Reference[] },
-): MergeWarning[] {
-  const warnings: MergeWarning[] = [];
-
-  if (!item.references) return warnings;
-
-  if (!Array.isArray(item.references)) {
-    warnings.push({
-      code: "INVALID_REFERENCE",
-      message: `Invalid references in ${item.id}: 'references' must be an array`,
-    });
-    return warnings;
-  }
-
-  for (const ref of item.references) {
-    const warning = validateReference(ref, item.id);
-    if (warning) {
-      warnings.push(warning);
-    }
-  }
-
-  return warnings;
-}
-
 /**
  * Extract all references from an artifact for genealogy tracking.
  * Returns a map of item ID -> references for all items that have references.
@@ -977,96 +910,6 @@ export function extractReferences(
   return refMap;
 }
 
-/**
- * Validate that an artifact meets minimum requirements.
- *
- * @param artifact - The artifact to validate
- * @returns Array of validation warnings (empty if valid)
- */
-export function validateArtifact(artifact: Artifact): MergeWarning[] {
-  const warnings: MergeWarning[] = [];
-
-  // Validate references in all sections
-  const sectionsWithRefs: Array<{ id: string; references?: Reference[] }[]> = [
-    artifact.sections.hypothesis_slate,
-    artifact.sections.predictions_table,
-    artifact.sections.discriminative_tests,
-    artifact.sections.assumption_ledger,
-    artifact.sections.anomaly_register,
-    artifact.sections.adversarial_critique,
-  ];
-
-  for (const section of sectionsWithRefs) {
-    for (const item of section) {
-      warnings.push(...validateItemReferences(item));
-    }
-  }
-
-  // Check minimum counts
-  const activeHypotheses = artifact.sections.hypothesis_slate.filter((h) => !isKilled(h));
-  const activePredictions = artifact.sections.predictions_table.filter((p) => !isKilled(p));
-  const activeTests = artifact.sections.discriminative_tests.filter((t) => !isKilled(t));
-  const activeAssumptions = artifact.sections.assumption_ledger.filter((a) => !isKilled(a));
-  const activeCritiques = artifact.sections.adversarial_critique.filter((c) => !isKilled(c));
-
-  if (activeHypotheses.length < 3) {
-    warnings.push({
-      code: "BELOW_MINIMUM",
-      message: `Hypothesis slate has ${activeHypotheses.length} active items (minimum 3)`,
-    });
-  }
-
-  if (!activeHypotheses.some((h) => h.third_alternative)) {
-    warnings.push({
-      code: "NO_THIRD_ALTERNATIVE",
-      message: "No third alternative hypothesis found",
-    });
-  }
-
-  if (activePredictions.length < 3) {
-    warnings.push({
-      code: "BELOW_MINIMUM",
-      message: `Predictions table has ${activePredictions.length} active items (minimum 3)`,
-    });
-  }
-
-  if (activeTests.length < 2) {
-    warnings.push({
-      code: "BELOW_MINIMUM",
-      message: `Discriminative tests has ${activeTests.length} active items (minimum 2)`,
-    });
-  }
-
-  if (activeAssumptions.length < 3) {
-    warnings.push({
-      code: "BELOW_MINIMUM",
-      message: `Assumption ledger has ${activeAssumptions.length} active items (minimum 3)`,
-    });
-  }
-
-  if (!activeAssumptions.some((a) => a.scale_check)) {
-    warnings.push({
-      code: "NO_SCALE_CHECK",
-      message: "No scale/physics check assumption found",
-    });
-  }
-
-  if (activeCritiques.length < 2) {
-    warnings.push({
-      code: "BELOW_MINIMUM",
-      message: `Adversarial critique has ${activeCritiques.length} active items (minimum 2)`,
-    });
-  }
-
-  if (!activeCritiques.some((c) => c.real_third_alternative)) {
-    warnings.push({
-      code: "NO_REAL_THIRD_ALTERNATIVE",
-      message: "No real third alternative critique found",
-    });
-  }
-
-  return warnings;
-}
 
 /**
  * Create intervention metadata for artifact from an intervention summary.
@@ -1856,6 +1699,74 @@ export function lintArtifact(artifact: Artifact): LintReport {
     }
   }
 
+  // --------------------------------------------------------------------------
+  // Reference Integrity (Refs)
+  // --------------------------------------------------------------------------
+
+  function checkReferences(item: { id: string; references?: Reference[] }): void {
+    if (!item.references) return;
+
+    if (!Array.isArray(item.references)) {
+      pushViolation(violations, {
+        id: "ER-REF-001",
+        severity: "error",
+        message: `${item.id}: references must be an array`,
+        fix: "Ensure references field is an array of objects",
+      });
+      return;
+    }
+
+    for (let i = 0; i < item.references.length; i++) {
+      const ref = item.references[i];
+      if (!ref || typeof ref !== "object") {
+        pushViolation(violations, {
+          id: "ER-REF-002",
+          severity: "error",
+          message: `${item.id}: reference[${i}] must be an object`,
+          fix: "Remove invalid reference",
+        });
+        continue;
+      }
+
+      const r = ref as Record<string, unknown>;
+      if (typeof r.session !== "string" || r.session.trim() === "") {
+        pushViolation(violations, {
+          id: "ER-REF-003",
+          severity: "error",
+          message: `${item.id}: reference[${i}] missing 'session'`,
+          fix: "Add session ID to reference",
+        });
+      }
+      if (typeof r.item !== "string" || r.item.trim() === "") {
+        pushViolation(violations, {
+          id: "ER-REF-004",
+          severity: "error",
+          message: `${item.id}: reference[${i}] missing 'item'`,
+          fix: "Add item ID to reference",
+        });
+      }
+      if (
+        typeof r.relation !== "string" ||
+        !VALID_REFERENCE_RELATIONS.includes(r.relation as ReferenceRelation)
+      ) {
+        pushViolation(violations, {
+          id: "ER-REF-005",
+          severity: "error",
+          message: `${item.id}: reference[${i}] has invalid relation '${r.relation}'`,
+          fix: `Set relation to one of: ${VALID_REFERENCE_RELATIONS.join(", ")}`,
+        });
+      }
+    }
+  }
+
+  // Check references for all items
+  for (const h of hypotheses) checkReferences(h);
+  for (const p of predictions) checkReferences(p);
+  for (const t of tests) checkReferences(t);
+  for (const a of assumptions) checkReferences(a);
+  for (const c of critiques) checkReferences(c);
+  for (const x of artifact.sections.anomaly_register) checkReferences(x);
+
   // IP-P02: Potency checks should cite §50 (Brenner's chastity principle)
   for (const t of tests) {
     if (t.potency_check && t.potency_check.trim().length > 0) {
@@ -2243,6 +2154,7 @@ function diffTests(
         by_agent: item.killed_by,
       });
     } else if (!isKilled(item)) {
+      // Compare fields for edits
       const edits = compareItemFields(item.id, oldItem, item, [
         "name",
         "procedure",
@@ -2255,6 +2167,7 @@ function diffTests(
     }
   }
 
+  // Find items that existed in v1 but not in v2 (rare, but possible if structure changed)
   for (const item of v1Items) {
     if (!v2Index.has(item.id) && !isKilled(item)) {
       killed.push({
@@ -2293,6 +2206,7 @@ function diffAssumptions(
         by_agent: undefined,
       });
     } else if (!isKilled(oldItem) && isKilled(item)) {
+      // Item was killed
       killed.push({
         id: item.id,
         name: item.name,
@@ -2300,16 +2214,7 @@ function diffAssumptions(
         by_agent: item.killed_by,
       });
     } else if (!isKilled(item)) {
-      // Check for status changes (unchecked -> challenged, verified -> falsified)
-      if (oldItem.status !== item.status) {
-        if (item.status === "falsified") {
-          challenged.push({
-            id: item.id,
-            challenger: "evaluation",
-            challenge: `Status changed from ${oldItem.status ?? "unchecked"} to falsified`,
-          });
-        }
-      }
+      // Compare fields for edits
       const edits = compareItemFields(item.id, oldItem, item, [
         "name",
         "statement",
@@ -2318,9 +2223,22 @@ function diffAssumptions(
         "status",
       ]);
       edited.push(...edits);
+
+      // Check for status changes (unchecked -> challenged, verified -> falsified)
+      if (oldItem.status !== item.status) {
+        if (item.status === "falsified") {
+          // If it became falsified, it was likely a challenge
+          challenged.push({
+            id: item.id,
+            challenger: "evaluation",
+            challenge: `Status changed from ${oldItem.status ?? "unchecked"} to falsified`,
+          });
+        }
+      }
     }
   }
 
+  // Find items that existed in v1 but not in v2 (rare, but possible if structure changed)
   for (const item of v1Items) {
     if (!v2Index.has(item.id) && !isKilled(item)) {
       killed.push({
@@ -2353,11 +2271,13 @@ function diffAnomalies(
   for (const item of v2Items) {
     const oldItem = v1Index.get(item.id);
     if (!oldItem) {
+      // New anomaly added
       added.push({
         id: item.id,
         description: item.observation,
       });
     } else if (!isKilled(oldItem) && isKilled(item)) {
+      // Item was killed
       killed.push({
         id: item.id,
         name: item.name,
@@ -2392,6 +2312,7 @@ function diffAnomalies(
     }
   }
 
+  // Find items that existed in v1 but not in v2 (rare, but possible if structure changed)
   for (const item of v1Items) {
     if (!v2Index.has(item.id) && !isKilled(item)) {
       killed.push({
@@ -2423,6 +2344,7 @@ function diffCritiques(
   for (const item of v2Items) {
     const oldItem = v1Index.get(item.id);
     if (!oldItem) {
+      // New critique added
       added.push({
         id: item.id,
         target: item.name,
@@ -2430,6 +2352,7 @@ function diffCritiques(
         by_agent: undefined,
       });
     } else if (!isKilled(oldItem) && isKilled(item)) {
+      // Item was killed
       killed.push({
         id: item.id,
         name: item.name,
@@ -2450,6 +2373,7 @@ function diffCritiques(
     }
   }
 
+  // Find items that existed in v1 but not in v2 (rare, but possible if structure changed)
   for (const item of v1Items) {
     if (!v2Index.has(item.id) && !isKilled(item)) {
       killed.push({
@@ -2481,11 +2405,13 @@ function diffPredictions(
   for (const item of v2Items) {
     const oldItem = v1Index.get(item.id);
     if (!oldItem) {
+      // New prediction added
       added.push({
         id: item.id,
         condition: item.condition,
       });
     } else if (!isKilled(oldItem) && isKilled(item)) {
+      // Item was killed
       killed.push({
         id: item.id,
         name: getItemName(item),
@@ -2493,11 +2419,13 @@ function diffPredictions(
         by_agent: item.killed_by,
       });
     } else if (!isKilled(item)) {
+      // Compare fields for edits
       const edits = compareItemFields(item.id, oldItem, item, ["condition"]);
       edited.push(...edits);
     }
   }
 
+  // Find items that existed in v1 but not in v2 (rare, but possible if structure changed)
   for (const item of v1Items) {
     if (!v2Index.has(item.id) && !isKilled(item)) {
       killed.push({

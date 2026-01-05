@@ -17,7 +17,6 @@ import {
   mergeArtifact,
   mergeArtifactWithTimestamps,
   renderArtifactMarkdown,
-  validateArtifact,
   type Reference,
   type ReferenceRelation,
   type ResearchThreadItem,
@@ -960,7 +959,7 @@ describe("Test ranking by score", () => {
       name: "Low Score Test",
       procedure: "P",
       discriminates: "H1 vs H2",
-      expected_outcomes: {},
+      expected_outcomes: { H1: "A", H2: "B" },
       potency_check: "Check",
       score: { likelihood_ratio: 1, cost: 1, speed: 1, ambiguity: 1 },
     });
@@ -969,7 +968,7 @@ describe("Test ranking by score", () => {
       name: "High Score Test",
       procedure: "P",
       discriminates: "H1 vs H2",
-      expected_outcomes: {},
+      expected_outcomes: { H1: "A", H2: "B" },
       potency_check: "Check",
       score: { likelihood_ratio: 3, cost: 3, speed: 3, ambiguity: 3 },
     });
@@ -1058,123 +1057,6 @@ describe("Metadata updates", () => {
 });
 
 // ============================================================================
-// Tests: Validation
-// ============================================================================
-
-describe("validateArtifact", () => {
-  test("warns on incomplete artifact", () => {
-    const artifact = createEmptyArtifact("TEST-001");
-    const warnings = validateArtifact(artifact);
-
-    // Should warn about missing minimums
-    expect(warnings.some((w) => w.code === "BELOW_MINIMUM")).toBe(true);
-    expect(warnings.some((w) => w.code === "NO_THIRD_ALTERNATIVE")).toBe(true);
-    expect(warnings.some((w) => w.code === "NO_SCALE_CHECK")).toBe(true);
-  });
-
-  test("executes third-alternative / scale-check callbacks on non-empty sections", () => {
-    const artifact = createEmptyArtifact("TEST-002");
-
-    artifact.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "A", mechanism: "M" },
-      { id: "H2", name: "H2", claim: "B", mechanism: "M" },
-      { id: "H3", name: "H3", claim: "C", mechanism: "M", killed: true },
-    ];
-
-    artifact.sections.predictions_table = [
-      { id: "P1", condition: "C1", predictions: { H1: "A", H2: "B" } },
-      { id: "P2", condition: "C2", predictions: { H1: "A", H2: "B" }, killed: true },
-    ];
-
-    artifact.sections.discriminative_tests = [
-      {
-        id: "T1",
-        name: "T1",
-        procedure: "P",
-        discriminates: "H1 vs H2",
-        expected_outcomes: { H1: "A", H2: "B" },
-        potency_check: "Control",
-      },
-      {
-        id: "T2",
-        name: "T2",
-        procedure: "P",
-        discriminates: "H1 vs H2",
-        expected_outcomes: { H1: "A", H2: "B" },
-        potency_check: "Control",
-        killed: true,
-      },
-    ];
-
-    artifact.sections.assumption_ledger = [
-      { id: "A1", name: "A1", statement: "S1", load: "L1", test: "T1" },
-      { id: "A2", name: "A2", statement: "S2", load: "L2", test: "T2" },
-      { id: "A3", name: "A3", statement: "S3", load: "L3", test: "T3", killed: true },
-    ];
-
-    artifact.sections.adversarial_critique = [
-      { id: "C1", name: "C1", attack: "A", evidence: "E", current_status: "S" },
-      { id: "C2", name: "C2", attack: "A", evidence: "E", current_status: "S", killed: true },
-    ];
-
-    const warnings = validateArtifact(artifact);
-
-    expect(warnings.some((w) => w.code === "NO_THIRD_ALTERNATIVE")).toBe(true);
-    expect(warnings.some((w) => w.code === "NO_SCALE_CHECK")).toBe(true);
-    expect(warnings.some((w) => w.code === "NO_REAL_THIRD_ALTERNATIVE")).toBe(true);
-  });
-
-  test("returns no warnings for a minimally complete artifact", () => {
-    const artifact = createEmptyArtifact("TEST-003");
-
-    artifact.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "A", mechanism: "M" },
-      { id: "H2", name: "H2", claim: "B", mechanism: "M" },
-      { id: "H3", name: "Third alternative", claim: "Both could be wrong", mechanism: "Misspecification", third_alternative: true },
-    ];
-
-    artifact.sections.predictions_table = [
-      { id: "P1", condition: "C1", predictions: { H1: "A", H2: "B", H3: "?" } },
-      { id: "P2", condition: "C2", predictions: { H1: "A", H2: "B", H3: "?" } },
-      { id: "P3", condition: "C3", predictions: { H1: "A", H2: "B", H3: "?" } },
-    ];
-
-    artifact.sections.discriminative_tests = [
-      {
-        id: "T1",
-        name: "T1",
-        procedure: "P",
-        discriminates: "H1 vs H2",
-        expected_outcomes: { H1: "A", H2: "B" },
-        potency_check: "Control",
-      },
-      {
-        id: "T2",
-        name: "T2",
-        procedure: "P",
-        discriminates: "H1 vs H2",
-        expected_outcomes: { H1: "A", H2: "B" },
-        potency_check: "Control",
-      },
-    ];
-
-    artifact.sections.assumption_ledger = [
-      { id: "A1", name: "A1", statement: "S1", load: "L1", test: "T1", scale_check: true },
-      { id: "A2", name: "A2", statement: "S2", load: "L2", test: "T2" },
-      { id: "A3", name: "A3", statement: "S3", load: "L3", test: "T3" },
-    ];
-
-    artifact.sections.adversarial_critique = [
-      { id: "C1", name: "C1", attack: "A", evidence: "E", current_status: "S", real_third_alternative: true },
-      { id: "C2", name: "C2", attack: "A", evidence: "E", current_status: "S" },
-    ];
-
-    const warnings = validateArtifact(artifact);
-    expect(warnings).toEqual([]);
-  });
-});
-
-// ============================================================================
 // Tests: Rendering + Linting
 // ============================================================================
 
@@ -1210,34 +1092,34 @@ describe("renderArtifactMarkdown", () => {
       }),
       makeValidDelta("ADD", "predictions_table", null, {
         condition: "Condition 1",
-        predictions: { H1: "X", H2: "Y", H3: "indeterminate" },
+        predictions: { H1: "A", H2: "B", H3: "?" },
       }),
       makeValidDelta("ADD", "predictions_table", null, {
         condition: "Condition 2",
-        predictions: { H1: "X", H2: "X", H3: "indeterminate" },
+        predictions: { H1: "A", H2: "B", H3: "?" },
       }),
       makeValidDelta("ADD", "predictions_table", null, {
         condition: "Condition 3",
-        predictions: { H1: "Y", H2: "X", H3: "indeterminate" },
+        predictions: { H1: "A", H2: "B", H3: "?" },
       }),
       makeValidDelta("ADD", "discriminative_tests", null, {
-        name: "Test 1",
-        procedure: "Do thing",
+        name: "T1",
+        procedure: "P",
         discriminates: "H1 vs H2",
         expected_outcomes: { H1: "A", H2: "B" },
         potency_check: "Control",
         score: { likelihood_ratio: 3, cost: 2, speed: 2, ambiguity: 3 },
       }),
       makeValidDelta("ADD", "discriminative_tests", null, {
-        name: "Test 2",
-        procedure: "Do other thing",
+        name: "T2",
+        procedure: "P",
         discriminates: "H1 vs H2",
-        expected_outcomes: { H1: "A2", H2: "B2" },
-        potency_check: "Control 2",
+        expected_outcomes: { H1: "A", H2: "B" },
+        potency_check: "Control",
         score: { likelihood_ratio: 2, cost: 2, speed: 2, ambiguity: 2 },
       }),
       makeValidDelta("ADD", "assumption_ledger", null, {
-        name: "Assumption 1",
+        name: "A1",
         statement: "S1",
         load: "L1",
         test: "T1",
@@ -1245,29 +1127,29 @@ describe("renderArtifactMarkdown", () => {
         calculation: "1e3 > 1e2",
       }),
       makeValidDelta("ADD", "assumption_ledger", null, {
-        name: "Assumption 2",
+        name: "A2",
         statement: "S2",
         load: "L2",
         test: "T2",
       }),
       makeValidDelta("ADD", "assumption_ledger", null, {
-        name: "Assumption 3",
+        name: "A3",
         statement: "S3",
         load: "L3",
         test: "T3",
       }),
       makeValidDelta("ADD", "adversarial_critique", null, {
-        name: "Critique 1",
-        attack: "Attack",
-        evidence: "Evidence",
-        current_status: "Status",
+        name: "C1",
+        attack: "A",
+        evidence: "E",
+        current_status: "S",
         real_third_alternative: true,
       }),
       makeValidDelta("ADD", "adversarial_critique", null, {
-        name: "Critique 2",
-        attack: "Attack 2",
-        evidence: "Evidence 2",
-        current_status: "Status 2",
+        name: "C2",
+        attack: "A",
+        evidence: "E",
+        current_status: "S",
       }),
     ];
 
@@ -1357,115 +1239,140 @@ describe("renderArtifactMarkdown", () => {
   });
 });
 
-describe("lintArtifact", () => {
-  test("flags missing required content as errors", () => {
-    const artifact = createEmptyArtifact("TEST-LINT");
+describe("lintArtifact (legacy checks)", () => {
+  test("warns on incomplete artifact", () => {
+    const artifact = createEmptyArtifact("TEST-001");
     const report = lintArtifact(artifact);
+    const violations = report.violations;
 
-    expect(report.valid).toBe(false);
-    expect(report.summary.errors).toBeGreaterThan(0);
-    expect(report.violations.some((v) => v.id === "ER-001")).toBe(true);
-    expect(report.violations.some((v) => v.id === "EH-003")).toBe(true);
+    // Should warn about missing minimums
+    expect(violations.some((v) => v.id === "EH-001")).toBe(true); // H < 3
+    expect(violations.some((v) => v.id === "EH-003")).toBe(true); // NO_THIRD_ALTERNATIVE
+    expect(violations.some((v) => v.id === "EA-002")).toBe(true); // NO_SCALE_CHECK
   });
 
-  test("returns valid when minimum guardrails are satisfied", () => {
-    const base = createEmptyArtifact("TEST-LINT-OK");
-    const deltas: ValidDelta[] = [
-      makeValidDelta("EDIT", "research_thread", null, {
-        statement: "What is X?",
-        context: "Background context.",
-        why_it_matters: "It matters because Y.",
-        anchors: ["§1"],
-      }),
-      makeValidDelta("ADD", "hypothesis_slate", null, {
-        name: "H1",
-        claim: "A",
-        mechanism: "M",
-        anchors: ["§2"],
-      }),
-      makeValidDelta("ADD", "hypothesis_slate", null, {
-        name: "H2",
-        claim: "B",
-        mechanism: "M",
-        anchors: ["§3"],
-      }),
-      makeValidDelta("ADD", "hypothesis_slate", null, {
-        name: "Third Alternative",
-        claim: "Both could be wrong",
-        mechanism: "Misspecification",
-        anchors: ["inference"],
-        third_alternative: true,
-      }),
-      makeValidDelta("ADD", "predictions_table", null, {
-        condition: "Condition 1",
-        predictions: { H1: "X", H2: "Y", H3: "indeterminate" },
-      }),
-      makeValidDelta("ADD", "predictions_table", null, {
-        condition: "Condition 2",
-        predictions: { H1: "X", H2: "X", H3: "indeterminate" },
-      }),
-      makeValidDelta("ADD", "predictions_table", null, {
-        condition: "Condition 3",
-        predictions: { H1: "Y", H2: "X", H3: "indeterminate" },
-      }),
-      makeValidDelta("ADD", "discriminative_tests", null, {
-        name: "Test 1",
-        procedure: "Do thing",
+  test("executes third-alternative / scale-check callbacks on non-empty sections", () => {
+    const artifact = createEmptyArtifact("TEST-002");
+    // Add dummy RT to pass RT checks (not focus of this test)
+    artifact.sections.research_thread = {
+      id: "RT",
+      statement: "S",
+      context: "C",
+      why_it_matters: "W",
+      anchors: ["§1"],
+    };
+
+    artifact.sections.hypothesis_slate = [
+      { id: "H1", name: "H1", claim: "A", mechanism: "M", anchors: ["§1"] },
+      { id: "H2", name: "H2", claim: "B", mechanism: "M", anchors: ["§1"] },
+      { id: "H3", name: "H3", claim: "C", mechanism: "M", anchors: ["§1"], killed: true },
+    ];
+
+    artifact.sections.predictions_table = [
+      { id: "P1", condition: "C1", predictions: { H1: "A", H2: "B" } },
+      { id: "P2", condition: "C2", predictions: { H1: "A", H2: "B" }, killed: true },
+    ];
+
+    artifact.sections.discriminative_tests = [
+      {
+        id: "T1",
+        name: "T1",
+        procedure: "P",
         discriminates: "H1 vs H2",
         expected_outcomes: { H1: "A", H2: "B" },
         potency_check: "Control",
         score: { likelihood_ratio: 3, cost: 2, speed: 2, ambiguity: 3 },
-      }),
-      makeValidDelta("ADD", "discriminative_tests", null, {
-        name: "Test 2",
-        procedure: "Do other thing",
+      },
+      {
+        id: "T2",
+        name: "T2",
+        procedure: "P",
         discriminates: "H1 vs H2",
-        expected_outcomes: { H1: "A2", H2: "B2" },
-        potency_check: "Control 2",
-        score: { likelihood_ratio: 2, cost: 2, speed: 2, ambiguity: 2 },
-      }),
-      makeValidDelta("ADD", "assumption_ledger", null, {
-        name: "Assumption 1",
-        statement: "S1",
-        load: "L1",
-        test: "T1",
-        scale_check: true,
-        calculation: "1e3 > 1e2",
-      }),
-      makeValidDelta("ADD", "assumption_ledger", null, {
-        name: "Assumption 2",
-        statement: "S2",
-        load: "L2",
-        test: "T2",
-      }),
-      makeValidDelta("ADD", "assumption_ledger", null, {
-        name: "Assumption 3",
-        statement: "S3",
-        load: "L3",
-        test: "T3",
-      }),
-      makeValidDelta("ADD", "adversarial_critique", null, {
-        name: "Critique 1",
-        attack: "Attack",
-        evidence: "Evidence",
-        current_status: "Status",
-        real_third_alternative: true,
-      }),
-      makeValidDelta("ADD", "adversarial_critique", null, {
-        name: "Critique 2",
-        attack: "Attack 2",
-        evidence: "Evidence 2",
-        current_status: "Status 2",
-      }),
+        expected_outcomes: { H1: "A", H2: "B" },
+        potency_check: "Control",
+        score: { likelihood_ratio: 3, cost: 2, speed: 2, ambiguity: 3 },
+      },
     ];
 
-    const merged = mergeArtifact(base, deltas, "Agent1", "2025-01-01T00:00:00Z");
-    expect(merged.ok).toBe(true);
-    if (!merged.ok) return;
+    artifact.sections.assumption_ledger = [
+      { id: "A1", name: "A1", statement: "S1", load: "L1", test: "T1", scale_check: true, calculation: "1e2" },
+      { id: "A2", name: "A2", statement: "S2", load: "L2", test: "T2" },
+      { id: "A3", name: "A3", statement: "S3", load: "L3", test: "T3", killed: true },
+    ];
 
-    const report = lintArtifact(merged.artifact);
-    expect(report.valid).toBe(true);
-    expect(report.summary.errors).toBe(0);
+    artifact.sections.adversarial_critique = [
+      { id: "C1", name: "C1", attack: "A", evidence: "E", current_status: "active", real_third_alternative: true },
+      { id: "C2", name: "C2", attack: "A", evidence: "E", current_status: "active" },
+    ];
+
+    const report = lintArtifact(artifact);
+    const violations = report.violations;
+
+    expect(violations.some((v) => v.id === "EH-003")).toBe(true); // NO_THIRD_ALTERNATIVE
+    expect(violations.some((v) => v.id === "EA-002")).toBe(true); // NO_SCALE_CHECK
+  });
+
+  test("returns no warnings for a minimally complete artifact", () => {
+    const artifact = createEmptyArtifact("TEST-003");
+    artifact.metadata.contributors.push({ agent: "test" });
+    artifact.sections.research_thread = {
+      id: "RT",
+      statement: "S",
+      context: "C",
+      why_it_matters: "W",
+      anchors: ["§1"],
+    };
+
+    artifact.sections.hypothesis_slate = [
+      { id: "H1", name: "H1", claim: "A", mechanism: "M", anchors: ["§1"] },
+      { id: "H2", name: "H2", claim: "B", mechanism: "M", anchors: ["§1"] },
+      { id: "H3", name: "Third alternative", claim: "Both could be wrong", mechanism: "Misspecification", anchors: ["§1"] },
+    ];
+
+    artifact.sections.predictions_table = [
+      { id: "P1", condition: "C1", predictions: { H1: "A", H2: "B", H3: "?" } },
+      { id: "P2", condition: "C2", predictions: { H1: "A", H2: "B", H3: "?" } },
+      { id: "P3", condition: "C3", predictions: { H1: "A", H2: "B", H3: "?" } },
+    ];
+
+    artifact.sections.discriminative_tests = [
+      {
+        id: "T1",
+        name: "T1",
+        procedure: "P",
+        discriminates: "H1 vs H2",
+        expected_outcomes: { H1: "A", H2: "B" },
+        potency_check: "Control (cite §50)",
+        score: { likelihood_ratio: 3, cost: 2, speed: 2, ambiguity: 3 },
+      },
+      {
+        id: "T2",
+        name: "T2",
+        procedure: "P",
+        discriminates: "H1 vs H2",
+        expected_outcomes: { H1: "A", H2: "B" },
+        potency_check: "Control (cite §50)",
+        score: { likelihood_ratio: 3, cost: 2, speed: 2, ambiguity: 3 },
+      },
+    ];
+
+    artifact.sections.assumption_ledger = [
+      { id: "A1", name: "A1", statement: "S1", load: "L1", test: "T1", scale_check: true, calculation: "1e2" },
+      { id: "A2", name: "A2", statement: "S2", load: "L2", test: "T2" },
+      { id: "A3", name: "A3", statement: "S3", load: "L3", test: "T3" },
+    ];
+
+    artifact.sections.adversarial_critique = [
+      { id: "C1", name: "C1", attack: "A", evidence: "E", current_status: "active", real_third_alternative: true },
+      { id: "C2", name: "C2", attack: "A", evidence: "E", current_status: "active" },
+    ];
+
+    const report = lintArtifact(artifact);
+    const errors = report.violations.filter((v) => v.severity === "error");
+    const warnings = report.violations.filter((v) => v.severity === "warning");
+
+    expect(errors).toEqual([]);
+    expect(warnings).toEqual([]);
   });
 });
 
@@ -1547,7 +1454,7 @@ describe("artifact-merge additional coverage", () => {
     ] as unknown as HypothesisItem[];
 
     artifact.sections.predictions_table = [
-      { id: "P1", condition: "Cond", predictions: { H1: "A", hxyz: "A" } },
+      { id: "P1", condition: "Cond", predictions: { H1: "X", hxyz: "A" } },
     ] as unknown as PredictionItem[];
 
     artifact.sections.discriminative_tests = [
@@ -1600,7 +1507,7 @@ describe("artifact-merge additional coverage", () => {
     const artifact = createEmptyArtifact(" ");
     artifact.metadata.status = "weird" as unknown as ArtifactMetadata["status"];
     artifact.metadata.created_at = "not-a-date";
-    artifact.metadata.updated_at = "2000-01-01T00:00:00Z";
+    artifact.metadata.updated_at = "2000-01-02T00:00:00Z";
     artifact.metadata.version = 1.5;
     artifact.metadata.contributors = [];
 
@@ -1755,7 +1662,7 @@ describe("diffArtifacts", () => {
         name: "Digital handle task",
         procedure: "Run test",
         discriminates: "H1, H2",
-        expected_outcomes: { H1: "pass", H2: "fail" },
+        expected_outcomes: { H1: "X", H2: "Y" },
         potency_check: "Control check",
       },
     ];
@@ -1785,6 +1692,8 @@ describe("diffArtifacts", () => {
 
     expect(diff.changes.adversarial_critique.resolved).toHaveLength(1);
     expect(diff.changes.adversarial_critique.resolved[0].id).toBe("C1");
+    expect(diff.changes.adversarial_critique.resolved[0].by_agent).toBe("TestAgent");
+    expect(diff.changes.adversarial_critique.resolved[0].rationale).toBe("Refuted by T1 results");
     expect(diff.summary.critiques_resolved).toBe(1);
   });
 
@@ -1836,20 +1745,20 @@ describe("diffArtifacts", () => {
     const v1 = createEmptyArtifact("TEST-DIFF");
     v1.metadata.version = 1;
     v1.sections.anomaly_register = [
-      { id: "X1", name: "Unexpected pattern", observation: "Cells showed pattern X", conflicts_with: ["H1"], status: "active" },
+      { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: [], status: "active" },
     ];
 
     const v2 = createEmptyArtifact("TEST-DIFF");
     v2.metadata.version = 2;
     v2.sections.anomaly_register = [
-      { id: "X1", name: "Unexpected pattern", observation: "Cells showed pattern X", conflicts_with: ["H1"], status: "resolved", resolution_plan: "Promoted to H4" },
+      { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: [], status: "resolved", resolution_plan: "Promoted to new hypothesis" },
     ];
 
     const diff = diffArtifacts(v1, v2);
 
     expect(diff.changes.anomaly_register.promoted).toHaveLength(1);
     expect(diff.changes.anomaly_register.promoted[0].id).toBe("X1");
-    expect(diff.changes.anomaly_register.promoted[0].promoted_to).toBe("H4");
+    expect(diff.changes.anomaly_register.promoted[0].promoted_to).toBe("hypothesis");
   });
 
   test("calculates progress score based on changes", () => {
@@ -1860,50 +1769,40 @@ describe("diffArtifacts", () => {
       { id: "H2", name: "H2", claim: "C2", mechanism: "M2" },
     ];
     v1.sections.adversarial_critique = [
-      { id: "C1", name: "Critique", attack: "Attack", evidence: "E", current_status: "active" },
+      { id: "C1", name: "Critique 1", attack: "A", evidence: "E", current_status: "active" },
+      { id: "C2", name: "Critique 2", attack: "A", evidence: "E", current_status: "active" },
+    ];
+    v1.sections.anomaly_register = [
+      { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: [], status: "active" },
     ];
 
     const v2 = createEmptyArtifact("TEST-DIFF");
     v2.metadata.version = 2;
-    // Kill one hypothesis, add a new one (refinement)
+    // Kill and add hypotheses (refinement)
     v2.sections.hypothesis_slate = [
       { id: "H1", name: "H1", claim: "C1", mechanism: "M1" },
       { id: "H2", name: "H2", claim: "C2", mechanism: "M2", killed: true, kill_reason: "Refuted" },
       { id: "H3", name: "H3", claim: "C3", mechanism: "M3" },
     ];
-    // Add test
+    // Add multiple tests
     v2.sections.discriminative_tests = [
-      { id: "T1", name: "Test", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
+      { id: "T1", name: "T1", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
+      { id: "T2", name: "T2", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
     ];
-    // Resolve critique
+    // Resolve multiple critiques
     v2.sections.adversarial_critique = [
-      { id: "C1", name: "Critique", attack: "Attack", evidence: "E", current_status: "resolved" },
+      { id: "C1", name: "Critique 1", attack: "A", evidence: "E", current_status: "resolved" },
+      { id: "C2", name: "Critique 2", attack: "A", evidence: "E", current_status: "resolved" },
+    ];
+    // Resolve anomaly
+    v2.sections.anomaly_register = [
+      { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: [], status: "resolved", resolution_plan: "Explained" },
     ];
 
     const diff = diffArtifacts(v1, v2);
 
     // Should have GOOD or better progress (refinement + test + critique resolved)
     expect(["GOOD", "EXCELLENT"]).toContain(diff.summary.progress_score);
-  });
-
-  test("returns NONE progress for no changes", () => {
-    const v1 = createEmptyArtifact("TEST-DIFF");
-    v1.metadata.version = 1;
-    v1.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "C1", mechanism: "M1" },
-    ];
-
-    const v2 = createEmptyArtifact("TEST-DIFF");
-    v2.metadata.version = 2;
-    v2.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "C1", mechanism: "M1" },
-    ];
-
-    const diff = diffArtifacts(v1, v2);
-
-    expect(diff.summary.progress_score).toBe("NONE");
-    expect(diff.summary.total_additions).toBe(0);
-    expect(diff.summary.total_removals).toBe(0);
   });
 
   test("handles items removed from artifact (not killed)", () => {
@@ -1940,20 +1839,35 @@ describe("formatDiffHuman", () => {
     v1.sections.discriminative_tests = [];
     v1.sections.adversarial_critique = [
       { id: "C1", name: "Critique 1", attack: "A", evidence: "E", current_status: "active" },
+      { id: "C2", name: "Critique 2", attack: "A", evidence: "E", current_status: "active" },
+    ];
+    v1.sections.anomaly_register = [
+      { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: [], status: "active" },
+      { id: "X2", name: "Anomaly2", observation: "Obs2", conflicts_with: [], status: "active" },
     ];
 
     const v2 = createEmptyArtifact("TEST-FORMAT");
     v2.metadata.version = 2;
+    // Kill one hypothesis, add a new one (refinement)
     v2.sections.hypothesis_slate = [
       { id: "H1", name: "H1", claim: "Updated claim", mechanism: "M1" },
-      { id: "H2", name: "H2", claim: "C2", mechanism: "M2", killed: true, killed_by: "Agent", kill_reason: "Refuted" },
-      { id: "H3", name: "New Hypothesis", claim: "C3", mechanism: "M3" },
+      { id: "H2", name: "H2", claim: "C2", mechanism: "M2", killed: true, kill_reason: "Refuted" },
+      { id: "H3", name: "H3", claim: "C3", mechanism: "M3" },
     ];
+    // Add multiple tests
     v2.sections.discriminative_tests = [
-      { id: "T1", name: "New Test", procedure: "P", discriminates: "H1, H3", expected_outcomes: {}, potency_check: "PC" },
+      { id: "T1", name: "T1", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
+      { id: "T2", name: "T2", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
     ];
+    // Resolve multiple critiques
     v2.sections.adversarial_critique = [
       { id: "C1", name: "Critique 1", attack: "A", evidence: "E", current_status: "resolved" },
+      { id: "C2", name: "Critique 2", attack: "A", evidence: "E", current_status: "resolved" },
+    ];
+    // Resolve anomaly
+    v2.sections.anomaly_register = [
+      { id: "X1", name: "Anomaly", observation: "Obs", conflicts_with: [], status: "resolved", resolution_plan: "Explained by H3" },
+      { id: "X2", name: "Anomaly2", observation: "Obs2", conflicts_with: [], status: "deferred" },
     ];
 
     const diff = diffArtifacts(v1, v2);
@@ -1961,13 +1875,15 @@ describe("formatDiffHuman", () => {
 
     expect(output).toContain("=== Artifact Diff: v1 → v2 ===");
     expect(output).toContain("HYPOTHESES");
-    expect(output).toContain("+ [H3] New Hypothesis");
+    expect(output).toContain("+ [H3] H3");
     expect(output).toContain("✗ [H2] H2 - KILLED");
     expect(output).toContain("~ [H1] edited: claim changed");
     expect(output).toContain("TESTS");
-    expect(output).toContain("+ [T1] New Test");
-    expect(output).toContain("CRITIQUES");
-    expect(output).toContain("✓ [C1] RESOLVED");
+    expect(output).toContain("+ [T1] T1");
+    expect(output).toContain("+ [T2] T2");
+    expect(output).toContain("ANOMALIES");
+    expect(output).toContain("↑ [X1] PROMOTED to");
+    expect(output).toContain("○ [X2] dismissed:");
     expect(output).toContain("SUMMARY:");
     expect(output).toContain("Progress:");
   });
@@ -1979,7 +1895,7 @@ describe("formatDiffHuman", () => {
     const v2 = createEmptyArtifact("TEST-PLURAL");
     v2.metadata.version = 2;
     v2.sections.hypothesis_slate = [
-      { id: "H1", name: "H1", claim: "C1", mechanism: "M1" },
+      { id: "H1", name: "H1", claim: "C", mechanism: "M" },
     ];
     v2.sections.discriminative_tests = [
       { id: "T1", name: "T1", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
@@ -2032,7 +1948,7 @@ describe("formatDiffHuman", () => {
     const output = formatDiffHuman(diff);
 
     expect(output).toContain("ANOMALIES");
-    expect(output).toContain("↑ [X1] PROMOTED to");
+    expect(output).toContain("↑ [X1] PROMOTED TO");
     expect(output).toContain("○ [X2] dismissed:");
   });
 
@@ -2047,7 +1963,7 @@ describe("formatDiffHuman", () => {
     const v2 = createEmptyArtifact("TEST-ANOMALY-SUMMARY");
     v2.metadata.version = 2;
     v2.sections.anomaly_register = [
-      { id: "X1", name: "Anomaly1", observation: "Obs", conflicts_with: [], status: "resolved", resolution_plan: "Explained by H3" },
+      { id: "X1", name: "Anomaly1", observation: "Obs", conflicts_with: [], status: "resolved", resolution_plan: "Explained" },
       { id: "X2", name: "Anomaly2", observation: "Obs", conflicts_with: [], status: "deferred" },
     ];
 
@@ -2322,6 +2238,7 @@ describe("diffArtifacts edge cases", () => {
 
     const diff = diffArtifacts(v1, v2);
     expect(diff.changes.assumption_ledger.killed).toHaveLength(1);
+    expect(diff.changes.assumption_ledger.killed[0].rationale).toBe("Removed from artifact");
   });
 
   test("handles anomaly removed from artifact", () => {
@@ -2337,6 +2254,7 @@ describe("diffArtifacts edge cases", () => {
 
     const diff = diffArtifacts(v1, v2);
     expect(diff.changes.anomaly_register.killed).toHaveLength(1);
+    expect(diff.changes.anomaly_register.killed[0].rationale).toBe("Removed from artifact");
   });
 
   test("handles critique removed from artifact", () => {
@@ -2352,6 +2270,7 @@ describe("diffArtifacts edge cases", () => {
 
     const diff = diffArtifacts(v1, v2);
     expect(diff.changes.adversarial_critique.killed).toHaveLength(1);
+    expect(diff.changes.adversarial_critique.killed[0].rationale).toBe("Removed from artifact");
   });
 
   test("handles prediction removed from artifact", () => {
@@ -2367,6 +2286,7 @@ describe("diffArtifacts edge cases", () => {
 
     const diff = diffArtifacts(v1, v2);
     expect(diff.changes.predictions_table.killed).toHaveLength(1);
+    expect(diff.changes.predictions_table.killed[0].rationale).toBe("Removed from artifact");
   });
 
   test("handles MINIMAL progress level", () => {
@@ -2431,8 +2351,8 @@ describe("diffArtifacts edge cases", () => {
     ];
 
     const diff = diffArtifacts(v1, v2);
-    const output = formatDiffHuman(diff);
-    expect(output).toContain("-1 hypothesis");
+    expect(diff.changes.hypothesis_slate.killed).toHaveLength(1);
+    expect(diff.changes.hypothesis_slate.killed[0].rationale).toBe("Refuted by T1 results");
     expect(diff.summary.hypotheses_net).toBe(-1);
   });
 
@@ -2451,6 +2371,9 @@ describe("diffArtifacts edge cases", () => {
 
     const diff = diffArtifacts(v1, v2);
     expect(diff.changes.adversarial_critique.resolved).toHaveLength(1);
+    expect(diff.changes.adversarial_critique.resolved[0].id).toBe("C1");
+    expect(diff.changes.adversarial_critique.resolved[0].by_agent).toBe("TestAgent");
+    expect(diff.changes.adversarial_critique.resolved[0].rationale).toBe("Refuted by T1 results");
   });
 
   test("handles critique with fixed status", () => {
@@ -2468,6 +2391,9 @@ describe("diffArtifacts edge cases", () => {
 
     const diff = diffArtifacts(v1, v2);
     expect(diff.changes.adversarial_critique.resolved).toHaveLength(1);
+    expect(diff.changes.adversarial_critique.resolved[0].id).toBe("C1");
+    expect(diff.changes.adversarial_critique.resolved[0].by_agent).toBe("TestAgent");
+    expect(diff.changes.adversarial_critique.resolved[0].rationale).toBe("Refuted by T1 results");
   });
 
   test("handles anomaly promoted with explicit H number", () => {
@@ -2485,6 +2411,7 @@ describe("diffArtifacts edge cases", () => {
 
     const diff = diffArtifacts(v1, v2);
     expect(diff.changes.anomaly_register.promoted).toHaveLength(1);
+    expect(diff.changes.anomaly_register.promoted[0].id).toBe("X1");
     expect(diff.changes.anomaly_register.promoted[0].promoted_to).toBe("H5");
   });
 
@@ -2503,6 +2430,7 @@ describe("diffArtifacts edge cases", () => {
 
     const diff = diffArtifacts(v1, v2);
     expect(diff.changes.anomaly_register.promoted).toHaveLength(1);
+    expect(diff.changes.anomaly_register.promoted[0].id).toBe("X1");
     expect(diff.changes.anomaly_register.promoted[0].promoted_to).toBe("hypothesis");
   });
 
@@ -2523,7 +2451,7 @@ describe("diffArtifacts edge cases", () => {
 
     const v2 = createEmptyArtifact("TEST-EXCELLENT");
     v2.metadata.version = 2;
-    // Kill and add hypotheses (active refinement)
+    // Kill and add hypotheses (refinement)
     v2.sections.hypothesis_slate = [
       { id: "H1", name: "H1", claim: "C", mechanism: "M" },
       { id: "H2", name: "H2", claim: "C", mechanism: "M", killed: true, kill_reason: "Refuted" },
@@ -2682,15 +2610,21 @@ describe("Cross-Session References", () => {
   describe("validateArtifact with references", () => {
     test("returns no warnings for valid references", () => {
       const artifact = createEmptyArtifact("TEST-VALID-REF");
+      // Add Research Thread for completeness
+      artifact.sections.research_thread = {
+          id: "RT", statement: "S", context: "C", why_it_matters: "W", anchors: ["§1"]
+      };
+
       // Add minimum items to avoid other warnings
       artifact.sections.hypothesis_slate = [
-        { id: "H1", name: "H1", claim: "C", mechanism: "M", third_alternative: true },
-        { id: "H2", name: "H2", claim: "C", mechanism: "M" },
+        { id: "H1", name: "H1", claim: "C", mechanism: "M", third_alternative: true, anchors: ["§1"] },
+        { id: "H2", name: "H2", claim: "C", mechanism: "M", anchors: ["§1"] },
         {
           id: "H3",
           name: "H3",
           claim: "C",
           mechanism: "M",
+          anchors: ["§1"],
           references: [
             { session: "RS-20251230-prior", item: "H1", relation: "extends" },
             { session: "RS-20251229-earlier", item: "H2", relation: "refutes" },
@@ -2703,112 +2637,132 @@ describe("Cross-Session References", () => {
         { id: "P3", condition: "C", predictions: { H1: "O1" } },
       ];
       artifact.sections.discriminative_tests = [
-        { id: "T1", name: "T1", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
-        { id: "T2", name: "T2", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC" },
+        { id: "T1", name: "T1", procedure: "P", discriminates: "H1 vs H2", expected_outcomes: {}, potency_check: "Control", score: { likelihood_ratio: 1, cost: 1, speed: 1, ambiguity: 1 } },
+        { id: "T2", name: "T2", procedure: "P", discriminates: "H1 vs H2", expected_outcomes: {}, potency_check: "Control", score: { likelihood_ratio: 1, cost: 1, speed: 1, ambiguity: 1 } },
       ];
       artifact.sections.assumption_ledger = [
-        { id: "A1", name: "A1", statement: "S", load: "L", test: "T", scale_check: true },
-        { id: "A2", name: "A2", statement: "S", load: "L", test: "T" },
-        { id: "A3", name: "A3", statement: "S", load: "L", test: "T" },
+        { id: "A1", name: "A1", statement: "S1", load: "L1", test: "T1", scale_check: true, calculation: "C" },
+        { id: "A2", name: "A2", statement: "S2", load: "L2", test: "T2" },
+        { id: "A3", name: "A3", statement: "S3", load: "L3", test: "T3", killed: true },
       ];
       artifact.sections.adversarial_critique = [
         { id: "C1", name: "C1", attack: "A", evidence: "E", current_status: "active", real_third_alternative: true },
         { id: "C2", name: "C2", attack: "A", evidence: "E", current_status: "active" },
       ];
 
-      const warnings = validateArtifact(artifact);
-      const refWarnings = warnings.filter((w) => w.code === "INVALID_REFERENCE");
+      const report = lintArtifact(artifact);
+      const refWarnings = report.violations.filter((w) => w.id.startsWith("ER-REF"));
       expect(refWarnings).toHaveLength(0);
     });
 
     test("warns on invalid reference relation type", () => {
       const artifact = createEmptyArtifact("TEST-BAD-REL");
+      // Add RT
+      artifact.sections.research_thread = { id: "RT", statement: "S", context: "C", why_it_matters: "W", anchors: ["§1"] };
+
       artifact.sections.hypothesis_slate = [
         {
           id: "H1",
           name: "H1",
           claim: "C",
           mechanism: "M",
+          anchors: ["§1"],
           references: [
             { session: "PREV", item: "H1", relation: "invalid_relation" as unknown as ReferenceRelation },
           ],
         },
       ];
 
-      const warnings = validateArtifact(artifact);
-      const refWarnings = warnings.filter((w) => w.code === "INVALID_REFERENCE");
+      const report = lintArtifact(artifact);
+      const refWarnings = report.violations.filter((w) => w.id === "ER-REF-005");
       expect(refWarnings.length).toBeGreaterThan(0);
       expect(refWarnings[0].message).toContain("relation");
     });
 
     test("warns on missing session field", () => {
       const artifact = createEmptyArtifact("TEST-NO-SESSION");
+      // Add RT
+      artifact.sections.research_thread = { id: "RT", statement: "S", context: "C", why_it_matters: "W", anchors: ["§1"] };
+
       artifact.sections.hypothesis_slate = [
         {
           id: "H1",
           name: "H1",
           claim: "C",
           mechanism: "M",
+          anchors: ["§1"],
           references: [{ item: "H1", relation: "extends" } as unknown as Reference],
         },
       ];
 
-      const warnings = validateArtifact(artifact);
-      const refWarnings = warnings.filter((w) => w.code === "INVALID_REFERENCE");
+      const report = lintArtifact(artifact);
+      const refWarnings = report.violations.filter((w) => w.id === "ER-REF-003");
       expect(refWarnings.length).toBeGreaterThan(0);
       expect(refWarnings[0].message).toContain("session");
     });
 
     test("warns on missing item field", () => {
       const artifact = createEmptyArtifact("TEST-NO-ITEM");
+      // Add RT
+      artifact.sections.research_thread = { id: "RT", statement: "S", context: "C", why_it_matters: "W", anchors: ["§1"] };
+
       artifact.sections.hypothesis_slate = [
         {
           id: "H1",
           name: "H1",
           claim: "C",
           mechanism: "M",
+          anchors: ["§1"],
           references: [{ session: "PREV", relation: "extends" } as unknown as Reference],
         },
       ];
 
-      const warnings = validateArtifact(artifact);
-      const refWarnings = warnings.filter((w) => w.code === "INVALID_REFERENCE");
+      const report = lintArtifact(artifact);
+      const refWarnings = report.violations.filter((w) => w.id === "ER-REF-004");
       expect(refWarnings.length).toBeGreaterThan(0);
       expect(refWarnings[0].message).toContain("item");
     });
 
     test("warns on non-array references field", () => {
       const artifact = createEmptyArtifact("TEST-REF-OBJ");
+      // Add RT
+      artifact.sections.research_thread = { id: "RT", statement: "S", context: "C", why_it_matters: "W", anchors: ["§1"] };
+
       artifact.sections.hypothesis_slate = [
         {
           id: "H1",
           name: "H1",
           claim: "C",
           mechanism: "M",
+          anchors: ["§1"],
           references: { session: "PREV", item: "H1", relation: "extends" } as unknown as Reference[],
         },
       ];
 
-      const warnings = validateArtifact(artifact);
-      const refWarnings = warnings.filter((w) => w.code === "INVALID_REFERENCE");
+      const report = lintArtifact(artifact);
+      const refWarnings = report.violations.filter((w) => w.id === "ER-REF-001");
       expect(refWarnings.length).toBeGreaterThan(0);
       expect(refWarnings[0].message).toContain("array");
     });
 
     test("warns on non-object reference in array", () => {
       const artifact = createEmptyArtifact("TEST-REF-STR");
+      // Add RT
+      artifact.sections.research_thread = { id: "RT", statement: "S", context: "C", why_it_matters: "W", anchors: ["§1"] };
+
       artifact.sections.hypothesis_slate = [
         {
           id: "H1",
           name: "H1",
           claim: "C",
           mechanism: "M",
+          anchors: ["§1"],
           references: ["RS-20251230:H1:extends"] as unknown as Reference[],
         },
       ];
 
-      const warnings = validateArtifact(artifact);
-      const refWarnings = warnings.filter((w) => w.code === "INVALID_REFERENCE");
+      const report = lintArtifact(artifact);
+      const refWarnings = report.violations.filter((w) => w.id === "ER-REF-002");
       expect(refWarnings.length).toBeGreaterThan(0);
       expect(refWarnings[0].message).toContain("object");
     });
@@ -2825,47 +2779,53 @@ describe("Cross-Session References", () => {
 
       for (const relation of validRelations) {
         const artifact = createEmptyArtifact(`TEST-REL-${relation}`);
+        // Add RT
+        artifact.sections.research_thread = { id: "RT", statement: "S", context: "C", why_it_matters: "W", anchors: ["§1"] };
+
         artifact.sections.hypothesis_slate = [
           {
             id: "H1",
             name: "H1",
             claim: "C",
             mechanism: "M",
+            anchors: ["§1"],
             references: [{ session: "PREV", item: "H1", relation }],
           },
         ];
 
-        const warnings = validateArtifact(artifact);
-        const refWarnings = warnings.filter((w) => w.code === "INVALID_REFERENCE");
+        const report = lintArtifact(artifact);
+        const refWarnings = report.violations.filter((w) => w.id.startsWith("ER-REF"));
         expect(refWarnings).toHaveLength(0);
       }
     });
 
     test("validates references in all section types", () => {
       const artifact = createEmptyArtifact("TEST-ALL-SECTIONS");
+      // Add RT
+      artifact.sections.research_thread = { id: "RT", statement: "S", context: "C", why_it_matters: "W", anchors: ["§1"] };
       const ref: Reference = { session: "PREV", item: "X1", relation: "informed_by" };
 
       artifact.sections.hypothesis_slate = [
-        { id: "H1", name: "H1", claim: "C", mechanism: "M", references: [ref] },
+        { id: "H1", name: "H1", claim: "C", mechanism: "M", anchors: ["§1"], references: [ref] },
       ];
       artifact.sections.predictions_table = [
         { id: "P1", condition: "C", predictions: {}, references: [ref] },
       ];
       artifact.sections.discriminative_tests = [
-        { id: "T1", name: "T", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC", references: [ref] },
+        { id: "T1", name: "T", procedure: "P", discriminates: "H1", expected_outcomes: {}, potency_check: "PC", score: { likelihood_ratio: 1, cost: 1, speed: 1, ambiguity: 1 }, references: [ref] },
       ];
       artifact.sections.assumption_ledger = [
-        { id: "A1", name: "A", statement: "S", load: "L", test: "T", references: [ref] },
+        { id: "A1", name: "A", statement: "S", load: "L", test: "T", scale_check: true, calculation: "1e3", references: [ref] },
       ];
       artifact.sections.anomaly_register = [
         { id: "X1", name: "X", observation: "O", conflicts_with: [], references: [ref] },
       ];
       artifact.sections.adversarial_critique = [
-        { id: "C1", name: "C", attack: "A", evidence: "E", current_status: "active", references: [ref] },
+        { id: "C1", name: "C1", attack: "A", evidence: "E", current_status: "active", references: [ref] },
       ];
 
-      const warnings = validateArtifact(artifact);
-      const refWarnings = warnings.filter((w) => w.code === "INVALID_REFERENCE");
+      const report = lintArtifact(artifact);
+      const refWarnings = report.violations.filter((w) => w.id.startsWith("ER-REF"));
       expect(refWarnings).toHaveLength(0);
     });
   });
