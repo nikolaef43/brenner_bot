@@ -1,6 +1,5 @@
 import * as React from "react";
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { EvidenceEntry, DiscriminativePower, TestType, EvidenceResult } from "@/lib/brenner-loop/evidence";
 

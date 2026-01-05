@@ -180,10 +180,8 @@ function ConfidenceBands({
  */
 function ConfidenceLine({
   points,
-  width,
 }: {
   points: DataPoint[];
-  width: number;
 }) {
   if (points.length < 2) return null;
 
@@ -513,7 +511,7 @@ export function ConfidenceChart({
           <YAxis height={height} />
 
           {/* Confidence line */}
-          <ConfidenceLine points={points} width={width} />
+          <ConfidenceLine points={points} />
 
           {/* Data points */}
           {points.map((point, index) => (

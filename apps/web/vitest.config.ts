@@ -75,8 +75,9 @@ export default defineConfig({
         "src/lib/brenner-loop/test-queue.ts", // 68.46% branches
         "src/lib/brenner-loop/storage.ts", // 65.2% branches
         "src/lib/operator-library.ts", // 66.66% branches
-        "src/lib/storage/hypothesis-storage.ts", // 74.57% branches
-        "src/lib/storage/test-storage.ts", // 73.41% branches
+        // Re-enabled after adding branch tests (brenner_bot-saw4):
+        // - hypothesis-storage.ts: 74.57% → 75%+
+        // - test-storage.ts: 73.41% → 75%+
         "node_modules/**",
         ".next/**",
       ],
