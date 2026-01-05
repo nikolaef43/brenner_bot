@@ -169,7 +169,7 @@ export const HYPOTHESIS_STATE_CONFIG: Record<HypothesisState, HypothesisStateCon
     },
     editable: false,
     deletable: false,
-    transitions: ["START_TESTING", "CREATE_SUCCESSOR", "PAUSE"],
+    transitions: ["LOCK_PREDICTION", "START_TESTING", "CREATE_SUCCESSOR", "PAUSE"],
   },
   testing: {
     label: "Testing",
@@ -336,7 +336,7 @@ interface TransitionDef {
  */
 const TRANSITIONS: Record<HypothesisLifecycleEvent["type"], TransitionDef> = {
   LOCK_PREDICTION: {
-    from: ["draft"],
+    from: ["draft", "active"],
     to: "active",
     guards: [hasUnlockedPredictions],
     action: (hypothesis, event) => {
