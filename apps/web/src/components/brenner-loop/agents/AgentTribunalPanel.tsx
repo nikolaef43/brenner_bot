@@ -18,6 +18,7 @@ import {
   DEFAULT_DISPATCH_ROLES,
   TRIBUNAL_AGENTS,
   isTribunalAgentRole,
+  synthesizeResponses,
   type TribunalAgentRole,
 } from "@/lib/brenner-loop/agents";
 import { Badge } from "@/components/ui/badge";
@@ -95,17 +96,14 @@ function makePreview(markdown: string, maxChars = 220): string {
 }
 
 function badgeForStatus(status: AgentCardStatus): { label: string; className: string } {
-  switch (status) {
-    case "complete":
-      return { label: "Complete", className: "border-success/20 bg-success/15 text-success" };
-    case "analyzing":
-      return { label: "Analyzing", className: "border-primary/20 bg-primary/10 text-primary" };
-    case "error":
-      return { label: "Error", className: "border-destructive/20 bg-destructive/10 text-destructive" };
-    case "pending":
-    default:
-      return { label: "Pending", className: "border-border bg-muted/40 text-muted-foreground" };
-  }
+  const map: Record<AgentCardStatus, { label: string; className: string }> = {
+    complete: { label: "Complete", className: "border-success/20 bg-success/15 text-success" },
+    analyzing: { label: "Analyzing", className: "border-primary/20 bg-primary/10 text-primary" },
+    error: { label: "Error", className: "border-destructive/20 bg-destructive/10 text-destructive" },
+    pending: { label: "Pending", className: "border-border bg-muted/40 text-muted-foreground" },
+  };
+
+  return map[status] ?? map.pending;
 }
 
 function deriveCardsFromMessages(params: {
@@ -180,6 +178,22 @@ export function AgentTribunalPanel({ messages, roles = DEFAULT_DISPATCH_ROLES, c
   const [openRole, setOpenRole] = React.useState<TribunalAgentRole | null>(null);
   const openCard = openRole ? cards.find((c) => c.role === openRole) ?? null : null;
   const openConfig = openCard ? TRIBUNAL_AGENTS[openCard.role] : null;
+
+  const synthesisInput = React.useMemo(
+    () =>
+      cards
+        .filter((card) => card.status === "complete" && typeof card.content === "string" && card.content.length > 0)
+        .map((card) => ({
+          agent: card.role,
+          content: card.content as string,
+        })),
+    [cards]
+  );
+
+  const synthesis = React.useMemo(() => {
+    if (synthesisInput.length < 2) return null;
+    return synthesizeResponses(synthesisInput);
+  }, [synthesisInput]);
 
   const closeDialog = () => setOpenRole(null);
 
@@ -268,6 +282,114 @@ export function AgentTribunalPanel({ messages, roles = DEFAULT_DISPATCH_ROLES, c
             );
           })}
         </div>
+
+        {synthesis && (
+          <div className="rounded-xl border border-border bg-muted/20 p-4 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="space-y-1">
+                <div className="text-sm font-semibold text-foreground">Heuristic Synthesis</div>
+                <div className="text-xs text-muted-foreground">
+                  Auto-extracted from responses (no model calls).
+                </div>
+              </div>
+              <Badge variant="outline" className="border-border bg-muted/40 text-muted-foreground">
+                beta
+              </Badge>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Consensus</div>
+                {synthesis.consensusPoints.length === 0 ? (
+                  <div className="mt-2 text-sm text-muted-foreground">No consensus points detected yet.</div>
+                ) : (
+                  <ul className="mt-3 space-y-2 text-sm">
+                    {synthesis.consensusPoints.map((p) => (
+                      <li key={`${p.claim}-${p.supportingAgents.join(",")}`} className="space-y-1">
+                        <div className="text-foreground">{p.claim}</div>
+                        <div className="text-xs text-muted-foreground font-mono">
+                          {p.strength} · {p.supportingAgents.join(", ")}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="rounded-lg border border-border bg-card p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Conflicts</div>
+                {synthesis.conflictPoints.length === 0 ? (
+                  <div className="mt-2 text-sm text-muted-foreground">No conflicts detected.</div>
+                ) : (
+                  <div className="mt-3 space-y-3">
+                    {synthesis.conflictPoints.map((c) => (
+                      <div key={`${c.topic}-${c.positions.map((p) => p.agent).join(",")}`} className="rounded-lg border border-warning/20 bg-warning/5 p-3">
+                        <div className="text-sm font-medium text-foreground">{c.topic}</div>
+                        <div className="mt-2 space-y-2">
+                          {c.positions.map((p) => (
+                            <div key={`${c.topic}-${p.agent}`} className="text-xs text-muted-foreground">
+                              <span className="font-mono text-foreground/80">{p.agent}</span>: {p.position}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="rounded-lg border border-border bg-card p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recommendations</div>
+                {synthesis.recommendations.length === 0 ? (
+                  <div className="mt-2 text-sm text-muted-foreground">No recommendations extracted.</div>
+                ) : (
+                  <ul className="mt-3 space-y-2 text-sm">
+                    {synthesis.recommendations.slice(0, 6).map((r) => (
+                      <li key={`${r.action}-${r.suggestedBy.join(",")}`} className="space-y-1">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="text-foreground">{r.action}</div>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "shrink-0",
+                              r.priority === "high" && "border-warning/20 bg-warning/10 text-warning",
+                              r.priority === "medium" && "border-primary/20 bg-primary/10 text-primary",
+                              r.priority === "low" && "border-border bg-muted/40 text-muted-foreground"
+                            )}
+                          >
+                            {r.priority}
+                          </Badge>
+                        </div>
+                        <div className="text-xs text-muted-foreground">{r.rationale}</div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="rounded-lg border border-border bg-card p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Brenner Operators</div>
+                {synthesis.brennerPrinciples.length === 0 ? (
+                  <div className="mt-2 text-sm text-muted-foreground">No operator hints detected.</div>
+                ) : (
+                  <ul className="mt-3 space-y-2 text-sm">
+                    {synthesis.brennerPrinciples.map((p) => (
+                      <li key={`${p.principle}-${p.triggeredBy.join(",")}`} className="space-y-1">
+                        <div className="text-foreground">{p.principle}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {p.explanation}{" "}
+                          <span className="font-mono">({p.triggeredBy.join(", ")})</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         <Dialog
           open={Boolean(openRole)}

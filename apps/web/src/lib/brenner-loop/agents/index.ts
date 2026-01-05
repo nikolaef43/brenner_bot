@@ -275,3 +275,21 @@ export {
   getFallbackContent,
   getDispatchStatus,
 } from "./dispatch";
+
+// ============================================================================
+// Heuristic Synthesis (bead xlk2.4)
+// ============================================================================
+
+export type {
+  SynthesisStrength,
+  RecommendationPriority,
+  SynthesisInputResponse,
+  ConsensusPoint,
+  ConflictPoint,
+  Recommendation,
+  AppliedPrinciple,
+  SynthesisResult,
+  SynthesisOptions,
+} from "./synthesis";
+
+export { synthesizeResponses } from "./synthesis";

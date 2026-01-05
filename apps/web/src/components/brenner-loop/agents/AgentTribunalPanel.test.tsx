@@ -53,4 +53,35 @@ describe("AgentTribunalPanel", () => {
     expect(dialog).toHaveTextContent(/here is the\s+analysis/i);
     expect(dialog).toHaveTextContent(/second paragraph/i);
   });
+
+  it("renders heuristic synthesis when multiple roles have responses", () => {
+    const responses: AgentMailMessage[] = [
+      msg({
+        id: 21,
+        subject: "Re: TRIBUNAL[devils_advocate]: HC-123",
+        created_ts: "2026-01-05T00:10:00.000Z",
+        body_md: "- Selection bias is a major confound; anxious people may self-select.\n- The mechanism is not well supported.",
+        from: "AgentA",
+        to: ["Operator"],
+      }),
+      msg({
+        id: 22,
+        subject: "Re: TRIBUNAL[experiment_designer]: HC-123",
+        created_ts: "2026-01-05T00:12:00.000Z",
+        body_md: "- Selection bias is a major confound; randomize if possible.\n- Design a randomized intervention study.",
+        from: "AgentB",
+        to: ["Operator"],
+      }),
+    ];
+
+    render(
+      <AgentTribunalPanel
+        messages={responses}
+        roles={["devils_advocate", "experiment_designer"]}
+      />
+    );
+
+    expect(screen.getByText(/heuristic synthesis/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/selection bias/i).length).toBeGreaterThan(0);
+  });
 });
