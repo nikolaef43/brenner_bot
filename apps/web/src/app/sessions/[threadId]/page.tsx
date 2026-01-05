@@ -18,6 +18,7 @@ import {
 import { computeThreadStatusFromThread, parseSubjectType } from "@/lib/threadStatus";
 import { parseDeltaMessage, type ValidDelta } from "@/lib/delta-parser";
 import type { Metadata } from "next";
+import { LocalSessionHub } from "./LocalSessionHub";
 
 export const metadata: Metadata = {
   title: "Session",
@@ -26,6 +27,8 @@ export const metadata: Metadata = {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const LOCAL_SESSION_PREFIX = "SESSION-";
 
 function repoRootFromWebCwd(): string {
   return resolve(process.cwd(), "../..");
@@ -303,6 +306,12 @@ export default async function SessionDetailPage({
 }: {
   params: Promise<{ threadId: string }>;
 }) {
+  const { threadId } = await params;
+
+  if (threadId.startsWith(LOCAL_SESSION_PREFIX)) {
+    return <LocalSessionHub sessionId={threadId} />;
+  }
+
   if (!isLabModeEnabled()) {
     return <LockedState reason="Lab mode is disabled. Set BRENNER_LAB_MODE=1 to enable orchestration." />;
   }
@@ -314,7 +323,6 @@ export default async function SessionDetailPage({
     return <LockedState reason={pageAuth.reason} />;
   }
 
-  const { threadId } = await params;
   const repoRoot = repoRootFromWebCwd();
   const projectKey = process.env.BRENNER_PROJECT_KEY ?? repoRoot;
 
