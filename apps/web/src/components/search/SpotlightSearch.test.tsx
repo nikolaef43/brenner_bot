@@ -8,7 +8,7 @@
  * @see @/components/search/SpotlightSearch.tsx
  */
 
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { SpotlightSearch, SearchProvider, SearchTrigger, useSearch } from "./SpotlightSearch";
@@ -99,6 +99,12 @@ function createSearchResult(
   };
 }
 
+async function advanceDebounce(): Promise<void> {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200);
+  });
+}
+
 // ============================================================================
 // Tests
 // ============================================================================
@@ -166,7 +172,7 @@ describe("SpotlightSearch", () => {
       await user.type(input, "test");
 
       // Advance past debounce
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       // Check for loading spinner (Loader2 icon with animate-spin class)
       await waitFor(() => {
@@ -241,7 +247,7 @@ describe("SpotlightSearch", () => {
       expect(mockSearchAction).not.toHaveBeenCalled();
 
       // Advance past debounce delay
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(mockSearchAction).toHaveBeenCalledWith("test", expect.any(Object));
@@ -256,7 +262,7 @@ describe("SpotlightSearch", () => {
       const input = screen.getByPlaceholderText(/search transcript/i);
       await user.type(input, "   ");
 
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       expect(mockSearchAction).not.toHaveBeenCalled();
     });
@@ -275,7 +281,7 @@ describe("SpotlightSearch", () => {
       await user.type(input, "st");
 
       // Advance past debounce
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       await waitFor(() => {
         // Should only have called with the final value
@@ -297,7 +303,7 @@ describe("SpotlightSearch", () => {
 
       const input = screen.getByPlaceholderText(/search transcript/i);
       await user.type(input, "test");
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(screen.getByText("First Result")).toBeInTheDocument();
@@ -320,7 +326,7 @@ describe("SpotlightSearch", () => {
 
       const input = screen.getByPlaceholderText(/search transcript/i);
       await user.type(input, "test");
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(screen.getByText(/3 results/i)).toBeInTheDocument();
@@ -335,7 +341,7 @@ describe("SpotlightSearch", () => {
 
       const input = screen.getByPlaceholderText(/search transcript/i);
       await user.type(input, "xyz");
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(screen.getByText(/no results found/i)).toBeInTheDocument();
@@ -354,7 +360,7 @@ describe("SpotlightSearch", () => {
 
       const input = screen.getByPlaceholderText(/search transcript/i);
       await user.type(input, "test");
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(screen.getByText("§103")).toBeInTheDocument();
@@ -387,7 +393,7 @@ describe("SpotlightSearch", () => {
 
       const input = screen.getByPlaceholderText(/search transcript/i);
       await user.type(input, "test");
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(screen.getByText("First Result")).toBeInTheDocument();
@@ -421,7 +427,7 @@ describe("SpotlightSearch", () => {
 
       const input = screen.getByPlaceholderText(/search transcript/i);
       await user.type(input, "test");
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(screen.getByText("First")).toBeInTheDocument();
@@ -445,7 +451,7 @@ describe("SpotlightSearch", () => {
 
       const input = screen.getByPlaceholderText(/search transcript/i);
       await user.type(input, "test");
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(screen.getByText("Test Result")).toBeInTheDocument();
@@ -475,7 +481,7 @@ describe("SpotlightSearch", () => {
 
       const input = screen.getByPlaceholderText(/search transcript/i);
       await user.type(input, "test");
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(screen.getByText("Test Result")).toBeInTheDocument();
@@ -517,7 +523,7 @@ describe("SpotlightSearch", () => {
 
       const input = screen.getByPlaceholderText(/search transcript/i);
       await user.type(input, "test");
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(screen.getByText("Transcript Result")).toBeInTheDocument();
@@ -535,7 +541,7 @@ describe("SpotlightSearch", () => {
       await user.click(transcriptPill);
 
       // Should trigger new search with category filter
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       expect(mockSearchAction).toHaveBeenLastCalledWith(
         "test",
@@ -563,7 +569,7 @@ describe("SpotlightSearch", () => {
       expect(input).toHaveValue("C. elegans");
 
       // Advance past debounce to trigger search
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(mockSearchAction).toHaveBeenCalledWith(
@@ -608,7 +614,7 @@ describe("SpotlightSearch", () => {
 
       const input = screen.getByPlaceholderText(/search transcript/i);
       await user.type(input, "test");
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(
@@ -632,7 +638,7 @@ describe("SpotlightSearch", () => {
 
       const input = screen.getByPlaceholderText(/search transcript/i);
       await user.type(input, "test");
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(
@@ -661,7 +667,7 @@ describe("SpotlightSearch", () => {
 
       const input = screen.getByPlaceholderText(/search transcript/i);
       await user.type(input, "test");
-      await vi.advanceTimersByTimeAsync(200);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(screen.getByText("Test Result")).toBeInTheDocument();

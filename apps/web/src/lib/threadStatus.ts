@@ -541,8 +541,10 @@ export function formatThreadStatusSummary(status: ThreadStatus): string {
   lines.push("");
 
   // Pending acks
-  if (status.acks.pendingCount > 0) {
-    lines.push(`⚠️  Awaiting ACK from: ${status.acks.awaitingFrom.join(", ")}`);
+  const pendingCount = status.acks?.pendingCount ?? 0;
+  const awaitingFrom = status.acks?.awaitingFrom ?? [];
+  if (pendingCount > 0) {
+    lines.push(`⚠️  Awaiting ACK from: ${awaitingFrom.join(", ")}`);
     lines.push("");
   }
 
@@ -551,15 +553,18 @@ export function formatThreadStatusSummary(status: ThreadStatus): string {
     const version = status.latestArtifact.version
       ? `v${status.latestArtifact.version}`
       : "latest";
+    const contributors = status.latestArtifact.contributors ?? [];
+    const compiledAt = status.latestArtifact.compiledAt || "unknown";
     lines.push(`📄 Compiled artifact: ${version}`);
-    lines.push(`   Contributors: ${status.latestArtifact.contributors.join(", ")}`);
-    lines.push(`   Compiled at: ${status.latestArtifact.compiledAt}`);
+    lines.push(`   Contributors: ${contributors.join(", ")}`);
+    lines.push(`   Compiled at: ${compiledAt}`);
     lines.push("");
   }
 
   // Stats
-  lines.push(`📊 Stats: ${status.stats.totalDeltas} deltas, ${status.stats.totalCritiques} critiques, ${status.messageCount} total messages`);
-  lines.push(`👥 Participants: ${status.stats.participants.join(", ")}`);
+  const stats = status.stats ?? { totalDeltas: 0, totalCritiques: 0, totalAcks: 0, participants: [] };
+  lines.push(`📊 Stats: ${stats.totalDeltas} deltas, ${stats.totalCritiques} critiques, ${status.messageCount} total messages`);
+  lines.push(`👥 Participants: ${stats.participants.join(", ")}`);
 
   return lines.join("\n");
 }
