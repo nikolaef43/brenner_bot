@@ -365,11 +365,11 @@ function ChartSummary({
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-1">
           <div className="size-2 rounded-full bg-green-500" />
-          <span>{supports} support</span>
+          <span>{supports} {supports === 1 ? "support" : "supports"}</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="size-2 rounded-full bg-red-500" />
-          <span>{challenges} challenge</span>
+          <span>{challenges} {challenges === 1 ? "challenge" : "challenges"}</span>
         </div>
       </div>
     </div>

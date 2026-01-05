@@ -250,7 +250,7 @@ function TimelineNode({
               <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground/70">
                 <Calendar className="size-3" />
                 <span>
-                  {new Date(entry.recordedAt).toLocaleDateString(undefined, {
+                  {new Date(entry.recordedAt).toLocaleString(undefined, {
                     month: "short",
                     day: "numeric",
                     hour: "2-digit",
@@ -418,7 +418,7 @@ function EvidenceDetail({
         <div className="flex items-center gap-4 pt-2 border-t border-border text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <Calendar className="size-3" />
-            {new Date(entry.recordedAt).toLocaleDateString(undefined, {
+            {new Date(entry.recordedAt).toLocaleString(undefined, {
               year: "numeric",
               month: "short",
               day: "numeric",
