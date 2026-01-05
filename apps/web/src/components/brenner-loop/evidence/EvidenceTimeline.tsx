@@ -470,8 +470,9 @@ export function EvidenceTimeline({
 }: EvidenceTimelineProps) {
   const [internalSelectedId, setInternalSelectedId] = React.useState<string | null>(null);
 
-  // Determine if we're in controlled mode (parent manages selection)
-  const isControlled = selectedId !== undefined || onSelectEntry !== undefined;
+  // Determine if we're in controlled mode (parent manages selection via selectedId prop)
+  // Note: onSelectEntry alone doesn't make it controlled - it's just a callback
+  const isControlled = selectedId !== undefined;
 
   // Use controlled or uncontrolled selection
   const effectiveSelectedId = selectedId ?? internalSelectedId;
@@ -535,7 +536,7 @@ export function EvidenceTimeline({
       {/* Detail panel (desktop) */}
       <AnimatePresence>
         {selectedEntry && !compact && (
-          <div className="hidden lg:block w-96 flex-shrink-0">
+          <div key={`desktop-${selectedEntry.id}`} className="hidden lg:block w-96 flex-shrink-0">
             <div className="sticky top-4">
               <EvidenceDetail entry={selectedEntry} onClose={handleCloseDetail} />
             </div>
@@ -546,7 +547,16 @@ export function EvidenceTimeline({
       {/* Detail overlay (mobile) */}
       <AnimatePresence>
         {selectedEntry && !compact && (
-          <div className="lg:hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
+          <div
+            key={`mobile-${selectedEntry.id}`}
+            className="lg:hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+            onClick={(e) => {
+              // Close when clicking the backdrop (not the detail panel)
+              if (e.target === e.currentTarget) {
+                handleCloseDetail();
+              }
+            }}
+          >
             <div className="absolute inset-4 top-auto max-h-[80vh] overflow-auto">
               <EvidenceDetail entry={selectedEntry} onClose={handleCloseDetail} />
             </div>
