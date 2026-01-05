@@ -283,6 +283,89 @@ describe("operators/level-split", () => {
     expect(result.subHypotheses).toHaveLength(1);
     expect(result.focusedHypothesisId).toBe(sub.id);
   });
+
+  it("builds empty result when session has no selections", () => {
+    const session = {
+      userSelections: {},
+      generatedContent: {},
+    } as unknown as Parameters<typeof buildLevelSplitResult>[0];
+
+    const result = buildLevelSplitResult(session);
+    expect(result.xLevels).toEqual([]);
+    expect(result.yLevels).toEqual([]);
+    expect(result.selectedCombinations).toEqual([]);
+    expect(result.subHypotheses).toEqual([]);
+    expect(result.focusedHypothesisId).toBeNull();
+  });
+
+  it("validates step completion for level-split steps", () => {
+    const hypothesis = makeHypothesis();
+    let session = createSession("level_split", hypothesis, LEVEL_SPLIT_STEPS);
+
+    // X levels not selected - validation should fail
+    const xStep = session.steps[0]?.config;
+    expect(xStep?.validate?.(session).valid).toBe(false);
+    expect(xStep?.validate?.(session).errors).toContain("Select at least one level for X");
+
+    // Add X levels
+    const xLevels = generateXLevels(hypothesis);
+    session = sessionReducer(session, {
+      type: "SET_SELECTION",
+      key: LEVEL_SPLIT_STEP_IDS.IDENTIFY_X,
+      value: xLevels.slice(0, 1).map((l) => ({ ...l, selected: true })),
+    });
+    expect(xStep?.validate?.(session).valid).toBe(true);
+
+    // Y levels not selected - validation should fail
+    const yStep = session.steps[1]?.config;
+    expect(yStep?.validate?.(session).valid).toBe(false);
+
+    // Add Y levels
+    const yLevels = generateYLevels(hypothesis);
+    session = sessionReducer(session, {
+      type: "SET_SELECTION",
+      key: LEVEL_SPLIT_STEP_IDS.IDENTIFY_Y,
+      value: yLevels.slice(0, 1).map((l) => ({ ...l, selected: true })),
+    });
+    expect(yStep?.validate?.(session).valid).toBe(true);
+  });
+
+  it("warns when too many combinations selected", () => {
+    const hypothesis = makeHypothesis();
+    const xLevels = generateXLevels(hypothesis);
+    const yLevels = generateYLevels(hypothesis);
+
+    const selectedX = xLevels.slice(0, 3).map((level) => ({ ...level, selected: true }));
+    const selectedY = yLevels.slice(0, 3).map((level) => ({ ...level, selected: true }));
+    const combos = generateCombinationMatrix(selectedX, selectedY);
+
+    let session = createSession("level_split", hypothesis, LEVEL_SPLIT_STEPS);
+    session = sessionReducer(session, {
+      type: "SET_SELECTION",
+      key: LEVEL_SPLIT_STEP_IDS.REVIEW_MATRIX,
+      value: combos.map((c) => ({ ...c, selected: true })), // All 9 selected
+    });
+
+    const matrixStep = session.steps[2]?.config;
+    const validation = matrixStep?.validate?.(session);
+    expect(validation?.warnings.some((w) => w.includes("fewer combinations"))).toBe(true);
+  });
+
+  it("validates choose focus step", () => {
+    const hypothesis = makeHypothesis();
+    let session = createSession("level_split", hypothesis, LEVEL_SPLIT_STEPS);
+
+    const focusStep = session.steps[4]?.config;
+    expect(focusStep?.validate?.(session).valid).toBe(false);
+    expect(focusStep?.validate?.(session).errors).toContain("Choose a sub-hypothesis to focus on");
+
+    session = sessionReducer(session, {
+      type: "SET_SELECTION",
+      key: LEVEL_SPLIT_STEP_IDS.CHOOSE_FOCUS,
+      value: "sub-hyp-1",
+    });
+    expect(focusStep?.validate?.(session).valid).toBe(true);
+  });
 });
 
 describe("operators/exclusion-test", () => {
@@ -332,6 +415,62 @@ describe("operators/exclusion-test", () => {
     expect(getCategoryColor("specificity")).toContain("gray");
     expect(CATEGORY_DEFAULT_POWER.custom).toBe(3);
   });
+
+  it("covers all discriminative power levels", () => {
+    expect(getDiscriminativePowerLabel(1)).toBe("Minimal");
+    expect(getDiscriminativePowerLabel(2)).toBe("Weak");
+    expect(getDiscriminativePowerLabel(3)).toBe("Moderate");
+    expect(getDiscriminativePowerLabel(4)).toBe("Strong");
+    expect(getDiscriminativePowerLabel(5)).toBe("Decisive");
+
+    expect(getDiscriminativePowerStars(1)).toBe("★☆☆☆☆");
+    expect(getDiscriminativePowerStars(2)).toBe("★★☆☆☆");
+    expect(getDiscriminativePowerStars(4)).toBe("★★★★☆");
+    expect(getDiscriminativePowerStars(5)).toBe("★★★★★");
+  });
+
+  it("covers all feasibility colors", () => {
+    expect(getFeasibilityColor("high")).toContain("green");
+    expect(getFeasibilityColor("medium")).toContain("yellow");
+    expect(getFeasibilityColor("low")).toContain("red");
+  });
+
+  it("covers all category colors", () => {
+    expect(getCategoryColor("natural_experiment")).toBeTruthy();
+    expect(getCategoryColor("mechanism_block")).toBeTruthy();
+    expect(getCategoryColor("dose_response")).toBeTruthy();
+    expect(getCategoryColor("temporal_precedence")).toBeTruthy();
+    expect(getCategoryColor("specificity")).toBeTruthy();
+    expect(getCategoryColor("replication")).toBeTruthy();
+    expect(getCategoryColor("custom")).toBeTruthy();
+  });
+
+  it("builds result with empty session", () => {
+    const emptySession = {
+      generatedContent: {},
+      userSelections: {},
+    } as unknown as Parameters<typeof buildExclusionTestResult>[0];
+
+    const result = buildExclusionTestResult(emptySession);
+    expect(result.generatedTests).toEqual([]);
+    expect(result.selectedTestIds).toEqual([]);
+    expect(result.testsForSession).toEqual([]);
+    expect(result.protocols).toEqual([]);
+  });
+
+  it("generates protocols only for selected tests", () => {
+    const hypothesis = makeHypothesis();
+    const tests = generateExclusionTests(hypothesis);
+
+    // None selected
+    const noneSelected = tests.map((t) => ({ ...t, selected: false }));
+    expect(generateProtocols(noneSelected)).toHaveLength(0);
+
+    // Multiple selected
+    const multiSelected = tests.slice(0, 3).map((t) => ({ ...t, selected: true }));
+    const protocols = generateProtocols(multiSelected);
+    expect(protocols).toHaveLength(3);
+  });
 });
 
 describe("operators/object-transpose", () => {
@@ -368,6 +507,59 @@ describe("operators/object-transpose", () => {
     const result = buildObjectTransposeResult(session);
     expect(result.highPriorityAlternativeIds).toEqual([ratings[0].alternativeId]);
     expect(result.selectedTestIds.length).toBeGreaterThan(0);
+  });
+
+  it("builds result with empty session", () => {
+    const emptySession = {
+      generatedContent: {},
+      userSelections: {},
+    } as unknown as Parameters<typeof buildObjectTransposeResult>[0];
+
+    const result = buildObjectTransposeResult(emptySession);
+    expect(result.alternatives).toEqual([]);
+    expect(result.discriminatingTests).toEqual([]);
+    expect(result.highPriorityAlternativeIds).toEqual([]);
+    expect(result.selectedTestIds).toEqual([]);
+  });
+
+  it("generates alternatives with various types", () => {
+    const hypothesis = makeHypothesis({
+      statement: "Social media causes depression through comparison",
+      mechanism: "Upward social comparison leads to reduced self-esteem",
+    });
+
+    const alternatives = generateAlternatives(hypothesis);
+
+    // Should include different types: reverse_cause, third_variable, etc.
+    const types = new Set(alternatives.map((a) => a.type));
+    expect(types.size).toBeGreaterThan(1);
+  });
+
+  it("generates discriminating tests for rated alternatives", () => {
+    const hypothesis = makeHypothesis();
+    const alternatives = generateAlternatives(hypothesis);
+
+    // Test with all alternatives rated
+    const allRatings = alternatives.map((alt, idx) => ({
+      alternativeId: alt.id,
+      plausibility: 3,
+      evidenceDiscrimination: idx % 2 === 0 ? "good" : "poor",
+      notes: "",
+    }));
+
+    const tests = generateDiscriminatingTests(alternatives, allRatings);
+    expect(tests.length).toBeGreaterThan(0);
+
+    // Each test should target an alternative
+    for (const test of tests) {
+      expect(test.alternativeId).toBeTruthy();
+      expect(test.description).toBeTruthy();
+    }
+  });
+
+  it("handles empty alternatives for discriminating tests", () => {
+    const tests = generateDiscriminatingTests([], []);
+    expect(tests).toEqual([]);
   });
 });
 
@@ -407,5 +599,168 @@ describe("operators/scale-check", () => {
     const result = buildScaleCheckResult(session);
     expect(result.overallPlausibility).toBe("implausible");
     expect(result.summaryNotes).toBe("summary");
+  });
+
+  it("classifies effect sizes for all effect types (r, d, OR, RR, percentage)", () => {
+    // Test r (correlation) - uses absolute value
+    expect(classifyEffectSize(0.05, "r")).toBe("negligible");
+    expect(classifyEffectSize(-0.15, "r")).toBe("small");
+    expect(classifyEffectSize(0.35, "r")).toBe("medium");
+    expect(classifyEffectSize(-0.55, "r")).toBe("large");
+    expect(classifyEffectSize(0.75, "r")).toBe("very_large");
+
+    // Test d (Cohen's d) - uses absolute value
+    expect(classifyEffectSize(0.05, "d")).toBe("negligible");
+    expect(classifyEffectSize(-0.25, "d")).toBe("small");
+    expect(classifyEffectSize(0.55, "d")).toBe("medium");
+    expect(classifyEffectSize(-0.85, "d")).toBe("large");
+    expect(classifyEffectSize(1.5, "d")).toBe("very_large");
+
+    // Test OR (Odds Ratio) - distance from 1
+    expect(classifyEffectSize(1.1, "OR")).toBe("negligible");
+    expect(classifyEffectSize(1.6, "OR")).toBe("small");
+    expect(classifyEffectSize(2.5, "OR")).toBe("medium");
+    expect(classifyEffectSize(4.0, "OR")).toBe("large");
+    expect(classifyEffectSize(6.0, "OR")).toBe("very_large");
+    // Test OR with value < 1
+    expect(classifyEffectSize(0.5, "OR")).toBe("medium");
+    expect(classifyEffectSize(0.2, "OR")).toBe("very_large");
+
+    // Test RR (Risk Ratio)
+    expect(classifyEffectSize(1.05, "RR")).toBe("negligible");
+    expect(classifyEffectSize(1.3, "RR")).toBe("small");
+    expect(classifyEffectSize(1.7, "RR")).toBe("medium");
+    expect(classifyEffectSize(2.5, "RR")).toBe("large");
+    expect(classifyEffectSize(4.0, "RR")).toBe("very_large");
+
+    // Test percentage
+    expect(classifyEffectSize(0.5, "percentage")).toBe("negligible");
+    expect(classifyEffectSize(8, "percentage")).toBe("small");
+    expect(classifyEffectSize(20, "percentage")).toBe("medium");
+    expect(classifyEffectSize(40, "percentage")).toBe("large");
+    expect(classifyEffectSize(60, "percentage")).toBe("very_large");
+  });
+
+  it("generates context comparison with estimate instead of value", () => {
+    const context = getDomainContext(makeHypothesis({ domain: ["psychology"] }));
+
+    // Test with estimate only
+    const comparison = generateContextComparison(
+      { type: "d", estimate: "large", direction: "increase" },
+      context
+    );
+    expect(comparison.relativeToNorm).toBe("above_typical");
+  });
+
+  it("generates context comparison with no value specified", () => {
+    const context = getDomainContext(makeHypothesis({ domain: ["psychology"] }));
+
+    // Test with neither value nor estimate
+    const comparison = generateContextComparison(
+      { type: "r", direction: "increase" },
+      context
+    );
+    expect(comparison.warnings).toContain("Effect size not fully specified");
+  });
+
+  it("generates variance explained insight for r type", () => {
+    const context = getDomainContext(makeHypothesis({ domain: ["psychology"] }));
+
+    const comparison = generateContextComparison(
+      { type: "r", value: 0.3, direction: "increase" },
+      context
+    );
+    expect(comparison.varianceExplained).toBeCloseTo(9, 1);
+    expect(comparison.insights.some((i) => i.includes("variance"))).toBe(true);
+  });
+
+  it("triggers domain warning threshold for d type", () => {
+    const context = getDomainContext(makeHypothesis({ domain: ["psychology"] }));
+
+    const comparison = generateContextComparison(
+      { type: "d", value: 1.0, direction: "increase" },
+      context
+    );
+    expect(comparison.warnings.some((w) => w.includes("exceeds typical maximum"))).toBe(true);
+  });
+
+  it("gets domain context for different domains", () => {
+    expect(getDomainContext(makeHypothesis({ domain: ["medicine"] })).domain).toBe("Medicine");
+    expect(getDomainContext(makeHypothesis({ domain: ["education"] })).domain).toBe("Education");
+    expect(getDomainContext(makeHypothesis({ domain: ["social_science"] })).domain).toBe("Social Science");
+    expect(getDomainContext(makeHypothesis({ domain: ["unknown_domain"] })).domain).toBe("General");
+  });
+
+  it("builds scale check result with different plausibility outcomes", () => {
+    // Test needs_more_info when isDetectable is null
+    const sessionNeedsInfo = {
+      generatedContent: {},
+      userSelections: {
+        [SCALE_CHECK_STEP_IDS.QUANTIFY]: { type: "estimate", estimate: "medium", direction: "change" },
+        [SCALE_CHECK_STEP_IDS.PRECISION]: { isDetectable: null, powerNotes: "pending", warnings: [] },
+        [SCALE_CHECK_STEP_IDS.PRACTICAL]: { isPracticallyMeaningful: null, stakeholders: [], reasoning: "tbd" },
+        [SCALE_CHECK_STEP_IDS.POPULATION]: [],
+      },
+      notes: "",
+    } as unknown as Parameters<typeof buildScaleCheckResult>[0];
+
+    const resultNeedsInfo = buildScaleCheckResult(sessionNeedsInfo);
+    expect(resultNeedsInfo.overallPlausibility).toBe("needs_more_info");
+
+    // Test questionable when has warnings
+    const sessionQuestionable = {
+      generatedContent: {
+        [SCALE_CHECK_STEP_IDS.CONTEXTUALIZE]: {
+          relativeToNorm: "typical",
+          benchmarksWithComparisons: [],
+          warnings: ["Some warning"],
+          insights: [],
+        },
+      },
+      userSelections: {
+        [SCALE_CHECK_STEP_IDS.QUANTIFY]: { type: "estimate", estimate: "medium", direction: "change" },
+        [SCALE_CHECK_STEP_IDS.PRECISION]: { isDetectable: true, powerNotes: "ok", warnings: [] },
+        [SCALE_CHECK_STEP_IDS.PRACTICAL]: { isPracticallyMeaningful: true, stakeholders: ["users"], reasoning: "ok" },
+        [SCALE_CHECK_STEP_IDS.POPULATION]: [],
+      },
+      notes: "",
+    } as unknown as Parameters<typeof buildScaleCheckResult>[0];
+
+    const resultQuestionable = buildScaleCheckResult(sessionQuestionable);
+    expect(resultQuestionable.overallPlausibility).toBe("questionable");
+
+    // Test plausible when all clear
+    const sessionPlausible = {
+      generatedContent: {
+        [SCALE_CHECK_STEP_IDS.CONTEXTUALIZE]: {
+          relativeToNorm: "typical",
+          benchmarksWithComparisons: [],
+          warnings: [],
+          insights: [],
+        },
+      },
+      userSelections: {
+        [SCALE_CHECK_STEP_IDS.QUANTIFY]: { type: "estimate", estimate: "medium", direction: "change" },
+        [SCALE_CHECK_STEP_IDS.PRECISION]: { isDetectable: true, powerNotes: "adequate", warnings: [] },
+        [SCALE_CHECK_STEP_IDS.PRACTICAL]: { isPracticallyMeaningful: true, stakeholders: ["users"], reasoning: "clear" },
+        [SCALE_CHECK_STEP_IDS.POPULATION]: [],
+      },
+      notes: "",
+    } as unknown as Parameters<typeof buildScaleCheckResult>[0];
+
+    const resultPlausible = buildScaleCheckResult(sessionPlausible);
+    expect(resultPlausible.overallPlausibility).toBe("plausible");
+  });
+
+  it("builds result with empty session", () => {
+    const emptySession = {
+      generatedContent: {},
+      userSelections: {},
+      notes: undefined,
+    } as unknown as Parameters<typeof buildScaleCheckResult>[0];
+
+    const result = buildScaleCheckResult(emptySession);
+    expect(result.effectSize.type).toBe("estimate");
+    expect(result.summaryNotes).toBe("");
   });
 });

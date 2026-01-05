@@ -169,6 +169,61 @@ describe("evidence", () => {
     ).toThrow(/Invalid EvidenceEntry/);
   });
 
+  it("covers test-description validation and date parsing branches", () => {
+    const base = {
+      id: "EV-SESSION-4-001",
+      sessionId: "SESSION-4",
+      hypothesisVersion: "HC-SESSION-4-001-v1",
+      test: { id: "T-1", description: "ok", type: "observation", discriminativePower: 3 },
+      predictionIfTrue: "a",
+      predictionIfFalse: "b",
+      result: "supports",
+      observation: "obs",
+      confidenceBefore: 50,
+      confidenceAfter: 55,
+      interpretation: "ok",
+      recordedAt: "2026-01-01T00:00:00Z",
+    };
+
+    const missingTest = validateEvidenceEntry({ ...base, test: null } as never);
+    expect(missingTest.valid).toBe(false);
+    expect(missingTest.errors.some((e) => e.field === "test")).toBe(true);
+
+    const invalidTest = validateEvidenceEntry({
+      ...base,
+      test: { id: "", description: "", type: "nope", discriminativePower: 0 },
+    } as never);
+    expect(invalidTest.valid).toBe(false);
+    expect(invalidTest.errors.some((e) => e.field === "test.type")).toBe(true);
+    expect(invalidTest.errors.some((e) => e.field === "test.discriminativePower")).toBe(true);
+
+    const invalidDate = validateEvidenceEntry({ ...base, recordedAt: "not-a-date" } as never);
+    expect(invalidDate.valid).toBe(false);
+    expect(invalidDate.errors.some((e) => e.field === "recordedAt")).toBe(true);
+
+    const validEntry = createEvidenceEntry({
+      id: generateEvidenceId("SESSION-4", 2),
+      sessionId: "SESSION-4",
+      hypothesisVersion: "HC-SESSION-4-001-v1",
+      test: { id: "T-2", description: "ok", type: "observation", discriminativePower: 3 },
+      predictionIfTrue: "a",
+      predictionIfFalse: "b",
+      result: "challenges",
+      observation: "obs",
+      confidenceBefore: 55,
+      confidenceAfter: 40,
+      interpretation: "lower confidence",
+      source: "paper",
+    });
+
+    expect(summarizeEvidenceResult(validEntry)).toContain("Challenges");
+    expect(getResultColor("supports")).toBe("green");
+
+    expect(
+      isEvidenceEntry({ ...validEntry, tags: ["ok", 123] } as never)
+    ).toBe(false);
+  });
+
   it("reports validation failures for malformed evidence", () => {
     const bad = {
       id: "EV-SESSION-1-000",
