@@ -354,7 +354,8 @@ export function computeThreadStatus(
   // NOTE: Agent Mail acknowledgements are not represented as thread messages, so we treat
   // any post-kickoff reply from a recipient as implicit acknowledgement.
   const awaitingFrom: string[] = [];
-  const recipientKickoffTimes = new Map<string, number>();
+  const recipientKickoffTimes = new Map<string, { name: string; time: number }>();
+  const normalizeAgentName = (name: string): string => name.trim().toLowerCase();
   for (const kickoffMessage of kickoffMessages) {
     if (!kickoffMessage.ack_required) continue;
     const kickoffTime = new Date(kickoffMessage.created_ts).getTime();
@@ -364,20 +365,25 @@ export function computeThreadStatus(
       ...(kickoffMessage.bcc ?? []),
     ];
     for (const recipient of recipients) {
-      const existing = recipientKickoffTimes.get(recipient);
-      if (existing === undefined || kickoffTime > existing) {
-        recipientKickoffTimes.set(recipient, kickoffTime);
+      const key = normalizeAgentName(recipient);
+      if (!key) continue;
+      const existing = recipientKickoffTimes.get(key);
+      if (!existing || kickoffTime > existing.time) {
+        recipientKickoffTimes.set(key, { name: recipient, time: kickoffTime });
       }
     }
   }
 
-  for (const [recipient, kickoffTime] of recipientKickoffTimes.entries()) {
-    const hasReplyAfterKickoff = sortedMessages.some(
-      (m) =>
-        m.from === recipient && new Date(m.created_ts).getTime() > kickoffTime
-    );
+  for (const [recipientKey, kickoff] of recipientKickoffTimes.entries()) {
+    const hasReplyAfterKickoff = sortedMessages.some((m) => {
+      if (!m.from) return false;
+      return (
+        normalizeAgentName(m.from) === recipientKey &&
+        new Date(m.created_ts).getTime() > kickoff.time
+      );
+    });
     if (!hasReplyAfterKickoff) {
-      awaitingFrom.push(recipient);
+      awaitingFrom.push(kickoff.name);
     }
   }
 

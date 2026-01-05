@@ -188,6 +188,27 @@ describe("computeThreadStatus", () => {
     expect(status.acks.awaitingFrom).toContain("Gemini");
   });
 
+  it("treats ACKs as case-insensitive to agent names", () => {
+    const messages: AgentMailMessage[] = [
+      createMessage({
+        subject: "KICKOFF: Cell fate investigation",
+        from: "Operator",
+        to: ["Codex"],
+        ack_required: true,
+        created_ts: "2025-12-30T10:00:00Z",
+      }),
+      createMessage({
+        subject: "DELTA[gpt]: Added hypotheses",
+        from: "codex",
+        created_ts: "2025-12-30T10:01:00Z",
+      }),
+    ];
+
+    const status = computeThreadStatus(messages);
+    expect(status.acks.pendingCount).toBe(0);
+    expect(status.acks.awaitingFrom).not.toContain("Codex");
+  });
+
   it("detects awaiting_responses after legacy bracketed kickoff subject", () => {
     const messages: AgentMailMessage[] = [
       createMessage({
