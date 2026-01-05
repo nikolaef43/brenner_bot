@@ -35,6 +35,13 @@ bun run lint:ox
 # Bun’s native test runner (CI currently runs this)
 bun test brenner.test.ts
 
+# Debug: print argv + stdout/stderr per invocation (truncated)
+BRENNER_CLI_TEST_TRACE=1 bun test brenner.test.ts
+
+# Optional: tune how much output is printed when tracing
+# (default: 20000 chars per stream)
+BRENNER_CLI_TEST_LOG_MAX_CHARS=50000 BRENNER_CLI_TEST_TRACE=1 bun test brenner.test.ts
+
 # Additional root-level coverage (optional)
 bun test evidence-pack.test.ts
 ```
@@ -121,4 +128,3 @@ You almost certainly ran the wrong test runner.
 cd apps/web
 bunx playwright install --with-deps chromium
 ```
-

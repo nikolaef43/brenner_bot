@@ -20,6 +20,14 @@ import { join, resolve } from "node:path";
 
 const CLI_PATH = resolve(__dirname, "brenner.ts");
 
+const CLI_TEST_TRACE = process.env.BRENNER_CLI_TEST_TRACE === "1";
+const CLI_TEST_LOG_MAX_CHARS = (() => {
+  const raw = process.env.BRENNER_CLI_TEST_LOG_MAX_CHARS;
+  if (!raw) return 20_000;
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 20_000;
+})();
+
 function writeTempConfig(config: unknown): string {
   const configPath = join(tmpdir(), `brenner-test-config-${randomUUID()}.json`);
   writeFileSync(configPath, JSON.stringify(config, null, 2), "utf8");
@@ -33,9 +41,37 @@ function writeTempConfigText(text: string): string {
 }
 
 interface CliResult {
+  argv: string[];
+  cwd?: string;
   stdout: string;
   stderr: string;
   exitCode: number | null;
+  signal: NodeJS.Signals | null;
+  durationMs: number;
+  timedOut: boolean;
+}
+
+function truncateForLog(text: string, maxChars: number): string {
+  if (text.length <= maxChars) return text;
+  return `${text.slice(0, maxChars)}\n…[truncated; total_chars=${text.length}]`;
+}
+
+function formatCliDebug(result: CliResult): string {
+  const header = [
+    `argv: ${result.argv.join(" ")}`,
+    result.cwd ? `cwd: ${result.cwd}` : undefined,
+    `exitCode: ${result.exitCode ?? "null"}`,
+    `signal: ${result.signal ?? "null"}`,
+    `timedOut: ${result.timedOut}`,
+    `durationMs: ${result.durationMs}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const stdout = truncateForLog(result.stdout, CLI_TEST_LOG_MAX_CHARS);
+  const stderr = truncateForLog(result.stderr, CLI_TEST_LOG_MAX_CHARS);
+
+  return `${header}\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`;
 }
 
 /**
@@ -45,7 +81,7 @@ async function runCli(
   args: string[],
   options?: { timeout?: number; env?: Record<string, string>; cwd?: string }
 ): Promise<CliResult> {
-  const timeout = options?.timeout ?? 5000;
+  const timeoutMs = options?.timeout ?? 5000;
   const env = {
     ...process.env,
     // Disable Agent Mail for most tests
@@ -54,14 +90,19 @@ async function runCli(
   };
 
   return new Promise((resolve, reject) => {
-    const proc = spawn(process.execPath, ["run", CLI_PATH, ...args], {
-      timeout,
+    const argv = [process.execPath, "run", CLI_PATH, ...args];
+    const startedAt = Date.now();
+
+    const proc = spawn(argv[0], argv.slice(1), {
       env,
       cwd: options?.cwd,
+      stdio: ["ignore", "pipe", "pipe"],
     });
 
     let stdout = "";
     let stderr = "";
+    let settled = false;
+    let timedOut = false;
 
     proc.stdout.on("data", (data) => {
       stdout += data.toString();
@@ -71,12 +112,63 @@ async function runCli(
       stderr += data.toString();
     });
 
-    proc.on("close", (code) => {
-      resolve({ stdout, stderr, exitCode: code });
+    const timeoutHandle =
+      timeoutMs > 0
+        ? setTimeout(() => {
+            timedOut = true;
+            proc.kill("SIGTERM");
+            setTimeout(() => proc.kill("SIGKILL"), 250);
+          }, timeoutMs)
+        : null;
+
+    proc.on("close", (code, signal) => {
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+      if (settled) return;
+      settled = true;
+
+      const result: CliResult = {
+        argv,
+        cwd: options?.cwd,
+        stdout,
+        stderr,
+        exitCode: code,
+        signal,
+        durationMs: Date.now() - startedAt,
+        timedOut,
+      };
+
+      if (CLI_TEST_TRACE) {
+        const label = timedOut ? "TIMEOUT" : code === 0 ? "OK" : "ERR";
+        console.log(`[brenner.cli.test] ${label} (${result.durationMs}ms)`);
+        console.log(formatCliDebug(result));
+      }
+
+      if (timedOut) {
+        reject(new Error(`CLI test timed out after ${timeoutMs}ms\n\n${formatCliDebug(result)}`));
+        return;
+      }
+
+      resolve(result);
     });
 
     proc.on("error", (err) => {
-      reject(err);
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+      if (settled) return;
+      settled = true;
+
+      const result: CliResult = {
+        argv,
+        cwd: options?.cwd,
+        stdout,
+        stderr,
+        exitCode: null,
+        signal: null,
+        durationMs: Date.now() - startedAt,
+        timedOut,
+      };
+
+      const msg = err instanceof Error ? err.message : String(err);
+      reject(new Error(`CLI test spawn error: ${msg}\n\n${formatCliDebug(result)}`));
     });
   });
 }
@@ -295,7 +387,9 @@ describe("experiment capture", () => {
       parsed = JSON.parse(raw) as typeof parsed;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}`);
+      throw new Error(
+        `Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}\n\nCLI:\n${formatCliDebug(result)}`
+      );
     }
 
     expect(parsed.schema_version).toBe("experiment_result_v0.1");
@@ -351,7 +445,9 @@ describe("experiment capture", () => {
       parsed = JSON.parse(raw) as typeof parsed;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}`);
+      throw new Error(
+        `Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}\n\nCLI:\n${formatCliDebug(result)}`
+      );
     }
 
     expect(parsed.schema_version).toBe("experiment_result_v0.1");
@@ -406,7 +502,9 @@ describe("experiment capture", () => {
       parsed = JSON.parse(raw) as typeof parsed;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}`);
+      throw new Error(
+        `Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}\n\nCLI:\n${formatCliDebug(result)}`
+      );
     }
 
     expect(parsed.timed_out).toBe(true);
@@ -455,7 +553,9 @@ describe("experiment capture", () => {
       parsed = JSON.parse(raw) as typeof parsed;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}`);
+      throw new Error(
+        `Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}\n\nCLI:\n${formatCliDebug(result)}`
+      );
     }
 
     // Verify cwd is recorded
@@ -514,7 +614,9 @@ describe("experiment capture", () => {
       parsed = JSON.parse(raw) as typeof parsed;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}`);
+      throw new Error(
+        `Expected valid ExperimentResult JSON at ${outFile}. Parse failed: ${msg}\n\nContents:\n${raw}\n\nCLI:\n${formatCliDebug(result)}`
+      );
     }
 
     expect(parsed.capture_mode).toBe("record");
@@ -585,7 +687,9 @@ describe("experiment capture", () => {
       parsed = JSON.parse(result.stdout) as typeof parsed;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected valid JSON output from experiment encode. Parse failed: ${msg}\n\nstdout:\n${result.stdout}`);
+      throw new Error(
+        `Expected valid JSON output from experiment encode. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`
+      );
     }
 
     expect(parsed.ok).toBe(true);
@@ -656,7 +760,7 @@ describe("experiment capture", () => {
       parsed = JSON.parse(result.stdout) as typeof parsed;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected valid JSON output. Parse failed: ${msg}\n\nstdout:\n${result.stdout}`);
+      throw new Error(`Expected valid JSON output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`);
     }
 
     expect(parsed.ok).toBe(true);
@@ -717,7 +821,7 @@ describe("experiment capture", () => {
       parsed = JSON.parse(result.stdout) as typeof parsed;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected valid JSON output. Parse failed: ${msg}\n\nstdout:\n${result.stdout}`);
+      throw new Error(`Expected valid JSON output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`);
     }
 
     expect(parsed.ok).toBe(true);
@@ -1266,7 +1370,7 @@ describe("experiment E2E pipeline", () => {
       encodeOutput = JSON.parse(encodeResult.stdout) as typeof encodeOutput;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected valid JSON from encode. Parse failed: ${msg}\n\nstdout:\n${encodeResult.stdout}`);
+      throw new Error(`Expected valid JSON from encode. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(encodeResult)}`);
     }
 
     // Verify the delta structure
@@ -1574,7 +1678,7 @@ describe("corpus search command", () => {
       parsed = JSON.parse(result.stdout) as { hits: Array<{ docId: string; anchor?: string }>; filters?: { docIds?: string[] } };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected corpus search --json output. Parse failed: ${msg}\n\nstdout:\n${result.stdout}`);
+      throw new Error(`Expected corpus search --json output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`);
     }
 
     expect(parsed.hits.length).toBeGreaterThan(0);
@@ -1605,7 +1709,7 @@ describe("corpus search command", () => {
       parsed = JSON.parse(result.stdout) as { hits: Array<{ docId: string }> };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected corpus search --json output. Parse failed: ${msg}\n\nstdout:\n${result.stdout}`);
+      throw new Error(`Expected corpus search --json output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`);
     }
     expect(parsed.hits.length).toBeGreaterThan(0);
     expect(parsed.hits[0]?.docId).toBe("transcript");
@@ -1656,7 +1760,7 @@ describe("lint command", () => {
       };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected lint --json output. Parse failed: ${msg}\n\nstdout:\n${result.stdout}`);
+      throw new Error(`Expected lint --json output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`);
     }
 
     expect(parsed.artifact).toBe("GOLDEN-VALID-001");
@@ -1714,7 +1818,7 @@ describe("doctor command", () => {
       };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected brenner doctor --json output. Parse failed: ${msg}\n\nstdout:\n${result.stdout}`);
+      throw new Error(`Expected brenner doctor --json output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`);
     }
 
     expect(parsed.status).toBe("ok");
@@ -1858,7 +1962,7 @@ describe("excerpt build command", () => {
       parsed = JSON.parse(result.stdout) as { markdown: string; anchors: string[] };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected excerpt build --json output. Parse failed: ${msg}\n\nstdout:\n${result.stdout}`);
+      throw new Error(`Expected excerpt build --json output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`);
     }
 
     expect(parsed.markdown).toContain("### Excerpt");
@@ -1894,7 +1998,7 @@ describe("memory context command", () => {
       };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Expected brenner memory context JSON output. Parse failed: ${msg}\n\nstdout:\n${result.stdout}`);
+      throw new Error(`Expected brenner memory context JSON output. Parse failed: ${msg}\n\nCLI:\n${formatCliDebug(result)}`);
     }
 
     expect(parsed.ok).toBe(false);
@@ -2563,35 +2667,7 @@ async function runCliWithEnv(
   env: Record<string, string>,
   timeout = 5000
 ): Promise<CliResult> {
-  return new Promise((resolve, reject) => {
-    const proc = spawn("bun", ["run", CLI_PATH, ...args], {
-      timeout,
-      env: {
-        ...process.env,
-        AGENT_MAIL_BASE_URL: "http://127.0.0.1:59999",
-        ...env,
-      },
-    });
-
-    let stdout = "";
-    let stderr = "";
-
-    proc.stdout.on("data", (data) => {
-      stdout += data.toString();
-    });
-
-    proc.stderr.on("data", (data) => {
-      stderr += data.toString();
-    });
-
-    proc.on("close", (code) => {
-      resolve({ stdout, stderr, exitCode: code });
-    });
-
-    proc.on("error", (err) => {
-      reject(err);
-    });
-  });
+  return runCli(args, { env, timeout });
 }
 
 describe("AGENT_NAME environment variable", () => {
