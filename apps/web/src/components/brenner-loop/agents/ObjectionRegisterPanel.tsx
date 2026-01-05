@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import type { AgentMailMessage } from "@/lib/agentMail";
 import {
   extractTribunalObjections,
+  OBJECTION_REGISTER_UPDATED_EVENT,
   type ExtractedObjection,
   type ObjectionSeverity,
   type ObjectionType,
@@ -100,6 +101,15 @@ function saveStatuses(threadId: string, statuses: Record<string, ObjectionStatus
     window.localStorage.setItem(storageKey(threadId), JSON.stringify(statuses));
   } catch {
     // Best-effort: localStorage quota / privacy mode should not break the page.
+  }
+}
+
+function notifyStatusUpdate(threadId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.dispatchEvent(new CustomEvent(OBJECTION_REGISTER_UPDATED_EVENT, { detail: { threadId } }));
+  } catch {
+    // Best-effort: notifications should never break the UI.
   }
 }
 
@@ -254,6 +264,7 @@ export function ObjectionRegisterPanel({ threadId, messages, className }: Object
       setStatusById((prev) => {
         const next = { ...prev, [objectionId]: status };
         saveStatuses(threadId, next);
+        notifyStatusUpdate(threadId);
         return next;
       });
     },

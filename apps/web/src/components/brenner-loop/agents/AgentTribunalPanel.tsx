@@ -21,6 +21,7 @@ import {
   synthesizeResponses,
   type TribunalAgentRole,
 } from "@/lib/brenner-loop/agents";
+import { extractTribunalObjections, OBJECTION_REGISTER_UPDATED_EVENT } from "@/lib/brenner-loop/agents/objections";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,15 +46,68 @@ export interface AgentTribunalCard {
 }
 
 export interface AgentTribunalPanelProps {
+  threadId?: string;
   messages: AgentMailMessage[];
   roles?: TribunalAgentRole[];
   className?: string;
 }
 
+type ObjectionStatus =
+  | "open"
+  | "acknowledged"
+  | "testing"
+  | "addressed"
+  | "accepted"
+  | "dismissed";
+
+const UNRESOLVED_OBJECTION_STATUSES = new Set<ObjectionStatus>(["open", "acknowledged", "testing"]);
+const KNOWN_OBJECTION_STATUSES = new Set<ObjectionStatus>([
+  "open",
+  "acknowledged",
+  "testing",
+  "addressed",
+  "accepted",
+  "dismissed",
+]);
+
+const FORBIDDEN_RECORD_KEYS = new Set(["__proto__", "prototype", "constructor"]);
+
 function timeMs(ts: string | null | undefined): number {
   if (!ts) return 0;
   const ms = Date.parse(ts);
   return Number.isNaN(ms) ? 0 : ms;
+}
+
+function objectionStatusStorageKey(threadId: string): string {
+  return `brenner-objection-register:${threadId}`;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function loadObjectionStatuses(threadId: string): Record<string, ObjectionStatus> {
+  if (typeof window === "undefined") return Object.create(null);
+
+  try {
+    const raw = window.localStorage.getItem(objectionStatusStorageKey(threadId));
+    if (!raw) return Object.create(null);
+
+    const parsed = JSON.parse(raw) as unknown;
+    if (!isRecord(parsed)) return Object.create(null);
+
+    const out: Record<string, ObjectionStatus> = Object.create(null);
+    for (const [key, value] of Object.entries(parsed)) {
+      if (FORBIDDEN_RECORD_KEYS.has(key)) continue;
+      if (typeof value !== "string") continue;
+      if (!KNOWN_OBJECTION_STATUSES.has(value as ObjectionStatus)) continue;
+      out[key] = value as ObjectionStatus;
+    }
+
+    return out;
+  } catch {
+    return Object.create(null);
+  }
 }
 
 function normalizeRoleToken(token: string): string {
@@ -172,8 +226,54 @@ function deriveCardsFromMessages(params: {
   });
 }
 
-export function AgentTribunalPanel({ messages, roles = DEFAULT_DISPATCH_ROLES, className }: AgentTribunalPanelProps) {
+export function AgentTribunalPanel({
+  threadId,
+  messages,
+  roles = DEFAULT_DISPATCH_ROLES,
+  className,
+}: AgentTribunalPanelProps) {
   const cards = React.useMemo(() => deriveCardsFromMessages({ messages, roles }), [messages, roles]);
+  const objections = React.useMemo(() => extractTribunalObjections(messages), [messages]);
+  const [objectionStatuses, setObjectionStatuses] = React.useState<Record<string, ObjectionStatus>>(() =>
+    threadId ? loadObjectionStatuses(threadId) : Object.create(null)
+  );
+
+  React.useEffect(() => {
+    setObjectionStatuses(threadId ? loadObjectionStatuses(threadId) : Object.create(null));
+  }, [threadId]);
+
+  React.useEffect(() => {
+    if (!threadId || typeof window === "undefined") return;
+
+    const handleUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<{ threadId?: string }>).detail;
+      if (detail?.threadId !== threadId) return;
+      setObjectionStatuses(loadObjectionStatuses(threadId));
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== objectionStatusStorageKey(threadId)) return;
+      setObjectionStatuses(loadObjectionStatuses(threadId));
+    };
+
+    window.addEventListener(OBJECTION_REGISTER_UPDATED_EVENT, handleUpdate as EventListener);
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener(OBJECTION_REGISTER_UPDATED_EVENT, handleUpdate as EventListener);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [threadId]);
+
+  const unresolvedObjections = React.useMemo(() => {
+    if (!threadId || objections.length === 0) return 0;
+    let count = 0;
+    for (const objection of objections) {
+      const status = objectionStatuses[objection.id] ?? "open";
+      if (UNRESOLVED_OBJECTION_STATUSES.has(status)) count += 1;
+    }
+    return count;
+  }, [threadId, objections, objectionStatuses]);
 
   const [openRole, setOpenRole] = React.useState<TribunalAgentRole | null>(null);
   const openCard = openRole ? cards.find((c) => c.role === openRole) ?? null : null;
@@ -197,6 +297,23 @@ export function AgentTribunalPanel({ messages, roles = DEFAULT_DISPATCH_ROLES, c
 
   const closeDialog = () => setOpenRole(null);
 
+  const completedCount = cards.filter((c) => c.status === "complete").length;
+  const allRolesComplete = cards.length > 0 && completedCount === cards.length;
+  const completionBlocked = allRolesComplete && unresolvedObjections > 0;
+  const isComplete = allRolesComplete && !completionBlocked;
+
+  const completionBadge = isComplete
+    ? { label: "Complete", className: "border-success/20 bg-success/15 text-success" }
+    : completionBlocked
+      ? {
+          label: `Blocked: ${unresolvedObjections} objection${unresolvedObjections === 1 ? "" : "s"}`,
+          className: "border-warning/30 bg-warning/10 text-warning",
+        }
+      : {
+          label: `${completedCount}/${cards.length} complete`,
+          className: "border-border bg-muted/40 text-muted-foreground",
+        };
+
   return (
     <Card className={cn("border-border", className)}>
       <CardHeader className="space-y-2">
@@ -207,13 +324,30 @@ export function AgentTribunalPanel({ messages, roles = DEFAULT_DISPATCH_ROLES, c
               Your hypothesis is being evaluated by multiple perspectives.
             </p>
           </div>
-          <Badge variant="outline" className="border-border bg-muted/40 text-muted-foreground">
-            {cards.filter((c) => c.status === "complete").length}/{cards.length} complete
+          <Badge variant="outline" className={cn("shrink-0", completionBadge.className)}>
+            {completionBadge.label}
           </Badge>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {completionBlocked && (
+          <div className="rounded-xl border border-warning/30 bg-warning/5 p-4 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <div className="text-sm font-semibold text-warning">Completion blocked</div>
+                <div className="text-xs text-muted-foreground">
+                  Resolve all objections marked <span className="font-mono">Open</span>, <span className="font-mono">Acknowledged</span>, or{" "}
+                  <span className="font-mono">Testing</span> before considering the tribunal complete.
+                </div>
+              </div>
+              <Button asChild size="sm" variant="outline" className="border-warning/30 text-warning hover:bg-warning/10">
+                <a href="#objections">Review objections</a>
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="grid gap-4 lg:grid-cols-2">
           {cards.map((card) => {
             const agent = TRIBUNAL_AGENTS[card.role];

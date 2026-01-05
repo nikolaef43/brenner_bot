@@ -11,6 +11,8 @@
 import type { AgentMailMessage } from "../../agentMail";
 import { TRIBUNAL_AGENTS, isTribunalAgentRole, type TribunalAgentRole } from "./index";
 
+export const OBJECTION_REGISTER_UPDATED_EVENT = "brenner-objection-register-updated";
+
 export type ObjectionType =
   | "alternative_explanation"
   | "reverse_causation"

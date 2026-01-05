@@ -1,5 +1,5 @@
 import * as React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { AgentMailMessage } from "@/lib/agentMail";
@@ -83,5 +83,42 @@ describe("AgentTribunalPanel", () => {
 
     expect(screen.getByText(/heuristic synthesis/i)).toBeInTheDocument();
     expect(screen.getAllByText(/selection bias/i).length).toBeGreaterThan(0);
+  });
+
+  it("blocks completion while objections remain unresolved", async () => {
+    localStorage.clear();
+
+    const response = msg({
+      id: 123,
+      subject: "Re: TRIBUNAL[devils_advocate]: HC-123",
+      created_ts: "2026-01-05T00:10:00.000Z",
+      body_md: ["## Analysis", "", "### Key Objection", "Reverse causation is plausible."].join("\n"),
+      from: "AgentA",
+      to: ["Operator"],
+    });
+
+    render(
+      <AgentTribunalPanel
+        threadId="TRIBUNAL-SESSION-abc"
+        messages={[response]}
+        roles={["devils_advocate"]}
+      />
+    );
+
+    expect(screen.getByText(/completion blocked/i)).toBeInTheDocument();
+    expect(screen.getByText(/blocked: 1 objection/i)).toBeInTheDocument();
+
+    localStorage.setItem(
+      "brenner-objection-register:TRIBUNAL-SESSION-abc",
+      JSON.stringify({ "123:0": "addressed" })
+    );
+    window.dispatchEvent(
+      new CustomEvent("brenner-objection-register-updated", { detail: { threadId: "TRIBUNAL-SESSION-abc" } })
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText(/completion blocked/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/blocked:/i)).not.toBeInTheDocument();
+    });
   });
 });

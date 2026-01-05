@@ -392,10 +392,10 @@ export default async function SessionDetailPage({
         </header>
 
         <section className="animate-fade-in-up stagger-1">
-          <AgentTribunalPanel messages={messagesSorted} />
+          <AgentTribunalPanel threadId={threadId} messages={messagesSorted} />
         </section>
 
-        <section className="animate-fade-in-up stagger-2">
+        <section id="objections" className="animate-fade-in-up stagger-2">
           <ObjectionRegisterPanel threadId={threadId} messages={messagesSorted} />
         </section>
 
