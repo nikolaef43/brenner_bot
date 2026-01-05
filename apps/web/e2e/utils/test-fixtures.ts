@@ -94,7 +94,7 @@ export const test = base.extend<{
     clearNetworkContext(testInfo.title);
   },
 
-  testSession: async ({}, provideFixture) => {
+  testSession: async ({}, provideFixture, testInfo) => {
     // Lazy-load the seeder module to avoid Playwright config-time loading issues
     const seeder = await getAgentMailSeeder();
 
@@ -117,6 +117,64 @@ export const test = base.extend<{
 
     // Provide the fixture
     await provideFixture(fixture);
+
+    // Attach Agent Mail context on failures for easier debugging.
+    if (testInfo.status !== "passed") {
+      const serverUrl = (() => {
+        try {
+          return seeder.getTestServerUrl();
+        } catch {
+          return null;
+        }
+      })();
+
+      if (serverUrl) {
+        await testInfo.attach("agent-mail-test-server-url.txt", {
+          body: serverUrl,
+          contentType: "text/plain",
+        });
+
+        const readResource = async (uri: string): Promise<string | null> => {
+          try {
+            const res = await fetch(serverUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                jsonrpc: "2.0",
+                id: Date.now().toString(),
+                method: "resources/read",
+                params: { uri },
+              }),
+            });
+            if (!res.ok) return null;
+            const json = await res.json();
+            const text = json?.result?.contents?.[0]?.text;
+            return typeof text === "string" ? text : null;
+          } catch {
+            return null;
+          }
+        };
+
+        const logsJson = await readResource("resource://logs?limit=2000");
+        if (logsJson) {
+          await testInfo.attach("agent-mail-rpc-log.json", {
+            body: logsJson,
+            contentType: "application/json",
+          });
+        }
+
+        const projectKey = encodeURIComponent("/data/projects/brenner_bot");
+        for (const threadId of seededSessions) {
+          const uri = `resource://thread/${encodeURIComponent(threadId)}?project=${projectKey}&include_bodies=true`;
+          const threadJson = await readResource(uri);
+          if (!threadJson) continue;
+          await testInfo.attach(`agent-mail-thread-${threadId}.json`, {
+            body: threadJson,
+            contentType: "application/json",
+          });
+        }
+      }
+    }
 
     // Cleanup after test
     for (const threadId of seededSessions) {

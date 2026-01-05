@@ -46,6 +46,45 @@ function getCookieDomain(): string {
   }
 }
 
+async function preflightAgentMailTestServer(params: {
+  page: import("@playwright/test").Page;
+  logger: { info: (msg: string) => void; warn: (msg: string) => void };
+  context: import("@playwright/test").BrowserContext;
+  testSession: { getServerUrl: () => string };
+}): Promise<boolean> {
+  const { page, logger, context, testSession } = params;
+
+  await setupLabAuth(context);
+  await navigateTo(page, logger, "/sessions/new");
+  await waitForNetworkIdle(page, logger);
+
+  if (await shouldSkipTest(page, logger, "agent mail preflight")) {
+    return false;
+  }
+
+  const serverUrl = testSession.getServerUrl();
+  const pageText = await page.locator("body").textContent();
+
+  // Refuse to run if we'd hit the real local Agent Mail default.
+  if (pageText?.includes("http://127.0.0.1:8765") || pageText?.includes("http://localhost:8765")) {
+    logger.warn("Refusing to run integration E2E: Agent Mail base URL points at :8765 (real server).");
+    return false;
+  }
+
+  if (!pageText?.includes(serverUrl)) {
+    logger.warn(`Skipping: web app not configured to use E2E Agent Mail test server (${serverUrl}).`);
+    return false;
+  }
+
+  if (!pageText.includes("Connected")) {
+    logger.warn("Skipping: Agent Mail shows as unreachable (expected Connected).");
+    return false;
+  }
+
+  logger.info(`Preflight OK: web app is using Agent Mail test server at ${serverUrl}`);
+  return true;
+}
+
 /**
  * Set up lab auth cookie for a context.
  */
@@ -106,6 +145,10 @@ test.describe("Agent Mail Integration: Seeded Session Display", () => {
       context,
       testSession,
     }) => {
+      if (!(await preflightAgentMailTestServer({ page, logger, context, testSession }))) {
+        return;
+      }
+
       // Seed a kickoff-only session
       const threadId = `E2E-KICKOFF-${Date.now()}`;
       const config = createKickoffSession(threadId);
@@ -159,6 +202,10 @@ test.describe("Agent Mail Integration: Seeded Session Display", () => {
       context,
       testSession,
     }) => {
+      if (!(await preflightAgentMailTestServer({ page, logger, context, testSession }))) {
+        return;
+      }
+
       // Seed a session with delta responses
       const threadId = `E2E-DELTAS-${Date.now()}`;
       const config = createSessionWithDeltas(threadId);
@@ -180,13 +227,12 @@ test.describe("Agent Mail Integration: Seeded Session Display", () => {
       // Verify deltas are visible
       await withStep(logger, page, "Verify delta messages", async () => {
         const pageText = await page.locator("body").textContent();
-        const hasDeltas =
-          pageText?.includes("delta") ||
-          pageText?.includes("DELTA") ||
-          pageText?.includes("hypothesis") ||
-          pageText?.includes("ADD");
-        expect(hasDeltas).toBeTruthy();
-        logger.info("Delta messages found in thread");
+        const hasParsedDeltas =
+          pageText?.includes("Parsed Deltas") &&
+          pageText?.includes("DELTA[") &&
+          pageText?.includes("hypothesis_slate");
+        expect(hasParsedDeltas).toBeTruthy();
+        logger.info("Parsed DELTA messages found in thread");
       });
 
       // Check for multiple messages (KICKOFF + responses)
@@ -205,6 +251,10 @@ test.describe("Agent Mail Integration: Seeded Session Display", () => {
       context,
       testSession,
     }) => {
+      if (!(await preflightAgentMailTestServer({ page, logger, context, testSession }))) {
+        return;
+      }
+
       const threadId = `E2E-PARSED-${Date.now()}`;
       const config = createSessionWithDeltas(threadId);
 
@@ -238,6 +288,10 @@ test.describe("Agent Mail Integration: Seeded Session Display", () => {
       context,
       testSession,
     }) => {
+      if (!(await preflightAgentMailTestServer({ page, logger, context, testSession }))) {
+        return;
+      }
+
       // Seed a session with a compiled artifact
       const threadId = `E2E-ARTIFACT-${Date.now()}`;
       const config = createSessionWithArtifact(threadId);
@@ -260,8 +314,8 @@ test.describe("Agent Mail Integration: Seeded Session Display", () => {
       await withStep(logger, page, "Verify compiled artifact", async () => {
         const pageText = await page.locator("body").textContent();
         const hasArtifact =
-          pageText?.includes("COMPILED") ||
-          pageText?.includes("Artifact") ||
+          pageText?.includes("Compiled Artifact") &&
+          pageText?.includes("COMPILED:") &&
           pageText?.includes("Hypothesis Slate");
         expect(hasArtifact).toBeTruthy();
         logger.info("Compiled artifact found");
@@ -291,6 +345,10 @@ test.describe("Agent Mail Integration: Thread Navigation", () => {
     context,
     testSession,
   }) => {
+    if (!(await preflightAgentMailTestServer({ page, logger, context, testSession }))) {
+      return;
+    }
+
     // Seed two sessions
     const threadId1 = `E2E-NAV-1-${Date.now()}`;
     const threadId2 = `E2E-NAV-2-${Date.now()}`;
@@ -335,6 +393,10 @@ test.describe("Agent Mail Integration: Message Details", () => {
     context,
     testSession,
   }) => {
+    if (!(await preflightAgentMailTestServer({ page, logger, context, testSession }))) {
+      return;
+    }
+
     const threadId = `E2E-EXPAND-${Date.now()}`;
     await testSession.seed(createSessionWithDeltas(threadId));
 
@@ -372,6 +434,10 @@ test.describe("Agent Mail Integration: Message Details", () => {
     context,
     testSession,
   }) => {
+    if (!(await preflightAgentMailTestServer({ page, logger, context, testSession }))) {
+      return;
+    }
+
     const threadId = `E2E-META-${Date.now()}`;
     await testSession.seed(createKickoffSession(threadId));
 
@@ -414,8 +480,11 @@ test.describe("Agent Mail Integration: Error Handling", () => {
     page,
     logger,
     context,
+    testSession,
   }) => {
-    await setupLabAuth(context);
+    if (!(await preflightAgentMailTestServer({ page, logger, context, testSession }))) {
+      return;
+    }
 
     // Navigate to a thread that doesn't exist
     const fakeThreadId = `NONEXISTENT-${Date.now()}`;
@@ -454,6 +523,10 @@ test.describe("Agent Mail Integration: Session Actions", () => {
     context,
     testSession,
   }) => {
+    if (!(await preflightAgentMailTestServer({ page, logger, context, testSession }))) {
+      return;
+    }
+
     const threadId = `E2E-COMPILE-${Date.now()}`;
     await testSession.seed(createSessionWithDeltas(threadId));
 
@@ -475,5 +548,150 @@ test.describe("Agent Mail Integration: Session Actions", () => {
     });
 
     await takeScreenshot(page, logger, "agent-mail-compile-action");
+  });
+});
+
+// ============================================================================
+// Agent Mail Integration Tests: Full Session Lifecycle (UI submission)
+// ============================================================================
+
+async function callTestServer(params: {
+  serverUrl: string;
+  tool: string;
+  args: Record<string, unknown>;
+}): Promise<unknown> {
+  const res = await fetch(params.serverUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: Date.now().toString(),
+      method: "tools/call",
+      params: { name: params.tool, arguments: params.args },
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Test server HTTP ${res.status}`);
+  }
+
+  const json = await res.json();
+  if (json?.error) {
+    throw new Error(`Test server error: ${json.error.message ?? "unknown"}`);
+  }
+
+  return json?.result?.structuredContent ?? json?.result;
+}
+
+test.describe("Agent Mail Integration: Full Session Lifecycle", () => {
+  test("create → deltas → compile+publish → evidence pack", async ({
+    page,
+    logger,
+    context,
+    testSession,
+  }) => {
+    if (!(await preflightAgentMailTestServer({ page, logger, context, testSession }))) {
+      return;
+    }
+
+    const threadId = `E2E-LIFECYCLE-${Date.now()}`;
+    const sender = "TestOperator";
+
+    await withStep(logger, page, "Submit session creation form", async () => {
+      await navigateTo(page, logger, "/sessions/new");
+      await waitForNetworkIdle(page, logger);
+
+      if (await shouldSkipTest(page, logger, "session creation")) {
+        return;
+      }
+
+      await page.locator('input[name="threadId"]').fill(threadId);
+      await page.locator('input[name="sender"]').fill(sender);
+      await page.locator('input[name="recipients"]').fill("HypothesisAgent,TestDesigner,Critic");
+      await page.locator('textarea[name="excerpt"]').fill(
+        `> §42: E2E excerpt for ${threadId}\n\nA short excerpt is enough for end-to-end wiring tests.`
+      );
+
+      await page.getByRole("button", { name: /send kickoff/i }).click();
+      await waitForNetworkIdle(page, logger);
+    });
+
+    if (await shouldSkipTest(page, logger, "kickoff submit")) {
+      return;
+    }
+
+    await withStep(logger, page, "Verify kickoff success banner", async () => {
+      await expect(page.getByText(/Kickoff sent successfully/i)).toBeVisible();
+      await expect(page.getByText(threadId)).toBeVisible();
+    });
+
+    await withStep(logger, page, "Open session thread view", async () => {
+      await navigateTo(page, logger, `/sessions/${threadId}`);
+      await waitForNetworkIdle(page, logger);
+    });
+
+    if (await shouldSkipTest(page, logger, "session lifecycle")) {
+      return;
+    }
+
+    await withStep(logger, page, "Verify kickoff message present", async () => {
+      const body = await page.locator("body").textContent();
+      expect(body?.includes("KICKOFF:")).toBeTruthy();
+    });
+
+    // Track this thread ID for failure attachments (even though it wasn't seeded via fixture.seed())
+    testSession.seededSessions.push(threadId);
+
+    const deltaConfig = createSessionWithDeltas(threadId);
+    const deltaMessages = (deltaConfig.messages ?? []).filter((m) => m.subject.startsWith("DELTA["));
+    const serverUrl = testSession.getServerUrl();
+
+    await withStep(logger, page, "Send simulated agent DELTA replies", async () => {
+      for (const msg of deltaMessages) {
+        await callTestServer({
+          serverUrl,
+          tool: "send_message",
+          args: {
+            project_key: "/data/projects/brenner_bot",
+            sender_name: msg.from,
+            to: msg.to ?? ["TestOperator"],
+            subject: msg.subject,
+            body_md: msg.body,
+            thread_id: threadId,
+          },
+        });
+      }
+    });
+
+    await withStep(logger, page, "Refresh thread and verify parsed deltas", async () => {
+      await page.reload();
+      await waitForNetworkIdle(page, logger);
+      await expect(page.getByText(/Parsed Deltas/i)).toBeVisible();
+      await expect(page.getByText(/DELTA\[/i)).toBeVisible();
+    });
+
+    await withStep(logger, page, "Compile preview", async () => {
+      await page.getByRole("button", { name: /^Compile$/ }).click();
+      await expect(page.getByText(/Preview: compiled v/i)).toBeVisible();
+    });
+
+    await withStep(logger, page, "Publish compiled artifact", async () => {
+      await page.getByRole("button", { name: /^Publish$/ }).click();
+      await waitForNetworkIdle(page, logger);
+      await expect(page.getByText(/Published COMPILED v/i)).toBeVisible();
+    });
+
+    await withStep(logger, page, "Verify compiled artifact panel is populated", async () => {
+      const body = await page.locator("body").textContent();
+      expect(body?.includes("Brenner Protocol Artifact")).toBeTruthy();
+      expect(body?.includes("Hypothesis Slate")).toBeTruthy();
+    });
+
+    await withStep(logger, page, "Navigate to evidence pack page", async () => {
+      await page.getByRole("link", { name: /Evidence Pack/i }).click();
+      await waitForNetworkIdle(page, logger);
+      await expect(page.getByRole("heading", { name: /Evidence Pack/i })).toBeVisible();
+      await takeScreenshot(page, logger, "agent-mail-evidence-pack");
+    });
   });
 });

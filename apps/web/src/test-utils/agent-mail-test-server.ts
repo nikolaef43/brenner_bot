@@ -89,6 +89,12 @@ interface JsonRpcResponse {
   error?: { code: number; message: string; data?: unknown };
 }
 
+interface RpcLogEntry {
+  ts: string;
+  request: JsonRpcRequest;
+  response: JsonRpcResponse;
+}
+
 // ============================================================================
 // Test Server Implementation
 // ============================================================================
@@ -102,6 +108,7 @@ export class AgentMailTestServer {
   private agents: Map<string, TestAgent> = new Map(); // key: "projectKey:agentName"
   private messages: TestMessage[] = [];
   private deliveries: TestDelivery[] = [];
+  private rpcLog: RpcLogEntry[] = [];
 
   // Auto-increment IDs
   private nextProjectId = 1;
@@ -150,6 +157,7 @@ export class AgentMailTestServer {
     this.agents.clear();
     this.messages = [];
     this.deliveries = [];
+    this.rpcLog = [];
     this.nextProjectId = 1;
     this.nextAgentId = 1;
     this.nextMessageId = 1;
@@ -192,6 +200,8 @@ export class AgentMailTestServer {
       const request = JSON.parse(body) as JsonRpcRequest;
       const response = await this.handleJsonRpc(request);
 
+      this.recordRpcLog(request, response);
+
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify(response));
     } catch (err) {
@@ -203,8 +213,22 @@ export class AgentMailTestServer {
           message: err instanceof Error ? err.message : "Parse error",
         },
       };
+      // Best-effort log for parse errors (we don't have a valid request envelope)
+      this.rpcLog.push({
+        ts: new Date().toISOString(),
+        request: { jsonrpc: "2.0", id: null, method: "parse_error" },
+        response,
+      });
       res.writeHead(400, { "Content-Type": "application/json" });
       res.end(JSON.stringify(response));
+    }
+  }
+
+  private recordRpcLog(request: JsonRpcRequest, response: JsonRpcResponse): void {
+    this.rpcLog.push({ ts: new Date().toISOString(), request, response });
+    // Keep logs bounded to avoid runaway memory usage in long runs.
+    if (this.rpcLog.length > 2000) {
+      this.rpcLog = this.rpcLog.slice(this.rpcLog.length - 2000);
     }
   }
 
@@ -336,6 +360,14 @@ export class AgentMailTestServer {
       };
     }
 
+    if (pathPart.startsWith("agents/")) {
+      const projectSlug = pathPart.slice("agents/".length);
+      const directory = this.getAgentDirectory(projectSlug);
+      return {
+        contents: [{ uri, text: JSON.stringify(directory) }],
+      };
+    }
+
     if (pathPart.startsWith("thread/")) {
       const threadId = pathPart.slice("thread/".length);
       const projectKey = searchParams.project || "";
@@ -344,6 +376,14 @@ export class AgentMailTestServer {
       const thread = this.getThread(projectKey, threadId, includeBodies);
       return {
         contents: [{ uri, text: JSON.stringify(thread) }],
+      };
+    }
+
+    if (pathPart === "logs") {
+      const limit = parseInt(searchParams.limit || "200", 10);
+      const entries = this.rpcLog.slice(-Math.max(0, Math.min(limit, 2000)));
+      return {
+        contents: [{ uri, text: JSON.stringify({ count: this.rpcLog.length, entries }) }],
       };
     }
 
@@ -689,6 +729,34 @@ export class AgentMailTestServer {
 
   getAllDeliveries(): TestDelivery[] {
     return [...this.deliveries];
+  }
+
+  // ============================================================================
+  // Resource Helpers
+  // ============================================================================
+
+  private getAgentDirectory(projectSlug: string): {
+    project: { slug: string; human_key: string | null };
+    agents: Array<{ name: string; unread_count: number }>;
+  } {
+    const project = Array.from(this.projects.values()).find((p) => p.slug === projectSlug);
+    if (!project) {
+      return { project: { slug: projectSlug, human_key: null }, agents: [] };
+    }
+
+    const agents = Array.from(this.agents.values())
+      .filter((a) => a.project_id === project.id)
+      .map((a) => {
+        const unreadCount = this.deliveries.filter(
+          (d) => d.agent_id === a.id && d.read_ts === null
+        ).length;
+        return { name: a.name, unread_count: unreadCount };
+      });
+
+    return {
+      project: { slug: project.slug, human_key: project.human_key },
+      agents,
+    };
   }
 
   /**

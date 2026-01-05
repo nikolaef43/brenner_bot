@@ -563,6 +563,7 @@ test.describe("Multi-Agent Orchestration: Handoff Patterns", () => {
       const pageText = await page.locator("body").textContent();
       const hasHandoff = pageText?.includes("Handoff") || pageText?.includes("HANDOFF");
       logger.info(`Handoff markers found: ${hasHandoff}`);
+      expect(hasHandoff).toBeTruthy();
     });
 
     // Verify synthesis message
@@ -570,6 +571,7 @@ test.describe("Multi-Agent Orchestration: Handoff Patterns", () => {
       const pageText = await page.locator("body").textContent();
       const hasSynthesis = pageText?.includes("Synthesis") || pageText?.includes("SYNTHESIS");
       logger.info(`Synthesis message found: ${hasSynthesis}`);
+      expect(hasSynthesis).toBeTruthy();
     });
 
     await takeScreenshot(page, logger, "multi-agent-handoff-chain");
@@ -719,6 +721,7 @@ test.describe("Multi-Agent Orchestration: Agent-to-Agent Communication", () => {
         pageText?.includes("@HypothesisAgent");
 
       logger.info(`Agent mentions found: ${hasMention}`);
+      expect(hasMention).toBeTruthy();
     });
 
     // Verify back-and-forth communication
@@ -731,6 +734,7 @@ test.describe("Multi-Agent Orchestration: Agent-to-Agent Communication", () => {
         pageText?.includes("Suggested modification");
 
       logger.info(`Direct response found: ${hasResponse}`);
+      expect(hasResponse).toBeTruthy();
     });
 
     await takeScreenshot(page, logger, "multi-agent-direct-communication");
@@ -838,6 +842,7 @@ test.describe("Multi-Agent Orchestration: Multi-Round Coordination", () => {
         pageText?.includes("revision_note");
 
       logger.info(`Revision found: ${hasRevision}`);
+      expect(hasRevision).toBeTruthy();
     });
 
     await withStep(logger, page, "Verify feedback incorporation", async () => {
@@ -849,6 +854,7 @@ test.describe("Multi-Agent Orchestration: Multi-Round Coordination", () => {
         pageText?.includes("feedback");
 
       logger.info(`Feedback reference found: ${hasFeedbackRef}`);
+      expect(hasFeedbackRef).toBeTruthy();
     });
 
     await takeScreenshot(page, logger, "multi-agent-revision");
@@ -923,6 +929,9 @@ test.describe("Multi-Agent Orchestration: Delta Parsing", () => {
       const hasC1 = pageText?.includes("C1") || pageText?.includes("critique");
 
       logger.info(`H1 found: ${hasH1}, T1 found: ${hasT1}, C1 found: ${hasC1}`);
+      // At least one delta type should be visible
+      const hasDelta = hasH1 || hasT1 || hasC1;
+      expect(hasDelta).toBeTruthy();
     });
 
     await takeScreenshot(page, logger, "multi-agent-deltas-parsed");
