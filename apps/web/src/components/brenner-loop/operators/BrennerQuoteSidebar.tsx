@@ -12,6 +12,7 @@
  */
 
 import * as React from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Quote as QuoteIcon, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -50,7 +51,16 @@ interface QuoteCardProps {
   isActive?: boolean;
 }
 
+function parseSectionNumber(sectionId: string): number | null {
+  const match = sectionId.match(/§(\d+)/);
+  if (!match) return null;
+  const num = Number.parseInt(match[1], 10);
+  return Number.isFinite(num) ? num : null;
+}
+
 function QuoteCard({ quote, isActive = true }: QuoteCardProps) {
+  const sectionNumber = parseSectionNumber(quote.sectionId);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -106,6 +116,17 @@ function QuoteCard({ quote, isActive = true }: QuoteCardProps) {
               +{quote.tags.length - 3}
             </span>
           )}
+        </div>
+      )}
+
+      {sectionNumber !== null && (
+        <div className="mt-3">
+          <Link
+            href={`/corpus/transcript#section-${sectionNumber}`}
+            className="text-xs text-primary hover:underline"
+          >
+            Read more →
+          </Link>
         </div>
       )}
     </motion.div>

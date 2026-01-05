@@ -78,15 +78,59 @@ export interface TestQueueStats {
   byStatus: Record<TestQueueStatus, number>;
 }
 
+const VALID_STATUSES: TestQueueStatus[] = [
+  "queued",
+  "researching",
+  "designing",
+  "in_progress",
+  "awaiting_results",
+  "completed",
+  "infeasible",
+  "deferred",
+];
+
+const VALID_PRIORITIES: TestQueuePriority[] = ["urgent", "high", "medium", "low", "someday"];
+
+const VALID_SOURCES: TestQueueSource[] = ["exclusion_test", "agent_suggestion", "manual"];
+
+const VALID_STATUS_SET = new Set<TestQueueStatus>(VALID_STATUSES);
+const VALID_PRIORITY_SET = new Set<TestQueuePriority>(VALID_PRIORITIES);
+const VALID_SOURCE_SET = new Set<TestQueueSource>(VALID_SOURCES);
+
+function isValidStatus(value: string): value is TestQueueStatus {
+  return VALID_STATUS_SET.has(value as TestQueueStatus);
+}
+
+function isValidPriority(value: string): value is TestQueuePriority {
+  return VALID_PRIORITY_SET.has(value as TestQueuePriority);
+}
+
+function isValidSource(value: string): value is TestQueueSource {
+  return VALID_SOURCE_SET.has(value as TestQueueSource);
+}
+
 // ============================================================================//
 // Storage
 // ============================================================================//
 
 const STORAGE_KEY_PREFIX = "brenner-test-queue-";
 
+let warnedStorageError = false;
+
+function warnStorageError(action: string, error: unknown): void {
+  if (warnedStorageError) return;
+  warnedStorageError = true;
+  console.warn(`Test Queue: failed to ${action} localStorage`, error);
+}
+
 function getStorage(): Storage | null {
   if (typeof window === "undefined") return null;
-  return window.localStorage ?? null;
+  try {
+    return window.localStorage ?? null;
+  } catch (e) {
+    warnStorageError("access", e);
+    return null;
+  }
 }
 
 function storageKey(sessionId: string): string {
@@ -110,15 +154,55 @@ function coerceItem(raw: unknown): TestQueueItem | null {
   if (typeof r.sessionId !== "string") return null;
   if (typeof r.hypothesisId !== "string") return null;
   if (!r.test || typeof r.test !== "object") return null;
+  const test = r.test as Record<string, unknown>;
+  if (typeof test.id !== "string") return null;
+  if (typeof test.name !== "string") return null;
+  if (typeof test.description !== "string") return null;
+  if (typeof test.category !== "string") return null;
+  if (typeof test.falsificationCondition !== "string") return null;
+  if (typeof test.supportCondition !== "string") return null;
+  if (typeof test.rationale !== "string") return null;
+  if (typeof test.feasibility !== "string") return null;
+
   if (typeof r.discriminativePower !== "number") return null;
-  if (typeof r.status !== "string") return null;
-  if (typeof r.priority !== "string") return null;
+  if (!Number.isFinite(r.discriminativePower)) return null;
+  if (r.discriminativePower < 1 || r.discriminativePower > 5) return null;
+
+  if (typeof r.status !== "string" || !isValidStatus(r.status)) return null;
+  if (typeof r.priority !== "string" || !isValidPriority(r.priority)) return null;
   if (typeof r.predictionIfTrue !== "string") return null;
   if (typeof r.predictionIfFalse !== "string") return null;
   if (typeof r.addedAt !== "string") return null;
-  if (typeof r.source !== "string") return null;
+  if (typeof r.source !== "string" || !isValidSource(r.source)) return null;
 
-  return r as unknown as TestQueueItem;
+  const item: TestQueueItem = {
+    id: r.id,
+    sessionId: r.sessionId,
+    hypothesisId: r.hypothesisId,
+    test: r.test as ExclusionTest,
+    discriminativePower: r.discriminativePower as TestQueueItem["discriminativePower"],
+    status: r.status,
+    priority: r.priority,
+    predictionIfTrue: r.predictionIfTrue,
+    predictionIfFalse: r.predictionIfFalse,
+    addedAt: r.addedAt,
+    source: r.source,
+  };
+
+  if (typeof r.predictionsLockedAt === "string" && r.predictionsLockedAt.length > 0) {
+    item.predictionsLockedAt = r.predictionsLockedAt;
+  }
+  if (typeof r.assignedTo === "string" && r.assignedTo.length > 0) {
+    item.assignedTo = r.assignedTo;
+  }
+  if (typeof r.dueDate === "string" && r.dueDate.length > 0) {
+    item.dueDate = r.dueDate;
+  }
+  if (typeof r.estimatedEffort === "string" && r.estimatedEffort.length > 0) {
+    item.estimatedEffort = r.estimatedEffort;
+  }
+
+  return item;
 }
 
 export function loadTestQueue(sessionId: string): TestQueueItem[] {
@@ -127,12 +211,18 @@ export function loadTestQueue(sessionId: string): TestQueueItem[] {
     return [];
   }
 
-  const raw = storage.getItem(storageKey(sessionId));
+  let raw: string | null = null;
+  try {
+    raw = storage.getItem(storageKey(sessionId));
+  } catch (e) {
+    warnStorageError("read", e);
+    return [];
+  }
   const arr = safeParseArray(raw);
   const items: TestQueueItem[] = [];
   for (const entry of arr) {
     const item = coerceItem(entry);
-    if (item) items.push(item);
+    if (item && item.sessionId === sessionId) items.push(item);
   }
   return items;
 }
@@ -142,7 +232,12 @@ export function saveTestQueue(sessionId: string, items: TestQueueItem[]): void {
   if (storage === null) {
     return;
   }
-  storage.setItem(storageKey(sessionId), JSON.stringify(items));
+
+  try {
+    storage.setItem(storageKey(sessionId), JSON.stringify(items));
+  } catch (e) {
+    warnStorageError("write", e);
+  }
 }
 
 export function clearTestQueue(sessionId: string): void {
@@ -150,7 +245,12 @@ export function clearTestQueue(sessionId: string): void {
   if (storage === null) {
     return;
   }
-  storage.removeItem(storageKey(sessionId));
+
+  try {
+    storage.removeItem(storageKey(sessionId));
+  } catch (e) {
+    warnStorageError("clear", e);
+  }
 }
 
 // ============================================================================//

@@ -19,6 +19,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import type { Quote } from "@/lib/quotebank-parser";
+import { BrennerQuoteSidebar } from "@/components/brenner-loop/operators/BrennerQuoteSidebar";
+import {
+  findSimilar,
+  loadEmbeddings,
+  type EmbeddingEntry,
+} from "@/lib/brenner-loop/search/embeddings";
 
 // ============================================================================
 // Icons
@@ -49,6 +56,59 @@ const BeakerIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// ============================================================================
+// Brenner Quote Search Helpers
+// ============================================================================
+
+const OPERATOR_QUOTE_TAG: Record<string, string> = {
+  level_split: "level-split",
+  exclusion_test: "exclusion-test",
+  object_transpose: "object-transpose",
+  scale_check: "scale-check",
+};
+
+function parseEmbeddedQuoteText(text: string): Pick<Quote, "quote" | "context" | "tags"> {
+  const tags: string[] = [];
+  const tagsLine = text.match(/^Tags:\s*(.+)$/m)?.[1];
+  if (tagsLine) {
+    for (const match of tagsLine.matchAll(/`([^`]+)`/g)) {
+      const tag = match[1]?.trim();
+      if (tag && !tags.includes(tag)) tags.push(tag);
+    }
+  }
+
+  const contextMatch = text.match(/(?:Takeaway|Why it matters):\s*([\s\S]*?)(?:\n\s*Tags:|$)/m);
+  const context = contextMatch?.[1]?.trim().replace(/\s+/g, " ") ?? "";
+
+  const quote = text
+    .split(/\n(?:Takeaway|Why it matters):/i)[0]
+    ?.trim()
+    .replace(/\s+/g, " ") ?? "";
+
+  return { quote, context, tags };
+}
+
+function titleCaseFromTag(tag: string): string {
+  return tag
+    .replace(/[_-]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .map((w) => (w.length > 0 ? w[0]!.toUpperCase() + w.slice(1) : w))
+    .join(" ");
+}
+
+function quoteFromEmbedding(entry: EmbeddingEntry): Quote {
+  const sectionId = typeof entry.section === "number" ? `§${entry.section}` : "§?";
+  const parsed = parseEmbeddedQuoteText(entry.text);
+  const title = parsed.tags.length > 0 ? titleCaseFromTag(parsed.tags[0]!) : "Quote Bank";
+  return {
+    sectionId,
+    title,
+    quote: parsed.quote,
+    context: parsed.context,
+    tags: parsed.tags,
+  };
+}
 
 // ============================================================================
 // Operator Configuration
@@ -323,8 +383,71 @@ export default function OperatorsPage() {
   const [activeOperator, setActiveOperator] = React.useState<string>("level_split");
   const [completedOperators, setCompletedOperators] = React.useState<Set<string>>(new Set());
   const [operatorValues, setOperatorValues] = React.useState<Record<string, Record<string, string>>>({});
+  const [hypothesisStatement, setHypothesisStatement] = React.useState<string>("");
+  const [hypothesisMechanism, setHypothesisMechanism] = React.useState<string>("");
+
+  const [quoteEntries, setQuoteEntries] = React.useState<EmbeddingEntry[] | null>(null);
+  const [semanticQuotes, setSemanticQuotes] = React.useState<Quote[]>([]);
+  const [quoteError, setQuoteError] = React.useState<string | null>(null);
 
   const currentOperator = OPERATORS.find((op) => op.id === activeOperator);
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    loadEmbeddings()
+      .then((index) => {
+        if (cancelled) return;
+        setQuoteEntries(index.entries.filter((entry) => entry.source === "quote"));
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        setQuoteError(e instanceof Error ? e.message : "Failed to load embeddings.");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const quoteQuery = React.useMemo(() => {
+    const operatorTag = OPERATOR_QUOTE_TAG[activeOperator];
+    const opValues = Object.values(operatorValues[activeOperator] || {}).join("\n");
+
+    return [
+      currentOperator?.name,
+      operatorTag,
+      hypothesisStatement,
+      hypothesisMechanism,
+      opValues,
+    ]
+      .filter((v) => typeof v === "string" && v.trim().length > 0)
+      .join("\n");
+  }, [activeOperator, currentOperator, hypothesisMechanism, hypothesisStatement, operatorValues]);
+
+  React.useEffect(() => {
+    if (!quoteEntries || quoteEntries.length === 0) return;
+    if (!quoteQuery) return;
+
+    setQuoteError(null);
+
+    const operatorTag = OPERATOR_QUOTE_TAG[activeOperator];
+    const tagged =
+      operatorTag ? quoteEntries.filter((entry) => entry.text.includes(`\`${operatorTag}\``)) : [];
+    const candidates = tagged.length > 0 ? tagged : quoteEntries;
+
+    const timer = setTimeout(() => {
+      try {
+        const matches = findSimilar(quoteQuery, candidates, 3);
+        setSemanticQuotes(matches.map(quoteFromEmbedding));
+      } catch (e) {
+        setQuoteError(e instanceof Error ? e.message : "Failed to compute quote matches.");
+        setSemanticQuotes([]);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [activeOperator, quoteEntries, quoteQuery]);
 
   const handleFieldChange = (fieldId: string, value: string) => {
     setOperatorValues((prev) => ({
@@ -399,6 +522,40 @@ export default function OperatorsPage() {
         </div>
       </motion.header>
 
+      {/* Hypothesis context (improves quote relevance) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Hypothesis Context</CardTitle>
+          <CardDescription>
+            Used to surface relevant Brenner quotes while you apply operators (local, not sent anywhere).
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-foreground">
+              Hypothesis statement
+            </label>
+            <Textarea
+              value={hypothesisStatement}
+              onChange={(e) => setHypothesisStatement(e.target.value)}
+              placeholder="e.g., X causes Y via mechanism M"
+              className="min-h-[90px]"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-foreground">
+              Mechanism (optional)
+            </label>
+            <Textarea
+              value={hypothesisMechanism}
+              onChange={(e) => setHypothesisMechanism(e.target.value)}
+              placeholder="What causal pathway would produce Y?"
+              className="min-h-[90px]"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Progress Bar */}
       <motion.div
         initial={{ opacity: 0, scaleX: 0 }}
@@ -414,9 +571,9 @@ export default function OperatorsPage() {
       </motion.div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         {/* Operator Selection */}
-        <div className="space-y-3">
+        <div className="space-y-3 xl:col-span-3">
           <h3 className="text-sm font-medium text-muted-foreground mb-4">Select Operator</h3>
           {OPERATORS.map((operator, index) => (
             <motion.div
@@ -436,7 +593,7 @@ export default function OperatorsPage() {
         </div>
 
         {/* Workspace */}
-        <Card className="lg:col-span-2">
+        <Card className="xl:col-span-6">
           <CardContent className="p-6">
             <AnimatePresence mode="wait">
               {currentOperator && (
@@ -451,6 +608,35 @@ export default function OperatorsPage() {
             </AnimatePresence>
           </CardContent>
         </Card>
+
+        {/* Brenner quote sidebar (desktop) */}
+        <aside className="hidden xl:block xl:col-span-3">
+          <div className="sticky top-4 space-y-2">
+            {quoteError && (
+              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+                {quoteError}
+              </div>
+            )}
+            <BrennerQuoteSidebar
+              quotes={semanticQuotes}
+              currentStepId={activeOperator}
+            />
+          </div>
+        </aside>
+      </div>
+
+      {/* Brenner quote accordion (mobile/tablet) */}
+      <div className="xl:hidden">
+        {quoteError && (
+          <div className="mb-2 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+            {quoteError}
+          </div>
+        )}
+        <BrennerQuoteSidebar
+          quotes={semanticQuotes}
+          currentStepId={activeOperator}
+          defaultCollapsed
+        />
       </div>
 
       {/* Summary Section */}
