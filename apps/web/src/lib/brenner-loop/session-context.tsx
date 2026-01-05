@@ -635,6 +635,12 @@ export function SessionProvider({
       // Don't allow removing the primary hypothesis
       if (id === state.session.primaryHypothesisId) return;
 
+      // Validate: ID must exist in hypothesisCards
+      if (!state.session.hypothesisCards[id]) return;
+
+      // Validate: ID must be in alternativeHypothesisIds (not already archived)
+      if (!state.session.alternativeHypothesisIds.includes(id)) return;
+
       // Don't remove the card - keep it for audit trails
       // Only move from alternativeHypothesisIds to archivedHypothesisIds
       const updatedSession: Session = {
