@@ -681,7 +681,8 @@ export function getPendingAgents(messages: AgentMailMessage[]): string[] {
       deltaContributors.add(contributor);
     }
   }
-  return status.stats.participants.filter((p) => !deltaContributors.has(p));
+  const participants = status.stats?.participants ?? [];
+  return participants.filter((p) => !deltaContributors.has(p));
 }
 
 /**
