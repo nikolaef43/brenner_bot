@@ -19,6 +19,13 @@ function parsePositiveInt(value: string | null): number | null {
   return parsed;
 }
 
+function parseNonNegativeInt(value: string | null): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed < 0) return null;
+  return parsed;
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
@@ -86,7 +93,8 @@ export async function GET(request: NextRequest): Promise<Response> {
   const pollIntervalMs = clamp(parsePositiveInt(url.searchParams.get("pollIntervalMs")) ?? 2000, 500, 10_000);
 
   const lastEventIdHeader = request.headers.get("last-event-id");
-  const cursor = parsePositiveInt(url.searchParams.get("cursor")) ?? parsePositiveInt(lastEventIdHeader);
+  const cursor =
+    parseNonNegativeInt(url.searchParams.get("cursor")) ?? parseNonNegativeInt(lastEventIdHeader);
 
   const encoder = new TextEncoder();
 
