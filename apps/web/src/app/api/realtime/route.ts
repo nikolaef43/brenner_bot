@@ -1,4 +1,4 @@
-import { resolve } from "node:path";
+import { isAbsolute, resolve, win32 } from "node:path";
 import { headers, cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { AgentMailClient } from "@/lib/agentMail";
@@ -10,6 +10,23 @@ export const dynamic = "force-dynamic";
 
 function repoRootFromWebCwd(): string {
   return resolve(process.cwd(), "../..");
+}
+
+function resolveProjectKey(rawProjectKey: string | null): { ok: true; projectKey: string } | { ok: false; error: string; status: number } {
+  const fallback = process.env.BRENNER_PROJECT_KEY || repoRootFromWebCwd();
+  const trimmed = rawProjectKey?.trim();
+  const candidate = trimmed && trimmed.length > 0 ? trimmed : fallback;
+  const isAbs = isAbsolute(candidate) || win32.isAbsolute(candidate);
+  if (!isAbs) {
+    return {
+      ok: false,
+      error: trimmed ? "Invalid projectKey: must be an absolute path" : "Server misconfigured: BRENNER_PROJECT_KEY must be absolute",
+      status: trimmed ? 400 : 500,
+    };
+  }
+  const isWindowsPath = win32.isAbsolute(candidate) && !candidate.startsWith("/");
+  const projectKey = isWindowsPath ? win32.normalize(candidate) : resolve(candidate);
+  return { ok: true, projectKey };
 }
 
 function parsePositiveInt(value: string | null): number | null {
@@ -26,6 +43,12 @@ function parseNonNegativeInt(value: string | null): number | null {
   return parsed;
 }
 
+function parseBoolean(value: string | null): boolean {
+  if (!value) return false;
+  const normalized = value.trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
@@ -40,6 +63,7 @@ type ThreadUpdatePayload = {
     subject: string;
     from?: string;
     reply_to?: number;
+    body_md?: string;
     subjectType: ReturnType<typeof parseSubjectType>["type"];
     role?: string;
   }>;
@@ -86,16 +110,20 @@ export async function GET(request: NextRequest): Promise<Response> {
     return new Response("Missing threadId query param", { status: 400 });
   }
 
-  const projectKey =
-    url.searchParams.get("projectKey")?.trim() ||
-    process.env.BRENNER_PROJECT_KEY ||
-    repoRootFromWebCwd();
+  const projectKeyResult = resolveProjectKey(url.searchParams.get("projectKey"));
+  if (!projectKeyResult.ok) {
+    return new Response(projectKeyResult.error, { status: projectKeyResult.status });
+  }
+  const projectKey = projectKeyResult.projectKey;
+  const includeBodies = parseBoolean(url.searchParams.get("includeBodies"));
 
   const pollIntervalMs = clamp(parsePositiveInt(url.searchParams.get("pollIntervalMs")) ?? 2000, 500, 10_000);
 
   const lastEventIdHeader = request.headers.get("last-event-id");
+  const cursorParam = parseNonNegativeInt(url.searchParams.get("cursor"));
+  const headerCursor = parseNonNegativeInt(lastEventIdHeader);
   const cursor =
-    parseNonNegativeInt(url.searchParams.get("cursor")) ?? parseNonNegativeInt(lastEventIdHeader);
+    cursorParam === null ? headerCursor : headerCursor === null ? cursorParam : Math.max(cursorParam, headerCursor);
 
   const encoder = new TextEncoder();
 
@@ -131,7 +159,7 @@ export async function GET(request: NextRequest): Promise<Response> {
           const thread = await client.readThread({
             projectKey,
             threadId,
-            includeBodies: false,
+            includeBodies,
           });
 
           const messages = thread.messages ?? [];
@@ -169,6 +197,7 @@ export async function GET(request: NextRequest): Promise<Response> {
                 subject: msg.subject,
                 from: msg.from,
                 reply_to: msg.reply_to,
+                body_md: includeBodies ? msg.body_md : undefined,
                 subjectType: parsed.type,
                 role: parsed.role,
               };
