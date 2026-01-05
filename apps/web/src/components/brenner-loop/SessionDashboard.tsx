@@ -16,6 +16,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Skeleton, SkeletonCard, SkeletonButton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
@@ -219,6 +227,24 @@ interface PhaseContentProps {
   className?: string;
 }
 
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  return (
+    target.closest(
+      'input, textarea, select, [contenteditable="true"], [contenteditable=""], [role="textbox"]'
+    ) !== null
+  );
+}
+
+function ShortcutRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <div className="text-sm text-muted-foreground">{label}</div>
+      <div className="flex items-center gap-1">{children}</div>
+    </div>
+  );
+}
+
 function PhaseContent({ phase, className }: PhaseContentProps) {
   const config = PHASE_CONFIG[phase];
 
@@ -290,9 +316,11 @@ export function SessionDashboard({
     attachQuote,
     isDirty,
     saveState,
+    saveSession,
   } = useSession();
   const exportOperation = useAsyncOperation();
   const [isCorpusSearchOpen, setIsCorpusSearchOpen] = React.useState(false);
+  const [isKeyboardHelpOpen, setIsKeyboardHelpOpen] = React.useState(false);
   const lastSaveErrorRef = React.useRef<string | null>(null);
 
   // useSessionMachine provides computed values (reachablePhases, isComplete, etc.)
@@ -300,6 +328,22 @@ export function SessionDashboard({
 
   // usePhaseNavigation provides navigation actions that persist to storage
   const { prev, next, canPrev, canNext, goTo } = usePhaseNavigation();
+
+  const handleExport = React.useCallback(
+    async (format: "json" | "markdown") => {
+      const currentSession = session;
+      if (!currentSession) return;
+
+      await exportOperation.run(() => exportSessionToFile(currentSession, format), {
+        message: "Exporting session...",
+        estimatedDuration: 3,
+        onError: (error) => {
+          toast.error("Export failed", error.message);
+        },
+      });
+    },
+    [exportOperation, session]
+  );
 
   // Save status indicator - must be before early returns per React hooks rules
   const saveStatus = React.useMemo(() => {
@@ -329,6 +373,103 @@ export function SessionDashboard({
     }
     lastSaveErrorRef.current = null;
   }, [saveState.status, saveState.error]);
+
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
+      if (!session || !machine) return;
+      if (exportOperation.isLoading) return;
+      if (isCorpusSearchOpen) return;
+
+      const key = event.key;
+      const lowerKey = key.toLowerCase();
+      const isTyping = isEditableTarget(event.target);
+
+      // While typing, only allow modifier-based shortcuts (e.g., Cmd/Ctrl+S)
+      if (isTyping && !(event.metaKey || event.ctrlKey)) return;
+
+      // Help dialog toggle
+      if (!event.metaKey && !event.ctrlKey && !event.altKey && key === "?") {
+        event.preventDefault();
+        setIsKeyboardHelpOpen((prev) => !prev);
+        return;
+      }
+
+      if (isKeyboardHelpOpen) return;
+
+      // Save
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && lowerKey === "s") {
+        event.preventDefault();
+        void saveSession().catch(() => {});
+        return;
+      }
+
+      // Export (Shift+Cmd/Ctrl+E exports JSON; otherwise Markdown)
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && lowerKey === "e") {
+        event.preventDefault();
+        void handleExport(event.shiftKey ? "json" : "markdown");
+        return;
+      }
+
+      // Hypothesis shortcuts
+      if (!event.metaKey && !event.ctrlKey && !event.altKey) {
+        if (lowerKey === "e" && onEditHypothesis) {
+          event.preventDefault();
+          onEditHypothesis();
+          return;
+        }
+
+        if (lowerKey === "h" && onViewHistory) {
+          event.preventDefault();
+          onViewHistory();
+          return;
+        }
+      }
+
+      // Phase navigation
+      if (!event.metaKey && !event.ctrlKey && !event.altKey) {
+        if (key === "ArrowLeft" && canPrev) {
+          event.preventDefault();
+          prev();
+          return;
+        }
+
+        if (key === "ArrowRight" && canNext && !machine.isComplete) {
+          event.preventDefault();
+          next();
+          return;
+        }
+
+        if (/^[1-9]$/.test(key)) {
+          const index = Number.parseInt(key, 10) - 1;
+          const phase = PHASE_ORDER[index];
+          if (!phase) return;
+          if (phase === session.phase) return;
+          if (!machine.reachablePhases.includes(phase)) return;
+          event.preventDefault();
+          goTo(phase);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    canNext,
+    canPrev,
+    exportOperation.isLoading,
+    goTo,
+    handleExport,
+    isCorpusSearchOpen,
+    isKeyboardHelpOpen,
+    machine,
+    next,
+    onEditHypothesis,
+    onViewHistory,
+    prev,
+    saveSession,
+    session,
+  ]);
 
   // Loading state
   if (isLoading) {
@@ -402,19 +543,6 @@ export function SessionDashboard({
     goTo(phase);
   };
 
-  const handleExport = async (format: "json" | "markdown") => {
-    const currentSession = session;
-    if (!currentSession) return;
-
-    await exportOperation.run(() => exportSessionToFile(currentSession, format), {
-      message: "Exporting session...",
-      estimatedDuration: 3,
-      onError: (error) => {
-        toast.error("Export failed", error.message);
-      },
-    });
-  };
-
   return (
     <div className={cn("flex flex-col gap-6", className)}>
       <LoadingOverlay
@@ -431,8 +559,81 @@ export function SessionDashboard({
         hypothesisId={session.primaryHypothesisId || undefined}
         onAttachQuote={attachQuote}
       />
+
+      <Dialog open={isKeyboardHelpOpen} onOpenChange={setIsKeyboardHelpOpen}>
+        <DialogContent size="lg" closeButtonLabel="Close keyboard shortcuts">
+          <DialogHeader separated>
+            <DialogTitle>Keyboard shortcuts</DialogTitle>
+            <DialogDescription>
+              Arrow/letter shortcuts are disabled while typing; Cmd/Ctrl shortcuts still work.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody className="grid gap-6 sm:grid-cols-2">
+            <div className="space-y-3">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Session
+              </div>
+              <ShortcutRow label="Help">
+                <kbd className="kbd">?</kbd>
+              </ShortcutRow>
+              <ShortcutRow label="Save session">
+                <kbd className="kbd">Ctrl/⌘</kbd>
+                <kbd className="kbd">S</kbd>
+              </ShortcutRow>
+              <ShortcutRow label="Export (Markdown)">
+                <kbd className="kbd">Ctrl/⌘</kbd>
+                <kbd className="kbd">E</kbd>
+              </ShortcutRow>
+              <ShortcutRow label="Export (JSON)">
+                <kbd className="kbd">Ctrl/⌘</kbd>
+                <kbd className="kbd">⇧</kbd>
+                <kbd className="kbd">E</kbd>
+              </ShortcutRow>
+            </div>
+            <div className="space-y-3">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Navigation
+              </div>
+              <ShortcutRow label="Previous/Next phase">
+                <kbd className="kbd">←</kbd>
+                <kbd className="kbd">→</kbd>
+              </ShortcutRow>
+              <ShortcutRow label="Jump to phase">
+                <kbd className="kbd">1</kbd>
+                <span className="text-xs text-muted-foreground">…</span>
+                <kbd className="kbd">9</kbd>
+              </ShortcutRow>
+              <ShortcutRow label="Edit hypothesis">
+                <kbd className="kbd">E</kbd>
+              </ShortcutRow>
+              <ShortcutRow label="View history">
+                <kbd className="kbd">H</kbd>
+              </ShortcutRow>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Tip: Use the phase timeline buttons for arrow-key focus navigation and <kbd className="kbd">Enter</kbd>{" "}
+                to activate.
+              </p>
+            </div>
+          </DialogBody>
+        </DialogContent>
+      </Dialog>
+
+      <a
+        href="#session-main"
+        className={cn(
+          "sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60]",
+          "rounded-md bg-background px-3 py-2 text-sm text-foreground shadow-lg ring-1 ring-border",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        )}
+      >
+        Skip to main content
+      </a>
+
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        Current phase: {PHASE_CONFIG[session.phase]?.name ?? session.phase}
+      </div>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">BrennerBot Lab</h1>
           <p className="text-sm text-muted-foreground">
@@ -441,6 +642,15 @@ export function SessionDashboard({
         </div>
         <div className="flex flex-col items-end gap-2">
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsKeyboardHelpOpen(true)}
+              aria-keyshortcuts="?"
+            >
+              <span aria-hidden="true" className="font-mono">?</span>
+              <span className="ml-2">Shortcuts</span>
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -455,6 +665,7 @@ export function SessionDashboard({
               size="sm"
               onClick={() => handleExport("json")}
               disabled={exportOperation.isLoading}
+              aria-keyshortcuts="Control+Shift+E Meta+Shift+E"
             >
               Export JSON
             </Button>
@@ -463,6 +674,7 @@ export function SessionDashboard({
               size="sm"
               onClick={() => handleExport("markdown")}
               disabled={exportOperation.isLoading}
+              aria-keyshortcuts="Control+E Meta+E"
             >
               Export Markdown
             </Button>
@@ -488,20 +700,22 @@ export function SessionDashboard({
             </p>
           )}
         </div>
-      </div>
+      </header>
 
       {/* Phase Timeline */}
-      <PhaseTimeline
-        currentPhase={session.phase}
-        phases={PHASE_ORDER}
-        completedPhases={PHASE_ORDER.slice(0, Math.max(0, PHASE_ORDER.indexOf(session.phase)))}
-        availablePhases={machine.reachablePhases}
-        skippedPhases={[]}
-        onPhaseClick={handlePhaseClick}
-      />
+      <nav aria-label="Session phases">
+        <PhaseTimeline
+          currentPhase={session.phase}
+          phases={PHASE_ORDER}
+          completedPhases={PHASE_ORDER.slice(0, Math.max(0, PHASE_ORDER.indexOf(session.phase)))}
+          availablePhases={machine.reachablePhases}
+          skippedPhases={[]}
+          onPhaseClick={handlePhaseClick}
+        />
+      </nav>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <main id="session-main" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Phase Content (2/3 width on desktop) */}
         <div className="lg:col-span-2">
           <AnimatePresence mode="wait">
@@ -518,7 +732,7 @@ export function SessionDashboard({
         </div>
 
         {/* Sidebar (1/3 width on desktop) */}
-        <div className="flex flex-col gap-4">
+        <aside className="flex flex-col gap-4" aria-label="Session sidebar">
           {/* Hypothesis Card */}
           {primaryHypothesis && (
             <HypothesisCard
@@ -534,15 +748,16 @@ export function SessionDashboard({
 
           {/* Brenner Quote */}
           <BrennerQuote phase={session.phase} />
-        </div>
-      </div>
+        </aside>
+      </main>
 
       {/* Navigation Footer */}
-      <div className="flex items-center justify-between pt-4 border-t">
+      <nav className="flex items-center justify-between pt-4 border-t" aria-label="Phase navigation">
         <Button
           variant="outline"
           onClick={prev}
           disabled={!canPrev}
+          aria-keyshortcuts="ArrowLeft"
         >
           <ChevronLeftIcon className="size-4 mr-2" />
           Previous
@@ -551,11 +766,12 @@ export function SessionDashboard({
         <Button
           onClick={next}
           disabled={!canNext || machine?.isComplete}
+          aria-keyshortcuts="ArrowRight"
         >
           {machine?.isComplete ? "Complete" : "Next"}
           {!machine?.isComplete && <ChevronRightIcon className="size-4 ml-2" />}
         </Button>
-      </div>
+      </nav>
     </div>
   );
 }
