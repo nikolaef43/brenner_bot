@@ -38,6 +38,7 @@ import {
 import {
   CATEGORY_DEFAULT_POWER,
   EXCLUSION_TEST_STEP_IDS,
+  EXCLUSION_TEST_STEPS,
   buildExclusionTestResult,
   createCustomTest,
   generateExclusionTests,
@@ -50,12 +51,16 @@ import {
 } from "./exclusion-test";
 import {
   OBJECT_TRANSPOSE_STEP_IDS,
+  OBJECT_TRANSPOSE_STEPS,
   buildObjectTransposeResult,
   generateAlternatives,
   generateDiscriminatingTests,
+  generateThirdVariables,
 } from "./object-transpose";
 import {
   SCALE_CHECK_STEP_IDS,
+  SCALE_CHECK_STEPS,
+  approximateSampleSize,
   buildScaleCheckResult,
   classifyEffectSize,
   estimateToValue,

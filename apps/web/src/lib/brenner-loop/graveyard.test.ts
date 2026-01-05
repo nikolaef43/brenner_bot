@@ -230,6 +230,14 @@ describe("graveyard ID generation", () => {
     expect(GRAVEYARD_ID_PATTERN.test("INVALID")).toBe(false);
     expect(GRAVEYARD_ID_PATTERN.test("GY--001")).toBe(false);
   });
+
+  it("throws for invalid sessionId and sequence", () => {
+    expect(() => generateGraveyardId("", 1)).toThrow(/Invalid sessionId/);
+    expect(() => generateGraveyardId(" bad", 1)).toThrow(/Invalid sessionId/);
+    expect(() => generateGraveyardId("S", -1)).toThrow(/Invalid sequence/);
+    expect(() => generateGraveyardId("S", 1000)).toThrow(/Invalid sequence/);
+    expect(() => generateGraveyardId("S", 1.5 as never)).toThrow(/Invalid sequence/);
+  });
 });
 
 // ============================================================================
@@ -290,6 +298,20 @@ describe("graveyard creation", () => {
 
     expect(entry.epitaph).toBe("A brave hypothesis that paved the way");
   });
+
+  it("throws when creating an invalid entry", () => {
+    expect(() =>
+      createFalsifiedHypothesis({
+        id: generateGraveyardId("TEST-SESSION", 4),
+        sessionId: "TEST-SESSION",
+        hypothesis: makeHypothesis(),
+        killingBlow: makeEvidence(),
+        deathType: "direct_falsification",
+        deathSummary: "",
+        learning: makeLearning(),
+      })
+    ).toThrow(/Invalid FalsifiedHypothesis/);
+  });
 });
 
 // ============================================================================
@@ -305,12 +327,24 @@ describe("graveyard mutations", () => {
     expect(entry.successorHypothesisIds).not.toContain("HC-NEW-001-v1"); // original unchanged
   });
 
+  it("does not duplicate successors", () => {
+    const entry = makeFalsifiedHypothesis({ successorHypothesisIds: ["HC-NEW-001-v1"] });
+    const updated = addSuccessor(entry, "HC-NEW-001-v1");
+    expect(updated).toBe(entry);
+  });
+
   it("adds contributedTo with addContributedTo()", () => {
     const entry = makeFalsifiedHypothesis();
     const updated = addContributedTo(entry, "HC-OTHER-001-v1");
 
     expect(updated.contributedToIds).toContain("HC-OTHER-001-v1");
     expect(entry.contributedToIds).not.toContain("HC-OTHER-001-v1"); // original unchanged
+  });
+
+  it("does not duplicate contributedTo links", () => {
+    const entry = makeFalsifiedHypothesis({ contributedToIds: ["HC-OTHER-001-v1"] });
+    const updated = addContributedTo(entry, "HC-OTHER-001-v1");
+    expect(updated).toBe(entry);
   });
 
   it("updates epitaph with updateEpitaph()", () => {
@@ -358,6 +392,13 @@ describe("graveyard validation", () => {
     expect(result.errors.some((e) => e.field === "id")).toBe(true);
   });
 
+  it("warns when death summary is short", () => {
+    const entry = makeFalsifiedHypothesis({ deathSummary: "Too short" });
+    const result = validateFalsifiedHypothesis(entry);
+    expect(result.valid).toBe(true);
+    expect(result.warnings.some((w) => w.code === "SHORT_DEATH_SUMMARY")).toBe(true);
+  });
+
   it("detects invalid death type", () => {
     const entry = makeFalsifiedHypothesis();
     const invalid = { ...entry, deathType: "invalid" as DeathType };
@@ -365,6 +406,35 @@ describe("graveyard validation", () => {
 
     expect(result.valid).toBe(false);
     expect(result.errors.some((e) => e.field === "deathType")).toBe(true);
+  });
+
+  it("detects invalid falsifiedAt values", () => {
+    const entry = makeFalsifiedHypothesis();
+    const invalidDate = { ...entry, falsifiedAt: new Date("not-a-date") } as never;
+    const invalidString = { ...entry, falsifiedAt: "not-a-date" } as never;
+
+    expect(validateFalsifiedHypothesis(invalidDate).errors.some((e) => e.field === "falsifiedAt")).toBe(true);
+    expect(validateFalsifiedHypothesis(invalidString).errors.some((e) => e.field === "falsifiedAt")).toBe(true);
+  });
+
+  it("flags missing learning object and missing session id", () => {
+    const entry = makeFalsifiedHypothesis();
+    const invalid = { ...entry, sessionId: "", learning: null } as never;
+    const result = validateFalsifiedHypothesis(invalid);
+
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.field === "sessionId")).toBe(true);
+    expect(result.errors.some((e) => e.field === "learning")).toBe(true);
+  });
+
+  it("does not warn about successors when deathType is unmeasurable", () => {
+    const entry = makeFalsifiedHypothesis({
+      deathType: "unmeasurable",
+      successorHypothesisIds: [],
+    });
+
+    const result = validateFalsifiedHypothesis(entry);
+    expect(result.warnings.some((w) => w.code === "NO_SUCCESSORS")).toBe(false);
   });
 
   it("warns on missing lessons", () => {
@@ -389,6 +459,20 @@ describe("graveyard validation", () => {
     expect(isFalsifiedHypothesis(undefined)).toBe(false);
     expect(isFalsifiedHypothesis({})).toBe(false);
     expect(isFalsifiedHypothesis({ id: "test" })).toBe(false);
+  });
+
+  it("type guard rejects near-miss objects (bad deathType, date, arrays)", () => {
+    const base = makeFalsifiedHypothesis();
+
+    expect(isFalsifiedHypothesis({ ...base, deathType: "invalid" } as never)).toBe(false);
+    expect(isFalsifiedHypothesis({ ...base, falsifiedAt: "not-a-date" } as never)).toBe(false);
+    expect(isFalsifiedHypothesis({ ...base, successorHypothesisIds: "nope" } as never)).toBe(false);
+  });
+
+  it("accepts ISO string dates in isFalsifiedHypothesis", () => {
+    const base = makeFalsifiedHypothesis();
+    const ok = { ...base, falsifiedAt: "2026-01-05T12:00:00Z" } as never;
+    expect(isFalsifiedHypothesis(ok)).toBe(true);
   });
 });
 
@@ -438,6 +522,33 @@ describe("graveyard failure patterns", () => {
     expect(firstPattern.frequency).toBeGreaterThanOrEqual(0);
     expect(firstPattern.description).toBeDefined();
     expect(firstPattern.matchingEntryIds).toBeDefined();
+  });
+
+  it("reports productive + unprocessed failures when present", () => {
+    const entries = [
+      makeFalsifiedHypothesis({ id: "GY-TEST-001", successorHypothesisIds: ["HC-NEW-001-v1"], epitaph: "" }),
+      makeFalsifiedHypothesis({ id: "GY-TEST-002", epitaph: "" }),
+      makeFalsifiedHypothesis({ id: "GY-TEST-003", epitaph: "Learned a lot" }),
+    ];
+
+    const patterns = analyzeFailurePatterns(entries);
+    const names = new Set(patterns.map((p) => p.name));
+
+    expect(names.has("Productive Failures")).toBe(true);
+    expect(names.has("Unprocessed Failures")).toBe(true);
+  });
+
+  it("omits frequent-death-type pattern when no type dominates", () => {
+    const entries: FalsifiedHypothesis[] = [
+      makeFalsifiedHypothesis({ id: "GY-TEST-001", deathType: "direct_falsification" }),
+      makeFalsifiedHypothesis({ id: "GY-TEST-002", deathType: "mechanism_failure" }),
+      makeFalsifiedHypothesis({ id: "GY-TEST-003", deathType: "effect_size_collapse" }),
+      makeFalsifiedHypothesis({ id: "GY-TEST-004", deathType: "superseded" }),
+      makeFalsifiedHypothesis({ id: "GY-TEST-005", deathType: "scope_reduction" }),
+    ];
+
+    const patterns = analyzeFailurePatterns(entries);
+    expect(patterns.some((p) => p.name.startsWith("Frequent "))).toBe(false);
   });
 
   it("returns empty patterns for empty array", () => {

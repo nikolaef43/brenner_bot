@@ -239,6 +239,11 @@ describe("getDescendants", () => {
     expect(descendants).toEqual([]);
   });
 
+  it("returns empty array for missing version id", () => {
+    const store = createHistoryStore();
+    expect(getDescendants(store, "NON-EXISTENT")).toEqual([]);
+  });
+
   it("returns all descendants breadth-first", () => {
     let store = createHistoryStore();
     const h = makeHypothesis("SESSION-1", 1);
@@ -284,6 +289,23 @@ describe("getLeaves", () => {
     const leaves = getLeaves(store1, version.id);
     expect(leaves).toHaveLength(1);
     expect(leaves[0].id).toBe(version.id);
+  });
+
+  it("returns leaves for all roots when versionId is omitted", () => {
+    let store = createHistoryStore();
+    const h1 = makeHypothesis("SESSION-1", 1);
+    const h2 = makeHypothesis("SESSION-1", 2);
+
+    const { store: s1, version: v1 } = addRootHypothesis(store, h1, "Root 1");
+    const { store: s2 } = addRootHypothesis(s1, h2, "Root 2");
+    const { store: s3, version: v2 } = evolveHypothesis(s2, v1.id, {}, "manual", "Evolve Root 1");
+
+    const leaves = getLeaves(s3);
+    const leafIds = new Set(leaves.map((v) => v.id));
+
+    expect(leaves).toHaveLength(2);
+    expect(leafIds.has(v2.id)).toBe(true);
+    expect(leafIds.has(h2.id)).toBe(true);
   });
 
   it("returns all leaf descendants", () => {
