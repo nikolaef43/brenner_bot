@@ -15,21 +15,87 @@ interface ReadingState {
   positions: Record<string, ReadingPosition>;
 }
 
+type UnknownRecord = Record<string, unknown>;
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function toFiniteNumber(value: unknown): number | null {
+  if (typeof value !== "number") return null;
+  if (!Number.isFinite(value)) return null;
+  return value;
+}
+
+function toFiniteNonNegativeInteger(value: unknown): number | null {
+  const n = toFiniteNumber(value);
+  if (n === null) return null;
+  if (n < 0) return null;
+  return Math.floor(n);
+}
+
+function sanitizeReadingPosition(value: unknown): ReadingPosition | null {
+  if (!isRecord(value)) return null;
+
+  const scrollOffset = toFiniteNumber(value.scrollOffset);
+  const activeSection = toFiniteNonNegativeInteger(value.activeSection);
+  const lastRead = toFiniteNumber(value.lastRead);
+
+  if (scrollOffset === null || scrollOffset < 0) return null;
+  if (activeSection === null) return null;
+  if (lastRead === null || lastRead < 0) return null;
+
+  return { scrollOffset, activeSection, lastRead };
+}
+
+function toNullProtoPositions(entries: Array<[string, ReadingPosition]>): Record<string, ReadingPosition> {
+  const out: Record<string, ReadingPosition> = Object.create(null);
+  for (const [key, value] of entries) {
+    out[key] = value;
+  }
+  return out;
+}
+
+function prunePositions(positions: Record<string, ReadingPosition>): Record<string, ReadingPosition> {
+  const entries = Object.entries(positions);
+  if (entries.length <= MAX_POSITIONS) return positions;
+
+  entries.sort((a, b) => b[1].lastRead - a[1].lastRead);
+  return toNullProtoPositions(entries.slice(0, MAX_POSITIONS));
+}
+
+function sanitizePositions(value: unknown): Record<string, ReadingPosition> {
+  if (!isRecord(value)) return Object.create(null);
+
+  const entries: Array<[string, ReadingPosition]> = [];
+  for (const [key, rawPos] of Object.entries(value)) {
+    const pos = sanitizeReadingPosition(rawPos);
+    if (!pos) continue;
+    entries.push([key, pos]);
+  }
+
+  entries.sort((a, b) => b[1].lastRead - a[1].lastRead);
+  return toNullProtoPositions(entries.slice(0, MAX_POSITIONS));
+}
+
 function loadInitialState(): ReadingState {
   if (typeof window === "undefined") {
-    return { positions: {} };
+    return { positions: Object.create(null) };
   }
 
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-      return JSON.parse(saved) as ReadingState;
+      const parsed = JSON.parse(saved) as unknown;
+      if (isRecord(parsed)) {
+        return { positions: sanitizePositions(parsed.positions) };
+      }
     }
   } catch {
     // Ignore parse errors
   }
 
-  return { positions: {} };
+  return { positions: Object.create(null) };
 }
 
 export const readingStore = new Store<ReadingState>(loadInitialState());
@@ -70,16 +136,18 @@ if (typeof window !== "undefined") {
     window.removeEventListener("storage", previousStorageHandler as (e: StorageEvent) => void);
   }
 
-  const storageHandler = (e: StorageEvent) => {
-    if (e.key === STORAGE_KEY && e.newValue) {
-      try {
-        const newState = JSON.parse(e.newValue) as ReadingState;
-        readingStore.setState(() => newState);
-      } catch {
-        // Ignore parse errors
-      }
-    }
-  };
+	  const storageHandler = (e: StorageEvent) => {
+	    if (e.key === STORAGE_KEY && e.newValue) {
+	      try {
+	        const parsed = JSON.parse(e.newValue) as unknown;
+	        if (isRecord(parsed)) {
+	          readingStore.setState(() => ({ positions: sanitizePositions(parsed.positions) }));
+	        }
+	      } catch {
+	        // Ignore parse errors
+	      }
+	    }
+	  };
 
   window.addEventListener("storage", storageHandler);
   (globalThis as unknown as Record<string, unknown>)[GLOBAL_STORAGE_HANDLER_KEY] = storageHandler;
@@ -92,24 +160,14 @@ export function saveReadingPosition(
   activeSection: number
 ): void {
   readingStore.setState((state) => {
-    const newPositions = {
-      ...state.positions,
-      [docId]: {
-        scrollOffset,
-        activeSection,
-        lastRead: Date.now(),
-      },
+    const newPositions = toNullProtoPositions(Object.entries(state.positions));
+    newPositions[docId] = {
+      scrollOffset,
+      activeSection,
+      lastRead: Date.now(),
     };
 
-    // Prune old positions if we exceed the limit
-    const entries = Object.entries(newPositions);
-    if (entries.length > MAX_POSITIONS) {
-      entries.sort((a, b) => b[1].lastRead - a[1].lastRead);
-      const pruned = Object.fromEntries(entries.slice(0, MAX_POSITIONS));
-      return { positions: pruned };
-    }
-
-    return { positions: newPositions };
+    return { positions: prunePositions(newPositions) };
   });
 }
 
@@ -119,10 +177,10 @@ export function getReadingPosition(docId: string): ReadingPosition | null {
 
 export function clearReadingPosition(docId: string): void {
   readingStore.setState((state) => {
-    const positions = Object.fromEntries(
+    const positions = toNullProtoPositions(
       Object.entries(state.positions).filter(([key]) => key !== docId)
     );
-    return { positions };
+    return { positions: prunePositions(positions) };
   });
 }
 

@@ -1908,6 +1908,14 @@ function loadOperatorCardsFromProject(projectKey: string): OperatorCard[] {
 // Session Data Builder (for scoring)
 // ============================================================================
 
+function toNullProtoRecord<V>(entries: Array<[string, V]>): Record<string, V> {
+  const out: Record<string, V> = Object.create(null);
+  for (const [key, value] of entries) {
+    out[key] = value;
+  }
+  return out;
+}
+
 /**
  * Build SessionData from storage for scoring.
  * Maps storage types to Artifact sections expected by scoreSession().
@@ -1937,17 +1945,17 @@ async function buildSessionDataFromStorage(sessionId: string, baseDir: string): 
     anchors: h.anchors ?? [],
   }));
 
-  const discriminativeTests = tests.map((t) => ({
-    id: t.id,
-    name: t.name,
-    procedure: t.procedure,
-    discriminates: t.discriminates.join(", "),
-    expected_outcomes: Object.fromEntries(t.expectedOutcomes.map((o) => [o.hypothesisId, o.outcome])),
-    potency_check: t.potencyCheck?.positiveControl ?? "",
-    feasibility: t.feasibility ? `${t.feasibility.difficulty}: ${t.feasibility.requirements}` : "",
-    status: t.status === "completed" ? ("passed" as const) : (t.status as "untested" | "passed" | "failed" | "blocked" | "error"),
-    score: {
-      likelihood_ratio: t.evidencePerWeekScore.likelihoodRatio,
+	  const discriminativeTests = tests.map((t) => ({
+	    id: t.id,
+	    name: t.name,
+	    procedure: t.procedure,
+	    discriminates: t.discriminates.join(", "),
+	    expected_outcomes: toNullProtoRecord(t.expectedOutcomes.map((o) => [o.hypothesisId, o.outcome])),
+	    potency_check: t.potencyCheck?.positiveControl ?? "",
+	    feasibility: t.feasibility ? `${t.feasibility.difficulty}: ${t.feasibility.requirements}` : "",
+	    status: t.status === "completed" ? ("passed" as const) : (t.status as "untested" | "passed" | "failed" | "blocked" | "error"),
+	    score: {
+	      likelihood_ratio: t.evidencePerWeekScore.likelihoodRatio,
       cost: t.evidencePerWeekScore.cost,
       speed: t.evidencePerWeekScore.speed,
       ambiguity: t.evidencePerWeekScore.ambiguity,
