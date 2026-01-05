@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
 import { searchAction } from "@/lib/globalSearchAction";
 import { createBasketItem, useExcerptBasket } from "@/components/excerpt";
+import { toggleThemePreference } from "@/lib/theme";
 import {
   type GlobalSearchResult,
   type GlobalSearchHit,
@@ -90,10 +91,7 @@ export function SpotlightSearch({
   const [isCheatsheetOpen, setIsCheatsheetOpen] = React.useState(false);
 
   const toggleTheme = React.useCallback(() => {
-    const isDark = document.documentElement.classList.contains("dark");
-    const nextTheme = isDark ? "light" : "dark";
-    document.documentElement.classList.toggle("dark", !isDark);
-    localStorage.setItem("theme", nextTheme);
+    toggleThemePreference();
   }, []);
 
   const sessionId = React.useMemo(() => {

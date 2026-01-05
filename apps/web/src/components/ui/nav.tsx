@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { useThemePreference } from "@/lib/theme"
 
 // Icons
 const HomeIcon = () => (
@@ -437,24 +438,7 @@ export function useTableOfContents(contentRef: React.RefObject<HTMLElement | nul
 
 // Theme Toggle
 export function ThemeToggle({ className }: { className?: string }) {
-  const [theme, setTheme] = React.useState<"light" | "dark">("light")
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-    const stored = localStorage.getItem("theme")
-    if (stored === "dark" || (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
-      setTheme("dark")
-      document.documentElement.classList.add("dark")
-    }
-  }, [])
-
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light"
-    setTheme(newTheme)
-    localStorage.setItem("theme", newTheme)
-    document.documentElement.classList.toggle("dark")
-  }
+  const { theme, mounted, toggleTheme } = useThemePreference()
 
   if (!mounted) {
     return <div className="size-10" /> // Placeholder to prevent layout shift

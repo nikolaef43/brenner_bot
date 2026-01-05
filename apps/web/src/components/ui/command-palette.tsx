@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { toggleThemePreference } from "@/lib/theme";
 
 // Icons
 const SearchIcon = () => (
@@ -65,14 +66,7 @@ export function CommandPalette() {
   const router = useRouter();
 
   const toggleTheme = React.useCallback(() => {
-    const isDark = document.documentElement.classList.contains("dark");
-    if (isDark) {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    } else {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    }
+    toggleThemePreference();
   }, []);
 
   const commands: CommandItem[] = React.useMemo(
