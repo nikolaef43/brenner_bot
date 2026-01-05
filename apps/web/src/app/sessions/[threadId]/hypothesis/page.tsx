@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import type { Quote } from "@/lib/quotebank-parser";
+import { BrennerQuoteSidebar } from "@/components/brenner-loop/operators/BrennerQuoteSidebar";
 import {
   Tooltip,
   TooltipContent,
@@ -29,6 +31,12 @@ import {
   CollapsibleTrigger,
   CollapsibleContent,
 } from "@/components/ui/collapsible";
+import { loadEmbeddings, type EmbeddingEntry } from "@/lib/brenner-loop/search/embeddings";
+import {
+  buildQuoteQueryText,
+  filterQuoteEntriesByTags,
+  findSimilarQuotes,
+} from "@/lib/brenner-loop/search/quote-matcher";
 import { recordSessionResumeEntry } from "@/lib/brenner-loop";
 
 // ============================================================================
@@ -94,6 +102,21 @@ const SparklesIcon = ({ className }: { className?: string }) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
   </svg>
 );
+
+// ============================================================================
+// Brenner Quote Search Helpers
+// ============================================================================
+
+const HYPOTHESIS_PHASE_QUOTE_TAGS = [
+  "mechanism",
+  "prediction",
+  "falsification",
+  "measurement",
+  "bias-to-experiment",
+  "anti-planning",
+  "confounds",
+  "bridging-levels",
+] as const;
 
 // ============================================================================
 // Confidence Bar
@@ -290,6 +313,10 @@ export default function HypothesisPage() {
   const [structureOpen, setStructureOpen] = React.useState(true);
   const [historyOpen, setHistoryOpen] = React.useState(false);
 
+  const [quoteEntries, setQuoteEntries] = React.useState<EmbeddingEntry[] | null>(null);
+  const [semanticQuotes, setSemanticQuotes] = React.useState<Quote[]>([]);
+  const [quoteError, setQuoteError] = React.useState<string | null>(null);
+
   // Mock data - in real implementation, this would come from the session context
   const hypothesis = {
     id: "hyp-001",
@@ -313,6 +340,60 @@ export default function HypothesisPage() {
     createdAt: new Date("2024-01-15"),
     updatedAt: new Date("2024-01-20"),
   };
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const index = await loadEmbeddings();
+        if (cancelled) return;
+        setQuoteEntries(index.entries.filter((entry) => entry.source === "quote"));
+      } catch (e) {
+        if (cancelled) return;
+        setQuoteError(e instanceof Error ? e.message : "Failed to load embeddings.");
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const quoteQuery = React.useMemo(() => {
+    return buildQuoteQueryText([
+      "Hypothesis",
+      hypothesis.statement,
+      hypothesis.mechanism,
+      hypothesis.domain.join(", "),
+      hypothesis.predictionsIfTrue.join("\n"),
+      hypothesis.predictionsIfFalse.join("\n"),
+      hypothesis.impossibleIfTrue.join("\n"),
+      ...HYPOTHESIS_PHASE_QUOTE_TAGS,
+    ]);
+  }, [hypothesis.domain, hypothesis.impossibleIfTrue, hypothesis.mechanism, hypothesis.predictionsIfFalse, hypothesis.predictionsIfTrue, hypothesis.statement]);
+
+  React.useEffect(() => {
+    if (!quoteEntries || quoteEntries.length === 0) return;
+    if (!quoteQuery) return;
+
+    setQuoteError(null);
+
+    const candidates = filterQuoteEntriesByTags(quoteEntries, [...HYPOTHESIS_PHASE_QUOTE_TAGS]);
+
+    const timer = setTimeout(() => {
+      try {
+        setSemanticQuotes(findSimilarQuotes(quoteQuery, candidates, 3));
+      } catch (e) {
+        setQuoteError(e instanceof Error ? e.message : "Failed to compute quote matches.");
+        setSemanticQuotes([]);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [quoteEntries, quoteQuery]);
 
   const evolutionEvents: EvolutionEvent[] = [
     { id: "ev-1", type: "created", description: "Hypothesis created", timestamp: new Date("2024-01-15T10:00:00"), confidence: 50 },
@@ -541,6 +622,37 @@ export default function HypothesisPage() {
 
           {/* Right Column - Sidebar */}
           <div className="space-y-6">
+            {/* Brenner quote sidebar */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15 }}
+            >
+              {/* Desktop */}
+              <div className="hidden lg:block">
+                {quoteError && (
+                  <div className="mb-2 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+                    {quoteError}
+                  </div>
+                )}
+                <BrennerQuoteSidebar quotes={semanticQuotes} currentStepId="hypothesis" />
+              </div>
+
+              {/* Mobile/tablet */}
+              <div className="lg:hidden">
+                {quoteError && (
+                  <div className="mb-2 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+                    {quoteError}
+                  </div>
+                )}
+                <BrennerQuoteSidebar
+                  quotes={semanticQuotes}
+                  currentStepId="hypothesis"
+                  defaultCollapsed
+                />
+              </div>
+            </motion.div>
+
             {/* Confidence Card */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}

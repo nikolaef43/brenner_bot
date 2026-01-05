@@ -22,10 +22,14 @@ import { Input } from "@/components/ui/input";
 import type { Quote } from "@/lib/quotebank-parser";
 import { BrennerQuoteSidebar } from "@/components/brenner-loop/operators/BrennerQuoteSidebar";
 import {
-  findSimilar,
   loadEmbeddings,
   type EmbeddingEntry,
 } from "@/lib/brenner-loop/search/embeddings";
+import {
+  buildQuoteQueryText,
+  filterQuoteEntriesByTags,
+  findSimilarQuotes,
+} from "@/lib/brenner-loop/search/quote-matcher";
 import { recordSessionResumeEntry } from "@/lib/brenner-loop";
 
 // ============================================================================
@@ -67,49 +71,6 @@ const OPERATOR_QUOTE_TAG: Record<string, string> = {
   object_transpose: "object-transpose",
   scale_check: "scale-check",
 };
-
-function parseEmbeddedQuoteText(text: string): Pick<Quote, "quote" | "context" | "tags"> {
-  const tags: string[] = [];
-  const tagsLine = text.match(/^Tags:\s*(.+)$/m)?.[1];
-  if (tagsLine) {
-    for (const match of tagsLine.matchAll(/`([^`]+)`/g)) {
-      const tag = match[1]?.trim();
-      if (tag && !tags.includes(tag)) tags.push(tag);
-    }
-  }
-
-  const contextMatch = text.match(/(?:Takeaway|Why it matters):\s*([\s\S]*?)(?:\n\s*Tags:|$)/m);
-  const context = contextMatch?.[1]?.trim().replace(/\s+/g, " ") ?? "";
-
-  const quote = text
-    .split(/\n(?:Takeaway|Why it matters):/i)[0]
-    ?.trim()
-    .replace(/\s+/g, " ") ?? "";
-
-  return { quote, context, tags };
-}
-
-function titleCaseFromTag(tag: string): string {
-  return tag
-    .replace(/[_-]+/g, " ")
-    .trim()
-    .split(/\s+/)
-    .map((w) => (w.length > 0 ? w[0]!.toUpperCase() + w.slice(1) : w))
-    .join(" ");
-}
-
-function quoteFromEmbedding(entry: EmbeddingEntry): Quote {
-  const sectionId = typeof entry.section === "number" ? `§${entry.section}` : "§?";
-  const parsed = parseEmbeddedQuoteText(entry.text);
-  const title = parsed.tags.length > 0 ? titleCaseFromTag(parsed.tags[0]!) : "Quote Bank";
-  return {
-    sectionId,
-    title,
-    quote: parsed.quote,
-    context: parsed.context,
-    tags: parsed.tags,
-  };
-}
 
 // ============================================================================
 // Operator Configuration
@@ -419,18 +380,15 @@ export default function OperatorsPage() {
   }, []);
 
   const quoteQuery = React.useMemo(() => {
-    const operatorTag = OPERATOR_QUOTE_TAG[activeOperator];
     const opValues = Object.values(operatorValues[activeOperator] || {}).join("\n");
 
-    return [
+    return buildQuoteQueryText([
       currentOperator?.name,
-      operatorTag,
+      OPERATOR_QUOTE_TAG[activeOperator],
       hypothesisStatement,
       hypothesisMechanism,
       opValues,
-    ]
-      .filter((v) => typeof v === "string" && v.trim().length > 0)
-      .join("\n");
+    ]);
   }, [activeOperator, currentOperator, hypothesisMechanism, hypothesisStatement, operatorValues]);
 
   React.useEffect(() => {
@@ -440,14 +398,11 @@ export default function OperatorsPage() {
     setQuoteError(null);
 
     const operatorTag = OPERATOR_QUOTE_TAG[activeOperator];
-    const tagged =
-      operatorTag ? quoteEntries.filter((entry) => entry.text.includes(`\`${operatorTag}\``)) : [];
-    const candidates = tagged.length > 0 ? tagged : quoteEntries;
+    const candidates = filterQuoteEntriesByTags(quoteEntries, operatorTag ? [operatorTag] : []);
 
     const timer = setTimeout(() => {
       try {
-        const matches = findSimilar(quoteQuery, candidates, 3);
-        setSemanticQuotes(matches.map(quoteFromEmbedding));
+        setSemanticQuotes(findSimilarQuotes(quoteQuery, candidates, 3));
       } catch (e) {
         setQuoteError(e instanceof Error ? e.message : "Failed to compute quote matches.");
         setSemanticQuotes([]);
