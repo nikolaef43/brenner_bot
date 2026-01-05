@@ -20,6 +20,7 @@ import { parseDeltaMessage, type ValidDelta } from "@/lib/delta-parser";
 import type { Metadata } from "next";
 import { LocalSessionHub } from "./LocalSessionHub";
 import { AgentTribunalPanel } from "@/components/brenner-loop/agents/AgentTribunalPanel";
+import { ObjectionRegisterPanel } from "@/components/brenner-loop/agents/ObjectionRegisterPanel";
 
 export const metadata: Metadata = {
   title: "Session",
@@ -394,7 +395,11 @@ export default async function SessionDetailPage({
           <AgentTribunalPanel messages={messagesSorted} />
         </section>
 
-        <section className="space-y-4 animate-fade-in-up stagger-2">
+        <section className="animate-fade-in-up stagger-2">
+          <ObjectionRegisterPanel threadId={threadId} messages={messagesSorted} />
+        </section>
+
+        <section className="space-y-4 animate-fade-in-up stagger-3">
           <h2 className="text-lg font-semibold text-foreground">Thread Messages</h2>
           <div className="space-y-3">
             {messagesSorted.length === 0 ? (

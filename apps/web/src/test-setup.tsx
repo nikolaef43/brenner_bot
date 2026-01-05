@@ -10,6 +10,28 @@
 import "@testing-library/jest-dom/vitest";
 import { vi } from "vitest";
 
+// ---------------------------------------------------------------------------
+// happy-dom polyfills
+// ---------------------------------------------------------------------------
+
+// Radix Select relies on pointer capture APIs; happy-dom doesn't implement them (yet).
+// Provide no-op implementations to keep unit tests deterministic.
+const elementProto = HTMLElement.prototype as unknown as {
+  hasPointerCapture?: (pointerId: number) => boolean;
+  setPointerCapture?: (pointerId: number) => void;
+  releasePointerCapture?: (pointerId: number) => void;
+};
+
+if (typeof elementProto.hasPointerCapture !== "function") {
+  elementProto.hasPointerCapture = () => false;
+}
+if (typeof elementProto.setPointerCapture !== "function") {
+  elementProto.setPointerCapture = () => {};
+}
+if (typeof elementProto.releasePointerCapture !== "function") {
+  elementProto.releasePointerCapture = () => {};
+}
+
 // Animation props used by framer-motion that should be stripped in tests
 const ANIMATION_PROPS = new Set([
   "initial",
