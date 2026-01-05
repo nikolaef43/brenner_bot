@@ -297,24 +297,24 @@ export default function MultiAgentPage() {
       {/* CTA */}
       <section className="py-8 px-4 sm:px-0">
         <div className="max-w-xl mx-auto text-center space-y-6 p-8 rounded-2xl border border-destructive/30 bg-gradient-to-br from-destructive/5 via-destructive/10 to-accent/5">
-          <h3 className="text-xl font-semibold">Coming Soon</h3>
+          <h3 className="text-xl font-semibold">Ready to Begin?</h3>
           <p className="text-sm text-muted-foreground">
-            The full multi-agent orchestration tutorial is under active development.
-            Start with Quick Start or Agent-Assisted to learn the fundamentals first.
+            This advanced path requires infrastructure setup. Make sure you have the prerequisites
+            above before starting. If you&apos;re new to Brenner-style research, try Quick Start first.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
-              href="/tutorial/quick-start"
-              className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] touch-manipulation"
+              href="/tutorial/multi-agent/1"
+              className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-destructive text-destructive-foreground font-medium shadow-lg shadow-destructive/25 hover:shadow-xl hover:shadow-destructive/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] touch-manipulation"
             >
-              Start with Quick Start
+              Start Multi-Agent Tutorial
               <ArrowRightIcon />
             </Link>
             <Link
-              href="/tutorial/agent-assisted"
+              href="/tutorial/quick-start"
               className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-border bg-card text-foreground font-medium shadow-sm hover:shadow-md hover:border-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] touch-manipulation"
             >
-              Try Agent-Assisted
+              Try Quick Start First
               <ArrowRightIcon />
             </Link>
           </div>
