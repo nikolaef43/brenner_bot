@@ -9,6 +9,7 @@ import {
   computeThreadStatus,
   parseSubjectType,
   extractVersion,
+  inferRoleFromProgram,
   formatThreadStatusSummary,
   threadNeedsAttention,
   getPendingRoles,
@@ -135,6 +136,26 @@ describe("parseSubjectType", () => {
     expect(result.type).toBe("unknown");
   });
 
+  it("parses HANDOFF subjects", () => {
+    const result = parseSubjectType("HANDOFF: Passing work to next agent");
+    expect(result.type).toBe("handoff");
+  });
+
+  it("parses BLOCKED subjects", () => {
+    const result = parseSubjectType("BLOCKED: Waiting for resource access");
+    expect(result.type).toBe("blocked");
+  });
+
+  it("parses QUESTION subjects", () => {
+    const result = parseSubjectType("QUESTION: Need clarification on H2");
+    expect(result.type).toBe("question");
+  });
+
+  it("parses INFO subjects", () => {
+    const result = parseSubjectType("INFO: Background context for session");
+    expect(result.type).toBe("info");
+  });
+
   it("is case-insensitive for prefixes", () => {
     expect(parseSubjectType("kickoff: test").type).toBe("kickoff");
     expect(parseSubjectType("DELTA[OPUS]: test").type).toBe("delta");
@@ -160,6 +181,41 @@ describe("extractVersion", () => {
 
   it("extracts first version number", () => {
     expect(extractVersion("COMPILED: v2 (prev v1)")).toBe(2);
+  });
+});
+
+// ============================================================================
+// inferRoleFromProgram Tests
+// ============================================================================
+
+describe("inferRoleFromProgram", () => {
+  it("returns null for undefined program", () => {
+    expect(inferRoleFromProgram(undefined)).toBeNull();
+  });
+
+  it("returns null for empty string", () => {
+    expect(inferRoleFromProgram("")).toBeNull();
+  });
+
+  it("returns test_designer for claude/opus programs", () => {
+    expect(inferRoleFromProgram("claude-code")).toBe("test_designer");
+    expect(inferRoleFromProgram("claude-3")).toBe("test_designer");
+    expect(inferRoleFromProgram("opus-4.5")).toBe("test_designer");
+  });
+
+  it("returns hypothesis_generator for codex/gpt programs", () => {
+    expect(inferRoleFromProgram("codex-cli")).toBe("hypothesis_generator");
+    expect(inferRoleFromProgram("gpt-5.2")).toBe("hypothesis_generator");
+  });
+
+  it("returns adversarial_critic for gemini programs", () => {
+    expect(inferRoleFromProgram("gemini-cli")).toBe("adversarial_critic");
+    expect(inferRoleFromProgram("gemini-3")).toBe("adversarial_critic");
+  });
+
+  it("returns null for unknown programs", () => {
+    expect(inferRoleFromProgram("custom-agent")).toBeNull();
+    expect(inferRoleFromProgram("unknown")).toBeNull();
   });
 });
 
@@ -512,6 +568,88 @@ describe("formatThreadStatusSummary", () => {
     expect(summary).toContain("hypothesis_generator");
     expect(summary).toContain("CodexAgent");
   });
+
+  it("handles null threadId gracefully", () => {
+    const status: ThreadStatus = {
+      threadId: null,
+      phase: "not_started",
+      isComplete: false,
+      roles: {
+        hypothesis_generator: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
+        test_designer: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
+        adversarial_critic: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
+      },
+      acks: { pendingAcks: [], pendingCount: 0, awaitingFrom: [] },
+      latestArtifact: null,
+      kickoff: null,
+      messageCount: 0,
+      round: 0,
+      deltasInCurrentRound: 0,
+      critiquesInCurrentRound: 0,
+      stats: { totalDeltas: 0, totalCritiques: 0, totalAcks: 0, participants: [] },
+    };
+
+    const summary = formatThreadStatusSummary(status);
+    expect(summary).toContain("(no thread)");
+  });
+
+  it("includes round info when round > 0", () => {
+    const messages: AgentMailMessage[] = [
+      createMessage({
+        subject: "KICKOFF: Test session",
+        from: "Operator",
+        thread_id: "RS-test",
+        created_ts: "2025-12-30T10:00:00Z",
+      }),
+      createMessage({
+        subject: "COMPILED: v1",
+        from: "Operator",
+        thread_id: "RS-test",
+        created_ts: "2025-12-30T10:05:00Z",
+      }),
+      createMessage({
+        subject: "DELTA[gpt]: New hypotheses",
+        from: "CodexAgent",
+        thread_id: "RS-test",
+        created_ts: "2025-12-30T10:10:00Z",
+      }),
+      createMessage({
+        subject: "CRITIQUE: Issues with H2",
+        from: "GeminiAgent",
+        thread_id: "RS-test",
+        created_ts: "2025-12-30T10:15:00Z",
+      }),
+    ];
+
+    const status = computeThreadStatus(messages);
+    const summary = formatThreadStatusSummary(status);
+
+    expect(summary).toContain("Round 1");
+    expect(summary).toContain("1 new deltas");
+    expect(summary).toContain("1 critiques");
+  });
+
+  it("handles artifact without version", () => {
+    const messages: AgentMailMessage[] = [
+      createMessage({
+        subject: "KICKOFF: Test session",
+        from: "Operator",
+        thread_id: "RS-test",
+        created_ts: "2025-12-30T10:00:00Z",
+      }),
+      createMessage({
+        subject: "COMPILED: Final artifact without version",
+        from: "Operator",
+        thread_id: "RS-test",
+        created_ts: "2025-12-30T10:05:00Z",
+      }),
+    ];
+
+    const status = computeThreadStatus(messages);
+    const summary = formatThreadStatusSummary(status);
+
+    expect(summary).toContain("Compiled artifact: latest");
+  });
 });
 
 describe("threadNeedsAttention", () => {
@@ -556,6 +694,52 @@ describe("threadNeedsAttention", () => {
       deltasInCurrentRound: 0,
       critiquesInCurrentRound: 0,
       stats: { totalDeltas: 3, totalCritiques: 0, totalAcks: 0, participants: [] },
+    };
+
+    expect(threadNeedsAttention(status)).toBe(false);
+  });
+
+  it("returns false for closed threads", () => {
+    const status: ThreadStatus = {
+      threadId: "test",
+      phase: "closed",
+      isComplete: true,
+      roles: {
+        hypothesis_generator: { completed: true, contributors: ["A"], latestDelta: null, lastUpdated: null },
+        test_designer: { completed: true, contributors: ["B"], latestDelta: null, lastUpdated: null },
+        adversarial_critic: { completed: true, contributors: ["C"], latestDelta: null, lastUpdated: null },
+      },
+      acks: { pendingAcks: [], pendingCount: 0, awaitingFrom: [] },
+      latestArtifact: null,
+      kickoff: null,
+      messageCount: 5,
+      round: 1,
+      deltasInCurrentRound: 0,
+      critiquesInCurrentRound: 0,
+      stats: { totalDeltas: 3, totalCritiques: 0, totalAcks: 0, participants: [] },
+    };
+
+    expect(threadNeedsAttention(status)).toBe(false);
+  });
+
+  it("returns false for not_started threads", () => {
+    const status: ThreadStatus = {
+      threadId: "test",
+      phase: "not_started",
+      isComplete: false,
+      roles: {
+        hypothesis_generator: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
+        test_designer: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
+        adversarial_critic: { completed: false, contributors: [], latestDelta: null, lastUpdated: null },
+      },
+      acks: { pendingAcks: [], pendingCount: 0, awaitingFrom: [] },
+      latestArtifact: null,
+      kickoff: null,
+      messageCount: 0,
+      round: 0,
+      deltasInCurrentRound: 0,
+      critiquesInCurrentRound: 0,
+      stats: { totalDeltas: 0, totalCritiques: 0, totalAcks: 0, participants: [] },
     };
 
     expect(threadNeedsAttention(status)).toBe(false);

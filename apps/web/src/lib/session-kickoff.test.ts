@@ -27,6 +27,16 @@ describe("session-kickoff", () => {
       expect(getAgentRole("GreenValley gemini-cli").role).toBe("adversarial_critic");
     });
 
+    it("matches gpt keyword in agent name", () => {
+      expect(getAgentRole("gpt-agent").role).toBe("hypothesis_generator");
+      expect(getAgentRole("custom-gpt-helper").role).toBe("hypothesis_generator");
+    });
+
+    it("matches claude keyword in agent name", () => {
+      expect(getAgentRole("claude-assistant").role).toBe("test_designer");
+      expect(getAgentRole("my-claude-bot").role).toBe("test_designer");
+    });
+
     it("falls back to DEFAULT_ROLE for unknown names without hints", () => {
       expect(getAgentRole("BlueLake").role).toBe(DEFAULT_ROLE.role);
     });
@@ -165,6 +175,35 @@ describe("session-kickoff", () => {
       expect(msg.subject).toContain("[RS-20251231-demo]");
     });
 
+    it("uses test_designer default requested outputs for Opus role", () => {
+      const [msg] = composeKickoffMessages({
+        threadId: "RS-20251231-demo",
+        researchQuestion: "How does X behave under Y?",
+        context: "Minimal context.",
+        excerpt: "§1: excerpt",
+        recipients: ["Opus"],
+      });
+
+      expect(msg.body).toContain("## Requested Outputs");
+      expect(msg.body).toContain("discriminative tests");
+      expect(msg.body).toContain("potency check");
+    });
+
+    it("uses adversarial_critic default requested outputs for Gemini role", () => {
+      const [msg] = composeKickoffMessages({
+        threadId: "RS-20251231-demo",
+        researchQuestion: "How does X behave under Y?",
+        context: "Minimal context.",
+        excerpt: "§1: excerpt",
+        recipients: ["Gemini"],
+      });
+
+      expect(msg.body).toContain("## Requested Outputs");
+      expect(msg.body).toContain("Scale checks");
+      expect(msg.body).toContain("anomaly quarantine");
+      expect(msg.body).toContain("third alternative critique");
+    });
+
     it("uses requestedOutputs when provided", () => {
       const [msg] = composeKickoffMessages({
         threadId: "RS-20251231-demo",
@@ -214,6 +253,38 @@ describe("session-kickoff", () => {
       expect(unified.body).toContain("## Constraints");
       expect(unified.body).toContain("## Requested Outputs");
       expect(unified.body).toContain("Custom output");
+    });
+
+    it("includes operator selection section when provided", () => {
+      const unified = composeUnifiedKickoff({
+        threadId: "RS-20251231-demo",
+        researchQuestion: "How does X behave under Y?",
+        context: "Minimal context.",
+        excerpt: "§1: excerpt",
+        recipients: ["Codex"],
+        operatorSelection: {
+          hypothesis_generator: ["⊘ Level-Split"],
+          test_designer: ["✂ Exclusion-Test"],
+          adversarial_critic: [],
+        },
+      });
+
+      expect(unified.body).toContain("## ROLE OPERATOR ASSIGNMENTS");
+      expect(unified.body).toContain("Hypothesis Generator: ⊘ Level-Split");
+      expect(unified.body).toContain("Test Designer: ✂ Exclusion-Test");
+    });
+
+    it("truncates subject when researchQuestion is long", () => {
+      const long = "y".repeat(61);
+      const unified = composeUnifiedKickoff({
+        threadId: "RS-20251231-demo",
+        researchQuestion: long,
+        context: "Minimal context.",
+        excerpt: "§1: excerpt",
+        recipients: ["Codex"],
+      });
+
+      expect(unified.subject.endsWith("...")).toBe(true);
     });
   });
 });

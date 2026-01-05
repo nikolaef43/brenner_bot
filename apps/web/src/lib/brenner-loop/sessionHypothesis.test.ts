@@ -184,6 +184,29 @@ describe("getActiveHypotheses", () => {
 
     expect(active.some(h => h.id === archivedId)).toBe(false);
   });
+
+  it("should return only alternatives when no primary", () => {
+    const session = createSessionWithMultipleHypotheses();
+    session.primaryHypothesisId = ""; // No primary
+
+    const active = getActiveHypotheses(session);
+
+    expect(active).toHaveLength(2); // Only alternatives
+    expect(active.some(h => h.id === session.alternativeHypothesisIds[0])).toBe(true);
+    expect(active.some(h => h.id === session.alternativeHypothesisIds[1])).toBe(true);
+  });
+
+  it("should skip alternatives not in hypothesisCards", () => {
+    const session = createSessionWithMultipleHypotheses();
+    // Add a dangling reference
+    session.alternativeHypothesisIds.push("orphaned-id");
+
+    const active = getActiveHypotheses(session);
+
+    // Should only include the valid ones
+    expect(active).toHaveLength(3);
+    expect(active.some(h => h.id === "orphaned-id")).toBe(false);
+  });
 });
 
 describe("hasThirdAlternative", () => {
@@ -227,6 +250,15 @@ describe("setPrimaryHypothesis", () => {
     expect(updated.primaryHypothesisId).toBe(altId);
     expect(updated.alternativeHypothesisIds).toContain(oldPrimaryId);
     expect(updated.alternativeHypothesisIds).not.toContain(altId);
+  });
+
+  it("should return session unchanged when already primary", () => {
+    const session = createSessionWithMultipleHypotheses();
+    const primaryId = session.primaryHypothesisId;
+
+    const updated = setPrimaryHypothesis(session, primaryId);
+
+    expect(updated).toBe(session); // Same reference
   });
 
   it("should throw if hypothesis not found", () => {
@@ -356,6 +388,24 @@ describe("resolveCompetition", () => {
       resolveCompetition(session, winnerId, archivedId, "Test")
     ).toThrow("already archived");
   });
+
+  it("should throw if winner not found", () => {
+    const session = createSessionWithMultipleHypotheses();
+    const loserId = session.alternativeHypothesisIds[0];
+
+    expect(() =>
+      resolveCompetition(session, "unknown-winner", loserId, "Test")
+    ).toThrow("Winner hypothesis");
+  });
+
+  it("should throw if loser not found", () => {
+    const session = createSessionWithMultipleHypotheses();
+    const winnerId = session.primaryHypothesisId;
+
+    expect(() =>
+      resolveCompetition(session, winnerId, "unknown-loser", "Test")
+    ).toThrow("Loser hypothesis");
+  });
 });
 
 describe("archiveHypothesis", () => {
@@ -386,6 +436,23 @@ describe("archiveHypothesis", () => {
     expect(() =>
       archiveHypothesis(session, session.primaryHypothesisId, "Test")
     ).toThrow("Cannot archive the only active hypothesis");
+  });
+
+  it("should return session unchanged if already archived", () => {
+    const session = createSessionWithMultipleHypotheses();
+    const archivedId = session.archivedHypothesisIds[0];
+
+    const updated = archiveHypothesis(session, archivedId, "Test");
+
+    expect(updated).toBe(session); // Same reference
+  });
+
+  it("should throw if hypothesis is orphaned", () => {
+    const session = createSessionWithMultipleHypotheses();
+
+    expect(() =>
+      archiveHypothesis(session, "orphaned-id", "Test")
+    ).toThrow("not found in session");
   });
 });
 
@@ -430,6 +497,44 @@ describe("getRelatedHypotheses", () => {
     expect(related.alternatives).toContain(session.primaryHypothesisId);
     expect(related.alternatives).toContain(session.alternativeHypothesisIds[1]);
     expect(related.alternatives).not.toContain(altId);
+  });
+
+  it("should return empty alternatives for archived hypothesis", () => {
+    const session = createSessionWithMultipleHypotheses();
+    const archivedId = session.archivedHypothesisIds[0];
+
+    const related = getRelatedHypotheses(session, archivedId);
+
+    expect(related.alternatives).toHaveLength(0);
+  });
+
+  it("should return empty alternatives for orphaned hypothesis", () => {
+    const session = createSessionWithMultipleHypotheses();
+
+    const related = getRelatedHypotheses(session, "orphaned-id");
+
+    expect(related.alternatives).toHaveLength(0);
+  });
+
+  it("should return ancestors and descendants from evolution links", () => {
+    const session = createTestSession();
+    const primaryId = session.primaryHypothesisId;
+
+    // Create a competing hypothesis (establishes evolution link)
+    const result = addCompetingHypothesis(session, primaryId, {
+      statement: "Competing hypothesis - statement long enough",
+      mechanism: "Competing mechanism - long enough",
+      predictionsIfTrue: ["Prediction"],
+      impossibleIfTrue: ["Falsification"],
+    });
+
+    // Check the new hypothesis has the primary as ancestor
+    const relatedNew = getRelatedHypotheses(result.session, result.hypothesis.id);
+    expect(relatedNew.ancestors).toContain(primaryId);
+
+    // Check the primary has the new one as descendant
+    const relatedPrimary = getRelatedHypotheses(result.session, primaryId);
+    expect(relatedPrimary.descendants).toContain(result.hypothesis.id);
   });
 });
 
