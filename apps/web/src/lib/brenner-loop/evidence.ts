@@ -160,21 +160,35 @@ export interface TestDescription {
 }
 
 // ============================================================================
-// EvidenceEntry Interface
+// EvidenceEntry Interface (Comprehensive Version)
 // ============================================================================
 
 /**
- * A record of evidence collected during hypothesis testing.
+ * A COMPREHENSIVE record of evidence collected during hypothesis testing.
  *
- * Each EvidenceEntry captures:
- * - The test that was performed
+ * **IMPORTANT**: This is the FULL evidence interface with complete audit trails.
+ * It is exported as `FullEvidenceEntry` from the brenner-loop module to
+ * distinguish it from the simplified `EvidenceEntry` in `types.ts`.
+ *
+ * **Why two interfaces exist:**
+ * - This interface (`FullEvidenceEntry`): Complete evidence tracking with test
+ *   descriptions, pre-registered predictions, confidence tracking, and full
+ *   metadata. Use for evidence analysis, validation, and detailed reporting.
+ *
+ * - `EvidenceEntry` (in types.ts): Simplified interface for lightweight evidence
+ *   tracking within `Session.evidenceLedger`. Use for session-embedded storage.
+ *
+ * Each entry captures:
+ * - The test that was performed (with full TestDescription)
  * - Pre-registered predictions (if true/if false)
  * - The observed outcome
- * - Impact on confidence
+ * - Impact on confidence (before/after)
  * - Metadata for audit trails
  *
  * Key Brenner insight: Evidence without pre-registered predictions
  * is much weaker than evidence that confirms/refutes a prediction.
+ *
+ * @see EvidenceEntry in types.ts - Simplified session-embedded version
  */
 export interface EvidenceEntry {
   /** Unique identifier for this evidence entry */

@@ -19,6 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Skeleton, SkeletonCard, SkeletonButton } from "@/components/ui/skeleton";
 import { HypothesisCard } from "./HypothesisCard";
+import { useAsyncOperation } from "@/hooks/useAsyncOperation";
 import { CorpusSearchDialog } from "./CorpusSearch";
 import {
   useSession,
@@ -376,8 +377,16 @@ export function SessionDashboard({
   onEvolveHypothesis,
   onViewHistory,
 }: SessionDashboardProps) {
-  const { session, primaryHypothesis, isLoading, error, attachQuote } = useSession();
-  const [isExporting, setIsExporting] = React.useState(false);
+  const {
+    session,
+    primaryHypothesis,
+    isLoading,
+    error,
+    attachQuote,
+    isDirty,
+    saveState,
+  } = useSession();
+  const exportOperation = useAsyncOperation();
   const [isCorpusSearchOpen, setIsCorpusSearchOpen] = React.useState(false);
 
   // useSessionMachine provides computed values (reachablePhases, isComplete, etc.)
@@ -385,6 +394,23 @@ export function SessionDashboard({
 
   // usePhaseNavigation provides navigation actions that persist to storage
   const { prev, next, canPrev, canNext, goTo } = usePhaseNavigation();
+
+  // Save status indicator - must be before early returns per React hooks rules
+  const saveStatus = React.useMemo(() => {
+    if (saveState.status === "saving") {
+      return { label: "Saving changes...", tone: "muted" as const };
+    }
+    if (saveState.status === "error") {
+      return { label: "Save failed. Try again.", tone: "destructive" as const };
+    }
+    if (isDirty) {
+      return { label: "Unsaved changes", tone: "muted" as const };
+    }
+    if (saveState.status === "saved") {
+      return { label: "All changes saved", tone: "muted" as const };
+    }
+    return null;
+  }, [isDirty, saveState]);
 
   // Loading state
   if (isLoading) {
@@ -424,6 +450,15 @@ export function SessionDashboard({
           <CardContent className="pt-6">
             <p className="text-destructive font-medium">Error loading session</p>
             <p className="text-sm text-muted-foreground mt-2">{error.message}</p>
+            <div className="mt-4">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => window.location.reload()}
+              >
+                Retry
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -451,26 +486,33 @@ export function SessionDashboard({
 
   const handleExport = async (format: "json" | "markdown") => {
     if (!session) return;
-    setIsExporting(true);
-    try {
+
+    await exportOperation.run(async () => {
       const blob = await exportSession(session, format);
       const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `brenner-session-${session.id}.${format === "json" ? "json" : "md"}`;
-      link.click();
-      URL.revokeObjectURL(url);
-    } finally {
-      setIsExporting(false);
-    }
+
+      try {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `brenner-session-${session.id}.${format === "json" ? "json" : "md"}`;
+        link.click();
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }, {
+      message: "Exporting session...",
+      estimatedDuration: 3,
+    });
   };
 
   return (
     <div className={cn("flex flex-col gap-6", className)}>
       <LoadingOverlay
-        visible={isExporting}
-        message="Exporting session..."
+        visible={exportOperation.isLoading}
+        message={exportOperation.state.message ?? "Exporting session..."}
         detail="Preparing your research brief for download."
+        progress={exportOperation.state.progress}
+        cancellable={exportOperation.state.cancellable}
       />
 
       <CorpusSearchDialog
@@ -487,35 +529,54 @@ export function SessionDashboard({
             Session: {session.id}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsCorpusSearchOpen(true)}
-            className="gap-2"
-          >
-            <SearchIcon />
-            Search Corpus
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleExport("json")}
-            disabled={isExporting}
-          >
-            Export JSON
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleExport("markdown")}
-            disabled={isExporting}
-          >
-            Export Markdown
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            {Math.round(getSessionProgress(session.phase))}% complete
-          </span>
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsCorpusSearchOpen(true)}
+              className="gap-2"
+            >
+              <SearchIcon />
+              Search Corpus
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleExport("json")}
+              disabled={exportOperation.isLoading}
+            >
+              Export JSON
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleExport("markdown")}
+              disabled={exportOperation.isLoading}
+            >
+              Export Markdown
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              {Math.round(getSessionProgress(session.phase))}% complete
+            </span>
+          </div>
+          {exportOperation.isError && (
+            <p className="text-xs text-destructive">
+              Export failed. Please try again.
+            </p>
+          )}
+          {saveStatus && (
+            <p
+              className={cn(
+                "text-xs",
+                saveStatus.tone === "destructive"
+                  ? "text-destructive"
+                  : "text-muted-foreground"
+              )}
+            >
+              {saveStatus.label}
+            </p>
+          )}
         </div>
       </div>
 

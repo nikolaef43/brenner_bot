@@ -447,7 +447,22 @@ export interface AgentDelta {
 // ============================================================================
 
 /**
- * An entry in the evidence ledger
+ * An entry in the session's embedded evidence ledger.
+ *
+ * **IMPORTANT**: This is the SIMPLIFIED evidence interface for session-embedded
+ * evidence tracking. It captures test outcomes and their impact on hypotheses
+ * with minimal overhead.
+ *
+ * For the COMPREHENSIVE evidence interface with full test descriptions,
+ * pre-registered predictions, and detailed audit trails, use `FullEvidenceEntry`
+ * from the module's exports (defined in `evidence.ts`).
+ *
+ * **When to use which:**
+ * - `EvidenceEntry` (this): Lightweight tracking within Session.evidenceLedger
+ * - `FullEvidenceEntry`: Detailed evidence analysis, validation, and export
+ *
+ * @see FullEvidenceEntry - The comprehensive evidence interface
+ * @see evidence.ts - Module with full evidence tracking capabilities
  */
 export interface EvidenceEntry {
   id: string;

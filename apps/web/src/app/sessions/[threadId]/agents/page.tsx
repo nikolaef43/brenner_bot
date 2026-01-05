@@ -160,10 +160,19 @@ interface AgentCardProps {
   agent: AgentConfig;
   status: AgentStatus;
   response?: AgentResponse;
+  progressStep?: number;
   onInvoke?: () => void;
+  onCancel?: () => void;
 }
 
-function AgentCard({ agent, status, response, onInvoke }: AgentCardProps) {
+function AgentCard({
+  agent,
+  status,
+  response,
+  progressStep = 0,
+  onInvoke,
+  onCancel,
+}: AgentCardProps) {
   const statusConfig = {
     idle: { label: "Ready", color: "text-muted-foreground", bg: "bg-muted" },
     thinking: { label: "Thinking...", color: "text-blue-500", bg: "bg-blue-500/10" },
@@ -278,10 +287,20 @@ function AgentCard({ agent, status, response, onInvoke }: AgentCardProps) {
                 <AgentProgress
                   agent={agent.name}
                   steps={AGENT_PROGRESS_STEPS}
-                  currentStep={1}
+                  currentStep={progressStep}
                   status="working"
                   className="w-full"
                 />
+                {onCancel && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={onCancel}
+                    className="mt-3"
+                  >
+                    Cancel
+                  </Button>
+                )}
               </>
             ) : (
               <>

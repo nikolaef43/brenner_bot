@@ -477,6 +477,24 @@ export {
 // ============================================================================
 // Evidence Ledger (bead njjo.1)
 // ============================================================================
+//
+// NOTE: There are TWO EvidenceEntry interfaces in this codebase:
+//
+// 1. `EvidenceEntry` (from types.ts, exported in Session types above):
+//    - SIMPLIFIED interface for session-embedded evidence tracking
+//    - Used in Session.evidenceLedger for lightweight storage
+//    - Fields: id, testId, recordedAt, observation, potencyCheckPassed, etc.
+//
+// 2. `FullEvidenceEntry` (from evidence.ts, exported below):
+//    - COMPREHENSIVE interface with full audit trails
+//    - Used for evidence analysis, validation, and detailed reporting
+//    - Fields: id, sessionId, test (TestDescription), predictionIfTrue/False,
+//      result, observation, confidenceBefore/After, interpretation, etc.
+//
+// When in doubt:
+// - Use `EvidenceEntry` for storing in Session.evidenceLedger
+// - Use `FullEvidenceEntry` for evidence validation, analysis, or export
+// ============================================================================
 
 export type {
   // Core types
@@ -485,7 +503,8 @@ export type {
   DiscriminativePower,
   TestDescription,
 
-  // Main interface (comprehensive version)
+  // Comprehensive evidence interface (see note above)
+  // Aliased to distinguish from simplified EvidenceEntry in types.ts
   EvidenceEntry as FullEvidenceEntry,
 
   // Validation types

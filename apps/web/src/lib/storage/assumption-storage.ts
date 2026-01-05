@@ -276,6 +276,17 @@ export class AssumptionStorage {
    */
   async getAssumptionById(id: string): Promise<Assumption | null> {
     // Try complex format first: A-{sessionId}-{seq}
+    //
+    // Regex explanation: /^A-(.+)-\d{3}$/
+    // - `^A-`     : Must start with "A-"
+    // - `(.+)`    : Greedy capture of session ID (one or more chars)
+    // - `-\d{3}$` : Must end with "-" followed by exactly 3 digits
+    //
+    // The greedy `(.+)` works correctly because `\d{3}$` anchors to the END,
+    // so the greedy match captures everything between "A-" and the LAST "-\d{3}".
+    // Example: "A-RS-2025-001-042" → sessionId = "RS-2025-001", seq = "042"
+    //
+    // This handles session IDs that contain hyphens and/or digits.
     const complexMatch = id.match(/^A-(.+)-\d{3}$/);
     if (complexMatch) {
       const sessionId = complexMatch[1];

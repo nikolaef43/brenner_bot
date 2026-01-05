@@ -274,7 +274,18 @@ export class HypothesisStorage {
    * Get a specific hypothesis by ID.
    */
   async getHypothesisById(id: string): Promise<Hypothesis | null> {
-    // Extract session ID from hypothesis ID (H-{sessionId}-{seq})
+    // Extract session ID from hypothesis ID format: H-{sessionId}-{seq}
+    //
+    // Regex explanation: /^H-(.+)-\d{3}$/
+    // - `^H-`     : Must start with "H-"
+    // - `(.+)`    : Greedy capture of session ID (one or more chars)
+    // - `-\d{3}$` : Must end with "-" followed by exactly 3 digits
+    //
+    // The greedy `(.+)` works correctly because `\d{3}$` anchors to the END,
+    // so the greedy match captures everything between "H-" and the LAST "-\d{3}".
+    // Example: "H-RS-2025-001-042" → sessionId = "RS-2025-001", seq = "042"
+    //
+    // This handles session IDs that contain hyphens and/or digits.
     const match = id.match(/^H-(.+)-\d{3}$/);
     if (!match) {
       return null;

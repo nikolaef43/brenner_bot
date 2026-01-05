@@ -57,6 +57,9 @@ export interface SessionContextValue {
   /** Whether there are unsaved changes */
   isDirty: boolean;
 
+  /** Current save status for UI feedback */
+  saveState: SaveState;
+
   // === Session Actions ===
 
   /** Create a new session with an initial hypothesis statement */
@@ -113,6 +116,12 @@ export interface SessionContextValue {
   primaryHypothesis: HypothesisCard | null;
 }
 
+export interface SaveState {
+  status: "idle" | "saving" | "saved" | "error";
+  lastSavedAt?: string;
+  error?: Error;
+}
+
 /**
  * Internal state for the session reducer.
  */
@@ -121,6 +130,7 @@ interface SessionState {
   isLoading: boolean;
   error: Error | null;
   isDirty: boolean;
+  saveState: SaveState;
 }
 
 /**
@@ -133,7 +143,9 @@ type SessionAction =
   | { type: "ERROR"; error: Error }
   | { type: "CLEAR_ERROR" }
   | { type: "CLOSED" }
+  | { type: "SAVING" }
   | { type: "SAVED" }
+  | { type: "SAVE_ERROR"; error: Error }
   | { type: "UPDATE_SESSION"; session: Session }
   | { type: "MARK_DIRTY" };
 
@@ -146,12 +158,13 @@ const initialState: SessionState = {
   isLoading: false,
   error: null,
   isDirty: false,
+  saveState: { status: "idle" },
 };
 
 function sessionReducer(state: SessionState, action: SessionAction): SessionState {
   switch (action.type) {
     case "LOADING":
-      return { ...state, isLoading: true, error: null };
+      return { ...state, isLoading: true, error: null, saveState: { status: "idle" } };
 
     case "LOADED":
       return {
@@ -160,6 +173,10 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
         isLoading: false,
         error: null,
         isDirty: false,
+        saveState: {
+          status: "saved",
+          lastSavedAt: action.session.updatedAt,
+        },
       };
 
     case "CREATED":
@@ -169,6 +186,10 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
         isLoading: false,
         error: null,
         isDirty: true, // New session needs to be saved
+        saveState: {
+          status: "saved",
+          lastSavedAt: action.session.updatedAt,
+        },
       };
 
     case "ERROR":
@@ -180,8 +201,32 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
     case "CLOSED":
       return { ...initialState };
 
+    case "SAVING":
+      return {
+        ...state,
+        saveState: {
+          status: "saving",
+        },
+      };
+
     case "SAVED":
-      return { ...state, isDirty: false };
+      return {
+        ...state,
+        isDirty: false,
+        saveState: {
+          status: "saved",
+          lastSavedAt: new Date().toISOString(),
+        },
+      };
+
+    case "SAVE_ERROR":
+      return {
+        ...state,
+        saveState: {
+          status: "error",
+          error: action.error,
+        },
+      };
 
     case "UPDATE_SESSION":
       return {
@@ -293,6 +338,9 @@ export function SessionProvider({
   // -------------------------------------------------------------------------
 
   const performSave = useCallback(async (session: Session) => {
+    if (isMountedRef.current) {
+      dispatch({ type: "SAVING" });
+    }
     try {
       await sessionStorage.save(session);
       if (isMountedRef.current) {
@@ -301,10 +349,8 @@ export function SessionProvider({
     } catch (error) {
       console.error("Failed to auto-save session:", error);
       if (isMountedRef.current) {
-        dispatch({
-          type: "ERROR",
-          error: error instanceof Error ? error : new Error("Failed to save session"),
-        });
+        const err = error instanceof Error ? error : new Error("Failed to save session");
+        dispatch({ type: "SAVE_ERROR", error: err });
       }
     }
   }, []);
@@ -436,6 +482,9 @@ export function SessionProvider({
         session.hypothesisCards[hypothesisId] = hypothesis;
 
         // Save immediately
+        if (isMountedRef.current) {
+          dispatch({ type: "SAVING" });
+        }
         await sessionStorage.save(session);
 
         if (isMountedRef.current) {
@@ -446,6 +495,7 @@ export function SessionProvider({
       } catch (error) {
         const err = error instanceof Error ? error : new Error("Failed to create session");
         if (isMountedRef.current) {
+          dispatch({ type: "SAVE_ERROR", error: err });
           dispatch({ type: "ERROR", error: err });
         }
         throw err;
@@ -481,16 +531,17 @@ export function SessionProvider({
     if (!state.session) return;
 
     try {
+      if (isMountedRef.current) {
+        dispatch({ type: "SAVING" });
+      }
       await sessionStorage.save(state.session);
       if (isMountedRef.current) {
         dispatch({ type: "SAVED" });
       }
     } catch (error) {
       if (isMountedRef.current) {
-        dispatch({
-          type: "ERROR",
-          error: error instanceof Error ? error : new Error("Failed to save session"),
-        });
+        const err = error instanceof Error ? error : new Error("Failed to save session");
+        dispatch({ type: "SAVE_ERROR", error: err });
       }
       throw error;
     }
@@ -738,6 +789,7 @@ export function SessionProvider({
       isLoading: state.isLoading,
       error: state.error,
       isDirty: state.isDirty,
+      saveState: state.saveState,
 
       createNewSession,
       loadSession,
