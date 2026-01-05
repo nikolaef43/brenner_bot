@@ -28,7 +28,7 @@ import React, {
   type ReactNode,
 } from "react";
 
-import type { Session, SessionPhase, HypothesisCard } from "./types";
+import type { Session, SessionPhase, HypothesisCard, AttachedQuote } from "./types";
 import {
   createSession,
   createHypothesisCard,
@@ -87,6 +87,11 @@ export interface SessionContextValue {
 
   /** Set the primary hypothesis (swaps with current primary) */
   setPrimaryHypothesis(id: string): void;
+
+  // === Corpus Attachment Actions ===
+
+  /** Attach a corpus quote/excerpt to a hypothesis */
+  attachQuote(quote: Omit<AttachedQuote, "id" | "attachedAt">): void;
 
   // === Phase Actions ===
 
@@ -627,6 +632,45 @@ export function SessionProvider({
   );
 
   // -------------------------------------------------------------------------
+  // Corpus Attachment Actions
+  // -------------------------------------------------------------------------
+
+  const attachQuote = useCallback(
+    (quote: Omit<AttachedQuote, "id" | "attachedAt">): void => {
+      if (!state.session) return;
+      if (!quote.hypothesisId) return;
+      if (!state.session.hypothesisCards[quote.hypothesisId]) return;
+
+      const existing = state.session.attachedQuotes ?? [];
+      const isDuplicate = existing.some(
+        (entry) =>
+          entry.hypothesisId === quote.hypothesisId &&
+          entry.field === quote.field &&
+          entry.docId === quote.docId &&
+          entry.anchor === quote.anchor &&
+          entry.url === quote.url
+      );
+      if (isDuplicate) return;
+
+      const now = new Date();
+      const next: AttachedQuote = {
+        id: `AQ-${now.getTime()}-${Math.random().toString(16).slice(2)}`,
+        attachedAt: now.toISOString(),
+        ...quote,
+      };
+
+      const updatedSession: Session = {
+        ...state.session,
+        attachedQuotes: [...existing, next],
+        updatedAt: now.toISOString(),
+      };
+
+      dispatch({ type: "UPDATE_SESSION", session: updatedSession });
+    },
+    [state.session]
+  );
+
+  // -------------------------------------------------------------------------
   // Phase Actions
   // -------------------------------------------------------------------------
 
@@ -707,6 +751,7 @@ export function SessionProvider({
       addAlternativeHypothesis,
       removeAlternativeHypothesis,
       setPrimaryHypothesis,
+      attachQuote,
 
       advancePhase,
       goToPhase,
@@ -726,6 +771,7 @@ export function SessionProvider({
       addAlternativeHypothesis,
       removeAlternativeHypothesis,
       setPrimaryHypothesis,
+      attachQuote,
       advancePhase,
       goToPhase,
       canAdvance,

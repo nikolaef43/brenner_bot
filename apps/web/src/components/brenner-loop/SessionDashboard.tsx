@@ -19,6 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Skeleton, SkeletonCard, SkeletonButton } from "@/components/ui/skeleton";
 import { HypothesisCard } from "./HypothesisCard";
+import { CorpusSearchDialog } from "./CorpusSearch";
 import {
   useSession,
   useSessionMachine,
@@ -54,6 +55,12 @@ const CheckIcon = ({ className }: { className?: string }) => (
 const LockClosedIcon = ({ className }: { className?: string }) => (
   <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+  </svg>
+);
+
+const SearchIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35m0 0A7.5 7.5 0 1 0 6 6a7.5 7.5 0 0 0 10.65 10.65Z" />
   </svg>
 );
 
@@ -369,8 +376,9 @@ export function SessionDashboard({
   onEvolveHypothesis,
   onViewHistory,
 }: SessionDashboardProps) {
-  const { session, primaryHypothesis, isLoading, error } = useSession();
+  const { session, primaryHypothesis, isLoading, error, attachQuote } = useSession();
   const [isExporting, setIsExporting] = React.useState(false);
+  const [isCorpusSearchOpen, setIsCorpusSearchOpen] = React.useState(false);
 
   // useSessionMachine provides computed values (reachablePhases, isComplete, etc.)
   const machine = useSessionMachine(session);
@@ -464,6 +472,13 @@ export function SessionDashboard({
         message="Exporting session..."
         detail="Preparing your research brief for download."
       />
+
+      <CorpusSearchDialog
+        open={isCorpusSearchOpen}
+        onOpenChange={setIsCorpusSearchOpen}
+        hypothesisId={session.primaryHypothesisId || undefined}
+        onAttachQuote={attachQuote}
+      />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -473,6 +488,15 @@ export function SessionDashboard({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsCorpusSearchOpen(true)}
+            className="gap-2"
+          >
+            <SearchIcon />
+            Search Corpus
+          </Button>
           <Button
             variant="outline"
             size="sm"

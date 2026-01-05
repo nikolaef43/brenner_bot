@@ -23,6 +23,7 @@
 // Import and re-export HypothesisCard and related items from the dedicated module (bead an1n.1)
 // This avoids duplication while making them available from this module
 import type { HypothesisCard, IdentifiedConfound } from "./hypothesis";
+import type { DocCategory } from "../globalSearchTypes";
 export type { HypothesisCard, IdentifiedConfound };
 export {
   createHypothesisCard,
@@ -584,6 +585,36 @@ export interface SessionSnapshot {
 }
 
 // ============================================================================
+// Corpus Attachments
+// ============================================================================
+
+export type AttachedQuoteField = "statement" | "mechanism" | "prediction" | "general";
+
+export interface AttachedQuote {
+  /** Stable unique identifier (per attachment) */
+  id: string;
+
+  /** Hypothesis card this quote supports */
+  hypothesisId: string;
+
+  /** Which field it supports (UI hint) */
+  field: AttachedQuoteField;
+
+  /** When attached (ISO timestamp) */
+  attachedAt: string;
+
+  /** Global-search provenance */
+  docId: string;
+  docTitle: string;
+  category: DocCategory;
+  model?: "gpt" | "opus" | "gemini";
+  title: string;
+  snippet: string;
+  anchor?: string;
+  url: string;
+}
+
+// ============================================================================
 // Session (Top-Level Container)
 // ============================================================================
 
@@ -645,6 +676,13 @@ export interface Session {
    * Evolution history linking hypothesis versions.
    */
   hypothesisEvolution: HypothesisEvolution[];
+
+  // === CORPUS / CITATIONS ===
+
+  /**
+   * Corpus excerpts/quotes attached to hypotheses for provenance and export.
+   */
+  attachedQuotes?: AttachedQuote[];
 
   // === OPERATOR APPLICATIONS ===
 
@@ -928,6 +966,7 @@ export function createSession(input: {
     archivedHypothesisIds: [],
     hypothesisCards: {},
     hypothesisEvolution: [],
+    attachedQuotes: [],
 
     operatorApplications: {
       levelSplit: [],

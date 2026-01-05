@@ -9,7 +9,7 @@ import type { Session } from "./types";
 import { createSession } from "./types";
 import { exportSession, importSession } from "./export";
 
-function buildTestSession(): Session {
+function buildTestSession(options?: { withAttachedQuote?: boolean }): Session {
   const now = new Date();
   const session = createSession({ id: "SESSION-TEST-EXPORT" });
   const card = {
@@ -34,6 +34,24 @@ function buildTestSession(): Session {
   session.updatedAt = now.toISOString();
   session.commits = [];
   session.headCommitId = "";
+
+  if (options?.withAttachedQuote) {
+    session.attachedQuotes = [
+      {
+        id: "AQ-TEST-001",
+        hypothesisId: card.id,
+        field: "general",
+        attachedAt: now.toISOString(),
+        docId: "transcript",
+        docTitle: "Sydney Brenner Transcript",
+        category: "transcript",
+        title: "Design experiments that can exclude",
+        snippet: "The most important thing is to design experiments that can give you a clean answer.",
+        anchor: "§42",
+        url: "/corpus/transcript#transcript-42",
+      },
+    ];
+  }
 
   return session;
 }
@@ -60,6 +78,20 @@ describe("exportSession / importSession", () => {
     expect(result.session.id).toBe(session.id);
   });
 
+  test("round-trips attached quotes via JSON import", async () => {
+    const session = buildTestSession({ withAttachedQuote: true });
+    const blob = await exportSession(session, "json");
+    const text = await blob.text();
+    const file = new File([text], "session.json", { type: "application/json" });
+
+    const result = await importSession(file);
+
+    expect(Array.isArray(result.session.attachedQuotes)).toBe(true);
+    expect(result.session.attachedQuotes?.length).toBe(1);
+    expect(result.session.attachedQuotes?.[0]?.hypothesisId).toBe(session.primaryHypothesisId);
+    expect(result.session.attachedQuotes?.[0]?.docId).toBe("transcript");
+  });
+
   test("warns on checksum mismatch", async () => {
     const session = buildTestSession();
     const blob = await exportSession(session, "json");
@@ -80,5 +112,15 @@ describe("exportSession / importSession", () => {
 
     expect(markdown).toContain(`# Brenner Loop Session ${session.id}`);
     expect(markdown).toContain("## Hypotheses");
+  });
+
+  test("includes attached quotes in markdown export", async () => {
+    const session = buildTestSession({ withAttachedQuote: true });
+    const blob = await exportSession(session, "markdown");
+    const markdown = await blob.text();
+
+    expect(markdown).toContain("Attached Quotes: 1");
+    expect(markdown).toContain("Sydney Brenner Transcript");
+    expect(markdown).toContain("transcript-42");
   });
 });

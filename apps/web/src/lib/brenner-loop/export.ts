@@ -7,7 +7,7 @@
  * @see brenner_bot-1v26.4 (bead)
  */
 
-import type { Session } from "./types";
+import type { Session, AttachedQuote, AttachedQuoteField } from "./types";
 import { CURRENT_SESSION_VERSION, createSession, isSession } from "./types";
 
 // ============================================================================
@@ -146,6 +146,7 @@ function normalizeSession(raw: Session, warnings: string[]): Session {
     predictionIds: coerceStringArray(raw.predictionIds, "predictionIds", warnings),
     testIds: coerceStringArray(raw.testIds, "testIds", warnings),
     assumptionIds: coerceStringArray(raw.assumptionIds, "assumptionIds", warnings),
+    attachedQuotes: coerceAttachedQuotes(raw.attachedQuotes, warnings),
     pendingAgentRequests: Array.isArray(raw.pendingAgentRequests) ? raw.pendingAgentRequests : [],
     agentResponses: Array.isArray(raw.agentResponses) ? raw.agentResponses : [],
     evidenceLedger: Array.isArray(raw.evidenceLedger) ? raw.evidenceLedger : [],
@@ -186,12 +187,76 @@ function coerceStringArray(value: unknown, label: string, warnings: string[]): s
   return filtered;
 }
 
+function isAttachedQuoteField(value: unknown): value is AttachedQuoteField {
+  return value === "statement" || value === "mechanism" || value === "prediction" || value === "general";
+}
+
+function isDocCategory(value: unknown): value is AttachedQuote["category"] {
+  return (
+    value === "transcript" ||
+    value === "quote-bank" ||
+    value === "distillation" ||
+    value === "metaprompt" ||
+    value === "raw-response"
+  );
+}
+
+function coerceAttachedQuotes(value: unknown, warnings: string[]): AttachedQuote[] {
+  if (value === null || value === undefined) return [];
+  if (!Array.isArray(value)) {
+    warnings.push("Invalid attachedQuotes; defaulted to empty.");
+    return [];
+  }
+
+  const out: AttachedQuote[] = [];
+  for (const entry of value) {
+    if (!isRecord(entry)) continue;
+
+    const hypothesisId = typeof entry.hypothesisId === "string" ? entry.hypothesisId : null;
+    const docId = typeof entry.docId === "string" ? entry.docId : null;
+    const docTitle = typeof entry.docTitle === "string" ? entry.docTitle : null;
+    const category = isDocCategory(entry.category) ? entry.category : null;
+    const title = typeof entry.title === "string" ? entry.title : null;
+    const snippet = typeof entry.snippet === "string" ? entry.snippet : null;
+    const url = typeof entry.url === "string" ? entry.url : null;
+
+    if (!hypothesisId || !docId || !docTitle || !category || !title || !snippet || !url) continue;
+
+    const field: AttachedQuoteField = isAttachedQuoteField(entry.field) ? entry.field : "general";
+    const id = typeof entry.id === "string" ? entry.id : `AQ-import-${out.length + 1}`;
+    const attachedAt = typeof entry.attachedAt === "string" ? entry.attachedAt : new Date().toISOString();
+
+    const model =
+      entry.model === "gpt" || entry.model === "opus" || entry.model === "gemini"
+        ? entry.model
+        : undefined;
+
+    out.push({
+      id,
+      hypothesisId,
+      field,
+      attachedAt,
+      docId,
+      docTitle,
+      category,
+      model,
+      title,
+      snippet,
+      anchor: typeof entry.anchor === "string" ? entry.anchor : undefined,
+      url,
+    });
+  }
+
+  return out;
+}
+
 // ============================================================================
 // Markdown Rendering
 // ============================================================================
 
 function renderSessionMarkdown(session: Session): string {
   const lines: string[] = [];
+  const attachedQuotes = Array.isArray(session.attachedQuotes) ? session.attachedQuotes : [];
 
   lines.push(`# Brenner Loop Session ${session.id}`);
   lines.push("");
@@ -211,7 +276,13 @@ function renderSessionMarkdown(session: Session): string {
   if (primary) {
     lines.push("");
     lines.push("### Primary Hypothesis");
-    lines.push(...renderHypothesis(primary as unknown as Record<string, unknown>, session.primaryHypothesisId));
+    lines.push(
+      ...renderHypothesis(
+        primary as unknown as Record<string, unknown>,
+        session.primaryHypothesisId,
+        attachedQuotes.filter((quote) => quote.hypothesisId === session.primaryHypothesisId)
+      )
+    );
   } else if (session.primaryHypothesisId) {
     lines.push("");
     lines.push(`- Primary Hypothesis ID: ${session.primaryHypothesisId}`);
@@ -225,7 +296,13 @@ function renderSessionMarkdown(session: Session): string {
       lines.push("");
       lines.push(`#### ${id}`);
       if (card) {
-        lines.push(...renderHypothesis(card as unknown as Record<string, unknown>, id));
+        lines.push(
+          ...renderHypothesis(
+            card as unknown as Record<string, unknown>,
+            id,
+            attachedQuotes.filter((quote) => quote.hypothesisId === id)
+          )
+        );
       } else {
         lines.push(`- Missing hypothesis card for ${id}`);
       }
@@ -303,7 +380,11 @@ function renderSessionMarkdown(session: Session): string {
   return lines.join("\n");
 }
 
-function renderHypothesis(card: Record<string, unknown>, fallbackId: string): string[] {
+function renderHypothesis(
+  card: Record<string, unknown>,
+  fallbackId: string,
+  attachments: AttachedQuote[]
+): string[] {
   const lines: string[] = [];
   const id = typeof card.id === "string" ? card.id : fallbackId;
 
@@ -330,6 +411,21 @@ function renderHypothesis(card: Record<string, unknown>, fallbackId: string): st
   if (Array.isArray(card.impossibleIfTrue)) {
     const impossible = card.impossibleIfTrue.filter((entry) => typeof entry === "string");
     if (impossible.length > 0) lines.push(`- Falsifiers: ${impossible.join(" | ")}`);
+  }
+
+  if (attachments.length > 0) {
+    lines.push(`- Attached Quotes: ${attachments.length}`);
+    attachments.forEach((quote) => {
+      const source = [
+        quote.docTitle,
+        quote.anchor ? quote.anchor : null,
+        quote.field !== "general" ? `[${quote.field}]` : null,
+      ]
+        .filter(Boolean)
+        .join(" ");
+      const snippet = quote.snippet.replace(/\s+/g, " ").trim();
+      lines.push(`  - ${source}: "${snippet}" (${quote.url})`);
+    });
   }
 
   return lines;
