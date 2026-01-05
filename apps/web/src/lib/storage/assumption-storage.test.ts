@@ -656,8 +656,20 @@ describe("AssumptionStorage", () => {
       await storage.saveSessionAssumptions(sessionId, [assumption]);
 
       // Session ID should be sanitized in filename
-      const sanitizedId = sessionId.replace(/[^a-zA-Z0-9_-]/g, "_");
+      const sanitizedId = sessionId.replace(/[^a-zA-Z0-9_.-]/g, "_");
       const filePath = join(testDir, ".research", "assumptions", `${sanitizedId}-assumptions.json`);
+      const exists = await fs.access(filePath).then(() => true).catch(() => false);
+      expect(exists).toBe(true);
+    });
+
+    test("saveSessionAssumptions preserves dots in session ID filenames", async () => {
+      const storage = new AssumptionStorage({ baseDir: testDir });
+      const sessionId = "brenner_bot-5so.10.2.2";
+      const assumption = createTestAssumption({ sessionId });
+
+      await storage.saveSessionAssumptions(sessionId, [assumption]);
+
+      const filePath = join(testDir, ".research", "assumptions", `${sessionId}-assumptions.json`);
       const exists = await fs.access(filePath).then(() => true).catch(() => false);
       expect(exists).toBe(true);
     });

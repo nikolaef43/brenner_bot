@@ -98,7 +98,9 @@ function getIndexPath(baseDir: string): string {
 }
 
 function getSessionFilePath(baseDir: string, sessionId: string): string {
-  const sanitized = sessionId.replace(/[^a-zA-Z0-9_-]/g, "_");
+  // Allow '.' because bead/thread IDs often contain dots (e.g. brenner_bot-5so.10.2.2).
+  // Only strip characters that are path separators or otherwise unsafe in filenames.
+  const sanitized = sessionId.replace(/[^a-zA-Z0-9_.-]/g, "_");
   return join(getInterventionsDir(baseDir), `${sanitized}-interventions.json`);
 }
 
