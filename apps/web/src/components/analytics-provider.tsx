@@ -26,6 +26,7 @@ import {
   trackSessionStart,
   trackPagePerformance,
   getOrCreateUserId,
+  trackSystemEvent,
   type DocumentType,
 } from '@/lib/analytics';
 
@@ -40,6 +41,7 @@ function AnalyticsTracker() {
 
   // Refs for tracking engagement
   const hasInitializedGa = useRef(false);
+  const hasSentSystemSnapshot = useRef(false);
   const scrollDepthsReached = useRef<Set<25 | 50 | 75 | 90 | 100>>(new Set());
   const pageStartTime = useRef<number>(0); // Initialized in effect on mount
   const lastTimeCheckpoint = useRef<number>(0);
@@ -51,6 +53,7 @@ function AnalyticsTracker() {
 
   useEffect(() => {
     if (!gaId) return;
+    let loadHandler: (() => void) | null = null;
 
     // Create gtag stub early
     window.dataLayer = window.dataLayer || [];
@@ -92,12 +95,34 @@ function AnalyticsTracker() {
           setTimeout(trackPagePerformance, 100);
         } else {
           // Wait for load event
-          window.addEventListener('load', () => {
+          loadHandler = () => {
             setTimeout(trackPagePerformance, 100);
-          }, { once: true });
+          };
+          window.addEventListener('load', loadHandler, { once: true });
         }
       }
+
+      if (!hasSentSystemSnapshot.current) {
+        const connection = (navigator as Navigator & {
+          connection?: { effectiveType?: string; downlink?: number; rtt?: number };
+        }).connection;
+
+        trackSystemEvent('client_capabilities', {
+          hardware_threads: navigator.hardwareConcurrency ?? undefined,
+          device_memory_gb: (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? undefined,
+          connection_type: connection?.effectiveType,
+          connection_downlink_mbps: connection?.downlink,
+          connection_rtt_ms: connection?.rtt,
+        });
+        hasSentSystemSnapshot.current = true;
+      }
     }
+
+    return () => {
+      if (loadHandler) {
+        window.removeEventListener('load', loadHandler);
+      }
+    };
   }, [gaId]);
 
   // ==========================================================================

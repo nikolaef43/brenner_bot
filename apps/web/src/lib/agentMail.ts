@@ -1,4 +1,5 @@
 import type { JsonValue } from "./json";
+import { normalizeSystemError, nowMs, trackSystemEvent, trackSystemLatency } from "./analytics";
 
 export type AgentMailConfig = {
   baseUrl: string;
@@ -214,6 +215,9 @@ export class AgentMailClient {
   async call(method: string, params?: JsonValue): Promise<JsonValue> {
     const id = crypto.randomUUID();
     const body = JSON.stringify({ jsonrpc: "2.0", id, method, params: params ?? {} });
+    const start = typeof window === "undefined" ? null : nowMs();
+    let status: number | null = null;
+    let errorInfo: ReturnType<typeof normalizeSystemError> | null = null;
 
     const headers: Record<string, string> = {
       Accept: "application/json, text/event-stream",
@@ -221,25 +225,45 @@ export class AgentMailClient {
     };
     if (this.config.bearerToken) headers.Authorization = `Bearer ${this.config.bearerToken}`;
 
-    const res = await fetch(this.endpoint(), { method: "POST", headers, body });
-    const contentType = res.headers.get("content-type")?.toLowerCase() ?? "";
+    try {
+      const res = await fetch(this.endpoint(), { method: "POST", headers, body });
+      status = res.status;
+      const contentType = res.headers.get("content-type")?.toLowerCase() ?? "";
 
-    let data: unknown = undefined;
-    if (contentType.includes("text/event-stream")) {
-      data = await readJsonRpcEnvelopeFromSse(res);
-    } else {
-      const text = await res.text();
-      try {
-        data = text ? (JSON.parse(text) as unknown) : undefined;
-      } catch {
-        throw new Error(`Agent Mail non-JSON response (HTTP ${res.status}): ${text.slice(0, 400)}`);
+      let data: unknown = undefined;
+      if (contentType.includes("text/event-stream")) {
+        data = await readJsonRpcEnvelopeFromSse(res);
+      } else {
+        const text = await res.text();
+        try {
+          data = text ? (JSON.parse(text) as unknown) : undefined;
+        } catch {
+          throw new Error(`Agent Mail non-JSON response (HTTP ${res.status}): ${text.slice(0, 400)}`);
+        }
+      }
+
+      if (!res.ok) throw new Error(`Agent Mail HTTP ${res.status}: ${JSON.stringify(data)}`);
+      if (!isRecord(data)) throw new Error(`Agent Mail malformed JSON: ${JSON.stringify(data)}`);
+      if ("error" in data && data.error) throw new Error(`Agent Mail MCP error: ${JSON.stringify(data.error)}`);
+      return ("result" in data ? (data.result as JsonValue) : null) satisfies JsonValue;
+    } catch (err) {
+      errorInfo = normalizeSystemError(err);
+      trackSystemEvent("agent_mail_error", {
+        method,
+        status_code: status ?? undefined,
+        ...errorInfo,
+      });
+      throw err;
+    } finally {
+      if (start !== null) {
+        const durationMs = Math.max(0, Math.round(nowMs() - start));
+        trackSystemLatency("agent_mail_call", durationMs, {
+          method,
+          status_code: status ?? undefined,
+          success: !errorInfo,
+        });
       }
     }
-
-    if (!res.ok) throw new Error(`Agent Mail HTTP ${res.status}: ${JSON.stringify(data)}`);
-    if (!isRecord(data)) throw new Error(`Agent Mail malformed JSON: ${JSON.stringify(data)}`);
-    if ("error" in data && data.error) throw new Error(`Agent Mail MCP error: ${JSON.stringify(data.error)}`);
-    return ("result" in data ? (data.result as JsonValue) : null) satisfies JsonValue;
   }
 
   toolsList(): Promise<JsonValue> {

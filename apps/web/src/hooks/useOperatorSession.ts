@@ -13,6 +13,7 @@
 
 import { useReducer, useCallback, useMemo, useEffect, useRef } from "react";
 import type { HypothesisCard } from "@/lib/brenner-loop/hypothesis";
+import { trackSystemEvent } from "@/lib/analytics";
 import type {
   OperatorType,
   OperatorSession,
@@ -303,9 +304,13 @@ export function useOperatorSession<TResult = unknown>(
         }
       }
 
+      trackSystemEvent("operator_session_complete", {
+        operator: operatorType,
+        steps_total: session.steps.length,
+      });
       onComplete?.(completedSession);
     },
-    [session, persistKey, onComplete]
+    [session, persistKey, onComplete, operatorType]
   );
 
   const abandon = useCallback((): void => {
@@ -320,8 +325,13 @@ export function useOperatorSession<TResult = unknown>(
       }
     }
 
+    trackSystemEvent("operator_session_abandoned", {
+      operator: operatorType,
+      steps_total: session.steps.length,
+      step_index: session.currentStepIndex,
+    });
     onAbandon?.(session);
-  }, [session, persistKey, onAbandon]);
+  }, [session, persistKey, onAbandon, operatorType]);
 
   const reset = useCallback((): void => {
     // Clear localStorage

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { enqueueOfflineAction, useOfflineQueue } from "@/lib/offline";
+import { normalizeSystemError, nowMs, trackSystemEvent, trackSystemLatency } from "@/lib/analytics";
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -182,34 +183,80 @@ function parseCommandInput(input: string): string[] {
 }
 
 async function postAction(body: Record<string, unknown>): Promise<ApiSuccess> {
-  const res = await fetch("/api/sessions/actions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  const action = typeof body.action === "string" ? body.action : "unknown";
+  const start = nowMs();
+  let res: Response | null = null;
+  let payload: ApiSuccess | ApiError | null = null;
+  let errorInfo: ReturnType<typeof normalizeSystemError> | null = null;
 
-  const json = (await res.json()) as ApiSuccess | ApiError;
-  if (!res.ok || !json.success) {
-    const err = json as ApiError;
-    throw new Error(err?.error || "Request failed");
+  try {
+    res = await fetch("/api/sessions/actions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    payload = (await res.json()) as ApiSuccess | ApiError;
+    if (!res.ok || !payload.success) {
+      const err = payload as ApiError;
+      errorInfo = normalizeSystemError(err?.error || "Request failed");
+      throw new Error(err?.error || "Request failed");
+    }
+
+    return payload as ApiSuccess;
+  } catch (err) {
+    if (!errorInfo) errorInfo = normalizeSystemError(err);
+    trackSystemEvent("session_action_error", {
+      action,
+      status_code: res?.status ?? undefined,
+      error_code: payload && !payload.success ? (payload as ApiError).code : undefined,
+      ...errorInfo,
+    });
+    throw err;
+  } finally {
+    trackSystemLatency("session_action", nowMs() - start, {
+      action,
+      status_code: res?.status ?? undefined,
+      success: !errorInfo,
+    });
   }
-  return json as ApiSuccess;
 }
 
 async function postExperiment(body: Record<string, unknown>): Promise<Extract<ExperimentRunResponse, { success: true }>> {
-  const res = await fetch("/api/experiments", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  const start = nowMs();
+  let res: Response | null = null;
+  let payload: ExperimentRunResponse | null = null;
+  let errorInfo: ReturnType<typeof normalizeSystemError> | null = null;
 
-  const json = (await res.json()) as ExperimentRunResponse;
-  if (!res.ok || !json.success) {
-    const err = json as Extract<ExperimentRunResponse, { success: false }>;
-    throw new Error(err?.error || "Request failed");
+  try {
+    res = await fetch("/api/experiments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    payload = (await res.json()) as ExperimentRunResponse;
+    if (!res.ok || !payload.success) {
+      const err = payload as Extract<ExperimentRunResponse, { success: false }>;
+      errorInfo = normalizeSystemError(err?.error || "Request failed");
+      throw new Error(err?.error || "Request failed");
+    }
+
+    return payload as Extract<ExperimentRunResponse, { success: true }>;
+  } catch (err) {
+    if (!errorInfo) errorInfo = normalizeSystemError(err);
+    trackSystemEvent("experiment_error", {
+      status_code: res?.status ?? undefined,
+      error_code: payload && !payload.success ? (payload as Extract<ExperimentRunResponse, { success: false }>).code : undefined,
+      ...errorInfo,
+    });
+    throw err;
+  } finally {
+    trackSystemLatency("experiment_run", nowMs() - start, {
+      status_code: res?.status ?? undefined,
+      success: !errorInfo,
+    });
   }
-
-  return json as Extract<ExperimentRunResponse, { success: true }>;
 }
 
 function truncateText(s: string, maxChars: number): { preview: string; truncated: boolean } {
@@ -324,6 +371,7 @@ export function SessionActions({
 
       if (!isOnline) {
         enqueueOfflineAction("session-action", payload);
+        trackSystemEvent("session_action_queued", { action });
         setLastOk(`Queued ${action.replace("_", " ")} for offline delivery`);
         return;
       }
@@ -441,6 +489,7 @@ export function SessionActions({
 
       if (!isOnline) {
         enqueueOfflineAction("session-action", payload);
+        trackSystemEvent("session_action_queued", { action: "post_delta" });
         setLastOk("Queued DELTA for offline delivery");
         return;
       }

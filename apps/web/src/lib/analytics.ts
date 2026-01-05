@@ -214,6 +214,100 @@ export async function sendServerEvent(
 }
 
 // =============================================================================
+// System Health Analytics
+// =============================================================================
+
+const SYSTEM_EVENT_PREFIX = "system_";
+const MAX_ERROR_MESSAGE_LENGTH = 180;
+
+function sanitizeSystemEventName(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) return `${SYSTEM_EVENT_PREFIX}unknown`;
+  return trimmed.startsWith(SYSTEM_EVENT_PREFIX) ? trimmed : `${SYSTEM_EVENT_PREFIX}${trimmed}`;
+}
+
+function truncateMessage(value: string, maxLength: number): string {
+  if (value.length <= maxLength) return value;
+  return `${value.slice(0, maxLength - 1)}…`;
+}
+
+export function nowMs(): number {
+  if (typeof performance !== "undefined" && typeof performance.now === "function") {
+    return performance.now();
+  }
+  return Date.now();
+}
+
+export function normalizeSystemError(error: unknown): { error_type?: string; error_message?: string } {
+  if (!error) return {};
+  if (error instanceof Error) {
+    return {
+      error_type: error.name || "Error",
+      error_message: truncateMessage(error.message || "Unknown error", MAX_ERROR_MESSAGE_LENGTH),
+    };
+  }
+  if (typeof error === "string") {
+    return {
+      error_type: "Error",
+      error_message: truncateMessage(error, MAX_ERROR_MESSAGE_LENGTH),
+    };
+  }
+  try {
+    return {
+      error_type: "Error",
+      error_message: truncateMessage(JSON.stringify(error), MAX_ERROR_MESSAGE_LENGTH),
+    };
+  } catch {
+    return {
+      error_type: "Error",
+      error_message: "Unknown error",
+    };
+  }
+}
+
+function coerceSystemParams(
+  params?: Record<string, unknown>
+): Record<string, string | number | boolean> {
+  const safeParams: Record<string, string | number | boolean> = {};
+  if (!params) return safeParams;
+
+  for (const [key, value] of Object.entries(params)) {
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+      safeParams[key] = value;
+    }
+  }
+
+  return safeParams;
+}
+
+export function trackSystemEvent(
+  eventName: string,
+  params?: Record<string, unknown>
+): void {
+  if (typeof window === "undefined") return;
+
+  const name = sanitizeSystemEventName(eventName);
+  const safeParams = coerceSystemParams({
+    ...params,
+    path: window.location?.pathname ?? "",
+  });
+
+  sendEvent(name, safeParams);
+  void sendServerEvent(name, safeParams);
+}
+
+export function trackSystemLatency(
+  eventName: string,
+  durationMs: number,
+  params?: Record<string, unknown>
+): void {
+  trackSystemEvent(eventName, {
+    ...params,
+    duration_ms: Math.max(0, Math.round(durationMs)),
+  });
+}
+
+// =============================================================================
 // Document & Corpus Tracking
 // =============================================================================
 

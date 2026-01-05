@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { nowMs, trackSystemLatency } from "@/lib/analytics";
 import {
   sessionStorage,
   exportSession,
@@ -100,6 +101,7 @@ export function LocalSessionHub({ sessionId, className }: LocalSessionHubProps) 
   const [error, setError] = React.useState<string | null>(null);
   const [isExporting, setIsExporting] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const loadStartRef = React.useRef<number | null>(null);
 
   React.useEffect(() => {
     recordSessionResumeEntry(sessionId, "overview", { ifMissing: true });
@@ -108,20 +110,35 @@ export function LocalSessionHub({ sessionId, className }: LocalSessionHubProps) 
 
   React.useEffect(() => {
     let cancelled = false;
+    let found = false;
+    let hadError = false;
     setIsLoading(true);
     setError(null);
+    loadStartRef.current = nowMs();
 
     const load = async () => {
       try {
         const loaded = await sessionStorage.load(sessionId);
         if (cancelled) return;
         setSession(loaded);
+        found = !!loaded;
       } catch (err) {
         if (cancelled) return;
+        hadError = true;
         setError(err instanceof Error ? err.message : String(err));
         setSession(null);
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+          if (loadStartRef.current !== null) {
+            trackSystemLatency("session_load_local", nowMs() - loadStartRef.current, {
+              session_id: sessionId,
+              success: !hadError,
+              found,
+            });
+            loadStartRef.current = null;
+          }
+        }
       }
     };
 
