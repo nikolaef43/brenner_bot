@@ -694,13 +694,19 @@ export function OperatorsClient({ operators }: { operators: BrennerOperatorPalet
     return result;
   }, [operators, selectedCategory, searchQuery]);
 
-  // Keyboard shortcut for search
+  // Keyboard shortcut for search (use / like GitHub; Cmd/Ctrl+K is reserved for the global command palette)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        searchInputRef.current?.focus();
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key !== "/") return;
+      if (e.target instanceof HTMLElement) {
+        const tag = e.target.tagName.toLowerCase();
+        if (e.target.isContentEditable || tag === "input" || tag === "textarea" || tag === "select") {
+          return;
+        }
       }
+      e.preventDefault();
+      searchInputRef.current?.focus();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);

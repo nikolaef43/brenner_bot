@@ -4,7 +4,6 @@ import Link from "next/link";
 import "./globals.css";
 import { HeaderNav, BottomNav, ReadingProgress, BackToTop, ThemeToggle } from "@/components/ui/nav";
 import { Button } from "@/components/ui/button";
-import { CommandPalette } from "@/components/ui/command-palette";
 import { SearchProvider, SearchTrigger } from "@/components/search";
 import { ExcerptBasketTrigger } from "@/components/excerpt";
 import { Providers } from "@/components/providers";
@@ -215,9 +214,6 @@ export default function RootLayout({
 
               {/* Back to Top Button */}
               <BackToTop />
-
-              {/* Command Palette (⌘K) */}
-              <CommandPalette />
 
               {/* Toast Notifications */}
               <Toaster />

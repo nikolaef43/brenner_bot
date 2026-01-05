@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
 import { searchAction } from "@/lib/globalSearchAction";
@@ -25,6 +25,12 @@ import {
   Command,
   CornerDownLeft,
   Plus,
+  Home,
+  BookOpen,
+  Beaker,
+  Keyboard,
+  Moon,
+  Layers,
 } from "lucide-react";
 
 // ============================================================================
@@ -34,15 +40,44 @@ import {
 interface SpotlightSearchProps {
   isOpen: boolean;
   onClose: () => void;
+  keyboardShortcutsEnabled?: boolean;
+  vimMode?: boolean;
+  onToggleKeyboardShortcuts?: () => void;
+  onToggleVimMode?: () => void;
 }
+
+type SpotlightCommandSection = "Navigation" | "Session" | "Actions" | "Preferences";
+
+interface SpotlightCommandItem {
+  id: string;
+  title: string;
+  subtitle?: string;
+  icon: React.ReactNode;
+  shortcut?: string[];
+  keywords?: string[];
+  section: SpotlightCommandSection;
+  action: () => void;
+}
+
+type SpotlightSelectableItem =
+  | { type: "command"; command: SpotlightCommandItem }
+  | { type: "hit"; hit: GlobalSearchHit };
 
 // ============================================================================
 // Main Component
 // ============================================================================
 
-export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
+export function SpotlightSearch({
+  isOpen,
+  onClose,
+  keyboardShortcutsEnabled,
+  vimMode,
+  onToggleKeyboardShortcuts,
+  onToggleVimMode,
+}: SpotlightSearchProps) {
   const router = useRouter();
-  const { addItem } = useExcerptBasket();
+  const pathname = usePathname();
+  const { addItem, openBasket } = useExcerptBasket();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const resultsRef = React.useRef<HTMLDivElement>(null);
 
@@ -52,6 +87,322 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
   const [isSearching, setIsSearching] = React.useState(false);
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [activeCategory, setActiveCategory] = React.useState<SearchCategory>("all");
+  const [isCheatsheetOpen, setIsCheatsheetOpen] = React.useState(false);
+
+  const toggleTheme = React.useCallback(() => {
+    const isDark = document.documentElement.classList.contains("dark");
+    const nextTheme = isDark ? "light" : "dark";
+    document.documentElement.classList.toggle("dark", !isDark);
+    localStorage.setItem("theme", nextTheme);
+  }, []);
+
+  const sessionId = React.useMemo(() => {
+    const parts = pathname.split("/").filter(Boolean);
+    if (parts[0] !== "sessions") return null;
+    const candidate = parts[1];
+    if (!candidate || candidate === "new") return null;
+    return candidate;
+  }, [pathname]);
+
+  const commands = React.useMemo<SpotlightCommandItem[]>(() => {
+    const pushAndClose = (href: string) => {
+      router.push(href);
+      onClose();
+    };
+
+    const items: SpotlightCommandItem[] = [
+      {
+        id: "nav-home",
+        title: "Go to Home",
+        icon: <Home className="size-4" />,
+        shortcut: ["G", "H"],
+        keywords: ["home", "index", "start"],
+        section: "Navigation",
+        action: () => pushAndClose("/"),
+      },
+      {
+        id: "nav-corpus",
+        title: "Go to Corpus",
+        subtitle: "Browse all documents",
+        icon: <BookOpen className="size-4" />,
+        shortcut: ["G", "C"],
+        keywords: ["corpus", "documents"],
+        section: "Navigation",
+        action: () => pushAndClose("/corpus"),
+      },
+      {
+        id: "nav-distillations",
+        title: "Go to Distillations",
+        subtitle: "Compare model analyses",
+        icon: <Sparkles className="size-4" />,
+        shortcut: ["G", "D"],
+        keywords: ["distillations", "models"],
+        section: "Navigation",
+        action: () => pushAndClose("/distillations"),
+      },
+      {
+        id: "nav-method",
+        title: "Go to Method",
+        subtitle: "Learn the Brenner Loop",
+        icon: <Beaker className="size-4" />,
+        shortcut: ["G", "M"],
+        keywords: ["method", "brenner loop", "operators"],
+        section: "Navigation",
+        action: () => pushAndClose("/method"),
+      },
+      {
+        id: "nav-operators",
+        title: "Go to Operators",
+        subtitle: "Operator palette + prompt builder",
+        icon: <Layers className="size-4" />,
+        shortcut: ["G", "O"],
+        keywords: ["operators", "operator palette", "prompts"],
+        section: "Navigation",
+        action: () => pushAndClose("/operators"),
+      },
+      {
+        id: "doc-transcript",
+        title: "Read Full Transcript",
+        subtitle: "Web of Stories interview",
+        icon: <ScrollText className="size-4" />,
+        keywords: ["transcript"],
+        section: "Navigation",
+        action: () => pushAndClose("/corpus/transcript"),
+      },
+      {
+        id: "doc-quote-bank",
+        title: "Browse Quote Bank",
+        subtitle: "Curated Brenner quotes",
+        icon: <Quote className="size-4" />,
+        keywords: ["quotes", "quote bank"],
+        section: "Navigation",
+        action: () => pushAndClose("/corpus/quote-bank"),
+      },
+      {
+        id: "doc-opus",
+        title: "Opus 4.5 Distillation",
+        subtitle: "Two Axioms Framework",
+        icon: <Sparkles className="size-4" />,
+        keywords: ["opus", "distillation"],
+        section: "Navigation",
+        action: () => pushAndClose("/corpus/distillation-opus-45"),
+      },
+      {
+        id: "doc-gpt",
+        title: "GPT‑5.2 Distillation",
+        subtitle: "Optimization lens",
+        icon: <Sparkles className="size-4" />,
+        keywords: ["gpt", "gpt-5.2", "distillation"],
+        section: "Navigation",
+        action: () => pushAndClose("/corpus/distillation-gpt-52"),
+      },
+      {
+        id: "doc-gemini",
+        title: "Gemini 3 Distillation",
+        subtitle: "Minimal kernel",
+        icon: <Sparkles className="size-4" />,
+        keywords: ["gemini", "distillation"],
+        section: "Navigation",
+        action: () => pushAndClose("/corpus/distillation-gemini-3"),
+      },
+      {
+        id: "sessions",
+        title: "Go to Sessions",
+        subtitle: "View running threads and local sessions",
+        icon: <Terminal className="size-4" />,
+        shortcut: ["G", "S"],
+        keywords: ["sessions", "threads", "agent mail"],
+        section: "Navigation",
+        action: () => pushAndClose("/sessions"),
+      },
+      {
+        id: "new-session",
+        title: "New Session",
+        subtitle: "Start a lab-mode orchestration thread",
+        icon: <Terminal className="size-4" />,
+        keywords: ["new", "session", "lab"],
+        section: "Actions",
+        action: () => pushAndClose("/sessions/new"),
+      },
+      {
+        id: "open-excerpt-basket",
+        title: "Open Excerpt Basket",
+        subtitle: "Manage cited snippets for kickoffs",
+        icon: <BookOpen className="size-4" />,
+        keywords: ["excerpt", "basket", "citations"],
+        section: "Actions",
+        action: () => {
+          openBasket();
+          onClose();
+        },
+      },
+      {
+        id: "toggle-theme",
+        title: "Toggle Theme",
+        subtitle: "Switch between light and dark",
+        icon: <Moon className="size-4" />,
+        keywords: ["theme", "dark", "light"],
+        section: "Actions",
+        action: () => {
+          toggleTheme();
+          onClose();
+        },
+      },
+      {
+        id: "cheatsheet",
+        title: "Keyboard Shortcuts",
+        subtitle: "Show cheatsheet",
+        icon: <Keyboard className="size-4" />,
+        shortcut: ["?"],
+        keywords: ["shortcuts", "help"],
+        section: "Actions",
+        action: () => setIsCheatsheetOpen(true),
+      },
+    ];
+
+    if (sessionId) {
+      const base = `/sessions/${sessionId}`;
+      items.push(
+        {
+          id: "session-overview",
+          title: "Session: Overview",
+          subtitle: sessionId,
+          icon: <Terminal className="size-4" />,
+          keywords: ["session", "overview"],
+          section: "Session",
+          action: () => pushAndClose(base),
+        },
+        {
+          id: "session-hypothesis",
+          title: "Session: Hypothesis",
+          icon: <Terminal className="size-4" />,
+          keywords: ["session", "hypothesis"],
+          section: "Session",
+          action: () => pushAndClose(`${base}/hypothesis`),
+        },
+        {
+          id: "session-evidence",
+          title: "Session: Evidence",
+          icon: <Terminal className="size-4" />,
+          keywords: ["session", "evidence"],
+          section: "Session",
+          action: () => pushAndClose(`${base}/evidence`),
+        },
+        {
+          id: "session-operators",
+          title: "Session: Operators",
+          icon: <Terminal className="size-4" />,
+          keywords: ["session", "operators"],
+          section: "Session",
+          action: () => pushAndClose(`${base}/operators`),
+        },
+        {
+          id: "session-test-queue",
+          title: "Session: Test Queue",
+          icon: <Terminal className="size-4" />,
+          keywords: ["session", "tests", "queue"],
+          section: "Session",
+          action: () => pushAndClose(`${base}/test-queue`),
+        },
+        {
+          id: "session-agents",
+          title: "Session: Agents",
+          icon: <Terminal className="size-4" />,
+          keywords: ["session", "agents", "tribunal"],
+          section: "Session",
+          action: () => pushAndClose(`${base}/agents`),
+        },
+        {
+          id: "session-brief",
+          title: "Session: Brief",
+          icon: <Terminal className="size-4" />,
+          keywords: ["session", "brief"],
+          section: "Session",
+          action: () => pushAndClose(`${base}/brief`),
+        }
+      );
+    }
+
+    if (typeof onToggleKeyboardShortcuts === "function") {
+      items.push({
+        id: "prefs-shortcuts",
+        title: `Keyboard shortcuts: ${keyboardShortcutsEnabled === false ? "Off" : "On"}`,
+        subtitle: "Enable/disable non-command-palette shortcuts",
+        icon: <Keyboard className="size-4" />,
+        keywords: ["keyboard", "shortcuts", "preferences"],
+        section: "Preferences",
+        action: () => onToggleKeyboardShortcuts(),
+      });
+    }
+
+    if (typeof onToggleVimMode === "function") {
+      items.push({
+        id: "prefs-vim-mode",
+        title: `Vim mode: ${vimMode ? "On" : "Off"}`,
+        subtitle: "Enable j/k navigation on session pages",
+        icon: <Keyboard className="size-4" />,
+        keywords: ["vim", "hjkl", "preferences"],
+        section: "Preferences",
+        action: () => onToggleVimMode(),
+      });
+    }
+
+    return items;
+  }, [
+    router,
+    openBasket,
+    toggleTheme,
+    sessionId,
+    onClose,
+    keyboardShortcutsEnabled,
+    vimMode,
+    onToggleKeyboardShortcuts,
+    onToggleVimMode,
+  ]);
+
+  const trimmedQuery = query.trim();
+
+  const displayedCommands = React.useMemo(() => {
+    if (!trimmedQuery) return commands;
+    if (trimmedQuery.length < 2) return [];
+    const q = trimmedQuery.toLowerCase();
+    return commands.filter((cmd) => {
+      const haystack = [
+        cmd.title,
+        cmd.subtitle ?? "",
+        cmd.section,
+        ...(cmd.keywords ?? []),
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [commands, trimmedQuery]);
+
+  const flatItems = React.useMemo<SpotlightSelectableItem[]>(() => {
+    const hits = results?.hits ?? [];
+    return [
+      ...displayedCommands.map((command) => ({ type: "command" as const, command })),
+      ...hits.map((hit) => ({ type: "hit" as const, hit })),
+    ];
+  }, [displayedCommands, results?.hits]);
+
+  const groupedCommands = React.useMemo(() => {
+    const groups: Record<SpotlightCommandSection, SpotlightCommandItem[]> = {
+      Navigation: [],
+      Session: [],
+      Actions: [],
+      Preferences: [],
+    };
+    for (const cmd of displayedCommands) {
+      groups[cmd.section].push(cmd);
+    }
+    return groups;
+  }, [displayedCommands]);
+
+  const commandIndexById = React.useMemo(() => {
+    return new Map(displayedCommands.map((cmd, index) => [cmd.id, index]));
+  }, [displayedCommands]);
 
   const navigateToResult = React.useCallback(
     (hit: GlobalSearchHit) => {
@@ -89,10 +440,19 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
       setResults(null);
       setSelectedIndex(0);
       setActiveCategory("all");
+      setIsCheatsheetOpen(false);
       // Focus input after animation
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isOpen]);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    setSelectedIndex((prev) => {
+      if (flatItems.length === 0) return 0;
+      return prev < flatItems.length ? prev : 0;
+    });
+  }, [flatItems.length, isOpen]);
 
   // Perform search when debounced query changes
   React.useEffect(() => {
@@ -144,25 +504,42 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
+        if (isCheatsheetOpen) {
+          setIsCheatsheetOpen(false);
+          return;
+        }
         onClose();
         return;
       }
 
-      if (!results?.hits.length) return;
+      if (e.key === "?") {
+        e.preventDefault();
+        setIsCheatsheetOpen((prev) => !prev);
+        return;
+      }
+
+      if (isCheatsheetOpen) return;
+
+      if (flatItems.length === 0) return;
 
       if (e.key === "ArrowDown") {
         e.preventDefault();
         setSelectedIndex((prev) =>
-          prev < results.hits.length - 1 ? prev + 1 : 0
+          prev < flatItems.length - 1 ? prev + 1 : 0
         );
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         setSelectedIndex((prev) =>
-          prev > 0 ? prev - 1 : results.hits.length - 1
+          prev > 0 ? prev - 1 : flatItems.length - 1
         );
-      } else if (e.key === "Enter" && results.hits[selectedIndex]) {
+      } else if (e.key === "Enter" && flatItems[selectedIndex]) {
         e.preventDefault();
-        const hit = results.hits[selectedIndex];
+        const item = flatItems[selectedIndex];
+        if (item.type === "command") {
+          item.command.action();
+          return;
+        }
+        const hit = item.hit;
         if (e.shiftKey && canAddHitToExcerpt(hit)) {
           addHitToExcerpt(hit);
           return;
@@ -173,7 +550,16 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, results, selectedIndex, onClose, navigateToResult, addHitToExcerpt, canAddHitToExcerpt]);
+  }, [
+    isOpen,
+    flatItems,
+    selectedIndex,
+    onClose,
+    navigateToResult,
+    addHitToExcerpt,
+    canAddHitToExcerpt,
+    isCheatsheetOpen,
+  ]);
 
   // Scroll selected item into view
   React.useEffect(() => {
@@ -210,6 +596,114 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
             {/* Decorative gradient border */}
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 via-transparent to-amber-500/10 opacity-50 pointer-events-none" />
             <div className="absolute inset-[1px] rounded-2xl bg-card pointer-events-none" />
+
+            {/* Cheatsheet Overlay */}
+            {isCheatsheetOpen && (
+              <div className="absolute inset-0 z-20 bg-card/95 backdrop-blur-md">
+                <div className="p-6 sm:p-7">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h2 className="text-lg font-semibold text-foreground">Keyboard shortcuts</h2>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Press <kbd className="kbd">Esc</kbd> to close.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsCheatsheetOpen(false)}
+                      className="p-2 -m-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                      aria-label="Close shortcuts"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </div>
+
+                  <div className="mt-6 grid gap-6 sm:grid-cols-2">
+                    <div className="space-y-3">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Palette
+                      </div>
+                      <ShortcutRow label="Open palette">
+                        <kbd className="kbd"><Command className="size-3" /></kbd>
+                        <kbd className="kbd">K</kbd>
+                      </ShortcutRow>
+                      <ShortcutRow label="Navigate">
+                        <kbd className="kbd">↑</kbd>
+                        <kbd className="kbd">↓</kbd>
+                      </ShortcutRow>
+                      <ShortcutRow label="Select">
+                        <kbd className="kbd"><CornerDownLeft className="size-3" /></kbd>
+                      </ShortcutRow>
+                      <ShortcutRow label="Add to excerpt basket">
+                        <kbd className="kbd">⇧</kbd>
+                        <kbd className="kbd"><CornerDownLeft className="size-3" /></kbd>
+                      </ShortcutRow>
+                      <ShortcutRow label="Help">
+                        <kbd className="kbd">?</kbd>
+                      </ShortcutRow>
+                      <ShortcutRow label="Close">
+                        <kbd className="kbd">Esc</kbd>
+                      </ShortcutRow>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Navigation
+                      </div>
+                      <ShortcutRow label="Home">
+                        <kbd className="kbd">G</kbd>
+                        <kbd className="kbd">H</kbd>
+                      </ShortcutRow>
+                      <ShortcutRow label="Corpus">
+                        <kbd className="kbd">G</kbd>
+                        <kbd className="kbd">C</kbd>
+                      </ShortcutRow>
+                      <ShortcutRow label="Distillations">
+                        <kbd className="kbd">G</kbd>
+                        <kbd className="kbd">D</kbd>
+                      </ShortcutRow>
+                      <ShortcutRow label="Method">
+                        <kbd className="kbd">G</kbd>
+                        <kbd className="kbd">M</kbd>
+                      </ShortcutRow>
+                      <ShortcutRow label="Operators">
+                        <kbd className="kbd">G</kbd>
+                        <kbd className="kbd">O</kbd>
+                      </ShortcutRow>
+                      <ShortcutRow label="Sessions">
+                        <kbd className="kbd">G</kbd>
+                        <kbd className="kbd">S</kbd>
+                      </ShortcutRow>
+                      <ShortcutRow label="Session section">
+                        <kbd className="kbd">[</kbd>
+                        <kbd className="kbd">]</kbd>
+                      </ShortcutRow>
+                      {vimMode && (
+                        <ShortcutRow label="Session section (vim)">
+                          <kbd className="kbd">J</kbd>
+                          <kbd className="kbd">K</kbd>
+                        </ShortcutRow>
+                      )}
+                      {vimMode && (
+                        <>
+                          <ShortcutRow label="Session: first section">
+                            <kbd className="kbd">G</kbd>
+                            <kbd className="kbd">G</kbd>
+                          </ShortcutRow>
+                          <ShortcutRow label="Session: last section">
+                            <kbd className="kbd">G</kbd>
+                          </ShortcutRow>
+                        </>
+                      )}
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Tip: Type at least <span className="font-mono text-foreground">2</span> characters to match commands.
+                        Shorter queries search the corpus only.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Search Input */}
             <div className="relative">
@@ -301,6 +795,46 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
               ref={resultsRef}
               className="relative max-h-[50vh] sm:max-h-[60vh] overflow-y-auto overscroll-contain"
             >
+              {/* Commands */}
+              {displayedCommands.length > 0 && (
+                <div className="p-2 sm:p-3 border-b border-border/30">
+                  <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    {trimmedQuery ? "Matching commands" : "Commands"}
+                  </div>
+                  <div className="mt-1 space-y-3">
+                    {(["Navigation", "Session", "Actions", "Preferences"] as const).map(
+                      (section) => {
+                        const sectionCommands = groupedCommands[section];
+                        if (sectionCommands.length === 0) return null;
+                        return (
+                          <div key={section}>
+                            <div className="px-3 py-1 text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider">
+                              {section}
+                            </div>
+                            <div className="mt-1 space-y-0.5">
+                              {sectionCommands.map((command) => {
+                                const index = commandIndexById.get(command.id);
+                                if (typeof index !== "number") return null;
+                                return (
+                                  <CommandResultItem
+                                    key={command.id}
+                                    command={command}
+                                    isSelected={selectedIndex === index}
+                                    index={index}
+                                    onClick={() => command.action()}
+                                    onMouseEnter={() => setSelectedIndex(index)}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Loading Skeletons */}
               {isLoading && !results && query && (
                 <div className="p-3 sm:p-4 space-y-2">
@@ -318,18 +852,21 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
                     <span className="opacity-60">({results.searchTimeMs}ms)</span>
                   </div>
                   <div className="mt-1 space-y-0.5">
-                    {results.hits.map((hit, index) => (
-                      <SearchResultItem
-                        key={hit.id}
-                        hit={hit}
-                        query={debouncedQuery}
-                        isSelected={selectedIndex === index}
-                        index={index}
-                        onClick={() => navigateToResult(hit)}
-                        onMouseEnter={() => setSelectedIndex(index)}
-                        onAddToExcerpt={() => addHitToExcerpt(hit)}
-                      />
-                    ))}
+                    {results.hits.map((hit, index) => {
+                      const globalIndex = displayedCommands.length + index;
+                      return (
+                        <SearchResultItem
+                          key={hit.id}
+                          hit={hit}
+                          query={debouncedQuery}
+                          isSelected={selectedIndex === globalIndex}
+                          index={globalIndex}
+                          onClick={() => navigateToResult(hit)}
+                          onMouseEnter={() => setSelectedIndex(globalIndex)}
+                          onAddToExcerpt={() => addHitToExcerpt(hit)}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -346,34 +883,36 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
             </div>
 
             {/* Footer */}
-            {query && (
-              <div className="relative flex items-center justify-between px-4 sm:px-5 py-2.5 sm:py-3 border-t border-border/50 bg-muted/30">
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <kbd className="kbd">↑</kbd>
-                    <kbd className="kbd">↓</kbd>
-                    <span className="ml-1 hidden sm:inline">Navigate</span>
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <kbd className="kbd"><CornerDownLeft className="size-3" /></kbd>
-                    <span className="ml-1 hidden sm:inline">Open</span>
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <kbd className="kbd">⇧</kbd>
-                    <kbd className="kbd"><CornerDownLeft className="size-3" /></kbd>
-                    <span className="ml-1 hidden sm:inline">Add to Excerpt</span>
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <kbd className="kbd">Esc</kbd>
-                    <span className="ml-1 hidden sm:inline">Close</span>
-                  </span>
-                </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Command className="size-3" />
-                  <span>K</span>
-                </div>
+            <div className="relative flex items-center justify-between px-4 sm:px-5 py-2.5 sm:py-3 border-t border-border/50 bg-muted/30">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <kbd className="kbd">↑</kbd>
+                  <kbd className="kbd">↓</kbd>
+                  <span className="ml-1 hidden sm:inline">Navigate</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <kbd className="kbd"><CornerDownLeft className="size-3" /></kbd>
+                  <span className="ml-1 hidden sm:inline">Open</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <kbd className="kbd">⇧</kbd>
+                  <kbd className="kbd"><CornerDownLeft className="size-3" /></kbd>
+                  <span className="ml-1 hidden sm:inline">Add to Excerpt</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <kbd className="kbd">?</kbd>
+                  <span className="ml-1 hidden sm:inline">Shortcuts</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <kbd className="kbd">Esc</kbd>
+                  <span className="ml-1 hidden sm:inline">Close</span>
+                </span>
               </div>
-            )}
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Command className="size-3" />
+                <span>K</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -384,6 +923,15 @@ export function SpotlightSearch({ isOpen, onClose }: SpotlightSearchProps) {
 // ============================================================================
 // Sub-components
 // ============================================================================
+
+function ShortcutRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-sm text-foreground">{label}</span>
+      <span className="flex items-center gap-1">{children}</span>
+    </div>
+  );
+}
 
 function CategoryPill({
   category,
@@ -418,6 +966,78 @@ function CategoryPill({
         </span>
       )}
     </button>
+  );
+}
+
+function CommandResultItem({
+  command,
+  isSelected,
+  index,
+  onClick,
+  onMouseEnter,
+}: {
+  command: SpotlightCommandItem;
+  isSelected: boolean;
+  index: number;
+  onClick: () => void;
+  onMouseEnter: () => void;
+}) {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      event.stopPropagation();
+      onClick();
+    }
+  };
+
+  return (
+    <div
+      data-index={index}
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-current={isSelected ? "true" : undefined}
+      className={cn(
+        "w-full flex items-start gap-3 px-3 py-2.5 rounded-xl text-left transition-all",
+        isSelected
+          ? "bg-primary/10 border border-primary/20"
+          : "hover:bg-muted/50 border border-transparent"
+      )}
+    >
+      <div className={cn(
+        "flex-shrink-0 flex items-center justify-center size-9 rounded-lg",
+        isSelected ? "bg-primary/10 text-primary" : "bg-muted/40 text-muted-foreground"
+      )}>
+        {command.icon}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="font-medium text-sm text-foreground truncate">
+              {command.title}
+            </div>
+            {command.subtitle && (
+              <div className="text-xs text-muted-foreground truncate">
+                {command.subtitle}
+              </div>
+            )}
+          </div>
+
+          {command.shortcut && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              {command.shortcut.map((key, i) => (
+                <kbd key={`${command.id}-shortcut-${i}`} className="kbd">
+                  {key}
+                </kbd>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -785,21 +1405,138 @@ function getCategoryBadgeClass(category: string, model?: string): string {
 // Provider Component
 // ============================================================================
 
+const KEYBOARD_SHORTCUTS_ENABLED_KEY = "brenner.keyboard.shortcuts.enabled";
+const KEYBOARD_VIM_MODE_KEY = "brenner.keyboard.shortcuts.vim";
+
+const GLOBAL_NAV_SEQUENCE_TIMEOUT_MS = 900;
+
+const SESSION_NAV_ORDER = [
+  "overview",
+  "hypothesis",
+  "operators",
+  "test-queue",
+  "agents",
+  "evidence",
+  "brief",
+] as const;
+
+type SessionNavLocation = (typeof SESSION_NAV_ORDER)[number];
+
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!target || !(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+
+  const tag = target.tagName.toLowerCase();
+  return tag === "input" || tag === "textarea" || tag === "select";
+}
+
+function parseSessionNavContext(pathname: string): { sessionId: string; location: SessionNavLocation } | null {
+  const parts = pathname.split("/").filter(Boolean);
+  if (parts[0] !== "sessions") return null;
+
+  const sessionId = parts[1];
+  if (!sessionId || sessionId === "new") return null;
+
+  const segment = parts[2];
+  const location: SessionNavLocation =
+    segment === "hypothesis" ? "hypothesis" :
+    segment === "operators" ? "operators" :
+    segment === "test-queue" ? "test-queue" :
+    segment === "agents" ? "agents" :
+    segment === "evidence" ? "evidence" :
+    segment === "brief" ? "brief" :
+    "overview";
+
+  return { sessionId, location };
+}
+
+function buildSessionNavHref(sessionId: string, location: SessionNavLocation): string {
+  const base = `/sessions/${sessionId}`;
+  switch (location) {
+    case "hypothesis":
+      return `${base}/hypothesis`;
+    case "operators":
+      return `${base}/operators`;
+    case "test-queue":
+      return `${base}/test-queue`;
+    case "agents":
+      return `${base}/agents`;
+    case "evidence":
+      return `${base}/evidence`;
+    case "brief":
+      return `${base}/brief`;
+    case "overview":
+    default:
+      return base;
+  }
+}
+
 interface SearchContextType {
   isOpen: boolean;
   open: () => void;
   close: () => void;
   toggle: () => void;
+  keyboardShortcutsEnabled: boolean;
+  vimMode: boolean;
+  toggleKeyboardShortcuts: () => void;
+  toggleVimMode: () => void;
 }
 
 const SearchContext = React.createContext<SearchContextType | null>(null);
 
 export function SearchProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [isOpen, setIsOpen] = React.useState(false);
+  const [keyboardShortcutsEnabled, setKeyboardShortcutsEnabled] = React.useState(true);
+  const [vimMode, setVimMode] = React.useState(false);
+
+  const globalNavRef = React.useRef<{ leader: "g" | null; startedAt: number }>({
+    leader: null,
+    startedAt: 0,
+  });
 
   const open = React.useCallback(() => setIsOpen(true), []);
   const close = React.useCallback(() => setIsOpen(false), []);
   const toggle = React.useCallback(() => setIsOpen((prev) => !prev), []);
+  const toggleKeyboardShortcuts = React.useCallback(
+    () => setKeyboardShortcutsEnabled((prev) => !prev),
+    []
+  );
+  const toggleVimMode = React.useCallback(() => setVimMode((prev) => !prev), []);
+
+  // Load prefs (localStorage is source of truth)
+  React.useEffect(() => {
+    try {
+      const rawEnabled = localStorage.getItem(KEYBOARD_SHORTCUTS_ENABLED_KEY);
+      if (rawEnabled !== null) {
+        setKeyboardShortcutsEnabled(rawEnabled === "1" || rawEnabled === "true");
+      }
+      const rawVim = localStorage.getItem(KEYBOARD_VIM_MODE_KEY);
+      if (rawVim !== null) {
+        setVimMode(rawVim === "1" || rawVim === "true");
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(KEYBOARD_SHORTCUTS_ENABLED_KEY, keyboardShortcutsEnabled ? "1" : "0");
+    } catch {
+      // ignore
+    }
+  }, [keyboardShortcutsEnabled]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(KEYBOARD_VIM_MODE_KEY, vimMode ? "1" : "0");
+    } catch {
+      // ignore
+    }
+  }, [vimMode]);
 
   // Global keyboard shortcut
   React.useEffect(() => {
@@ -807,17 +1544,129 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         toggle();
+        return;
+      }
+
+      if (isOpen) return;
+      if (!keyboardShortcutsEnabled) return;
+      if (isEditableTarget(e.target)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      const session = parseSessionNavContext(pathname);
+      if (session) {
+        if (vimMode && e.key === "G") {
+          e.preventDefault();
+          router.push(
+            buildSessionNavHref(session.sessionId, SESSION_NAV_ORDER[SESSION_NAV_ORDER.length - 1]!)
+          );
+          return;
+        }
+
+        const idx = SESSION_NAV_ORDER.indexOf(session.location);
+        if (idx !== -1) {
+          const goByDelta = (delta: number) => {
+            const nextIndex = idx + delta;
+            const nextLoc = SESSION_NAV_ORDER[nextIndex];
+            if (!nextLoc) return;
+            router.push(buildSessionNavHref(session.sessionId, nextLoc));
+          };
+
+          if (e.key === "]") {
+            e.preventDefault();
+            goByDelta(1);
+            return;
+          }
+
+          if (e.key === "[") {
+            e.preventDefault();
+            goByDelta(-1);
+            return;
+          }
+
+          const lower = e.key.toLowerCase();
+          if (vimMode && lower === "j") {
+            e.preventDefault();
+            goByDelta(1);
+            return;
+          }
+
+          if (vimMode && lower === "k") {
+            e.preventDefault();
+            goByDelta(-1);
+            return;
+          }
+        }
+      }
+
+      // GitHub-style: g then key = jump
+      const now = Date.now();
+      const state = globalNavRef.current;
+      if (state.leader && now - state.startedAt > GLOBAL_NAV_SEQUENCE_TIMEOUT_MS) {
+        state.leader = null;
+        state.startedAt = 0;
+      }
+
+      const key = e.key.toLowerCase();
+      if (!state.leader) {
+        if (key === "g") {
+          e.preventDefault();
+          state.leader = "g";
+          state.startedAt = now;
+        }
+        return;
+      }
+
+      // leader === "g"
+      state.leader = null;
+      state.startedAt = 0;
+
+      if (key === "g" && session && vimMode) {
+        e.preventDefault();
+        router.push(buildSessionNavHref(session.sessionId, SESSION_NAV_ORDER[0]));
+        return;
+      }
+
+      const href =
+        key === "h" ? "/" :
+        key === "c" ? "/corpus" :
+        key === "d" ? "/distillations" :
+        key === "m" ? "/method" :
+        key === "o" ? "/operators" :
+        key === "s" ? "/sessions" :
+        null;
+
+      if (href) {
+        e.preventDefault();
+        router.push(href);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggle]);
+  }, [toggle, isOpen, keyboardShortcutsEnabled, vimMode, router, pathname]);
 
   return (
-    <SearchContext.Provider value={{ isOpen, open, close, toggle }}>
+    <SearchContext.Provider
+      value={{
+        isOpen,
+        open,
+        close,
+        toggle,
+        keyboardShortcutsEnabled,
+        vimMode,
+        toggleKeyboardShortcuts,
+        toggleVimMode,
+      }}
+    >
       {children}
-      <SpotlightSearch isOpen={isOpen} onClose={close} />
+      <SpotlightSearch
+        isOpen={isOpen}
+        onClose={close}
+        keyboardShortcutsEnabled={keyboardShortcutsEnabled}
+        vimMode={vimMode}
+        onToggleKeyboardShortcuts={toggleKeyboardShortcuts}
+        onToggleVimMode={toggleVimMode}
+      />
     </SearchContext.Provider>
   );
 }

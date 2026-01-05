@@ -2729,7 +2729,8 @@ p, li, span, div {
   }
 
   /* ========================================================================
-     COMMAND PALETTE (⌘K)
+     LEGACY COMMAND PALETTE (⌘/)
+     Note: Cmd/Ctrl+K is SpotlightSearch + commands.
      ======================================================================== */
 
   .command-palette-backdrop {

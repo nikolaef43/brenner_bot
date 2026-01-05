@@ -28,6 +28,7 @@ vi.mock("next/navigation", () => ({
     back: vi.fn(),
     forward: vi.fn(),
   }),
+  usePathname: () => "/",
 }));
 
 // Mock searchAction
@@ -38,10 +39,12 @@ vi.mock("@/lib/globalSearchAction", () => ({
 
 // Mock useExcerptBasket
 const mockAddItem = vi.fn();
+const mockOpenBasket = vi.fn();
 vi.mock("@/components/excerpt", () => ({
   useExcerptBasket: () => ({
     items: [],
     addItem: mockAddItem,
+    openBasket: mockOpenBasket,
     removeItem: vi.fn(),
     clearItems: vi.fn(),
     hasItem: () => false,
@@ -136,6 +139,19 @@ describe("SpotlightSearch", () => {
       expect(screen.getByText("Search the Brenner Corpus")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /c\. elegans/i })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /genetics/i })).toBeInTheDocument();
+    });
+
+    it("renders commands and executes selected command on Enter", () => {
+      const onClose = vi.fn();
+      render(<SpotlightSearch isOpen={true} onClose={onClose} />);
+
+      expect(screen.getByText("Commands")).toBeInTheDocument();
+      expect(screen.getByText("Go to Home")).toBeInTheDocument();
+
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+
+      expect(mockPush).toHaveBeenCalledWith("/");
+      expect(onClose).toHaveBeenCalled();
     });
 
     it("shows loading spinner when pending", async () => {
