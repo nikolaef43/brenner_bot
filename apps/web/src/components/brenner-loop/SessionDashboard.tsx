@@ -20,13 +20,14 @@ import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Skeleton, SkeletonCard, SkeletonButton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
 import { HypothesisCard } from "./HypothesisCard";
+import { PhaseTimeline } from "./PhaseTimeline";
 import { useAsyncOperation } from "@/hooks/useAsyncOperation";
 import { CorpusSearchDialog } from "./CorpusSearch";
 import {
+  PHASE_ORDER,
   useSession,
   useSessionMachine,
   usePhaseNavigation,
-  getPhaseStatusClass,
   getSessionProgress,
   exportSession,
   type Session,
@@ -46,18 +47,6 @@ const ChevronLeftIcon = ({ className }: { className?: string }) => (
 const ChevronRightIcon = ({ className }: { className?: string }) => (
   <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-  </svg>
-);
-
-const CheckIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-  </svg>
-);
-
-const LockClosedIcon = ({ className }: { className?: string }) => (
-  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
   </svg>
 );
 
@@ -187,106 +176,6 @@ const PHASE_CONFIG: Record<SessionPhase, PhaseConfig> = {
     },
   },
 };
-
-// ============================================================================
-// PhaseTimeline Component
-// ============================================================================
-
-interface PhaseTimelineProps {
-  currentPhase: SessionPhase;
-  reachablePhases: SessionPhase[];
-  onPhaseClick?: (phase: SessionPhase) => void;
-  className?: string;
-}
-
-function PhaseTimeline({
-  currentPhase,
-  reachablePhases,
-  onPhaseClick,
-  className,
-}: PhaseTimelineProps) {
-  const phases: SessionPhase[] = [
-    "intake",
-    "sharpening",
-    "level_split",
-    "exclusion_test",
-    "object_transpose",
-    "scale_check",
-    "agent_dispatch",
-    "synthesis",
-    "evidence_gathering",
-    "revision",
-    "complete",
-  ];
-
-  return (
-    <div className={cn("w-full", className)}>
-      {/* Progress bar */}
-      <div className="relative h-1 bg-muted rounded-full mb-4 overflow-hidden">
-        <motion.div
-          className="absolute inset-y-0 left-0 bg-primary rounded-full"
-          initial={{ width: 0 }}
-          animate={{ width: `${getSessionProgress(currentPhase)}%` }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        />
-      </div>
-
-      {/* Phase dots */}
-      <div className="flex justify-between items-start gap-1">
-        {phases.map((phase, index) => {
-          const config = PHASE_CONFIG[phase];
-          const status = getPhaseStatusClass(currentPhase, phase, reachablePhases);
-          const isClickable = status !== "locked" && phase !== currentPhase;
-
-          return (
-            <div
-              key={phase}
-              className="flex flex-col items-center flex-1 min-w-0"
-            >
-              {/* Phase dot */}
-              <button
-                onClick={() => isClickable && onPhaseClick?.(phase)}
-                disabled={!isClickable}
-                className={cn(
-                  "relative size-8 rounded-full flex items-center justify-center transition-all",
-                  "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-                  status === "complete" && "bg-primary text-primary-foreground",
-                  status === "current" && "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2",
-                  status === "upcoming" && "bg-muted-foreground/20 text-muted-foreground hover:bg-muted-foreground/30 cursor-pointer",
-                  status === "locked" && "bg-muted text-muted-foreground/50 cursor-not-allowed"
-                )}
-                title={config.name}
-              >
-                {status === "complete" ? (
-                  <CheckIcon className="size-4" />
-                ) : status === "locked" ? (
-                  <LockClosedIcon className="size-3" />
-                ) : config.symbol ? (
-                  <span className="text-xs font-bold">{config.symbol}</span>
-                ) : (
-                  <span className="text-xs font-medium">{index + 1}</span>
-                )}
-              </button>
-
-              {/* Phase label (hidden on mobile) */}
-              <span
-                className={cn(
-                  "mt-2 text-xs text-center truncate w-full hidden sm:block",
-                  status === "current" && "font-semibold text-foreground",
-                  status === "complete" && "text-muted-foreground",
-                  status === "upcoming" && "text-muted-foreground",
-                  status === "locked" && "text-muted-foreground/50"
-                )}
-              >
-                {config.shortName}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 // ============================================================================
 // BrennerQuote Component
@@ -604,7 +493,10 @@ export function SessionDashboard({
       {/* Phase Timeline */}
       <PhaseTimeline
         currentPhase={session.phase}
-        reachablePhases={machine.reachablePhases}
+        phases={PHASE_ORDER}
+        completedPhases={PHASE_ORDER.slice(0, Math.max(0, PHASE_ORDER.indexOf(session.phase)))}
+        availablePhases={machine.reachablePhases}
+        skippedPhases={[]}
         onPhaseClick={handlePhaseClick}
       />
 
