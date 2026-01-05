@@ -109,6 +109,17 @@ const AGENTS: AgentConfig[] = [
     model: "gpt-5-codex",
   },
   {
+    id: "statistician",
+    name: "Statistician",
+    role: "Quant",
+    description: "Adds quantitative rigor (effect sizes, power, uncertainty) to the tribunal.",
+    color: "text-emerald-500",
+    bgColor: "bg-emerald-500/10",
+    borderColor: "border-emerald-500/30",
+    avatar: "ST",
+    model: "gpt-5-stat",
+  },
+  {
     id: "brenner_channeler",
     name: "Brenner Channeler",
     role: "Mentor",
@@ -473,6 +484,7 @@ export default function AgentsPage() {
   const [agentStatuses, setAgentStatuses] = React.useState<Record<string, AgentStatus>>(() => ({
     devils_advocate: isLiveThread ? "idle" : "responded",
     experiment_designer: "idle",
+    statistician: "idle",
     brenner_channeler: "idle",
   }));
 
@@ -506,6 +518,7 @@ export default function AgentsPage() {
   const [agentProgress, setAgentProgress] = React.useState<Record<string, number>>({
     devils_advocate: 0,
     experiment_designer: 0,
+    statistician: 0,
     brenner_channeler: 0,
   });
 
@@ -553,7 +566,7 @@ export default function AgentsPage() {
     const handleThreadUpdate = (event: MessageEvent) => {
       try {
         const payload = JSON.parse(String(event.data ?? "")) as {
-          newMessages?: Array<{ subject?: string; from?: string; created_ts?: string }>;
+          newMessages?: Array<{ subject?: string; from?: string; created_ts?: string; reply_to?: number }>;
         };
 
         for (const message of payload.newMessages ?? []) {
@@ -562,6 +575,26 @@ export default function AgentsPage() {
           if (!tag || !agentIds.has(tag)) continue;
 
           if (/^TRIBUNAL\[/i.test(subject)) {
+            if (typeof message.reply_to === "number") {
+              setAgentStatuses((prev) => ({ ...prev, [tag]: "responded" }));
+              setAgentProgress((prev) => ({
+                ...prev,
+                [tag]: AGENT_PROGRESS_STEPS.length - 1,
+              }));
+              setResponses((prev) => {
+                if (prev.some((response) => response.agentId === tag)) return prev;
+                const timestamp = message.created_ts ? new Date(message.created_ts) : new Date();
+                return [
+                  ...prev,
+                  {
+                    agentId: tag,
+                    content: `Response received from ${message.from ?? "agent"}. Open the thread to view the full response.`,
+                    timestamp,
+                  },
+                ];
+              });
+              continue;
+            }
             setAgentStatuses((prev) => ({
               ...prev,
               [tag]: prev[tag] === "responded" ? prev[tag] : "thinking",

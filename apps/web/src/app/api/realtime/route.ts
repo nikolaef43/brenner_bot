@@ -39,6 +39,7 @@ type ThreadUpdatePayload = {
     created_ts: string;
     subject: string;
     from?: string;
+    reply_to?: number;
     subjectType: ReturnType<typeof parseSubjectType>["type"];
     role?: string;
   }>;
@@ -167,6 +168,7 @@ export async function GET(request: NextRequest): Promise<Response> {
                 created_ts: msg.created_ts,
                 subject: msg.subject,
                 from: msg.from,
+                reply_to: msg.reply_to,
                 subjectType: parsed.type,
                 role: parsed.role,
               };
