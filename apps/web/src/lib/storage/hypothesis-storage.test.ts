@@ -22,6 +22,14 @@ import { createHypothesis, type Hypothesis } from "../schemas/hypothesis";
 let testDir: string;
 let storage: HypothesisStorage;
 
+function parseJson<T>(value: string): T {
+  try {
+    return JSON.parse(value) as T;
+  } catch (error) {
+    throw new Error(`Failed to parse JSON: ${String(error)}`);
+  }
+}
+
 function createTestHypothesisData(
   overrides: Partial<{
     id: string;
@@ -101,14 +109,14 @@ describe("Session File Operations", () => {
     await storage.saveSessionHypotheses("TEST", [hypothesis]);
 
     const filePath = join(testDir, ".research", "hypotheses", "TEST-hypotheses.json");
-    const content1 = JSON.parse(await fs.readFile(filePath, "utf-8")) as SessionHypothesisFile;
+    const content1 = parseJson<SessionHypothesisFile>(await fs.readFile(filePath, "utf-8"));
     const originalCreatedAt = content1.createdAt;
 
     await new Promise((r) => setTimeout(r, 10));
     const updated = { ...hypothesis, notes: "Updated notes" };
     await storage.saveSessionHypotheses("TEST", [updated]);
 
-    const content2 = JSON.parse(await fs.readFile(filePath, "utf-8")) as SessionHypothesisFile;
+    const content2 = parseJson<SessionHypothesisFile>(await fs.readFile(filePath, "utf-8"));
     expect(content2.createdAt).toBe(originalCreatedAt);
     expect(content2.updatedAt).not.toBe(content2.createdAt);
   });
@@ -204,6 +212,32 @@ describe("Individual Hypothesis Operations", () => {
     const flaky = new FlakyStorage({ baseDir: testDir, autoRebuildIndex: false });
     const deleted = await flaky.deleteHypothesis("H-TEST-001");
     expect(deleted).toBe(false);
+  });
+});
+
+// ============================================================================
+// Concurrency Tests
+// ============================================================================
+
+describe("Concurrency", () => {
+  test("concurrent saveHypothesis calls do not drop writes", async () => {
+    const sessionId = "CONCURRENT";
+    const hypotheses = Array.from({ length: 10 }, (_, i) =>
+      createTestHypothesisData({
+        sessionId,
+        id: `H-${sessionId}-${String(i + 1).padStart(3, "0")}`,
+        statement: `Hypothesis ${i + 1}`,
+      })
+    );
+
+    await Promise.all(hypotheses.map((h) => storage.saveHypothesis(h)));
+
+    const loaded = await storage.loadSessionHypotheses(sessionId);
+    expect(loaded).toHaveLength(hypotheses.length);
+
+    const loadedIds = loaded.map((h) => h.id).sort();
+    const expectedIds = hypotheses.map((h) => h.id).sort();
+    expect(loadedIds).toEqual(expectedIds);
   });
 });
 

@@ -120,6 +120,44 @@ async function ensureStorageStructure(baseDir: string): Promise<void> {
 }
 
 // ============================================================================
+// In-process Locking
+// ============================================================================
+
+const HYPOTHESIS_STORAGE_LOCKS = new Map<string, Promise<void>>();
+
+async function withHypothesisStorageLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  const prev = HYPOTHESIS_STORAGE_LOCKS.get(key) ?? Promise.resolve();
+  const safePrev = prev.catch(() => {});
+
+  let result: T | undefined;
+  let didThrow = false;
+  let error: unknown;
+
+  const next = safePrev.then(async () => {
+    try {
+      result = await fn();
+    } catch (err) {
+      didThrow = true;
+      error = err;
+    }
+  });
+
+  HYPOTHESIS_STORAGE_LOCKS.set(key, next);
+
+  await next;
+
+  if (HYPOTHESIS_STORAGE_LOCKS.get(key) === next) {
+    HYPOTHESIS_STORAGE_LOCKS.delete(key);
+  }
+
+  if (didThrow) {
+    throw error;
+  }
+
+  return result as T;
+}
+
+// ============================================================================
 // Storage Class
 // ============================================================================
 
@@ -134,6 +172,10 @@ export class HypothesisStorage {
   constructor(config: HypothesisStorageConfig = {}) {
     this.baseDir = config.baseDir ?? process.cwd();
     this.autoRebuildIndex = config.autoRebuildIndex ?? true;
+  }
+
+  private lockKey(): string {
+    return `hypothesis-storage:${this.baseDir}`;
   }
 
   // ============================================================================
@@ -163,6 +205,12 @@ export class HypothesisStorage {
    * Save hypotheses for a specific session.
    */
   async saveSessionHypotheses(sessionId: string, hypotheses: Hypothesis[]): Promise<void> {
+    await withHypothesisStorageLock(this.lockKey(), async () => {
+      await this.saveSessionHypothesesUnlocked(sessionId, hypotheses);
+    });
+  }
+
+  private async saveSessionHypothesesUnlocked(sessionId: string, hypotheses: Hypothesis[]): Promise<void> {
     await ensureStorageStructure(this.baseDir);
 
     const filePath = getSessionFilePath(this.baseDir, sessionId);
@@ -188,7 +236,7 @@ export class HypothesisStorage {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2));
 
     if (this.autoRebuildIndex) {
-      await this.rebuildIndex();
+      await this.rebuildIndexUnlocked();
     }
   }
 
@@ -215,36 +263,40 @@ export class HypothesisStorage {
    * Create or update a hypothesis.
    */
   async saveHypothesis(hypothesis: Hypothesis): Promise<void> {
-    const hypotheses = await this.loadSessionHypotheses(hypothesis.sessionId);
-    const existingIndex = hypotheses.findIndex((h) => h.id === hypothesis.id);
+    await withHypothesisStorageLock(this.lockKey(), async () => {
+      const hypotheses = await this.loadSessionHypotheses(hypothesis.sessionId);
+      const existingIndex = hypotheses.findIndex((h) => h.id === hypothesis.id);
 
-    if (existingIndex >= 0) {
-      hypotheses[existingIndex] = hypothesis;
-    } else {
-      hypotheses.push(hypothesis);
-    }
+      if (existingIndex >= 0) {
+        hypotheses[existingIndex] = hypothesis;
+      } else {
+        hypotheses.push(hypothesis);
+      }
 
-    await this.saveSessionHypotheses(hypothesis.sessionId, hypotheses);
+      await this.saveSessionHypothesesUnlocked(hypothesis.sessionId, hypotheses);
+    });
   }
 
   /**
    * Delete a hypothesis by ID.
    */
   async deleteHypothesis(id: string): Promise<boolean> {
-    const hypothesis = await this.getHypothesisById(id);
-    if (!hypothesis) {
-      return false;
-    }
+    return await withHypothesisStorageLock(this.lockKey(), async () => {
+      const hypothesis = await this.getHypothesisById(id);
+      if (!hypothesis) {
+        return false;
+      }
 
-    const hypotheses = await this.loadSessionHypotheses(hypothesis.sessionId);
-    const newHypotheses = hypotheses.filter((h) => h.id !== id);
+      const hypotheses = await this.loadSessionHypotheses(hypothesis.sessionId);
+      const newHypotheses = hypotheses.filter((h) => h.id !== id);
 
-    if (newHypotheses.length === hypotheses.length) {
-      return false;
-    }
+      if (newHypotheses.length === hypotheses.length) {
+        return false;
+      }
 
-    await this.saveSessionHypotheses(hypothesis.sessionId, newHypotheses);
-    return true;
+      await this.saveSessionHypothesesUnlocked(hypothesis.sessionId, newHypotheses);
+      return true;
+    });
   }
 
   // ============================================================================
@@ -255,6 +307,12 @@ export class HypothesisStorage {
    * Rebuild the cross-session index.
    */
   async rebuildIndex(): Promise<HypothesisIndex> {
+    return await withHypothesisStorageLock(this.lockKey(), async () => {
+      return await this.rebuildIndexUnlocked();
+    });
+  }
+
+  private async rebuildIndexUnlocked(): Promise<HypothesisIndex> {
     const entries: HypothesisIndexEntry[] = [];
     const hypothesesDir = getHypothesesDir(this.baseDir);
 
