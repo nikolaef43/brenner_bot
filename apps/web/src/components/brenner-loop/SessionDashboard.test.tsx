@@ -127,6 +127,16 @@ describe("SessionDashboard keyboard shortcuts", () => {
     expect(mocks.next).toHaveBeenCalledTimes(1);
   });
 
+  it("does not navigate phases when Shift+Arrow is pressed", async () => {
+    const user = userEvent.setup();
+    mocks.prev.mockClear();
+
+    render(<SessionDashboard />);
+
+    await user.keyboard("{Shift>}{ArrowLeft}{/Shift}");
+    expect(mocks.prev).not.toHaveBeenCalled();
+  });
+
   it("supports numeric phase jumps (1-9)", async () => {
     const user = userEvent.setup();
     mocks.goTo.mockClear();
@@ -162,4 +172,3 @@ describe("SessionDashboard keyboard shortcuts", () => {
     expect(screen.getByText("Keyboard shortcuts")).toBeInTheDocument();
   });
 });
-

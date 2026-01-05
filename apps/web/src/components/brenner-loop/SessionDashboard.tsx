@@ -377,16 +377,16 @@ export function SessionDashboard({
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented) return;
+      if (event.isComposing) return;
       if (!session || !machine) return;
       if (exportOperation.isLoading) return;
-      if (isCorpusSearchOpen) return;
 
       const key = event.key;
       const lowerKey = key.toLowerCase();
       const isTyping = isEditableTarget(event.target);
 
-      // While typing, only allow modifier-based shortcuts (e.g., Cmd/Ctrl+S)
-      if (isTyping && !(event.metaKey || event.ctrlKey)) return;
+      // While typing (or while corpus search is open), only allow modifier-based shortcuts (e.g., Cmd/Ctrl+S)
+      if ((isTyping || isCorpusSearchOpen) && !(event.metaKey || event.ctrlKey)) return;
 
       // Help dialog toggle
       if (!event.metaKey && !event.ctrlKey && !event.altKey && key === "?") {
@@ -412,7 +412,7 @@ export function SessionDashboard({
       }
 
       // Hypothesis shortcuts
-      if (!event.metaKey && !event.ctrlKey && !event.altKey) {
+      if (!event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey) {
         if (lowerKey === "e" && onEditHypothesis) {
           event.preventDefault();
           onEditHypothesis();
@@ -427,7 +427,7 @@ export function SessionDashboard({
       }
 
       // Phase navigation
-      if (!event.metaKey && !event.ctrlKey && !event.altKey) {
+      if (!event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey) {
         if (key === "ArrowLeft" && canPrev) {
           event.preventDefault();
           prev();
@@ -565,7 +565,7 @@ export function SessionDashboard({
           <DialogHeader separated>
             <DialogTitle>Keyboard shortcuts</DialogTitle>
             <DialogDescription>
-              Arrow/letter shortcuts are disabled while typing; Cmd/Ctrl shortcuts still work.
+              Non-modifier shortcuts are disabled while typing; Cmd/Ctrl shortcuts still work.
             </DialogDescription>
           </DialogHeader>
           <DialogBody className="grid gap-6 sm:grid-cols-2">
