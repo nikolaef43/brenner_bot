@@ -333,9 +333,9 @@ const discoveryFeatures = [
 ];
 
 const similarityMatches = [
-  { title: "Morphogen gradient (RS-20251230)", score: 0.82, breakdown: "Statement 0.8 · Mechanism 0.6 · Domain 0.9" },
-  { title: "Timing gate model (RS-20250112)", score: 0.71, breakdown: "Statement 0.7 · Mechanism 0.5 · Domain 0.8" },
-  { title: "Signal relay chain (RS-20241018)", score: 0.64, breakdown: "Statement 0.6 · Mechanism 0.4 · Domain 0.9" },
+  { title: "Morphogen gradient (RS-20251230)", score: 0.82, breakdown: "Statement 0.8 / Mechanism 0.6 / Domain 0.9" },
+  { title: "Timing gate model (RS-20250112)", score: 0.71, breakdown: "Statement 0.7 / Mechanism 0.5 / Domain 0.8" },
+  { title: "Signal relay chain (RS-20241018)", score: 0.64, breakdown: "Statement 0.6 / Mechanism 0.4 / Domain 0.9" },
 ];
 
 const whatIfOutcomes = [
@@ -344,8 +344,8 @@ const whatIfOutcomes = [
 ];
 
 const robustnessCards = [
-  { title: "H1: Morphogen gradient", score: 72, detail: "3 supporting · 1 challenging (survived)" },
-  { title: "H2: Timing mechanism", score: 35, detail: "1 supporting · 2 inconclusive" },
+  { title: "H1: Morphogen gradient", score: 72, detail: "3 supporting / 1 challenging (survived)" },
+  { title: "H2: Timing mechanism", score: 35, detail: "1 supporting / 2 inconclusive" },
 ];
 
 const anomalyItems = [
@@ -524,7 +524,7 @@ export default function Home() {
                   <div className="rounded-2xl border border-border/70 bg-gradient-to-br from-primary/10 via-background to-accent/10 px-4 py-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Unified Artifact</p>
                     <p className="mt-2 text-sm text-foreground">
-                      Hypothesis slate • Discriminative tests • Evidence ledger
+                      Hypothesis slate / Discriminative tests / Evidence ledger
                     </p>
                   </div>
                   <div className="rounded-2xl border border-border/70 bg-muted/40 px-4 py-3 text-xs text-muted-foreground">
@@ -765,10 +765,10 @@ export default function Home() {
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
               Each agent has a precise mandate. Together they sharpen hypotheses, design lethal tests, and merge
-              evidence into auditable artifacts—without surrendering control.
+              evidence into auditable artifacts - without surrendering control.
             </p>
             <p className="text-base sm:text-lg text-foreground/90 max-w-3xl mx-auto italic mt-4">
-              &quot;What if you could have Claude, GPT, and Gemini debate your hypothesis—challenging each other until
+              &quot;What if you could have Claude, GPT, and Gemini debate your hypothesis - challenging each other until
               only the strongest ideas survive?&quot;
             </p>
           </div>
@@ -1262,7 +1262,7 @@ brenner session compile --thread-id RS-20260105`}</code>
               The Operator Algebra: Brenner&apos;s Methods as Executable Code
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-              Sydney Brenner&apos;s breakthrough wasn&apos;t just his discoveries—it was his method. We&apos;ve encoded his cognitive
+              Sydney Brenner&apos;s breakthrough wasn&apos;t just his discoveries - it was his method. We&apos;ve encoded his cognitive
               patterns as composable operators that you can apply systematically.
             </p>
           </div>
@@ -1328,10 +1328,10 @@ brenner session compile --thread-id RS-20260105`}</code>
                 </code>
               </div>
               <div className="text-xs text-zinc-400 space-y-1">
-                <p>• Start from a paradox (◊), split levels (⊘), extract invariants (≡)</p>
-                <p>• Design exclusion tests (✂), materialize as decision procedure (⌂)</p>
-                <p>• Power by amplification (↑) in well-chosen system (⟂) you build yourself (🔧)</p>
-                <p>• Constrain by physics (⊞), keep honest with exception handling (ΔE) and theory killing (†)</p>
+                <p>- Start from a paradox (◊), split levels (⊘), extract invariants (≡)</p>
+                <p>- Design exclusion tests (✂), materialize as decision procedure (⌂)</p>
+                <p>- Power by amplification (↑) in well-chosen system (⟂) you build yourself (🔧)</p>
+                <p>- Constrain by physics (⊞), keep honest with exception handling (ΔE) and theory killing (†)</p>
               </div>
             </div>
           </details>
@@ -1439,7 +1439,7 @@ const result = brennerPipeline(hypothesis, context);`}</code>
           </p>
           <footer className="mt-4 sm:mt-6 text-muted-foreground">
             <cite className="not-italic font-medium block sm:inline">Sydney Brenner</cite>
-            <span className="hidden sm:inline mx-2">·</span>
+            <span className="hidden sm:inline mx-2">-</span>
             <span className="text-xs sm:text-sm block sm:inline mt-1 sm:mt-0">Nobel Laureate in Physiology or Medicine, 2002</span>
           </footer>
         </blockquote>

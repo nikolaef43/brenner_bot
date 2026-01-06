@@ -64,37 +64,38 @@ describe("Home Page", () => {
       render(<Home />);
 
       expect(
-        screen.getByRole("heading", { name: /brennerbot/i, level: 1 })
+        screen.getByRole("heading", { name: /brenner lab/i, level: 1 })
       ).toBeInTheDocument();
     });
 
-    it("shows the research in progress badge", () => {
+    it("shows the lab mode badge", () => {
       render(<Home />);
 
-      expect(screen.getByText(/research in progress/i)).toBeInTheDocument();
+      expect(screen.getByText(/brenner lab mode/i)).toBeInTheDocument();
     });
 
     it("displays the subtitle/description", () => {
       render(<Home />);
 
       expect(
-        screen.getByText(/operationalizing sydney brenner/i)
+        screen.getByText(/coordinate claude.*gpt.*gemini/i)
       ).toBeInTheDocument();
     });
 
     it("includes primary CTA links", () => {
       render(<Home />);
 
-      expect(
-        screen.getByRole("link", { name: /read the transcript/i })
-      ).toHaveAttribute("href", "/corpus/transcript");
+      // There may be multiple "Get started" links (hero + onboarding), so check the one in hero
+      const tutorialLinks = screen.getAllByRole("link", { name: /get started/i });
+      const heroTutorialLink = tutorialLinks.find(link => link.getAttribute("href") === "/tutorial");
+      expect(heroTutorialLink).toBeDefined();
 
       expect(
-        screen.getByRole("link", { name: /explore corpus/i })
-      ).toHaveAttribute("href", "/corpus");
+        screen.getByRole("link", { name: /read the method/i })
+      ).toHaveAttribute("href", "/method");
 
       expect(
-        screen.getByRole("link", { name: /read distillations/i })
+        screen.getByRole("link", { name: /view distillations/i })
       ).toHaveAttribute("href", "/distillations");
     });
   });
