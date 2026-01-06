@@ -245,6 +245,13 @@ async function compileThread(params: {
   const deltaMessages = allDeltaMessages;
 
   const collected: Array<ValidDelta & { timestamp: string; agent: string }> = [];
+  const deltaFenceErrors: Array<{
+    messageId: number;
+    from: string;
+    subject: string;
+    createdAt: string;
+    bodyPreview: string;
+  }> = [];
   let totalBlocks = 0;
   let validBlocks = 0;
   let invalidBlocks = 0;
@@ -252,6 +259,19 @@ async function compileThread(params: {
   for (const message of deltaMessages) {
     const body = message.body_md ?? "";
     const parsed = parseDeltaMessage(body);
+
+    if (parsed.totalBlocks === 0) {
+      const agent = message.from?.trim() || "unknown";
+      deltaFenceErrors.push({
+        messageId: message.id,
+        from: agent,
+        subject: message.subject,
+        createdAt: message.created_ts,
+        bodyPreview: body.trim().slice(0, 240),
+      });
+      continue;
+    }
+
     totalBlocks += parsed.totalBlocks;
     validBlocks += parsed.validCount;
     invalidBlocks += parsed.invalidCount;
@@ -262,6 +282,34 @@ async function compileThread(params: {
       if (!delta.valid) continue;
       collected.push({ ...delta, timestamp, agent });
     }
+  }
+
+  if (deltaFenceErrors.length > 0) {
+    return {
+      ok: false,
+      response: {
+        success: false,
+        code: "VALIDATION_ERROR",
+        error:
+          "Found DELTA messages with no parseable delta blocks. " +
+          "Resend the message using fenced ```delta blocks (see specs/delta_output_format_v0.1.md).",
+        details: {
+          count: deltaFenceErrors.length,
+          messages: deltaFenceErrors,
+          remediation_template: [
+            "```delta",
+            "{",
+            '  "operation": "ADD",',
+            '  "section": "hypothesis_slate",',
+            '  "target_id": null,',
+            '  "payload": { "id": "H1", "name": "…", "claim": "…", "mechanism": "…", "anchors": ["inference"] },',
+            '  "rationale": "…"',
+            "}",
+            "```",
+          ].join("\n"),
+        },
+      },
+    };
   }
 
   const base = createEmptyArtifact(threadId);
@@ -396,7 +444,9 @@ export async function POST(
     const compiled = await compileThread({ projectKey, threadId });
     if (!compiled.ok) {
       let status = 500;
-      if (compiled.response.code === "NETWORK_ERROR") {
+      if (compiled.response.code === "VALIDATION_ERROR") {
+        status = 400;
+      } else if (compiled.response.code === "NETWORK_ERROR") {
         status = 502;
       } else if (compiled.response.code === "MERGE_ERROR") {
         status = 422;
@@ -427,7 +477,9 @@ export async function POST(
     const compiled = await compileThread({ projectKey, threadId });
     if (!compiled.ok) {
       let status = 500;
-      if (compiled.response.code === "NETWORK_ERROR") {
+      if (compiled.response.code === "VALIDATION_ERROR") {
+        status = 400;
+      } else if (compiled.response.code === "NETWORK_ERROR") {
         status = 502;
       } else if (compiled.response.code === "MERGE_ERROR") {
         status = 422;

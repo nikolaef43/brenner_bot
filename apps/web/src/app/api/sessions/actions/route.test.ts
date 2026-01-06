@@ -120,6 +120,42 @@ describe("POST /api/sessions/actions", () => {
       const artifactMarkdown = (json as { artifactMarkdown?: unknown }).artifactMarkdown;
       expect(String(artifactMarkdown)).toContain("# Brenner Protocol Artifact: TEST-1");
     });
+
+    it("fails loudly when a DELTA message contains no parseable delta blocks", async () => {
+      server.seedThread({
+        projectKey: "/test/project",
+        threadId: "TEST-NO-FENCE",
+        messages: [
+          {
+            from: "Codex",
+            subject: "DELTA[gpt]: Inline JSON (invalid)",
+            body_md: JSON.stringify({
+              operation: "EDIT",
+              section: "research_thread",
+              target_id: null,
+              payload: { statement: "Missing fence" },
+            }),
+            created_ts: "2025-01-01T00:00:00Z",
+          },
+        ],
+      });
+
+      const response = await POST(
+        createMockRequest({
+          method: "POST",
+          body: { action: "compile", threadId: "TEST-NO-FENCE" },
+        })
+      );
+
+      expect(response.status).toBe(400);
+      const json = await response.json();
+      expect(json).toMatchObject({
+        success: false,
+        code: "VALIDATION_ERROR",
+      });
+      expect((json as { error?: string }).error).toContain("no parseable delta blocks");
+      expect((json as { details?: unknown }).details).toBeTruthy();
+    });
   });
 
   describe("publish action", () => {

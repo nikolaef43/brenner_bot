@@ -1667,6 +1667,13 @@ async function compileSessionArtifact(args: {
 
   const mergedDeltas: Array<ValidDelta & { timestamp: string; agent: string }> = [];
   const invalidDeltas: Array<{ message_id: number; subject: string; error: string }> = [];
+  const deltaFenceErrors: Array<{
+    message_id: number;
+    from: string;
+    subject: string;
+    created_ts: string;
+    body_preview: string;
+  }> = [];
 
   let totalBlocks = 0;
   let validCount = 0;
@@ -1675,6 +1682,23 @@ async function compileSessionArtifact(args: {
   for (const message of thread.messages) {
     if (typeof message.body_md !== "string" || message.body_md.trim().length === 0) continue;
     const parsed = parseDeltaMessage(message.body_md);
+    const subjectType = parseSubjectType(message.subject).type;
+    if (subjectType === "delta" && parsed.totalBlocks === 0) {
+      const bodyPreview = message.body_md.trim().slice(0, 240);
+      deltaFenceErrors.push({
+        message_id: message.id,
+        from: message.from ?? "unknown",
+        subject: message.subject,
+        created_ts: message.created_ts,
+        body_preview: bodyPreview,
+      });
+      invalidDeltas.push({
+        message_id: message.id,
+        subject: message.subject,
+        error: "DELTA message contains no fenced delta blocks (```delta or :::delta).",
+      });
+      continue;
+    }
     totalBlocks += parsed.totalBlocks;
     validCount += parsed.validCount;
     invalidCount += parsed.invalidCount;
@@ -1695,6 +1719,38 @@ async function compileSessionArtifact(args: {
         error: delta.error,
       });
     }
+  }
+
+  if (deltaFenceErrors.length > 0) {
+    return {
+      ok: false,
+      threadId: args.threadId,
+      errors: [
+        {
+          code: "DELTA_NO_BLOCKS",
+          message:
+            "Found DELTA messages with no parseable delta blocks. " +
+            "Resend those messages using fenced ```delta blocks (see specs/delta_output_format_v0.1.md).",
+          count: deltaFenceErrors.length,
+          messages: deltaFenceErrors,
+          remediation_template: [
+            "```delta",
+            "{",
+            '  \"operation\": \"ADD\",',
+            '  \"section\": \"hypothesis_slate\",',
+            '  \"target_id\": null,',
+            '  \"payload\": { \"id\": \"H1\", \"name\": \"…\", \"claim\": \"…\", \"mechanism\": \"…\", \"anchors\": [\"inference\"] },',
+            '  \"rationale\": \"…\"',
+            "}",
+            "```",
+          ].join("\n"),
+        },
+      ] as unknown as Json[],
+      warnings: [] as unknown as Json[],
+      merge: { applied: 0, skipped: 0 },
+      deltas: { total_blocks: totalBlocks, valid: validCount, invalid: invalidCount },
+      invalid_deltas: invalidDeltas,
+    };
   }
 
   const mergeResult = mergeArtifactWithTimestamps(base, mergedDeltas);

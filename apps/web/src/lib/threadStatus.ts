@@ -732,7 +732,7 @@ export function getMessagesInCurrentRound(messages: AgentMailMessage[]): AgentMa
 
 /**
  * Get only DELTA messages for the current round (for compilation).
- * Filters out CRITIQUE messages that don't contain structured delta blocks.
+ * Note: this function returns only messages whose subject parses as `DELTA[...]`.
  */
 export function getDeltaMessagesForCurrentRound(messages: AgentMailMessage[]): AgentMailMessage[] {
   return getMessagesInCurrentRound(messages).filter(

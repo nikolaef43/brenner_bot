@@ -14,6 +14,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
+import { AgentMailTestServer } from "./apps/web/src/test-utils/agent-mail-test-server";
+
 // ============================================================================
 // Test Helpers
 // ============================================================================
@@ -2428,6 +2430,54 @@ describe("session compile validation", () => {
     const result = await runCli(["session", "compile"]);
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("--thread-id");
+  });
+
+  it("fails loudly when a DELTA message contains no delta fences", async () => {
+    const server = new AgentMailTestServer();
+    await server.start(0);
+
+    try {
+      const threadId = `TEST-DELTA-NO-FENCE-${randomUUID()}`;
+      const projectKey = "/test/project";
+
+      server.seedThread({
+        projectKey,
+        threadId,
+        messages: [
+          {
+            from: "Codex",
+            subject: "DELTA[gpt]: Inline JSON (invalid)",
+            body_md: JSON.stringify({
+              operation: "ADD",
+              section: "hypothesis_slate",
+              target_id: null,
+              payload: { id: "H1", name: "Bad", claim: "Missing fence", mechanism: "N/A", anchors: ["inference"] },
+              rationale: "This should be fenced but is not",
+            }),
+            created_ts: "2025-01-01T00:00:00Z",
+          },
+        ],
+      });
+
+      const result = await runCli(
+        ["session", "compile", "--project-key", projectKey, "--thread-id", threadId, "--json"],
+        { env: { AGENT_MAIL_BASE_URL: server.getBaseUrl() }, timeout: 15000 }
+      );
+
+      expect(result.exitCode).toBe(1);
+
+      const parsed = JSON.parse(result.stdout) as unknown;
+      expect(parsed).toMatchObject({
+        ok: false,
+        threadId,
+      });
+
+      const payload = parsed as { errors?: Array<{ code?: string; message?: string }> };
+      expect(payload.errors?.[0]?.code).toBe("DELTA_NO_BLOCKS");
+      expect(payload.errors?.[0]?.message).toContain("no parseable delta blocks");
+    } finally {
+      await server.stop();
+    }
   });
 });
 
