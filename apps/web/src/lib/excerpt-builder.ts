@@ -190,8 +190,11 @@ export function parseExcerpt(markdown: string): ExcerptSection[] | null {
   const sections: ExcerptSection[] = [];
 
   // Match quote blocks: > **§n**: "quote text"
-  // Note: § is Unicode U+00A7, needs proper Unicode regex
-  const quotePattern = />\s*\*\*(§\d+)\*\*:\s*"([^"]+)"/gu;
+  // Robust regex: allows optional bold, optional colon, optional quotes
+  // Capture group 1: Anchor (§n)
+  // Capture group 2: Content (rest of line)
+  const quotePattern = />\s*(?:\*\*)?(§\d+)(?:\*\*)?:?\s*(.*)/g;
+
   // Match attribution: > — *title*
   const attrPattern = />\s*—\s*\*([^*]+)\*/g;
 
@@ -201,9 +204,15 @@ export function parseExcerpt(markdown: string): ExcerptSection[] | null {
 
   // Find all quotes
   while ((match = quotePattern.exec(markdown)) !== null) {
+    let text = match[2].trim();
+    // Strip surrounding quotes if present
+    if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
+      text = text.slice(1, -1);
+    }
+
     quotes.push({
       anchor: match[1],
-      quote: match[2],
+      quote: text,
       index: match.index,
     });
   }

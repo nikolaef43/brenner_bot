@@ -315,9 +315,11 @@ function validateDelta(raw: unknown, rawJson: string): ParsedDelta {
  * { ... }
  * :::
  *
- * Captures the content between the fences.
+ * Uses backreferences (\1 and \3) to match the closing fence length to the opening fence.
+ * This allows for nested code blocks (e.g. 3 backticks inside 4 backticks).
  */
-const DELTA_BLOCK_REGEX = /```delta\s*\r?\n([\s\S]*?)```|:::delta\s*\r?\n([\s\S]*?):::/g;
+const DELTA_BLOCK_REGEX =
+  /(`{3,})delta(?:[ \t].*)?\r?\n([\s\S]*?)\1|(:{3,})delta(?:[ \t].*)?\r?\n([\s\S]*?)\3/g;
 
 /**
  * Extract all delta blocks from a markdown message body.
@@ -333,7 +335,8 @@ function extractDeltaBlocks(body: string): string[] {
   DELTA_BLOCK_REGEX.lastIndex = 0;
 
   while ((match = DELTA_BLOCK_REGEX.exec(body)) !== null) {
-    const content = (match[1] ?? match[2])?.trim();
+    // Group 2 is content for backticks, Group 4 is content for colons
+    const content = (match[2] ?? match[4])?.trim();
     if (content) {
       blocks.push(content);
     }

@@ -10,6 +10,7 @@
  */
 
 import type { SessionPhase } from "./types";
+import type { TribunalAgentRole } from "./agents";
 
 // ============================================================================
 // Types
@@ -18,12 +19,7 @@ import type { SessionPhase } from "./types";
 /**
  * Agent roles that can be dispatched during a session.
  */
-export type AgentRole =
-  | "devils_advocate"
-  | "experiment_designer"
-  | "statistician"
-  | "literature_scout"
-  | "moderator";
+export type AgentRole = TribunalAgentRole;
 
 /**
  * Session depth levels.
@@ -205,7 +201,8 @@ const FULL_ANALYSIS: SessionTemplate = {
     "devils_advocate",
     "experiment_designer",
     "statistician",
-    "literature_scout",
+    "brenner_channeler",
+    "synthesis",
   ],
   defaultDepth: "deep",
 
@@ -235,11 +232,11 @@ const LITERATURE_REVIEW: SessionTemplate = {
   icon: "BookOpen",
   colorClass: "bg-emerald-600",
 
-  requiredPhases: ["intake", "sharpening", "exclusion_test"],
-  optionalPhases: ["agent_dispatch", "synthesis"],
-  skippedPhases: ["level_split", "object_transpose", "scale_check", "evidence_gathering", "revision"],
+  requiredPhases: ["intake", "sharpening", "exclusion_test", "evidence_gathering"],
+  optionalPhases: ["synthesis"],
+  skippedPhases: ["level_split", "object_transpose", "scale_check", "agent_dispatch", "revision"],
 
-  defaultAgents: ["literature_scout"],
+  defaultAgents: [],
   defaultDepth: "standard",
 
   expectedDuration: "1-2 hours",
@@ -268,8 +265,8 @@ const DESIGN_FOCUS: SessionTemplate = {
   icon: "FlaskConical",
   colorClass: "bg-purple-600",
 
-  requiredPhases: ["intake", "sharpening", "exclusion_test", "agent_dispatch"],
-  optionalPhases: ["level_split", "scale_check", "synthesis"],
+  requiredPhases: ["intake", "sharpening", "level_split", "exclusion_test", "agent_dispatch"],
+  optionalPhases: ["scale_check", "synthesis"],
   skippedPhases: ["object_transpose", "evidence_gathering", "revision"],
 
   defaultAgents: ["experiment_designer", "statistician"],
@@ -319,8 +316,8 @@ const ADVERSARIAL_DEEP_DIVE: SessionTemplate = {
     "devils_advocate",
     "experiment_designer",
     "statistician",
-    "literature_scout",
-    "moderator",
+    "brenner_channeler",
+    "synthesis",
   ],
   defaultDepth: "deep",
 
@@ -665,15 +662,15 @@ export const AGENT_ROLE_INFO: Record<
     description: "Evaluates statistical validity and power",
     icon: "BarChart3",
   },
-  literature_scout: {
-    name: "Literature Scout",
-    description: "Finds relevant prior research and evidence",
-    icon: "BookOpen",
+  brenner_channeler: {
+    name: "Brenner Channeler",
+    description: "Channels Brenner's voice to challenge sloppy thinking",
+    icon: "MessageSquareQuote",
   },
-  moderator: {
-    name: "Moderator",
-    description: "Synthesizes agent responses and facilitates debate",
-    icon: "Users",
+  synthesis: {
+    name: "Synthesis",
+    description: "Integrates agent responses into a coherent brief",
+    icon: "Sparkles",
   },
 };
 

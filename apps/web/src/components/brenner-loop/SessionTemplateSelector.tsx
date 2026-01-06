@@ -10,7 +10,7 @@
 
 "use client";
 
-import React, { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Zap,
@@ -126,96 +126,94 @@ function TemplateCard({
   onPreview,
 }: TemplateCardProps) {
   return (
-    <motion.button
-      type="button"
-      onClick={onSelect}
-      className={cn(
-        "relative w-full text-left rounded-lg border-2 p-4 transition-all",
-        "hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
-        isSelected
-          ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
-          : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-      )}
-      whileHover={{ scale: 1.01 }}
-      whileTap={{ scale: 0.99 }}
-    >
-      {/* Selected indicator */}
-      {isSelected && (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="absolute top-3 right-3 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center"
-        >
-          <Check className="w-4 h-4 text-white" />
-        </motion.div>
-      )}
-
-      {/* Header */}
-      <div className="flex items-start gap-3 mb-3">
-        <div
-          className={cn(
-            "w-10 h-10 rounded-lg flex items-center justify-center text-white",
-            template.colorClass
-          )}
-        >
-          <TemplateIcon iconName={template.icon} className="w-5 h-5" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 dark:text-white">
-            {template.name}
-          </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-            {template.tagline}
-          </p>
-        </div>
-      </div>
-
-      {/* Meta info */}
-      <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-3">
-        <span className="flex items-center gap-1">
-          <Clock className="w-3 h-3" />
-          {template.expectedDuration}
-        </span>
-        <span className="flex items-center gap-1">
-          <Users className="w-3 h-3" />
-          {template.defaultAgents.length} agents
-        </span>
-      </div>
-
-      {/* Depth badge */}
-      <div className="flex items-center gap-2">
-        <Badge
-          variant={
-            template.defaultDepth === "quick"
-              ? "secondary"
-              : template.defaultDepth === "standard"
-                ? "default"
-                : "outline"
-          }
-          className="text-xs"
-        >
-          {template.defaultDepth}
-        </Badge>
-        {template.featured && (
-          <Badge variant="default" className="text-xs bg-yellow-500">
-            Recommended
-          </Badge>
+    <div className="relative">
+      <motion.button
+        type="button"
+        onClick={onSelect}
+        className={cn(
+          "relative w-full text-left rounded-lg border-2 p-4 transition-all",
+          "hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
+          isSelected
+            ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
+            : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
         )}
-      </div>
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+      >
+        {/* Selected indicator */}
+        {isSelected && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="absolute top-3 right-3 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center"
+          >
+            <Check className="w-4 h-4 text-white" />
+          </motion.div>
+        )}
 
-      {/* Preview button */}
+        {/* Header */}
+        <div className="flex items-start gap-3 mb-3">
+          <div
+            className={cn(
+              "w-10 h-10 rounded-lg flex items-center justify-center text-white",
+              template.colorClass
+            )}
+          >
+            <TemplateIcon iconName={template.icon} className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-gray-900 dark:text-white">
+              {template.name}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+              {template.tagline}
+            </p>
+          </div>
+        </div>
+
+        {/* Meta info */}
+        <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-3">
+          <span className="flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            {template.expectedDuration}
+          </span>
+          <span className="flex items-center gap-1">
+            <Users className="w-3 h-3" />
+            {template.defaultAgents.length} agents
+          </span>
+        </div>
+
+        {/* Depth badge */}
+        <div className="flex items-center gap-2">
+          <Badge
+            variant={
+              template.defaultDepth === "quick"
+                ? "secondary"
+                : template.defaultDepth === "standard"
+                  ? "default"
+                  : "outline"
+            }
+            className="text-xs"
+          >
+            {template.defaultDepth}
+          </Badge>
+          {template.featured && (
+            <Badge variant="default" className="text-xs bg-yellow-500">
+              Recommended
+            </Badge>
+          )}
+        </div>
+      </motion.button>
+
       <button
         type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onPreview();
-        }}
-        className="absolute bottom-3 right-3 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+        onClick={onPreview}
+        className="absolute bottom-3 right-3 z-10 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
         aria-label="Preview template details"
       >
         <Info className="w-4 h-4 text-gray-400" />
       </button>
-    </motion.button>
+    </div>
   );
 }
 

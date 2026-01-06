@@ -217,6 +217,6 @@ describe("type guards + evolution + scoring helpers", () => {
     expect(interpretConfidence(50)).toBe("Reasonable, some support");
     expect(interpretConfidence(70)).toBe("Strong support");
     expect(interpretConfidence(200)).toBe("Near-certain"); // clamped
-    expect(() => interpretConfidence(Number.NaN)).toThrow(/finite number/);
+    expect(interpretConfidence(Number.NaN)).toBe("Unknown confidence");
   });
 });

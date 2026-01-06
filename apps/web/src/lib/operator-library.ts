@@ -51,15 +51,23 @@ async function fileExists(path: string): Promise<boolean> {
 }
 
 async function tryReadFromFilesystem(relativePathFromRepoRoot: string): Promise<string | null> {
-  const publicPath = resolve(process.cwd(), "public/_corpus", relativePathFromRepoRoot);
-  const repoRootPath = resolve(process.cwd(), "../..", relativePathFromRepoRoot);
+  const cwd = process.cwd();
 
-  if (await fileExists(publicPath)) {
-    return readFile(publicPath, "utf8");
-  }
+  const candidates = [
+    // 1. Repo root direct access (CLI from root)
+    resolve(cwd, relativePathFromRepoRoot),
+    // 2. apps/web/public/_corpus (CLI from root, if corpus copied)
+    resolve(cwd, "apps/web/public/_corpus", relativePathFromRepoRoot),
+    // 3. public/_corpus (Next.js runtime / standard corpus location)
+    resolve(cwd, "public/_corpus", relativePathFromRepoRoot),
+    // 4. Repo root from inside apps/web (dev environment)
+    resolve(cwd, "../..", relativePathFromRepoRoot),
+  ];
 
-  if (await fileExists(repoRootPath)) {
-    return readFile(repoRootPath, "utf8");
+  for (const path of candidates) {
+    if (await fileExists(path)) {
+      return readFile(path, "utf8");
+    }
   }
 
   return null;

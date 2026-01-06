@@ -1,15 +1,4 @@
-/**
- * Lab Mode Authentication & Authorization
- *
- * Defense-in-depth gating for orchestration features:
- * 1. BRENNER_LAB_MODE must be "1" or "true" (fail-closed)
- * 2. Either:
- *    - Cloudflare Access headers (when deployed behind CF Access), OR
- *    - BRENNER_LAB_SECRET shared secret (header/cookie) for local + fallback
- *
- * Public deployments CANNOT trigger Agent Mail operations without
- * explicit enablement.
- */
+import { timingSafeEqual } from "node:crypto";
 
 const LAB_SECRET_HEADER = "x-brenner-lab-secret";
 const LAB_SECRET_COOKIE = "brenner_lab_secret";
@@ -42,15 +31,14 @@ function getLabSecret(): string | undefined {
 }
 
 function safeEquals(a: string, b: string): boolean {
-  const candidateBuf = Buffer.from(a);
-  const secretBuf = Buffer.from(b);
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
 
-  let result = candidateBuf.length ^ secretBuf.length;
-  for (let i = 0; i < secretBuf.length; i++) {
-    result |= (candidateBuf[i] ?? 0) ^ secretBuf[i];
+  if (bufA.length !== bufB.length) {
+    return false;
   }
 
-  return result === 0;
+  return timingSafeEqual(bufA, bufB);
 }
 
 function hasCloudflareAccessHeaders(headers?: { get?: (name: string) => string | null }): boolean {

@@ -175,21 +175,32 @@ async function fileExists(path: string): Promise<boolean> {
  * Returns null if file is not accessible (e.g., in Vercel serverless).
  */
 async function tryReadFromFilesystem(filename: string): Promise<string | null> {
-  const publicPath = resolve(process.cwd(), "public/_corpus", filename);
-  const repoRootPath = resolve(process.cwd(), "../..", filename);
+  const cwd = process.cwd();
 
-  // Try public/_corpus/ first (local dev after copy-corpus)
-  if (await fileExists(publicPath)) {
-    return readFile(publicPath, "utf8");
-  }
+  // Candidates for where the corpus files might be
+  const candidates = [
+    // 1. In public/_corpus relative to CWD (standard Next.js local dev / Vercel lambda if public is copied)
+    resolve(cwd, "public/_corpus", filename),
+    // 2. In apps/web/public/_corpus (CLI running from repo root)
+    resolve(cwd, "apps/web/public/_corpus", filename),
+    // 3. In ../../public/_corpus (CLI running from inside apps/web)
+    resolve(cwd, "../../public/_corpus", filename),
+    // 4. Repo root fallback (original source files)
+    resolve(cwd, filename),
+    resolve(cwd, "apps/web", filename),
+    resolve(cwd, "../..", filename),
+  ];
 
-  // Try repo root (local dev without copy-corpus)
-  if (await fileExists(repoRootPath)) {
-    return readFile(repoRootPath, "utf8");
+  for (const candidate of candidates) {
+    if (await fileExists(candidate)) {
+      return readFile(candidate, "utf8");
+    }
   }
 
   return null;
 }
+
+let hasWarnedHttpFallback = false;
 
 /**
  * Fetch a corpus file via HTTP from the public URL.
@@ -199,6 +210,12 @@ async function fetchFromPublicUrl(filename: string): Promise<string> {
   const baseUrl = getTrustedPublicBaseUrl();
   const safeFilename = filename.replace(/^\//, "");
   const url = new URL(`/_corpus/${safeFilename}`, baseUrl);
+
+  // Warn about self-fetch in production (performance/reliability risk)
+  if (process.env.VERCEL === "1" && !hasWarnedHttpFallback) {
+    hasWarnedHttpFallback = true;
+    console.warn(`[Corpus] Warning: Falling back to HTTP fetch for ${safeFilename}. This suggests filesystem access failed.`);
+  }
 
   const response = await fetch(url);
 

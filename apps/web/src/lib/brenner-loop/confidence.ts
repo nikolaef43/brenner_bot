@@ -12,7 +12,7 @@
  * @module brenner-loop/confidence
  */
 
-import type { DiscriminativePower, EvidenceResult } from "./evidence";
+import { isDiscriminativePower, type DiscriminativePower, type EvidenceResult } from "./evidence";
 
 // ============================================================================
 // Types

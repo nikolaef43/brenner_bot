@@ -191,6 +191,38 @@ Paragraph immediately after quote
     });
   });
 
+  describe("regex robustness", () => {
+    it("fails to parse nested formatting (bold containing italic)", () => {
+      const input = `# Test
+## 1. Nested
+> This is **bold *italic* text**.
+`;
+      const result = parseTranscript(input);
+      const quote = result.sections[0]?.content[0];
+
+      // Ideally, we want the text to be clean: "This is bold italic text."
+      // And highlights to contain: "bold *italic* text" (inner content)
+      
+      expect(quote?.text).not.toContain("**");
+      expect(quote?.text).toBe("This is bold italic text.");
+      expect(quote?.highlights).toContain("bold *italic* text");
+    });
+
+    it("safely handles mathematical asterisks", () => {
+      const input = `# Test
+## 1. Math
+> 2 * 3 = 6 and 4 * 5 = 20.
+`;
+      const result = parseTranscript(input);
+      const quote = result.sections[0]?.content[0];
+
+      // Should NOT strip the * or the content between them
+      expect(quote?.text).toContain("2 * 3");
+      expect(quote?.text).toContain("4 * 5");
+      expect(quote?.text).not.toContain("2  3");
+    });
+  });
+
   describe("edge cases", () => {
     it("handles empty input", () => {
       const result = parseTranscript(EMPTY_TRANSCRIPT);

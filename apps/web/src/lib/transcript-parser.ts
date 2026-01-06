@@ -32,15 +32,16 @@ function parseInlineFormatting(text: string): { clean: string; highlights: strin
   const highlights: string[] = [];
 
   // Extract bold text for highlights
-  const boldMatches = text.matchAll(/\*\*([^*]+)\*\*/g);
+  // Use [\s\S] to match newlines, and strict boundaries (?=\S)...(\S) to avoid math *
+  const boldMatches = text.matchAll(/\*\*(?=\S)([\s\S]*?\S)\*\*/g);
   for (const match of boldMatches) {
     highlights.push(match[1]);
   }
 
   // Clean the text (remove markdown formatting, [sic] markers preserved as-is)
   const clean = text
-    .replace(/\*\*([^*]+)\*\*/g, "$1") // Remove bold markers
-    .replace(/\*([^*]+)\*/g, "$1")     // Remove italic markers
+    .replace(/\*\*(?=\S)([\s\S]*?\S)\*\*/g, "$1") // Remove bold markers
+    .replace(/\*(?=\S)([\s\S]*?\S)\*/g, "$1")     // Remove italic markers
     .trim();
 
   return { clean, highlights };

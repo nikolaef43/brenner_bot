@@ -1073,15 +1073,12 @@ export function calculateSpecificityScore(card: HypothesisCard): number {
  * Get a human-readable interpretation of the confidence level.
  *
  * @param confidence - The confidence value (0-100)
- * @returns A string interpretation
- * @throws Error if confidence is not a finite number
+ * @returns A string interpretation (or "Unknown confidence" for NaN/Infinity)
  */
 export function interpretConfidence(confidence: number): string {
-  // Guard against NaN, Infinity, and non-numbers
+  // Guard against NaN/Infinity and return a safe label for UI rendering.
   if (!Number.isFinite(confidence)) {
-    throw new Error(
-      `Invalid confidence value: must be a finite number (got ${confidence})`
-    );
+    return "Unknown confidence";
   }
 
   // Clamp to valid range for interpretation

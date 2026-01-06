@@ -226,11 +226,12 @@ function stripMarkdown(text: string): string {
     text
       // Remove blockquote markers
       .replace(/^>\s?/gm, "")
-      // Remove italic markers for questions
+      // Remove italic markers for questions (handle *[Q])
       .replace(/\*\[Q\]\s*/g, "[Q] ")
-      .replace(/\*(?!\[)/g, "")
-      // Remove bold markers
-      .replace(/\*\*([^*]+)\*\*/g, "$1")
+      // Remove bold markers (strict: **text**)
+      .replace(/\*\*(?=\S)([\s\S]*?\S)\*\*/g, "$1")
+      // Remove italic markers (strict: *text*)
+      .replace(/\*(?=\S)([\s\S]*?\S)\*/g, "$1")
       // Remove inline code
       .replace(/`([^`]+)`/g, "$1")
       // Normalize whitespace

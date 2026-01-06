@@ -64,4 +64,25 @@ describe("transcriptParser", () => {
     const titleErrors = validateSections(mutated);
     expect(titleErrors.some((e) => /empty title/i.test(e.message))).toBe(true);
   });
+
+  describe("regex robustness", () => {
+    it("preserves arithmetic multiplication signs in plain text", () => {
+      const content = "## 1. Math\n\n> 2 * 3 = 6";
+      const { sections } = parseTranscript(content);
+      expect(sections[0]?.plainText).toContain("2 * 3");
+    });
+
+    it("handles nested formatting correctly", () => {
+      const content = "## 1. Nested\n\n> **Bold *italic* text**";
+      const { sections } = parseTranscript(content);
+      // Depending on whether we strip inside out or strictly match:
+      // Since stripMarkdown removes **...**, then *...*
+      // With strict regex: **...** removed first.
+      // 2 * 3: No match.
+      // **Bold *italic* text**: Matches. Replaces with "Bold *italic* text".
+      // Then *italic* matches. Replaces with "italic".
+      // Result: "Bold italic text".
+      expect(sections[0]?.plainText).toBe("Bold italic text");
+    });
+  });
 });

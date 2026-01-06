@@ -8,8 +8,6 @@
 import {
   parseTranscript,
   Section,
-  searchSectionsByContent,
-  searchSectionsByTitle,
 } from "./transcriptParser";
 import { readCorpusDoc } from "./corpus";
 
@@ -32,33 +30,58 @@ export interface SearchResult {
   hits: SearchHit[];
   totalMatches: number;
   searchTimeMs: number;
+  loadTimeMs?: number;
+}
+
+/**
+ * Internal enriched section for faster search.
+ */
+interface EnrichedSection extends Section {
+  lowerTitle: string;
+  lowerPlainText: string;
 }
 
 // ============================================================================
 // Section Loading
 // ============================================================================
 
-let sectionsCache: Section[] | null = null;
+let sectionsCache: EnrichedSection[] | null = null;
 let cacheTimestamp: number | null = null;
+let loadPromise: Promise<EnrichedSection[]> | null = null;
 
 /**
  * Load all transcript sections from the corpus.
  *
- * NOTE: This function caches in-memory for repeated server-side calls.
- * When using TanStack Query, this complements client-side caching.
+ * Uses a promise lock to prevent thundering herd race conditions.
+ * Caches in-memory for repeated server-side calls.
  *
- * @returns Promise resolving to array of parsed sections
+ * @returns Promise resolving to array of enriched sections
  */
-async function loadSections(): Promise<Section[]> {
+async function loadSections(): Promise<EnrichedSection[]> {
   if (sectionsCache) return sectionsCache;
+  if (loadPromise) return loadPromise;
 
-  const { content } = await readCorpusDoc("transcript");
-  const { sections } = parseTranscript(content);
+  loadPromise = (async () => {
+    try {
+      const { content } = await readCorpusDoc("transcript");
+      const { sections } = parseTranscript(content);
 
-  sectionsCache = sections;
-  cacheTimestamp = Date.now();
+      // Pre-compute lowercase strings for search optimization
+      const enriched = sections.map((s) => ({
+        ...s,
+        lowerTitle: s.title.toLowerCase(),
+        lowerPlainText: s.plainText.toLowerCase(),
+      }));
 
-  return sections;
+      sectionsCache = enriched;
+      cacheTimestamp = Date.now();
+      return enriched;
+    } finally {
+      loadPromise = null;
+    }
+  })();
+
+  return loadPromise;
 }
 
 // ============================================================================
@@ -68,11 +91,18 @@ async function loadSections(): Promise<Section[]> {
 /**
  * Search the corpus for matching sections.
  *
+ * Optimized single-pass implementation.
+ *
  * @param query - Search query string
  * @param limit - Maximum number of results (default 10)
  * @returns SearchResult with ranked hits
  */
 export async function searchCorpus(query: string, limit = 10): Promise<SearchResult> {
+  const startLoad = performance.now();
+  const sections = await loadSections();
+  const endLoad = performance.now();
+  const loadTimeMs = Math.round(endLoad - startLoad);
+
   const startTime = performance.now();
 
   // Normalize query
@@ -83,41 +113,34 @@ export async function searchCorpus(query: string, limit = 10): Promise<SearchRes
       hits: [],
       totalMatches: 0,
       searchTimeMs: 0,
+      loadTimeMs,
     };
   }
 
-  const sections = await loadSections();
+  // Single pass filtering and scoring
+  const scoredHits: {
+    section: EnrichedSection;
+    score: number;
+    matchType: "title" | "body" | "both";
+  }[] = [];
 
-  // Find matches in title and body
-  const titleMatches = new Set(
-    searchSectionsByTitle(sections, normalizedQuery).map((s) => s.id)
-  );
-  const bodyMatches = new Set(
-    searchSectionsByContent(sections, normalizedQuery).map((s) => s.id)
-  );
+  for (const section of sections) {
+    const inTitle = section.lowerTitle.includes(normalizedQuery);
+    const inBody = section.lowerPlainText.includes(normalizedQuery);
 
-  // Combine and deduplicate
-  const allMatchIds = new Set([...titleMatches, ...bodyMatches]);
-  const matchedSections = sections.filter((s) => allMatchIds.has(s.id));
+    if (inTitle || inBody) {
+      scoredHits.push({
+        section,
+        score: computeScore(section, normalizedQuery, inTitle, inBody),
+        matchType: inTitle && inBody ? "both" : inTitle ? "title" : "body",
+      });
+    }
+  }
 
-  // Score and sort
-  const scoredHits = matchedSections.map((section) => {
-    const inTitle = titleMatches.has(section.id);
-    const inBody = bodyMatches.has(section.id);
-
-    return {
-      section,
-      score: computeScore(section, normalizedQuery, inTitle, inBody),
-      matchType: (inTitle && inBody ? "both" : inTitle ? "title" : "body") as
-        | "title"
-        | "body"
-        | "both",
-    };
-  });
-
+  // Sort by score descending
   scoredHits.sort((a, b) => b.score - a.score);
 
-  // Build result
+  // Build result (extract snippets only for top hits)
   const hits: SearchHit[] = scoredHits.slice(0, limit).map(({ section, score, matchType }) => ({
     id: section.id,
     anchor: section.anchor,
@@ -133,8 +156,9 @@ export async function searchCorpus(query: string, limit = 10): Promise<SearchRes
   return {
     query,
     hits,
-    totalMatches: matchedSections.length,
+    totalMatches: scoredHits.length,
     searchTimeMs: Math.round(endTime - startTime),
+    loadTimeMs,
   };
 }
 
@@ -148,7 +172,7 @@ export async function searchCorpus(query: string, limit = 10): Promise<SearchRes
  * - Position: 0.1 boost if query appears early in text
  */
 function computeScore(
-  section: Section,
+  section: EnrichedSection,
   query: string,
   inTitle: boolean,
   inBody: boolean
@@ -162,7 +186,7 @@ function computeScore(
   if (inTitle) {
     score += 0.4;
     // Exact title match bonus
-    if (section.title.toLowerCase() === query) {
+    if (section.lowerTitle === query) {
       score += 0.2;
     }
   }
@@ -173,13 +197,13 @@ function computeScore(
   }
 
   // Frequency bonus (capped)
-  const text = section.plainText.toLowerCase();
-  const occurrences = countOccurrences(text, query);
+  // Use pre-computed lowerPlainText
+  const occurrences = countOccurrences(section.lowerPlainText, query);
   const frequencyScore = Math.min(occurrences / 10, 1) * 0.3;
   score += frequencyScore;
 
   // Position bonus (early match)
-  const firstIndex = text.indexOf(query);
+  const firstIndex = section.lowerPlainText.indexOf(query);
   if (firstIndex !== -1 && firstIndex < 500) {
     score += 0.1 * (1 - firstIndex / 500);
   }
@@ -203,8 +227,8 @@ function countOccurrences(text: string, query: string): number {
 /**
  * Extract a snippet around the first match with context.
  *
- * @param text - Full plain text
- * @param query - Search query
+ * @param text - Full plain text (original case)
+ * @param query - Search query (lowercased)
  * @param maxLength - Maximum snippet length (default 200)
  * @returns Snippet with ellipsis and highlighted match
  */
@@ -291,20 +315,5 @@ export function getCacheStats(): { cached: boolean; timestamp: number } {
 
 /**
  * Load all sections directly (exposed for use with TanStack Query).
- *
- * When using with Query, wrap this in a server action:
- * ```typescript
- * // In corpusActions.ts
- * export async function fetchAllSections() {
- *   return getAllSections();
- * }
- *
- * // In hook
- * const { data: sections } = useQuery({
- *   queryKey: ['corpus', 'sections'],
- *   queryFn: fetchAllSections,
- *   staleTime: 5 * 60 * 1000, // 5 minutes
- * });
- * ```
  */
 export { loadSections };

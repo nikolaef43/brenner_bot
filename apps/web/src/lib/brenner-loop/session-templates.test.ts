@@ -451,8 +451,8 @@ describe("AGENT_ROLE_INFO", () => {
     expect(AGENT_ROLE_INFO.devils_advocate).toBeDefined();
     expect(AGENT_ROLE_INFO.experiment_designer).toBeDefined();
     expect(AGENT_ROLE_INFO.statistician).toBeDefined();
-    expect(AGENT_ROLE_INFO.literature_scout).toBeDefined();
-    expect(AGENT_ROLE_INFO.moderator).toBeDefined();
+    expect(AGENT_ROLE_INFO.brenner_channeler).toBeDefined();
+    expect(AGENT_ROLE_INFO.synthesis).toBeDefined();
   });
 
   it("all roles have name, description, and icon", () => {
@@ -545,12 +545,12 @@ describe("Template: Literature Review", () => {
     expect(template).toBeDefined();
   });
 
-  it("primarily uses literature_scout", () => {
-    expect(template.defaultAgents).toContain("literature_scout");
+  it("does not dispatch agents by default", () => {
+    expect(template.defaultAgents).toEqual([]);
   });
 
-  it("skips evidence gathering (focuses on literature)", () => {
-    expect(template.skippedPhases).toContain("evidence_gathering");
+  it("requires evidence gathering (literature is a form of evidence)", () => {
+    expect(template.requiredPhases).toContain("evidence_gathering");
   });
 });
 
@@ -569,6 +569,10 @@ describe("Template: Design Focus", () => {
   it("requires agent_dispatch", () => {
     expect(template.requiredPhases).toContain("agent_dispatch");
   });
+
+  it("requires level_split", () => {
+    expect(template.requiredPhases).toContain("level_split");
+  });
 });
 
 describe("Template: Adversarial Deep Dive", () => {
@@ -582,9 +586,9 @@ describe("Template: Adversarial Deep Dive", () => {
     expect(template.defaultDepth).toBe("deep");
   });
 
-  it("uses all agents including moderator", () => {
+  it("uses all tribunal agents", () => {
     expect(template.defaultAgents).toContain("devils_advocate");
-    expect(template.defaultAgents).toContain("moderator");
+    expect(template.defaultAgents).toContain("synthesis");
     expect(template.defaultAgents.length).toBe(5);
   });
 

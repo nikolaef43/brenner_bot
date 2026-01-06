@@ -434,14 +434,15 @@ describe("LocalStorageSessionStorage", () => {
       localStorageMock.setItem("brenner-sessions-resume-index", "not-json");
       expect(listSessionResumeEntries()).toEqual({});
 
-      localStorageMock.setItem(
-        "brenner-sessions-resume-index",
-        JSON.stringify({
-          __proto__: { location: "overview", visitedAt: new Date().toISOString() },
-          "SESSION-OK": { location: "overview", visitedAt: new Date().toISOString() },
-          "BAD-SESSION": { location: "overview", visitedAt: new Date().toISOString() },
-        })
-      );
+      const protoEntry = { location: "overview", visitedAt: new Date().toISOString() };
+      const okEntry = { location: "overview", visitedAt: new Date().toISOString() };
+      const badEntry = { location: "overview", visitedAt: new Date().toISOString() };
+      const payload = JSON.stringify({
+        ["__proto__"]: protoEntry,
+        "SESSION-OK": okEntry,
+        "BAD-SESSION": badEntry,
+      });
+      localStorageMock.setItem("brenner-sessions-resume-index", payload);
       const entries = listSessionResumeEntries();
       expect(Object.keys(entries)).toEqual(["SESSION-OK"]);
     });

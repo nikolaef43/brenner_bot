@@ -364,6 +364,44 @@ const x = 1;
     expect(result.validCount).toBe(0);
     expect(result.deltas).toHaveLength(0);
   });
+
+  it("parses blocks with 4 backticks (variable fence length)", () => {
+    const body = `
+\`\`\`\`delta
+{
+  "operation": "ADD",
+  "section": "hypothesis_slate",
+  "target_id": null,
+  "payload": { "name": "Variable Fence" }
+}
+\`\`\`\`
+`;
+    const result = parseDeltaMessage(body);
+    expect(result.validCount).toBe(1);
+  });
+
+  it("parses nested code blocks correctly", () => {
+    const body = `
+\`\`\`\`delta
+{
+  "operation": "EDIT",
+  "section": "research_thread",
+  "target_id": null,
+  "payload": {
+    "context": "Here is a snippet: \`\`\` code \`\`\`"
+  }
+}
+\`\`\`\`
+`;
+    const result = parseDeltaMessage(body);
+    expect(result.validCount).toBe(1);
+    // Type-narrow to ValidDelta to check payload content
+    const delta = result.deltas[0];
+    expect(delta.valid).toBe(true);
+    if (delta.valid) {
+      expect(delta.payload.context).toContain("``` code ```");
+    }
+  });
 });
 
 describe("extractValidDeltas", () => {
