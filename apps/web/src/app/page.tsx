@@ -42,6 +42,24 @@ const AcademicCapIcon = () => (
   </svg>
 );
 
+const LightbulbIcon = () => (
+  <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18a1.5 1.5 0 01-1.5-1.5v-.6a6 6 0 10-3-5.2v.35A3.75 3.75 0 009.25 15h5.5A3.75 3.75 0 0019 11.05v-.35a6 6 0 10-7 5.2v.6A1.5 1.5 0 0112 18zm-3 3h6" />
+  </svg>
+);
+
+const ShieldIcon = () => (
+  <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3.75l7.5 3v5.57c0 4.418-3.24 8.415-7.5 9.93-4.26-1.515-7.5-5.512-7.5-9.93V6.75l7.5-3z" />
+  </svg>
+);
+
+const FlowArrowIcon = () => (
+  <svg className="size-5 text-muted-foreground/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+  </svg>
+);
+
 const features = [
   {
     href: "/corpus",
@@ -69,12 +87,82 @@ const features = [
   },
 ];
 
+const agentProfiles = [
+  {
+    title: "Hypothesis Generator",
+    engine: "Powered by GPT",
+    role: "Hunt paradoxes, propose hypotheses",
+    personality: "Creative, divergent thinking",
+    quote: "What if both established models are wrong?",
+    icon: <LightbulbIcon />,
+    accent: "from-amber-500/20 via-amber-500/5 to-background",
+    iconClass: "bg-amber-500/15 text-amber-700 dark:text-amber-200",
+  },
+  {
+    title: "Test Designer",
+    engine: "Powered by Claude",
+    role: "Design discriminative tests with potency controls",
+    personality: "Rigorous, detail-oriented",
+    quote: "This test will eliminate half our hypotheses in one observation.",
+    icon: <BeakerIcon />,
+    accent: "from-emerald-500/20 via-emerald-500/5 to-background",
+    iconClass: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-200",
+  },
+  {
+    title: "Adversarial Critic",
+    engine: "Powered by Gemini",
+    role: "Attack framing, check scale constraints",
+    personality: "Skeptical, thorough",
+    quote: "Have you considered that the entire premise might be wrong?",
+    icon: <ShieldIcon />,
+    accent: "from-sky-500/20 via-sky-500/5 to-background",
+    iconClass: "bg-sky-500/15 text-sky-700 dark:text-sky-200",
+  },
+];
+
+const debateFormats = [
+  {
+    title: "Oxford Style",
+    description: "Proposition vs opposition with a judge",
+    bestFor: "Testing hypothesis strength",
+  },
+  {
+    title: "Socratic",
+    description: "Probing questions to surface hidden assumptions",
+    bestFor: "Finding weak links fast",
+  },
+  {
+    title: "Steelman Contest",
+    description: "Build the strongest case, then dismantle it",
+    bestFor: "Exploring the hypothesis space",
+  },
+];
+
+const flowSteps = [
+  {
+    title: "Kickoff",
+    body: "Threaded prompt goes to each agent role",
+  },
+  {
+    title: "Deltas",
+    body: "Structured responses return with citations",
+  },
+  {
+    title: "Merge",
+    body: "Deterministic compiler reconciles evidence",
+  },
+  {
+    title: "Human",
+    body: "You decide what ships and what dies",
+  },
+];
+
 export default function Home() {
   const labModeValue = (process.env.BRENNER_LAB_MODE ?? "").trim().toLowerCase();
   const labModeEnabled = labModeValue === "1" || labModeValue === "true";
 
   return (
-    <div className="space-y-12 sm:space-y-16 lg:space-y-24">
+    <div className="space-y-12 sm:space-y-16 lg:space-y-24 pb-24 sm:pb-0">
       {/* Hero Section */}
       <HeroBackground
         showOrbs
@@ -281,6 +369,149 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Multi-Agent Orchestration Section */}
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-border/60 bg-gradient-to-br from-primary/5 via-background to-accent/5 p-6 sm:p-10 lg:p-12 shadow-lg">
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 size-40 sm:size-56 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 size-32 sm:size-44 bg-accent/15 rounded-full blur-3xl" />
+
+        <div className="relative space-y-8 sm:space-y-10">
+          <div className="space-y-3 text-center">
+            <p className="text-xs sm:text-sm uppercase tracking-[0.3em] text-muted-foreground">
+              Multi-Agent Orchestration
+            </p>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight">
+              Your Research Team: AI Agents That Debate, Challenge, and Synthesize
+            </h2>
+            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
+              Each agent has a precise mandate. Together they sharpen hypotheses, design lethal tests, and merge
+              evidence into auditable artifacts—without surrendering control.
+            </p>
+          </div>
+
+          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:gap-6 sm:overflow-visible sm:grid-cols-2 lg:grid-cols-3">
+            {agentProfiles.map((agent) => (
+              <div
+                key={agent.title}
+                className="group relative min-w-[260px] snap-start overflow-hidden rounded-2xl border border-border/70 bg-card/80 shadow-md transition-all hover:-translate-y-1 hover:shadow-xl sm:min-w-0"
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${agent.accent}`} />
+                <div className="relative p-5 sm:p-6 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`flex size-11 items-center justify-center rounded-xl ${agent.iconClass} shadow-inner`}>
+                      {agent.icon}
+                    </div>
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{agent.engine}</p>
+                      <h3 className="text-lg font-semibold text-foreground">{agent.title}</h3>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-foreground font-medium">{agent.role}</p>
+                    <p className="text-xs text-muted-foreground">{agent.personality}</p>
+                  </div>
+                  <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Signature stance</p>
+                    <p className="text-sm text-foreground italic">&quot;{agent.quote}&quot;</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:gap-6 sm:overflow-visible sm:grid-cols-3">
+            {debateFormats.map((format) => (
+              <div
+                key={format.title}
+                className="min-w-[240px] snap-start rounded-2xl border border-border/70 bg-background/80 p-4 sm:p-5 shadow-sm sm:min-w-0"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="text-base font-semibold text-foreground">{format.title}</h4>
+                  <span className="text-xs font-medium text-muted-foreground">Debate Mode</span>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">{format.description}</p>
+                <div className="mt-4 inline-flex items-center rounded-full border border-border/70 bg-card px-3 py-1 text-xs text-muted-foreground">
+                  Best for: {format.bestFor}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="rounded-2xl border border-border/70 bg-card/80 p-5 sm:p-6">
+              <div className="flex items-center justify-between">
+                <h4 className="text-lg font-semibold text-foreground">Coordination Visualization</h4>
+                <span className="text-xs uppercase tracking-wide text-muted-foreground">Deterministic Merge</span>
+              </div>
+              <div className="mt-5 flex flex-col gap-4">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background px-3 py-1">
+                    <span className="size-2 rounded-full bg-primary animate-pulse" />
+                    Thread ID: RS-20260106-001
+                  </span>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background px-3 py-1">
+                    <span className="size-2 rounded-full bg-accent animate-pulse" />
+                    Ack tracking enabled
+                  </span>
+                </div>
+                <div className="flex flex-col gap-4">
+                  {flowSteps.map((step, index) => (
+                    <div key={step.title} className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                      <div className="flex items-center gap-3">
+                        <div className="flex size-9 items-center justify-center rounded-full border border-border/70 bg-background text-sm font-semibold text-foreground">
+                          {index + 1}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-foreground">{step.title}</p>
+                          <p className="text-xs text-muted-foreground">{step.body}</p>
+                        </div>
+                      </div>
+                      {index < flowSteps.length - 1 && (
+                        <div className="flex items-center justify-center sm:ml-auto">
+                          <div className="hidden sm:block">
+                            <FlowArrowIcon />
+                          </div>
+                          <div className="sm:hidden rotate-90">
+                            <FlowArrowIcon />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-border/70 bg-background/80 p-5 sm:p-6 space-y-4">
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Coordination Without Chaos</p>
+                <h4 className="text-lg font-semibold text-foreground">Agent Mail keeps every exchange auditable</h4>
+                <p className="text-sm text-muted-foreground">
+                  Every message lands in a thread, every response is acknowledged, and every delta is preserved. You stay
+                  in the loop with human approval gates at every step.
+                </p>
+              </div>
+              <div className="rounded-xl border border-border/70 bg-card px-4 py-3 text-sm text-muted-foreground">
+                Built on <Jargon term="agent-mail">Agent Mail</Jargon> with thread IDs, ack receipts, and merge-safe deltas.
+              </div>
+              <div className="space-y-2 text-xs text-muted-foreground">
+                <div className="flex items-center justify-between">
+                  <span>Kickoff sent</span>
+                  <span className="text-success font-medium">3 agents live</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Deltas merged</span>
+                  <span className="text-primary font-medium">1 artifact ready</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Human approval</span>
+                  <span className="text-foreground font-medium">Required</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Lab Mode Card */}
       {labModeEnabled && (
         <section className="animate-fade-in-up px-4 sm:px-0">
@@ -336,6 +567,17 @@ export default function Home() {
           </footer>
         </blockquote>
       </section>
+
+      {/* Mobile Sticky CTA */}
+      <div className="sm:hidden fixed bottom-4 left-4 right-4 z-40">
+        <Link
+          href="/tutorial"
+          className="group inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-4 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all active:scale-[0.99]"
+        >
+          Start the Tutorial
+          <ArrowRightIcon />
+        </Link>
+      </div>
     </div>
   );
 }
