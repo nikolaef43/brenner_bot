@@ -114,6 +114,68 @@ export interface SessionMachineConfig {
 }
 
 // ============================================================================
+// Actions
+// ============================================================================
+
+const submitHypothesisAction: TransitionAction = (session, event) => {
+  if (event.type !== "SUBMIT_HYPOTHESIS") return session;
+  const { hypothesis } = event;
+  return {
+    ...session,
+    primaryHypothesisId: hypothesis.id,
+    hypothesisCards: {
+      ...session.hypothesisCards,
+      [hypothesis.id]: hypothesis,
+    },
+  };
+};
+
+const refineAction: TransitionAction = (session, event) => {
+  if (event.type !== "REFINE") return session;
+  const currentId = session.primaryHypothesisId;
+  const currentCard = session.hypothesisCards[currentId];
+  if (!currentCard) return session;
+
+  const updatedCard = { ...currentCard, ...event.updates, updatedAt: new Date() };
+  return {
+    ...session,
+    hypothesisCards: {
+      ...session.hypothesisCards,
+      [currentId]: updatedCard,
+    },
+  };
+};
+
+const completeOperatorAction: TransitionAction = (session, event) => {
+  if (event.type !== "COMPLETE_OPERATOR") return session;
+  const { result } = event;
+  const phase = session.phase;
+  
+  // Deep clone operator applications to avoid mutation
+  const apps = { ...session.operatorApplications };
+
+  if (phase === "level_split") {
+    apps.levelSplit = [...apps.levelSplit, result as any];
+  } else if (phase === "exclusion_test") {
+    apps.exclusionTest = [...apps.exclusionTest, result as any];
+  } else if (phase === "object_transpose") {
+    apps.objectTranspose = [...apps.objectTranspose, result as any];
+  } else if (phase === "scale_check") {
+    apps.scaleCheck = [...apps.scaleCheck, result as any];
+  }
+
+  return { ...session, operatorApplications: apps };
+};
+
+const addEvidenceAction: TransitionAction = (session, event) => {
+  if (event.type !== "ADD_EVIDENCE") return session;
+  return {
+    ...session,
+    evidenceLedger: [...session.evidenceLedger, event.evidence as any],
+  };
+};
+
+// ============================================================================
 // Guards
 // ============================================================================
 
@@ -185,7 +247,7 @@ export const sessionMachineConfig: SessionMachineConfig = {
       on: {
         SUBMIT_HYPOTHESIS: {
           target: "sharpening",
-          guard: hasPrimaryHypothesis,
+          action: submitHypothesisAction,
         },
       },
     },
@@ -193,7 +255,8 @@ export const sessionMachineConfig: SessionMachineConfig = {
     sharpening: {
       on: {
         REFINE: {
-          target: "sharpening", // Stay in sharpening
+          target: "sharpening",
+          action: refineAction,
         },
         CONTINUE: {
           target: "level_split",
@@ -224,6 +287,7 @@ export const sessionMachineConfig: SessionMachineConfig = {
       on: {
         COMPLETE_OPERATOR: {
           target: "exclusion_test",
+          action: completeOperatorAction,
         },
         SKIP_OPERATOR: {
           target: "exclusion_test",
@@ -256,6 +320,7 @@ export const sessionMachineConfig: SessionMachineConfig = {
       on: {
         COMPLETE_OPERATOR: {
           target: "object_transpose",
+          action: completeOperatorAction,
         },
         SKIP_OPERATOR: {
           target: "object_transpose",
@@ -284,6 +349,7 @@ export const sessionMachineConfig: SessionMachineConfig = {
       on: {
         COMPLETE_OPERATOR: {
           target: "scale_check",
+          action: completeOperatorAction,
         },
         SKIP_OPERATOR: {
           target: "scale_check",
@@ -308,6 +374,7 @@ export const sessionMachineConfig: SessionMachineConfig = {
       on: {
         COMPLETE_OPERATOR: {
           target: "agent_dispatch",
+          action: completeOperatorAction,
         },
         SKIP_OPERATOR: {
           target: "agent_dispatch",
@@ -387,6 +454,7 @@ export const sessionMachineConfig: SessionMachineConfig = {
       on: {
         ADD_EVIDENCE: {
           target: "evidence_gathering", // Stay
+          action: addEvidenceAction,
         },
         REVISE_HYPOTHESIS: {
           target: "revision",

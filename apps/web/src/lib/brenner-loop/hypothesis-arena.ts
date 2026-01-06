@@ -22,6 +22,21 @@
 import type { HypothesisCard } from "./hypothesis";
 
 // ============================================================================
+// Internal Helper - Browser-safe UUID generation
+// ============================================================================
+
+function generateUUID(): string {
+  // Use crypto.randomUUID() if available (modern browsers and Node.js 16+)
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  // Fallback for older environments
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `${timestamp}-${random}`;
+}
+
+// ============================================================================
 // Core Types
 // ============================================================================
 
@@ -341,23 +356,21 @@ export const STATUS_CONFIG: Record<ArenaHypothesisStatus, { label: string; color
  * Generate a new arena ID.
  */
 export function generateArenaId(prefix: string = "ARENA"): string {
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return `${prefix}-${timestamp}-${random}`;
+  return `${prefix}-${generateUUID()}`;
 }
 
 /**
  * Generate a new test result ID.
  */
 export function generateTestResultId(): string {
-  return `TR-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
+  return `TR-${generateUUID()}`;
 }
 
 /**
  * Generate a new arena test ID.
  */
 export function generateArenaTestId(): string {
-  return `AT-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
+  return `AT-${generateUUID()}`;
 }
 
 /**

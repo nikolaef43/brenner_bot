@@ -313,6 +313,10 @@ export function getTestQueueStats(items: TestQueueItem[]): TestQueueStats {
 }
 
 export function generateQueueItemId(sessionId: string): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `TQ-${sessionId}-${crypto.randomUUID()}`;
+  }
+  // Fallback for environments without crypto.randomUUID (unlikely in modern Next.js but safe)
   const ts = Date.now().toString(36);
   const rand = Math.random().toString(36).slice(2, 8);
   return `TQ-${sessionId}-${ts}-${rand}`;

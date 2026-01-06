@@ -134,7 +134,11 @@ export function getClientId(): string {
   let clientId = safeGetItem(storageKey);
 
   if (!clientId) {
-    clientId = `${Date.now()}.${Math.random().toString(36).slice(2, 11)}`;
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      clientId = crypto.randomUUID();
+    } else {
+      clientId = `${Date.now()}.${Math.random().toString(36).slice(2, 11)}`;
+    }
     safeSetItem(storageKey, clientId);
   }
 
@@ -151,7 +155,11 @@ export function getOrCreateUserId(): string {
   let userId = safeGetItem(storageKey);
 
   if (!userId) {
-    userId = `user_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      userId = `user_${crypto.randomUUID()}`;
+    } else {
+      userId = `user_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+    }
     safeSetItem(storageKey, userId);
     sendEvent('new_user_created', { user_id: userId });
   }
@@ -593,8 +601,15 @@ export function initTutorialFunnel(): TutorialFunnelData {
     typeof window !== 'undefined' ? window.location.search : ''
   );
 
+  let sessionId = "";
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    sessionId = `tutorial_${crypto.randomUUID()}`;
+  } else {
+    sessionId = `tutorial_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+  }
+
   const funnelData: TutorialFunnelData = {
-    sessionId: `tutorial_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
+    sessionId,
     startedAt: new Date().toISOString(),
     currentStep: 0,
     maxStepReached: 0,

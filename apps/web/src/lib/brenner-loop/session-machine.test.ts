@@ -262,7 +262,7 @@ describe("transition", () => {
       expect(result.newState).toBe("sharpening");
     });
 
-    it("fails SUBMIT_HYPOTHESIS without primary hypothesis", () => {
+    it("updates primary hypothesis on SUBMIT_HYPOTHESIS", () => {
       const session = createTestSession({
         phase: "intake",
         primaryHypothesisId: "",
@@ -273,8 +273,10 @@ describe("transition", () => {
         hypothesis,
       });
 
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("Guard failed");
+      expect(result.success).toBe(true);
+      expect(result.newState).toBe("sharpening");
+      expect(result.session.primaryHypothesisId).toBe(hypothesis.id);
+      expect(result.session.hypothesisCards[hypothesis.id]).toBeDefined();
     });
 
     it("rejects invalid events", () => {

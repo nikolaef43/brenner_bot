@@ -304,6 +304,9 @@ export type OperatorSessionAction =
  * Generate a unique session ID
  */
 export function generateSessionId(operatorType: OperatorType): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `OP-${operatorType}-${crypto.randomUUID()}`;
+  }
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).slice(2, 6);
   return `OP-${operatorType}-${timestamp}-${random}`;
@@ -313,6 +316,9 @@ export function generateSessionId(operatorType: OperatorType): string {
  * Generate a unique insight ID
  */
 export function generateInsightId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `INS-${crypto.randomUUID()}`;
+  }
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).slice(2, 6);
   return `INS-${timestamp}-${random}`;
