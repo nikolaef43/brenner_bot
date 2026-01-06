@@ -2408,9 +2408,11 @@ async function main(): Promise<void> {
       checks.agentMail = { status: "skipped", path: null, verifyCommand: null, exitCode: null };
     }
 
+    // Only ntm, cass, cm are potentially required; agent CLIs are optional
+    const requiredToolKeys = ["ntm", "cass", "cm"];
     const missingRequired = Object.entries(checks).some(([key, check]) => {
-      if (key === "agentMail") return false;
-      const required = key !== "ntm" || process.platform !== "win32";
+      if (!requiredToolKeys.includes(key)) return false; // agent CLIs and agentMail are optional
+      const required = key !== "ntm" || process.platform !== "win32"; // ntm optional on Windows
       if (!required) return false;
       if (check.status === "skipped") return false;
       return check.status !== "ok";
