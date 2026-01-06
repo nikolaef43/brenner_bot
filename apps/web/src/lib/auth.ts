@@ -10,7 +10,7 @@
  * Public deployments MUST NOT trigger Agent Mail operations without
  * explicit enablement.
  */
-import { timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 const LAB_SECRET_HEADER = "x-brenner-lab-secret";
 const LAB_SECRET_COOKIE = "brenner_lab_secret";
@@ -42,15 +42,18 @@ function getLabSecret(): string | undefined {
   return secret && secret.length > 0 ? secret : undefined;
 }
 
+/**
+ * Constant-time string comparison using HMAC.
+ * Uses HMAC to normalize both inputs to the same length before comparison,
+ * preventing timing side-channels that could leak secret length information.
+ */
 function safeEquals(a: string, b: string): boolean {
-  const bufA = Buffer.from(a);
-  const bufB = Buffer.from(b);
-
-  if (bufA.length !== bufB.length) {
-    return false;
-  }
-
-  return timingSafeEqual(bufA, bufB);
+  // HMAC produces fixed-length output regardless of input length,
+  // eliminating timing leaks from length differences
+  const hmacKey = "brenner-auth-compare";
+  const hmacA = createHmac("sha256", hmacKey).update(a).digest();
+  const hmacB = createHmac("sha256", hmacKey).update(b).digest();
+  return timingSafeEqual(hmacA, hmacB);
 }
 
 function hasCloudflareAccessHeaders(headers?: { get?: (name: string) => string | null }): boolean {

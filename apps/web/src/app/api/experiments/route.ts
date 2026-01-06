@@ -85,6 +85,86 @@ interface ErrorResponse {
 }
 
 // ============================================================================
+// Command Whitelist
+// ============================================================================
+
+/**
+ * Allowed command binaries for experiment execution.
+ *
+ * Security: Only these commands can be executed via the API.
+ * Add new commands here as needed, but be cautious about commands that:
+ * - Can execute arbitrary code (e.g., eval, sh -c)
+ * - Can exfiltrate data (e.g., curl, wget without restrictions)
+ * - Can modify system state destructively
+ */
+const ALLOWED_COMMANDS = new Set([
+  // Package managers / runners
+  "bun",
+  "bunx",
+  "npm",
+  "npx",
+  "yarn",
+  "pnpm",
+  "node",
+  "deno",
+
+  // Python
+  "python",
+  "python3",
+  "pip",
+  "pip3",
+  "poetry",
+  "uv",
+
+  // Testing frameworks
+  "pytest",
+  "vitest",
+  "jest",
+  "mocha",
+
+  // Build tools
+  "make",
+  "cargo",
+  "go",
+  "rustc",
+
+  // Version control (read-only operations)
+  "git",
+
+  // Shell (allows arbitrary code via -c, but lab mode auth is required)
+  "bash",
+  "sh",
+
+  // Common utilities (safe subset)
+  "echo",
+  "cat",
+  "ls",
+  "pwd",
+  "which",
+  "env",
+  "printenv",
+  "date",
+  "wc",
+  "head",
+  "tail",
+  "grep",
+  "find",
+  "diff",
+  "sort",
+  "uniq",
+]);
+
+/**
+ * Check if a command binary is allowed to be executed.
+ * Extracts the base command name (without path) for comparison.
+ */
+function isCommandAllowed(commandBinary: string): boolean {
+  // Extract just the binary name (e.g., "/usr/bin/python3" -> "python3")
+  const baseName = commandBinary.split(/[/\\]/).pop() ?? commandBinary;
+  return ALLOWED_COMMANDS.has(baseName);
+}
+
+// ============================================================================
 // Helpers
 // ============================================================================
 
@@ -194,6 +274,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<Experimen
     return NextResponse.json(
       { success: false, error: "Invalid command: first element must be a non-empty string", code: "VALIDATION_ERROR" },
       { status: 400 }
+    );
+  }
+
+  // Validate command is in whitelist
+  if (!isCommandAllowed(command[0])) {
+    return NextResponse.json(
+      { success: false, error: `Command not allowed: ${command[0]}. Only whitelisted commands can be executed.`, code: "VALIDATION_ERROR" },
+      { status: 403 }
     );
   }
 

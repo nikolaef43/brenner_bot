@@ -220,10 +220,9 @@ export async function POST(request: NextRequest) {
   }
 
   // Rate limiting
-  const ip =
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'unknown';
+  // SECURITY: Use X-Real-IP header which is set by Vercel edge (not spoofable by clients).
+  // Avoid X-Forwarded-For as clients can prepend arbitrary values to it.
+  const ip = request.headers.get('x-real-ip') || 'unknown';
 
   if (isRateLimited(ip)) {
     return NextResponse.json(
