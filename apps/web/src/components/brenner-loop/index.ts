@@ -52,3 +52,6 @@ export type { HypothesisGraveyardProps } from "./HypothesisGraveyard";
 
 export { FalsificationCeremony } from "./FalsificationCeremony";
 export type { FalsificationCeremonyProps, FalsificationCeremonyResult } from "./FalsificationCeremony";
+
+export { DomainSelector, CompactDomainSelector } from "./DomainSelector";
+export type { DomainSelectorProps, CompactDomainSelectorProps } from "./DomainSelector";
