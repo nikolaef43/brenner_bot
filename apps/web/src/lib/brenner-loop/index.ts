@@ -46,6 +46,34 @@ export {
 } from "./hypothesis";
 
 // ============================================================================
+// Confound Detection (bead ukd1.3)
+// ============================================================================
+
+export {
+  // Types
+  type ResearchDomain,
+  type ConfoundTemplate,
+  type ConfoundDetectionResult,
+
+  // Domain confound libraries
+  PSYCHOLOGY_CONFOUNDS,
+  EPIDEMIOLOGY_CONFOUNDS,
+  ECONOMICS_CONFOUNDS,
+  BIOLOGY_CONFOUNDS,
+  SOCIOLOGY_CONFOUNDS,
+  COMPUTER_SCIENCE_CONFOUNDS,
+  NEUROSCIENCE_CONFOUNDS,
+  GENERAL_CONFOUNDS,
+
+  // Detection functions
+  classifyDomain,
+  detectConfounds,
+  getConfoundQuestions,
+  getConfoundTemplates,
+  getSupportedDomains,
+} from "./confound-detection";
+
+// ============================================================================
 // Session Data Model (bead 1v26.1)
 // ============================================================================
 
