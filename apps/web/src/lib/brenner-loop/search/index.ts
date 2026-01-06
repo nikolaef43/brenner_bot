@@ -44,4 +44,10 @@ export {
   buildQuoteQueryText,
   filterQuoteEntriesByTags,
   findSimilarQuotes,
+  // Operator-aware quote matching (bead brenner_bot-v2zy)
+  type RankedQuote,
+  OPERATOR_QUOTE_KEYWORDS,
+  computeOperatorRelevance,
+  findRelevantQuotes,
+  getOperatorQuotes,
 } from "./quote-matcher";
