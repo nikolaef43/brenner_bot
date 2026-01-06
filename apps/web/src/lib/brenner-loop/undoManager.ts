@@ -7,7 +7,15 @@
  * @see brenner_bot-sedg (Undo/Redo System)
  */
 
-import type { Session, SessionPhase, EvidenceEntry } from "./types";
+import type {
+  Session,
+  SessionPhase,
+  EvidenceEntry,
+  LevelSplitResult,
+  ExclusionTestResult,
+  ObjectTransposeResult,
+  ScaleCheckResult,
+} from "./types";
 
 // ============================================================================
 // Types
@@ -547,17 +555,33 @@ export function applyCommand(
       const data = command.executeData as ApplyOperatorData;
       const operatorKey = normalizeOperatorApplicationKey(data.operatorType);
       if (!operatorKey) return session;
-      const apps = { ...session.operatorApplications };
 
-      // Add result to appropriate array
-      // Note: We use type assertion because Typescript can't verify
-      // the result matches the array type dynamically
-      apps[operatorKey] = [...apps[operatorKey], data.result as never];
+      // Build updated operatorApplications with type-safe pattern
+      // We handle each key explicitly to satisfy TypeScript's type checker
+      const currentApps = session.operatorApplications;
+      const operatorApplications: Session["operatorApplications"] = {
+        levelSplit:
+          operatorKey === "levelSplit"
+            ? [...currentApps.levelSplit, data.result as LevelSplitResult]
+            : currentApps.levelSplit,
+        exclusionTest:
+          operatorKey === "exclusionTest"
+            ? [...currentApps.exclusionTest, data.result as ExclusionTestResult]
+            : currentApps.exclusionTest,
+        objectTranspose:
+          operatorKey === "objectTranspose"
+            ? [...currentApps.objectTranspose, data.result as ObjectTransposeResult]
+            : currentApps.objectTranspose,
+        scaleCheck:
+          operatorKey === "scaleCheck"
+            ? [...currentApps.scaleCheck, data.result as ScaleCheckResult]
+            : currentApps.scaleCheck,
+      };
 
       return {
         ...session,
         updatedAt,
-        operatorApplications: apps,
+        operatorApplications,
         // Update phase if specified
         ...(data.newPhase ? { phase: data.newPhase } : {}),
       };
@@ -709,16 +733,33 @@ export function reverseCommand(
       const data = command.undoData as ApplyOperatorData;
       const operatorKey = normalizeOperatorApplicationKey(data.operatorType);
       if (!operatorKey) return session;
-      const apps = { ...session.operatorApplications };
 
-      // Remove the added result (last one)
-      // This assumes simple stack push/pop behavior which is typical for operators
-      apps[operatorKey] = apps[operatorKey].slice(0, -1);
+      // Build updated operatorApplications with type-safe pattern
+      // Remove the added result (last one) - stack push/pop behavior
+      const currentApps = session.operatorApplications;
+      const operatorApplications: Session["operatorApplications"] = {
+        levelSplit:
+          operatorKey === "levelSplit"
+            ? currentApps.levelSplit.slice(0, -1)
+            : currentApps.levelSplit,
+        exclusionTest:
+          operatorKey === "exclusionTest"
+            ? currentApps.exclusionTest.slice(0, -1)
+            : currentApps.exclusionTest,
+        objectTranspose:
+          operatorKey === "objectTranspose"
+            ? currentApps.objectTranspose.slice(0, -1)
+            : currentApps.objectTranspose,
+        scaleCheck:
+          operatorKey === "scaleCheck"
+            ? currentApps.scaleCheck.slice(0, -1)
+            : currentApps.scaleCheck,
+      };
 
       return {
         ...session,
         updatedAt,
-        operatorApplications: apps,
+        operatorApplications,
         // Revert phase if specified
         ...(data.previousPhase ? { phase: data.previousPhase } : {}),
       };
