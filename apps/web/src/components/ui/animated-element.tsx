@@ -3,6 +3,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { useInView } from "@/hooks/useInView";
+import { useReducedMotion } from "@/lib/animations/hooks";
 
 // ============================================================================
 // TYPES
@@ -73,17 +74,7 @@ export function AnimatedElement({
     triggerOnce: once,
   });
 
-  // Check for reduced motion preference
-  const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
-
-  React.useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
-
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
-    mediaQuery.addEventListener("change", handler);
-    return () => mediaQuery.removeEventListener("change", handler);
-  }, []);
+  const prefersReducedMotion = useReducedMotion();
 
   const shouldAnimate = !disabled && !prefersReducedMotion;
 

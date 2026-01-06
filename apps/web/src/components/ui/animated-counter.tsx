@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "@/lib/animations/hooks";
 
 interface AnimatedCounterProps {
   value: number;
@@ -22,6 +23,7 @@ export function AnimatedCounter({
   const [displayValue, setDisplayValue] = useState(0);
   const [hasStarted, setHasStarted] = useState(false);
   const elementRef = useRef<HTMLSpanElement>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   // Start animation when element is in viewport
   useEffect(() => {
@@ -44,6 +46,11 @@ export function AnimatedCounter({
   // Animate the counter
   useEffect(() => {
     if (!hasStarted) return;
+
+    if (prefersReducedMotion) {
+      setDisplayValue(value);
+      return;
+    }
 
     const startTime = performance.now() + delay;
     let animationFrame: number;
@@ -73,7 +80,7 @@ export function AnimatedCounter({
 
     animationFrame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrame);
-  }, [hasStarted, value, duration, delay]);
+  }, [hasStarted, value, duration, delay, prefersReducedMotion]);
 
   return (
     <span ref={elementRef}>
