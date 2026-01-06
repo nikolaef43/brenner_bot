@@ -307,13 +307,13 @@ function toSessionLevelSplitResult(args: {
   const selectedY = args.result.yLevels.filter((level) => level.selected);
 
   const levels: LevelIdentification[] = [
-    ...selectedX.map((level) => ({
+    ...selectedX.map((level): LevelIdentification => ({
       name: `X: ${level.name}`,
       description: `${level.description} (category: ${level.category})`,
       hypothesisIds: [args.hypothesisId],
       levelType: "unclear",
     })),
-    ...selectedY.map((level) => ({
+    ...selectedY.map((level): LevelIdentification => ({
       name: `Y: ${level.name}`,
       description: `${level.description} (category: ${level.category})`,
       hypothesisIds: [args.hypothesisId],
