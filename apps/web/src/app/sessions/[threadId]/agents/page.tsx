@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
+import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -24,6 +25,7 @@ import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
 import { recordSessionResumeEntry } from "@/lib/brenner-loop";
+import { isDemoThreadId, normalizeThreadId } from "@/lib/demo-mode";
 
 // ============================================================================
 // Icons
@@ -475,7 +477,22 @@ function SynthesisPanel({ responses, disagreements }: SynthesisPanelProps) {
 
 export default function AgentsPage() {
   const params = useParams();
-  const threadId = params.threadId as string;
+  const threadId = normalizeThreadId(params.threadId);
+
+  if (isDemoThreadId(threadId)) {
+    return (
+      <DemoFeaturePreview
+        threadId={threadId}
+        featureName="Agent Status"
+        featureDescription="Monitor agent roles, response status, and synthesis progress for each session round."
+      />
+    );
+  }
+
+  return <AgentsPageContent threadId={threadId} />;
+}
+
+function AgentsPageContent({ threadId }: { threadId: string }) {
   const isLiveThread = threadId.startsWith(LIVE_THREAD_PREFIX);
   const allowMockInvoke = !isLiveThread;
 

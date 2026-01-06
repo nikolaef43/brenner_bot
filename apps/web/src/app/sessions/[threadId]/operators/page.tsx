@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,6 +32,7 @@ import {
   findSimilarQuotes,
 } from "@/lib/brenner-loop/search/quote-matcher";
 import { recordSessionResumeEntry } from "@/lib/brenner-loop";
+import { isDemoThreadId, normalizeThreadId } from "@/lib/demo-mode";
 
 // ============================================================================
 // Icons
@@ -340,8 +342,22 @@ function OperatorWorkspace({ operator, values, onChange, onComplete }: OperatorW
 
 export default function OperatorsPage() {
   const params = useParams();
-  const threadId = params.threadId as string;
+  const threadId = normalizeThreadId(params.threadId);
 
+  if (isDemoThreadId(threadId)) {
+    return (
+      <DemoFeaturePreview
+        threadId={threadId}
+        featureName="Operators Workspace"
+        featureDescription="Configure Brenner operators to refine hypotheses, generate discriminative tests, and capture structured reasoning steps."
+      />
+    );
+  }
+
+  return <OperatorsPageContent threadId={threadId} />;
+}
+
+function OperatorsPageContent({ threadId }: { threadId: string }) {
   React.useEffect(() => {
     recordSessionResumeEntry(threadId, "operators");
   }, [threadId]);

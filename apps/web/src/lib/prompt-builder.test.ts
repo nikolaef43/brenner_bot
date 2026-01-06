@@ -25,6 +25,7 @@ function createTestOperator(
     canonicalTag,
     title,
     symbol,
+    kind: options.kind ?? "core",
     definition: options.definition ?? `Definition of ${title} operator`,
     whenToUseTriggers: options.whenToUseTriggers ?? [
       `Trigger 1 for ${title}`,
@@ -33,6 +34,7 @@ function createTestOperator(
     failureModes: options.failureModes ?? [`Failure mode for ${title}`],
     quoteBankAnchors: options.quoteBankAnchors ?? [],
     transcriptAnchors: options.transcriptAnchors ?? "§58, §103",
+    promptModule: options.promptModule ?? null,
     quotes: options.quotes ?? [],
     supportingQuotes: options.supportingQuotes ?? [],
   };

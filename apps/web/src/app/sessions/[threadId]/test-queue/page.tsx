@@ -15,6 +15,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +45,7 @@ import {
   type TestQueuePriority,
   type TestQueueStatus,
 } from "@/lib/brenner-loop/test-queue";
+import { isDemoThreadId } from "@/lib/demo-mode";
 
 // ============================================================================//
 // Helpers
@@ -125,6 +127,20 @@ export default function TestQueuePage() {
   const params = useParams();
   const threadId = getThreadIdParam(params);
 
+  if (isDemoThreadId(threadId)) {
+    return (
+      <DemoFeaturePreview
+        threadId={threadId}
+        featureName="Test Queue"
+        featureDescription="Manage and prioritize discriminative tests, track execution status, and lock predictions before running experiments."
+      />
+    );
+  }
+
+  return <TestQueuePageContent threadId={threadId} />;
+}
+
+function TestQueuePageContent({ threadId }: { threadId: string }) {
   React.useEffect(() => {
     recordSessionResumeEntry(threadId, "test-queue");
   }, [threadId]);

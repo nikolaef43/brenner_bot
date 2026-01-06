@@ -26,8 +26,7 @@ describe("operators", () => {
       }
     }
 
-    // At least 14 core operators should have full quote coverage
-    // (hal, potency-check, exception-quarantine are pending - see brenner_bot-xxxx)
-    expect(opsWithQuotes).toBeGreaterThanOrEqual(14);
+    // Quickie/Pilot is the only operator without quote-bank anchors.
+    expect(opsWithQuotes).toBeGreaterThanOrEqual(16);
   });
 });

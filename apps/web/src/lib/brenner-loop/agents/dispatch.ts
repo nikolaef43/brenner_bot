@@ -49,6 +49,9 @@ export interface AgentTask {
   /** Agent Mail message ID for the dispatch */
   messageId?: number;
 
+  /** All Agent Mail message IDs if sent to multiple recipients */
+  messageIds?: number[];
+
   /** When the task was dispatched */
   dispatchedAt?: string;
 
@@ -412,7 +415,7 @@ export async function dispatchAgentTask(
     senderName: string;
     recipients: string[];
   }
-): Promise<{ messageId: number } | { error: string }> {
+): Promise<{ messageId: number; messageIds: number[] } | { error: string }> {
   const promptBody = buildAgentPrompt(role, dispatch.hypothesis, dispatch.operatorResults);
 
   const subject = `${DISPATCH_SUBJECT_PREFIX}${role}]: ${dispatch.hypothesis.id}`;
@@ -432,12 +435,16 @@ export async function dispatchAgentTask(
     // Extract message ID from result
     if (result && typeof result === "object" && "deliveries" in result) {
       const deliveries = (result as { deliveries?: Array<{ payload?: { id?: number } }> }).deliveries;
-      if (deliveries && deliveries.length > 0 && deliveries[0].payload?.id) {
-        return { messageId: deliveries[0].payload.id };
+      const messageIds = deliveries
+        ?.map((delivery) => delivery.payload?.id)
+        .filter((id): id is number => typeof id === "number") ?? [];
+
+      if (messageIds.length > 0) {
+        return { messageId: messageIds[0], messageIds };
       }
     }
 
-    return { error: "Failed to extract message ID from response" };
+    return { error: "Failed to extract message IDs from response" };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return { error: message };
@@ -479,6 +486,7 @@ export async function dispatchAllTasks(
         ...task,
         status: "dispatched",
         messageId: result.messageId,
+        messageIds: result.messageIds,
         dispatchedAt: new Date().toISOString(),
       });
     } else {
@@ -524,15 +532,22 @@ export async function pollForResponses(
       if (typeof task.messageId === "number") {
         messageIdToRole.set(task.messageId, task.role);
       }
+      if (Array.isArray(task.messageIds)) {
+        for (const id of task.messageIds) {
+          messageIdToRole.set(id, task.role);
+        }
+      }
     }
 
     const roleToResponseMessage = new Map<TribunalAgentRole, AgentMailMessage>();
     const usedMessageIds = new Set<number>();
-    const dispatchMessageIds = new Set<number>(
-      dispatch.tasks.flatMap((task) =>
-        typeof task.messageId === "number" ? [task.messageId] : []
-      )
-    );
+    const dispatchMessageIds = new Set<number>();
+    for (const task of dispatch.tasks) {
+      if (typeof task.messageId === "number") dispatchMessageIds.add(task.messageId);
+      if (Array.isArray(task.messageIds)) {
+        for (const id of task.messageIds) dispatchMessageIds.add(id);
+      }
+    }
 
     const inferRoleFromSubject = (subject: string | undefined): TribunalAgentRole | null => {
       const subjectText = typeof subject === "string" ? subject : "";
@@ -670,28 +685,44 @@ export async function checkAgentAvailability(
   client: AgentMailClient,
   projectKey: string
 ): Promise<{ available: boolean; agents: string[] }> {
-  try {
-    const result = await client.resourcesRead(`resource://agents/${projectKey}`);
+  const parseAgents = (result: unknown): string[] | null => {
+    if (!result || typeof result !== "object") return null;
+    if (!("contents" in result)) return null;
 
-    // Parse the response
-    if (result && typeof result === "object" && "contents" in result) {
-      const contents = (result as { contents?: Array<{ text?: string }> }).contents;
-      if (contents && contents.length > 0 && contents[0].text) {
-        const data = JSON.parse(contents[0].text) as {
-          agents?: Array<{ name: string; program: string }>;
-        };
-        const agents = data.agents
-          ?.filter((a) => a.program !== "brenner-cli") // Exclude orchestrator agents
-          .map((a) => a.name) ?? [];
+    const contents = (result as { contents?: Array<{ text?: string }> }).contents;
+    if (!contents || contents.length === 0 || !contents[0]?.text) return null;
 
+    const data = JSON.parse(contents[0].text) as {
+      agents?: Array<{ name: string; program: string }>;
+    };
+
+    return (
+      data.agents
+        ?.filter((a) => a.program !== "brenner-cli") // Exclude orchestrator agents
+        .map((a) => a.name) ?? []
+    );
+  };
+
+  const encodedProject = encodeURIComponent(projectKey);
+  const candidateUris = [
+    `resource://agents?project=${encodedProject}`,
+    `resource://agents/${encodedProject}`,
+    `resource://agents/${projectKey}`,
+  ];
+
+  for (const uri of candidateUris) {
+    try {
+      const result = await client.resourcesRead(uri);
+      const agents = parseAgents(result);
+      if (agents) {
         return { available: agents.length > 0, agents };
       }
+    } catch {
+      // Try the next URI pattern.
     }
-
-    return { available: false, agents: [] };
-  } catch {
-    return { available: false, agents: [] };
   }
+
+  return { available: false, agents: [] };
 }
 
 /**

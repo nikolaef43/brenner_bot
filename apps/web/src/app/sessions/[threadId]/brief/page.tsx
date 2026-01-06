@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
 import { recordSessionResumeEntry } from "@/lib/brenner-loop";
+import { isDemoThreadId, normalizeThreadId } from "@/lib/demo-mode";
 
 // ============================================================================
 // Icons
@@ -613,8 +615,12 @@ const buildObjectionRegisterBriefSection = (threadId: string): BriefSection | nu
   }
 
   const total = ids.length;
-  const status: BriefSection["status"] =
-    unresolvedCount === 0 ? "complete" : unresolvedCount === total ? "pending" : "partial";
+  let status: BriefSection["status"] = "partial";
+  if (unresolvedCount === 0) {
+    status = "complete";
+  } else if (unresolvedCount === total) {
+    status = "pending";
+  }
 
   return {
     id: "objection_register",
@@ -674,7 +680,22 @@ const downloadTextFile = (filename: string, content: string, mime: string): void
 
 export default function BriefPage() {
   const params = useParams();
-  const threadId = params.threadId as string;
+  const threadId = normalizeThreadId(params.threadId);
+
+  if (isDemoThreadId(threadId)) {
+    return (
+      <DemoFeaturePreview
+        threadId={threadId}
+        featureName="Research Brief"
+        featureDescription="Generate executive summaries of session progress, highlight decisions, and capture current state for handoffs."
+      />
+    );
+  }
+
+  return <BriefPageContent threadId={threadId} />;
+}
+
+function BriefPageContent({ threadId }: { threadId: string }) {
   const router = useRouter();
 
   useEffect(() => {

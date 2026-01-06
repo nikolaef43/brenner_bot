@@ -2,7 +2,9 @@ import { resolve, join } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
 import Link from "next/link";
 import { cookies, headers } from "next/headers";
+import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
 import { isLabModeEnabled, checkOrchestrationAuth } from "@/lib/auth";
+import { isDemoThreadId } from "@/lib/demo-mode";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -410,6 +412,18 @@ export default async function EvidencePackPage({
 }: {
   params: Promise<{ threadId: string }>;
 }) {
+  const { threadId } = await params;
+
+  if (isDemoThreadId(threadId)) {
+    return (
+      <DemoFeaturePreview
+        threadId={threadId}
+        featureName="Evidence Pack"
+        featureDescription="Collect external papers, datasets, and experiment results that support or refute your hypotheses. Link evidence directly to specific claims for transparent reasoning."
+      />
+    );
+  }
+
   // Check lab mode
   if (!isLabModeEnabled()) {
     return <LockedState reason="Lab mode is disabled. Set BRENNER_LAB_MODE=1 to enable orchestration." />;
@@ -423,7 +437,6 @@ export default async function EvidencePackPage({
     return <LockedState reason={pageAuth.reason} />;
   }
 
-  const { threadId } = await params;
   const repoRoot = repoRootFromWebCwd();
   const projectKey = process.env.BRENNER_PROJECT_KEY ?? repoRoot;
 

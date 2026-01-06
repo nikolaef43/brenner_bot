@@ -604,6 +604,8 @@ Optional: predictions_table (ADD)
 Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
 ~~~
 
+**Quote-bank anchors**: §198
+
 **Transcript Anchors**: §198 ("I had invented something called HAL biology. HAL... stood for Have A Look biology")
 
 **Sources**: Opus (HAL Biology), GPT-5.2 (§1)
@@ -635,6 +637,8 @@ Output (required): 1–4 fenced `delta` JSON blocks per specs/delta_output_forma
 Optional: assumption_ledger (ADD) if the check reveals a new load-bearing assumption
 Anchors: prefer transcript `§n`; otherwise `anchors: ["inference"]`.
 ~~~
+
+**Quote-bank anchors**: §50, §180
 
 **Transcript Anchors**: §50 (chastity vs impotence: same outcome, different reasons)
 

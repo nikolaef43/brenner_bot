@@ -64,14 +64,14 @@ describe("Home Page", () => {
       render(<Home />);
 
       expect(
-        screen.getByRole("heading", { name: /brenner lab/i, level: 1 })
+        screen.getByRole("heading", { name: /brennerbot/i, level: 1 })
       ).toBeInTheDocument();
     });
 
     it("shows the lab mode badge", () => {
       render(<Home />);
 
-      expect(screen.getByText(/brenner lab mode/i)).toBeInTheDocument();
+      expect(screen.getByText(/brennerbot lab mode/i)).toBeInTheDocument();
     });
 
     it("displays the subtitle/description", () => {

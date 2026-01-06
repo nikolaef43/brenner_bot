@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { DemoFeaturePreview } from "@/components/sessions/DemoFeaturePreview";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,6 +39,7 @@ import {
   findSimilarQuotes,
 } from "@/lib/brenner-loop/search/quote-matcher";
 import { recordSessionResumeEntry } from "@/lib/brenner-loop";
+import { isDemoThreadId, normalizeThreadId } from "@/lib/demo-mode";
 
 // ============================================================================
 // Icons
@@ -303,8 +305,22 @@ function EvolutionTimeline({ events }: { events: EvolutionEvent[] }) {
 
 export default function HypothesisPage() {
   const params = useParams();
-  const threadId = params.threadId as string;
+  const threadId = normalizeThreadId(params.threadId);
 
+  if (isDemoThreadId(threadId)) {
+    return (
+      <DemoFeaturePreview
+        threadId={threadId}
+        featureName="Hypothesis Ledger"
+        featureDescription="View and manage working hypotheses, track confidence changes, and document mechanisms with structured evidence."
+      />
+    );
+  }
+
+  return <HypothesisPageContent threadId={threadId} />;
+}
+
+function HypothesisPageContent({ threadId }: { threadId: string }) {
   React.useEffect(() => {
     recordSessionResumeEntry(threadId, "hypothesis");
   }, [threadId]);

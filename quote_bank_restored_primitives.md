@@ -1322,7 +1322,7 @@ Tags: `career`, `interest`, `unpredictability`
 
 Takeaway: Two things can look identical yet have opposite causes. "We didn't do X" might mean "we chose not to" or "we couldn't." Diagnosis requires knowing which.
 
-Tags: `causation`, `diagnosis`, `appearance-vs-reality`
+Tags: `causation`, `diagnosis`, `appearance-vs-reality`, `potency-check`
 
 ---
 
@@ -1442,7 +1442,7 @@ Tags: `topology`, `logic`, `triplet-code`, `genetics-as-instrument`
 
 Takeaway: Exceptions that share a pattern are dangerous—they suggest a rival theory. Exceptions with unrelated causes are safe—they're noise, not signal. Appendices are honest; omission is not.
 
-Tags: `exceptions`, `appendix`, `honesty`, `noise-vs-signal`
+Tags: `exceptions`, `appendix`, `honesty`, `noise-vs-signal`, `exception-quarantine`
 
 ---
 
@@ -1832,7 +1832,7 @@ Tags: `collaboration`, `failure`, `introns`, `desperation`
 
 Takeaway: Compliance is easy when you can't do the thing anyway. The recombinant DNA moratorium cost Brenner nothing—he lacked the technology. Distinguishing "won't" from "can't" remains essential for honest self-assessment.
 
-Tags: `moratorium`, `compliance`, `honesty`, `capability`
+Tags: `moratorium`, `compliance`, `honesty`, `capability`, `potency-check`
 
 ---
 
@@ -1992,7 +1992,7 @@ Tags: `analogue`, `digital`, `Turing`, `computation`
 
 Takeaway: Look before you grind. Brenner's "Have A Look" principle: check with your eyes before running assays. When Spiegelman claimed ribonuclease stopped protein synthesis, Brenner looked and saw the cells had lysed. Observation trumps measurement.
 
-Tags: `observation`, `microscopy`, `principle`, `shortcuts`
+Tags: `observation`, `microscopy`, `principle`, `shortcuts`, `hal`
 
 ---
 

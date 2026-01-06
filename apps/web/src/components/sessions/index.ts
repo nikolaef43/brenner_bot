@@ -11,3 +11,4 @@ export { OperatorSelector, DEFAULT_OPERATORS, type OperatorSelection } from "./O
 export { RosterAssignment, applyDefaultRoles, type RosterEntry } from "./RosterAssignment";
 export { FirstRunOnboarding } from "./FirstRunOnboarding";
 export { DemoSessionsView, type DemoSessionsViewProps } from "./DemoSessionsView";
+export { DemoFeaturePreview, type DemoFeaturePreviewProps } from "./DemoFeaturePreview";
