@@ -313,8 +313,11 @@ export function generatePaperId(paper: Partial<PaperResult>): string {
  */
 export function generateSearchQueries(hypothesis: HypothesisCard): SuggestedSearches {
   const statement = hypothesis.statement.toLowerCase();
-  const mechanismPath = hypothesis.mechanismPath || "";
-  const scope = hypothesis.scope || "";
+  const mechanism = hypothesis.mechanism.toLowerCase();
+  const scope = [...hypothesis.domain, ...(hypothesis.tags ?? [])]
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0)
+    .join(" ");
 
   // Extract keywords from the hypothesis
   const keywords = extractKeywords(statement);
@@ -326,8 +329,8 @@ export function generateSearchQueries(hypothesis: HypothesisCard): SuggestedSear
   const alternativeQueries: string[] = [];
 
   // Add mechanism-focused query if available
-  if (mechanismPath) {
-    alternativeQueries.push(cleanQueryString(mechanismPath));
+  if (mechanism.trim().length > 0) {
+    alternativeQueries.push(cleanQueryString(mechanism));
   }
 
   // Add scope-focused query
@@ -346,7 +349,7 @@ export function generateSearchQueries(hypothesis: HypothesisCard): SuggestedSear
   }
 
   // Add domain-specific variations if confounds suggest domains
-  for (const confound of hypothesis.identifiedConfounds || []) {
+  for (const confound of hypothesis.confounds) {
     const confoundKeywords = extractKeywords(confound.description);
     if (confoundKeywords.length > 0) {
       alternativeQueries.push(
@@ -433,9 +436,12 @@ export function calculateRelevance(
   // Combine hypothesis text
   const hypothesisText = [
     hypothesis.statement,
-    hypothesis.mechanismPath || "",
-    hypothesis.scope || "",
-    (hypothesis.identifiedConfounds || []).map((c) => c.description).join(" "),
+    hypothesis.mechanism,
+    hypothesis.domain.join(" "),
+    hypothesis.confounds.map((c) => c.description).join(" "),
+    (hypothesis.backgroundAssumptions ?? []).join(" "),
+    (hypothesis.tags ?? []).join(" "),
+    hypothesis.notes ?? "",
   ].join(" ");
 
   // Generate embeddings and calculate similarity

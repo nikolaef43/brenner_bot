@@ -27,3 +27,8 @@ export {
   WhatIfSimulator,
   type WhatIfSimulatorProps,
 } from "./WhatIfSimulator";
+
+export {
+  LiteratureSearch,
+  type LiteratureSearchProps,
+} from "./LiteratureSearch";

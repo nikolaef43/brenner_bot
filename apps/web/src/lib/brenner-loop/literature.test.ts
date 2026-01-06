@@ -55,22 +55,36 @@ import {
 
 function createMockHypothesis(overrides: Partial<HypothesisCard> = {}): HypothesisCard {
   return {
-    id: "HYP-test-001",
-    statement: "Social media algorithm-driven content selection causes increased depression in teenagers",
-    currentConfidence: 50,
-    createdAt: new Date(),
-    createdBy: "test-user",
+    id: "HC-test-001-v1",
     version: 1,
-    mechanismPath: "Algorithm amplifies negative content which increases rumination",
-    scope: "Teenagers aged 13-19 using Instagram or TikTok",
-    identifiedConfounds: [
+    statement: "Social media algorithm-driven content selection causes increased depression in teenagers",
+    mechanism: "Algorithm amplifies negative content which increases rumination",
+    domain: ["psychology", "technology"],
+    predictionsIfTrue: [
+      "Teens with higher social media usage will report more depressive symptoms",
+      "Disabling algorithmic feeds should reduce depression scores",
+    ],
+    predictionsIfFalse: [
+      "Depression rates should be similar regardless of social media usage patterns",
+    ],
+    impossibleIfTrue: [
+      "Teens using social media extensively show improved mental health outcomes",
+    ],
+    confounds: [
       {
         id: "CF-001",
         description: "Pre-existing depression predisposes to social media use",
         status: "active",
-        identifiedAt: new Date(),
+        likelihood: 0.6,
+        addressedAt: undefined,
       },
     ],
+    backgroundAssumptions: ["Social media usage is measurable and quantifiable"],
+    confidenceHistory: [{ confidence: 50, timestamp: new Date(), reason: "Initial hypothesis" }],
+    currentConfidence: 50,
+    tags: ["social-media", "mental-health", "teenagers"],
+    createdAt: new Date(),
+    createdBy: "test-user",
     ...overrides,
   } as HypothesisCard;
 }
