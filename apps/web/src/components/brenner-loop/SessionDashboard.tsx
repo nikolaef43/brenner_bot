@@ -684,6 +684,12 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
 
   const appliedBy = React.useMemo(() => getAppliedBy(session), [session]);
 
+  // Extract validated evidence entries from the session's evidence ledger
+  const evidenceEntries = React.useMemo<FullEvidenceEntry[]>(() => {
+    const ledger = session?.evidenceLedger ?? [];
+    return (ledger as unknown[]).filter(isEvidenceEntry);
+  }, [session?.evidenceLedger]);
+
   const handleIntakeComplete = React.useCallback(
     (hypothesis: {
       statement: string;
