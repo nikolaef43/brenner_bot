@@ -156,12 +156,19 @@ const ALLOWED_COMMANDS = new Set([
 
 /**
  * Check if a command binary is allowed to be executed.
- * Extracts the base command name (without path) for comparison.
+ *
+ * SECURITY: Only bare command names are allowed (no paths).
+ * This prevents bypass via "./echo" or "/path/to/malicious" where
+ * the attacker creates a script with a whitelisted name.
+ * Commands must rely on PATH resolution.
  */
 function isCommandAllowed(commandBinary: string): boolean {
-  // Extract just the binary name (e.g., "/usr/bin/python3" -> "python3")
-  const baseName = commandBinary.split(/[/\\]/).pop() ?? commandBinary;
-  return ALLOWED_COMMANDS.has(baseName);
+  // Reject any command containing path separators
+  // This prevents "./malicious" or "/usr/local/bin/malicious" from bypassing
+  if (commandBinary.includes("/") || commandBinary.includes("\\")) {
+    return false;
+  }
+  return ALLOWED_COMMANDS.has(commandBinary);
 }
 
 // ============================================================================
