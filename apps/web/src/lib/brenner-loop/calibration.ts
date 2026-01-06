@@ -190,6 +190,14 @@ export function generatePredictionId(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return `PRED-${crypto.randomUUID()}`;
   }
+
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const rnd = new Uint32Array(1);
+    crypto.getRandomValues(rnd);
+    return `PRED-${Date.now().toString(36)}-${rnd[0].toString(36).slice(0, 6)}`;
+  }
+
+  // Last resort
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).slice(2, 8);
   return `PRED-${timestamp}-${random}`;

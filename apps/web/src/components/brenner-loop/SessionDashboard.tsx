@@ -28,9 +28,25 @@ import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { Skeleton, SkeletonCard, SkeletonButton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
 import { HypothesisCard } from "./HypothesisCard";
+import { HypothesisIntake } from "./HypothesisIntake";
 import { PhaseTimeline } from "./PhaseTimeline";
 import { useAsyncOperation } from "@/hooks/useAsyncOperation";
 import { CorpusSearchDialog } from "./CorpusSearch";
+import { AgentTribunalPanel } from "./agents/AgentTribunalPanel";
+import { ObjectionRegisterPanel } from "./agents/ObjectionRegisterPanel";
+import { ConfidenceChart } from "./evidence/ConfidenceChart";
+import { EvidenceTimeline } from "./evidence/EvidenceTimeline";
+import { ExclusionTestSession } from "./operators/ExclusionTestSession";
+import { LevelSplitSession } from "./operators/LevelSplitSession";
+import { ObjectTransposeSession } from "./operators/ObjectTransposeSession";
+import { ScaleCheckSession } from "./operators/ScaleCheckSession";
+import type { ExclusionTestResult as UiExclusionTestResult } from "@/lib/brenner-loop/operators/exclusion-test";
+import type { LevelSplitResult as UiLevelSplitResult } from "@/lib/brenner-loop/operators/level-split";
+import type {
+  ObjectTransposeResult as UiObjectTransposeResult,
+  AlternativeExplanation as UiAlternativeExplanation,
+} from "@/lib/brenner-loop/operators/object-transpose";
+import type { ScaleCheckResult as UiScaleCheckResult } from "@/lib/brenner-loop/operators/scale-check";
 import {
   PHASE_ORDER,
   useSession,
@@ -40,6 +56,13 @@ import {
   exportSession,
   type Session,
   type SessionPhase,
+  type LevelIdentification,
+  type LevelSplitResult as SessionLevelSplitResult,
+  type ExclusionTestResult as SessionExclusionTestResult,
+  type ObjectTransposeResult as SessionObjectTransposeResult,
+  type ScaleCheckResult as SessionScaleCheckResult,
+  type AlternativeSystem,
+  type ScaleCalculation,
 } from "@/lib/brenner-loop";
 
 // ============================================================================
@@ -257,8 +280,273 @@ function ShortcutRow({ label, children }: { label: string; children: React.React
   );
 }
 
+function getAppliedBy(session: Session | null): string {
+  const candidate = session?.createdBy?.trim() ?? "";
+  return candidate.length > 0 ? candidate : "user";
+}
+
+function toDiscriminativePower_0_3(power_1_5: number): number {
+  if (!Number.isFinite(power_1_5)) return 0;
+  const clamped = Math.max(1, Math.min(5, Math.round(power_1_5)));
+  if (clamped <= 2) return 1;
+  if (clamped === 3) return 2;
+  return 3;
+}
+
+function toSessionLevelSplitResult(args: {
+  result: UiLevelSplitResult;
+  hypothesisId: string;
+  appliedAt: string;
+  appliedBy: string;
+}): SessionLevelSplitResult {
+  const selectedX = args.result.xLevels.filter((level) => level.selected);
+  const selectedY = args.result.yLevels.filter((level) => level.selected);
+
+  const levels: LevelIdentification[] = [
+    ...selectedX.map((level) => ({
+      name: `X: ${level.name}`,
+      description: `${level.description} (category: ${level.category})`,
+      hypothesisIds: [args.hypothesisId],
+      levelType: "unclear",
+    })),
+    ...selectedY.map((level) => ({
+      name: `Y: ${level.name}`,
+      description: `${level.description} (category: ${level.category})`,
+      hypothesisIds: [args.hypothesisId],
+      levelType: "unclear",
+    })),
+  ];
+
+  const conflationDetected = selectedX.length > 1 || selectedY.length > 1;
+  const conflationDescription = conflationDetected
+    ? `Selected ${selectedX.length} X levels and ${selectedY.length} Y levels; hypothesis may conflate multiple explanatory levels.`
+    : undefined;
+
+  return {
+    appliedAt: args.appliedAt,
+    appliedBy: args.appliedBy,
+    levels,
+    conflationDetected,
+    conflationDescription,
+  };
+}
+
+function toSessionExclusionTestResult(args: {
+  result: UiExclusionTestResult;
+  hypothesisId: string;
+  appliedAt: string;
+  appliedBy: string;
+}): SessionExclusionTestResult {
+  const selectedIds = new Set(args.result.selectedTestIds ?? []);
+  const designedTests = (args.result.generatedTests ?? []).map((test) => ({
+    name: test.name,
+    procedure: test.description,
+    couldExclude: [args.hypothesisId],
+    discriminativePower: toDiscriminativePower_0_3(test.discriminativePower),
+  }));
+
+  const rejectedTests = (args.result.generatedTests ?? [])
+    .filter((test) => !selectedIds.has(test.id))
+    .map((test) => ({ name: test.name, reason: "Not selected" }));
+
+  return {
+    appliedAt: args.appliedAt,
+    appliedBy: args.appliedBy,
+    designedTests,
+    rejectedTests,
+    notes: args.result.testsForSession?.length
+      ? `Selected ${args.result.testsForSession.length} test(s) for session recording.`
+      : undefined,
+  };
+}
+
+function pickObjectTransposeSelection(alternatives: UiAlternativeExplanation[]): UiAlternativeExplanation | null {
+  const selected = alternatives.find((alt) => alt.selected);
+  if (selected) return selected;
+
+  const withPlausibility = alternatives.filter((alt) => typeof alt.plausibility === "number");
+  if (withPlausibility.length === 0) return null;
+
+  let best: UiAlternativeExplanation | null = null;
+  let bestScore = -Infinity;
+
+  for (const alt of withPlausibility) {
+    const score = alt.plausibility ?? 0;
+    if (score > bestScore) {
+      bestScore = score;
+      best = alt;
+    }
+  }
+
+  return best;
+}
+
+function toSessionObjectTransposeResult(args: {
+  result: UiObjectTransposeResult;
+  hypothesisStatement: string;
+  appliedAt: string;
+  appliedBy: string;
+}): SessionObjectTransposeResult {
+  const alternatives = args.result.alternatives ?? [];
+  const selection = pickObjectTransposeSelection(alternatives);
+
+  const alternativeSystems: AlternativeSystem[] = alternatives.map((alt) => ({
+    name: alt.name,
+    pros: alt.implications.length > 0 ? alt.implications : [alt.description],
+    cons: [],
+  }));
+
+  return {
+    appliedAt: args.appliedAt,
+    appliedBy: args.appliedBy,
+    originalSystem: args.hypothesisStatement,
+    alternativeSystems,
+    selectedSystem: selection?.name,
+    selectionRationale: selection?.description,
+    notes: alternatives.length > 0 ? `Generated ${alternatives.length} alternative explanation(s).` : undefined,
+  };
+}
+
+function toScaleCalculation(args: {
+  name: string;
+  quantities: string;
+  result: string;
+  units: string;
+  implication: string;
+}): ScaleCalculation {
+  return {
+    name: args.name,
+    quantities: args.quantities,
+    result: args.result,
+    units: args.units,
+    implication: args.implication,
+  };
+}
+
+function toSessionScaleCheckResult(args: {
+  result: UiScaleCheckResult;
+  hypothesisId: string;
+  appliedAt: string;
+  appliedBy: string;
+}): SessionScaleCheckResult {
+  const effect = args.result.effectSize;
+  const context = args.result.contextComparison;
+  const precision = args.result.measurementAssessment;
+  const practical = args.result.practicalSignificance;
+
+  const calculations: ScaleCalculation[] = [
+    toScaleCalculation({
+      name: "Effect size",
+      quantities: `direction: ${effect.direction}`,
+      result: typeof effect.value === "number" ? effect.value.toString() : effect.estimate ?? "unspecified",
+      units: effect.type,
+      implication: context.warnings.length > 0
+        ? context.warnings.join(" ")
+        : context.insights.length > 0
+          ? context.insights.join(" ")
+          : `Relative to norms: ${context.relativeToNorm}.`,
+    }),
+    ...(typeof context.varianceExplained === "number"
+      ? [
+          toScaleCalculation({
+            name: "Variance explained",
+            quantities: "r² × 100",
+            result: context.varianceExplained.toString(),
+            units: "%",
+            implication: context.relativeToNorm === "below_typical"
+              ? "Small explanatory power; may be hard to detect or act on."
+              : "Meaningful explanatory power in context.",
+          }),
+        ]
+      : []),
+    ...(typeof precision.minimumDetectableEffect === "number"
+      ? [
+          toScaleCalculation({
+            name: "Minimum detectable effect",
+            quantities: "design + noise floor",
+            result: precision.minimumDetectableEffect.toString(),
+            units: effect.type,
+            implication: precision.isDetectable === false
+              ? "Claimed effect may be below detection threshold."
+              : "Effect appears detectable with appropriate design.",
+          }),
+        ]
+      : []),
+    ...(typeof precision.requiredSampleSize === "number"
+      ? [
+          toScaleCalculation({
+            name: "Required sample size",
+            quantities: "power target → N",
+            result: precision.requiredSampleSize.toString(),
+            units: "samples",
+            implication: "Use as a feasibility sanity check for proposed studies.",
+          }),
+        ]
+      : []),
+    toScaleCalculation({
+      name: "Practical significance",
+      quantities: "stakeholders + threshold",
+      result: practical.isPracticallyMeaningful === null
+        ? "unknown"
+        : practical.isPracticallyMeaningful
+          ? "meaningful"
+          : "not meaningful",
+      units: "",
+      implication: practical.reasoning.length > 0 ? practical.reasoning : "Assess whether the effect would change decisions.",
+    }),
+  ];
+
+  const plausible = args.result.overallPlausibility === "plausible";
+  const ruledOutByScale =
+    args.result.overallPlausibility === "implausible" ? [args.hypothesisId] : [];
+
+  return {
+    appliedAt: args.appliedAt,
+    appliedBy: args.appliedBy,
+    calculations,
+    plausible,
+    ruledOutByScale,
+    notes: args.result.summaryNotes?.trim() ? args.result.summaryNotes.trim() : undefined,
+  };
+}
+
 function PhaseContent({ phase, className }: PhaseContentProps) {
   const config = PHASE_CONFIG[phase];
+  const {
+    session,
+    primaryHypothesis,
+    updateHypothesis,
+    advancePhase,
+    appendOperatorApplication,
+  } = useSession();
+
+  const appliedBy = React.useMemo(() => getAppliedBy(session), [session]);
+
+  const handleIntakeComplete = React.useCallback(
+    (hypothesis: {
+      statement: string;
+      mechanism: string;
+      domain: string[];
+      predictionsIfTrue: string[];
+      predictionsIfFalse: string[];
+      impossibleIfTrue: string[];
+      assumptions: string[];
+      confidence: number;
+    }) => {
+      updateHypothesis({
+        statement: hypothesis.statement,
+        mechanism: hypothesis.mechanism,
+        domain: hypothesis.domain,
+        predictionsIfTrue: hypothesis.predictionsIfTrue,
+        predictionsIfFalse: hypothesis.predictionsIfFalse,
+        impossibleIfTrue: hypothesis.impossibleIfTrue,
+        assumptions: hypothesis.assumptions,
+        confidence: hypothesis.confidence,
+      });
+      advancePhase();
+    },
+    [advancePhase, updateHypothesis]
+  );
 
   return (
     <Card className={cn("flex-1", className)}>
@@ -276,10 +564,172 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
         </div>
       </CardHeader>
       <CardContent>
-        {/* Phase-specific content will be injected here */}
-        <div className="min-h-[200px] flex items-center justify-center text-muted-foreground">
-          <p>Phase content for &ldquo;{config.name}&rdquo; will appear here.</p>
-        </div>
+        {phase === "intake" && session ? (
+          <HypothesisIntake
+            sessionId={session.id}
+            initialValues={primaryHypothesis ? {
+              statement: primaryHypothesis.statement,
+              mechanism: primaryHypothesis.mechanism,
+              domain: primaryHypothesis.domain,
+              predictionsIfTrue: primaryHypothesis.predictionsIfTrue,
+              predictionsIfFalse: primaryHypothesis.predictionsIfFalse,
+              impossibleIfTrue: primaryHypothesis.impossibleIfTrue,
+              assumptions: primaryHypothesis.assumptions ?? [],
+              confidence: primaryHypothesis.confidence ?? 0,
+            } : undefined}
+            createdBy={appliedBy}
+            onComplete={(hypothesis) => handleIntakeComplete(hypothesis)}
+          />
+        ) : null}
+
+        {phase === "sharpening" ? (
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p>
+              Use this phase to tighten predictions and sharpen falsifiers. (Full sharpening UI coming soon.)
+            </p>
+          </div>
+        ) : null}
+
+        {phase === "level_split" ? (
+          primaryHypothesis ? (
+            <LevelSplitSession
+              hypothesis={primaryHypothesis}
+              onComplete={(result: UiLevelSplitResult) => {
+                const appliedAt = new Date().toISOString();
+                appendOperatorApplication(
+                  "levelSplit",
+                  toSessionLevelSplitResult({
+                    result,
+                    hypothesisId: primaryHypothesis.id,
+                    appliedAt,
+                    appliedBy,
+                  })
+                );
+                advancePhase();
+              }}
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">No hypothesis loaded.</p>
+          )
+        ) : null}
+
+        {phase === "exclusion_test" ? (
+          primaryHypothesis ? (
+            <ExclusionTestSession
+              hypothesis={primaryHypothesis}
+              onComplete={(result: UiExclusionTestResult) => {
+                const appliedAt = new Date().toISOString();
+                appendOperatorApplication(
+                  "exclusionTest",
+                  toSessionExclusionTestResult({
+                    result,
+                    hypothesisId: primaryHypothesis.id,
+                    appliedAt,
+                    appliedBy,
+                  })
+                );
+                advancePhase();
+              }}
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">No hypothesis loaded.</p>
+          )
+        ) : null}
+
+        {phase === "object_transpose" ? (
+          primaryHypothesis ? (
+            <ObjectTransposeSession
+              hypothesis={primaryHypothesis}
+              onComplete={(result: UiObjectTransposeResult) => {
+                const appliedAt = new Date().toISOString();
+                appendOperatorApplication(
+                  "objectTranspose",
+                  toSessionObjectTransposeResult({
+                    result,
+                    hypothesisStatement: primaryHypothesis.statement,
+                    appliedAt,
+                    appliedBy,
+                  })
+                );
+                advancePhase();
+              }}
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">No hypothesis loaded.</p>
+          )
+        ) : null}
+
+        {phase === "scale_check" ? (
+          primaryHypothesis ? (
+            <ScaleCheckSession
+              hypothesis={primaryHypothesis}
+              onComplete={(result: UiScaleCheckResult) => {
+                const appliedAt = new Date().toISOString();
+                appendOperatorApplication(
+                  "scaleCheck",
+                  toSessionScaleCheckResult({
+                    result,
+                    hypothesisId: primaryHypothesis.id,
+                    appliedAt,
+                    appliedBy,
+                  })
+                );
+                advancePhase();
+              }}
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">No hypothesis loaded.</p>
+          )
+        ) : null}
+
+        {phase === "agent_dispatch" && session ? (
+          <div className="space-y-4">
+            <AgentTribunalPanel threadId={session.id} messages={[]} />
+            <ObjectionRegisterPanel threadId={session.id} messages={[]} />
+          </div>
+        ) : null}
+
+        {phase === "synthesis" && session ? (
+          <div className="space-y-4">
+            <AgentTribunalPanel threadId={session.id} messages={[]} />
+            <ObjectionRegisterPanel threadId={session.id} messages={[]} />
+          </div>
+        ) : null}
+
+        {phase === "evidence_gathering" ? (
+          <div className="space-y-6">
+            <ConfidenceChart entries={[]} initialConfidence={primaryHypothesis?.confidence ?? 0} />
+            <EvidenceTimeline entries={[]} />
+          </div>
+        ) : null}
+
+        {phase === "revision" ? (
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p>Revision tools are coming soon. Use the hypothesis edit shortcut (<kbd className="kbd">E</kbd>) for now.</p>
+          </div>
+        ) : null}
+
+        {phase === "complete" ? (
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p>Session complete. Use Export JSON/Markdown to download artifacts.</p>
+          </div>
+        ) : null}
+
+        {phase !== "intake" &&
+        phase !== "sharpening" &&
+        phase !== "level_split" &&
+        phase !== "exclusion_test" &&
+        phase !== "object_transpose" &&
+        phase !== "scale_check" &&
+        phase !== "agent_dispatch" &&
+        phase !== "synthesis" &&
+        phase !== "evidence_gathering" &&
+        phase !== "revision" &&
+        phase !== "complete" ? (
+          <div className="min-h-[200px] flex items-center justify-center text-muted-foreground">
+            <p>Phase content for &ldquo;{config.name}&rdquo; will appear here.</p>
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );

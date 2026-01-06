@@ -8,6 +8,10 @@ const mocks = vi.hoisted(() => ({
   next: vi.fn(),
   goTo: vi.fn(),
   saveSession: vi.fn().mockResolvedValue(undefined),
+  updateHypothesis: vi.fn(),
+  advancePhase: vi.fn(),
+  appendOperatorApplication: vi.fn(),
+  phase: "level_split" as string,
 }));
 
 vi.mock("framer-motion", () => ({
@@ -53,8 +57,44 @@ vi.mock("./HypothesisCard", () => ({
   HypothesisCard: () => <div data-testid="hypothesis-card" />,
 }));
 
+vi.mock("./HypothesisIntake", () => ({
+  HypothesisIntake: () => <div data-testid="hypothesis-intake" />,
+}));
+
 vi.mock("./PhaseTimeline", () => ({
   PhaseTimeline: () => <div data-testid="phase-timeline" />,
+}));
+
+vi.mock("./operators/LevelSplitSession", () => ({
+  LevelSplitSession: () => <div data-testid="level-split-session" />,
+}));
+
+vi.mock("./operators/ExclusionTestSession", () => ({
+  ExclusionTestSession: () => <div data-testid="exclusion-test-session" />,
+}));
+
+vi.mock("./operators/ObjectTransposeSession", () => ({
+  ObjectTransposeSession: () => <div data-testid="object-transpose-session" />,
+}));
+
+vi.mock("./operators/ScaleCheckSession", () => ({
+  ScaleCheckSession: () => <div data-testid="scale-check-session" />,
+}));
+
+vi.mock("./agents/AgentTribunalPanel", () => ({
+  AgentTribunalPanel: () => <div data-testid="agent-tribunal-panel" />,
+}));
+
+vi.mock("./agents/ObjectionRegisterPanel", () => ({
+  ObjectionRegisterPanel: () => <div data-testid="objection-register-panel" />,
+}));
+
+vi.mock("./evidence/ConfidenceChart", () => ({
+  ConfidenceChart: () => <div data-testid="confidence-chart" />,
+}));
+
+vi.mock("./evidence/EvidenceTimeline", () => ({
+  EvidenceTimeline: () => <div data-testid="evidence-timeline" />,
 }));
 
 vi.mock("@/lib/brenner-loop", async () => {
@@ -79,7 +119,7 @@ vi.mock("@/lib/brenner-loop", async () => {
     useSession: () => ({
       session: {
         id: "TEST-1",
-        phase: "level_split",
+        phase: mocks.phase,
         primaryHypothesisId: "H1",
       },
       primaryHypothesis: {
@@ -96,6 +136,9 @@ vi.mock("@/lib/brenner-loop", async () => {
       isDirty: false,
       saveState: { status: "saved" },
       saveSession: mocks.saveSession,
+      updateHypothesis: mocks.updateHypothesis,
+      advancePhase: mocks.advancePhase,
+      appendOperatorApplication: mocks.appendOperatorApplication,
     }),
     useSessionMachine: () => ({
       reachablePhases: [...PHASE_ORDER],
@@ -116,6 +159,7 @@ describe("SessionDashboard keyboard shortcuts", () => {
     const user = userEvent.setup();
     mocks.prev.mockClear();
     mocks.next.mockClear();
+    mocks.phase = "level_split";
 
     const { SessionDashboard } = await import("./SessionDashboard");
     render(<SessionDashboard />);
@@ -130,6 +174,7 @@ describe("SessionDashboard keyboard shortcuts", () => {
   it("does not navigate phases when Shift+Arrow is pressed", async () => {
     const user = userEvent.setup();
     mocks.prev.mockClear();
+    mocks.phase = "level_split";
 
     const { SessionDashboard } = await import("./SessionDashboard");
     render(<SessionDashboard />);
@@ -141,6 +186,7 @@ describe("SessionDashboard keyboard shortcuts", () => {
   it("supports numeric phase jumps (1-9)", async () => {
     const user = userEvent.setup();
     mocks.goTo.mockClear();
+    mocks.phase = "level_split";
 
     const { SessionDashboard } = await import("./SessionDashboard");
     render(<SessionDashboard />);
@@ -152,6 +198,7 @@ describe("SessionDashboard keyboard shortcuts", () => {
   it("ignores shortcuts while typing in an input", async () => {
     const user = userEvent.setup();
     mocks.prev.mockClear();
+    mocks.phase = "level_split";
 
     const { SessionDashboard } = await import("./SessionDashboard");
     render(<SessionDashboard />);
@@ -168,11 +215,32 @@ describe("SessionDashboard keyboard shortcuts", () => {
 
   it("toggles the shortcuts dialog with ?", async () => {
     const user = userEvent.setup();
+    mocks.phase = "level_split";
 
     const { SessionDashboard } = await import("./SessionDashboard");
     render(<SessionDashboard />);
 
     await user.keyboard("?");
     expect(screen.getByText("Keyboard shortcuts")).toBeInTheDocument();
+  });
+});
+
+describe("SessionDashboard PhaseContent rendering", () => {
+  it("renders HypothesisIntake during intake phase", async () => {
+    mocks.phase = "intake";
+
+    const { SessionDashboard } = await import("./SessionDashboard");
+    render(<SessionDashboard />);
+
+    expect(screen.getByTestId("hypothesis-intake")).toBeInTheDocument();
+  });
+
+  it("renders LevelSplitSession during level_split phase", async () => {
+    mocks.phase = "level_split";
+
+    const { SessionDashboard } = await import("./SessionDashboard");
+    render(<SessionDashboard />);
+
+    expect(screen.getByTestId("level-split-session")).toBeInTheDocument();
   });
 });

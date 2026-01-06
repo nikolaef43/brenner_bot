@@ -28,7 +28,16 @@ import React, {
   type ReactNode,
 } from "react";
 
-import type { Session, SessionPhase, HypothesisCard, AttachedQuote } from "./types";
+import type {
+  Session,
+  SessionPhase,
+  HypothesisCard,
+  AttachedQuote,
+  LevelSplitResult,
+  ExclusionTestResult,
+  ObjectTransposeResult,
+  ScaleCheckResult,
+} from "./types";
 import {
   createSession,
   createHypothesisCard,
@@ -96,6 +105,14 @@ export interface SessionContextValue {
   /** Attach a corpus quote/excerpt to a hypothesis */
   attachQuote(quote: Omit<AttachedQuote, "id" | "attachedAt">): void;
 
+  // === Operator Actions ===
+
+  /** Append an operator result to this session */
+  appendOperatorApplication(
+    operator: keyof Session["operatorApplications"],
+    result: LevelSplitResult | ExclusionTestResult | ObjectTransposeResult | ScaleCheckResult
+  ): void;
+
   // === Phase Actions ===
 
   /** Advance to the next available phase */
@@ -147,6 +164,7 @@ type SessionAction =
   | { type: "SAVED" }
   | { type: "SAVE_ERROR"; error: Error }
   | { type: "UPDATE_SESSION"; session: Session }
+  | { type: "APPLY_SESSION_UPDATE"; update: (session: Session) => Session }
   | { type: "MARK_DIRTY" };
 
 // ============================================================================
@@ -232,6 +250,14 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
       return {
         ...state,
         session: action.session,
+        isDirty: true,
+      };
+
+    case "APPLY_SESSION_UPDATE":
+      if (!state.session) return state;
+      return {
+        ...state,
+        session: action.update(state.session),
         isDirty: true,
       };
 
@@ -580,110 +606,106 @@ export function SessionProvider({
 
   const updateHypothesis = useCallback(
     (updates: Partial<HypothesisCard>): void => {
-      if (!state.session) return;
+      dispatch({
+        type: "APPLY_SESSION_UPDATE",
+        update: (session) => {
+          const primaryId = session.primaryHypothesisId;
+          const currentHypothesis = session.hypothesisCards[primaryId];
+          if (!currentHypothesis) return session;
 
-      const primaryId = state.session.primaryHypothesisId;
-      const currentHypothesis = state.session.hypothesisCards[primaryId];
-      if (!currentHypothesis) return;
+          const now = new Date();
+          const updatedHypothesis: HypothesisCard = {
+            ...currentHypothesis,
+            ...updates,
+            updatedAt: now,
+          };
 
-      const updatedHypothesis: HypothesisCard = {
-        ...currentHypothesis,
-        ...updates,
-        updatedAt: new Date(),
-      };
-
-      const updatedSession: Session = {
-        ...state.session,
-        hypothesisCards: {
-          ...state.session.hypothesisCards,
-          [primaryId]: updatedHypothesis,
+          return {
+            ...session,
+            hypothesisCards: {
+              ...session.hypothesisCards,
+              [primaryId]: updatedHypothesis,
+            },
+            updatedAt: now.toISOString(),
+          };
         },
-        updatedAt: new Date().toISOString(),
-      };
-
-      dispatch({ type: "UPDATE_SESSION", session: updatedSession });
+      });
     },
-    [state.session]
+    []
   );
 
   const addAlternativeHypothesis = useCallback(
     (hypothesis: HypothesisCard): void => {
-      if (!state.session) return;
-
-      const updatedSession: Session = {
-        ...state.session,
-        alternativeHypothesisIds: [
-          ...state.session.alternativeHypothesisIds,
-          hypothesis.id,
-        ],
-        hypothesisCards: {
-          ...state.session.hypothesisCards,
-          [hypothesis.id]: hypothesis,
-        },
-        updatedAt: new Date().toISOString(),
-      };
-
-      dispatch({ type: "UPDATE_SESSION", session: updatedSession });
+      dispatch({
+        type: "APPLY_SESSION_UPDATE",
+        update: (session) => ({
+          ...session,
+          alternativeHypothesisIds: [...session.alternativeHypothesisIds, hypothesis.id],
+          hypothesisCards: {
+            ...session.hypothesisCards,
+            [hypothesis.id]: hypothesis,
+          },
+          updatedAt: new Date().toISOString(),
+        }),
+      });
     },
-    [state.session]
+    []
   );
 
   const removeAlternativeHypothesis = useCallback(
     (id: string): void => {
-      if (!state.session) return;
+      dispatch({
+        type: "APPLY_SESSION_UPDATE",
+        update: (session) => {
+          // Don't allow removing the primary hypothesis
+          if (id === session.primaryHypothesisId) return session;
 
-      // Don't allow removing the primary hypothesis
-      if (id === state.session.primaryHypothesisId) return;
+          // Validate: ID must exist in hypothesisCards
+          if (!session.hypothesisCards[id]) return session;
 
-      // Validate: ID must exist in hypothesisCards
-      if (!state.session.hypothesisCards[id]) return;
+          // Validate: ID must be in alternativeHypothesisIds (not already archived)
+          if (!session.alternativeHypothesisIds.includes(id)) return session;
 
-      // Validate: ID must be in alternativeHypothesisIds (not already archived)
-      if (!state.session.alternativeHypothesisIds.includes(id)) return;
-
-      // Don't remove the card - keep it for audit trails
-      // Only move from alternativeHypothesisIds to archivedHypothesisIds
-      const updatedSession: Session = {
-        ...state.session,
-        alternativeHypothesisIds: state.session.alternativeHypothesisIds.filter(
-          (hid) => hid !== id
-        ),
-        archivedHypothesisIds: [...state.session.archivedHypothesisIds, id],
-        updatedAt: new Date().toISOString(),
-      };
-
-      dispatch({ type: "UPDATE_SESSION", session: updatedSession });
+          // Don't remove the card - keep it for audit trails
+          // Only move from alternativeHypothesisIds to archivedHypothesisIds
+          return {
+            ...session,
+            alternativeHypothesisIds: session.alternativeHypothesisIds.filter((hid) => hid !== id),
+            archivedHypothesisIds: [...session.archivedHypothesisIds, id],
+            updatedAt: new Date().toISOString(),
+          };
+        },
+      });
     },
-    [state.session]
+    []
   );
 
   const setPrimaryHypothesis = useCallback(
     (id: string): void => {
-      if (!state.session) return;
+      dispatch({
+        type: "APPLY_SESSION_UPDATE",
+        update: (session) => {
+          // Check if the hypothesis exists
+          if (!session.hypothesisCards[id]) return session;
 
-      // Check if the hypothesis exists
-      if (!state.session.hypothesisCards[id]) return;
+          const currentPrimaryId = session.primaryHypothesisId;
 
-      const currentPrimaryId = state.session.primaryHypothesisId;
+          // Move current primary to alternatives (if it exists)
+          let newAlternatives = session.alternativeHypothesisIds.filter((hid) => hid !== id);
+          if (currentPrimaryId && currentPrimaryId !== id) {
+            newAlternatives = [...newAlternatives, currentPrimaryId];
+          }
 
-      // Move current primary to alternatives (if it exists)
-      let newAlternatives = state.session.alternativeHypothesisIds.filter(
-        (hid) => hid !== id
-      );
-      if (currentPrimaryId && currentPrimaryId !== id) {
-        newAlternatives = [...newAlternatives, currentPrimaryId];
-      }
-
-      const updatedSession: Session = {
-        ...state.session,
-        primaryHypothesisId: id,
-        alternativeHypothesisIds: newAlternatives,
-        updatedAt: new Date().toISOString(),
-      };
-
-      dispatch({ type: "UPDATE_SESSION", session: updatedSession });
+          return {
+            ...session,
+            primaryHypothesisId: id,
+            alternativeHypothesisIds: newAlternatives,
+            updatedAt: new Date().toISOString(),
+          };
+        },
+      });
     },
-    [state.session]
+    []
   );
 
   // -------------------------------------------------------------------------
@@ -692,51 +714,90 @@ export function SessionProvider({
 
   const attachQuote = useCallback(
     (quote: Omit<AttachedQuote, "id" | "attachedAt">): void => {
-      if (!state.session) return;
-      if (!quote.hypothesisId) return;
-      if (!state.session.hypothesisCards[quote.hypothesisId]) return;
+      dispatch({
+        type: "APPLY_SESSION_UPDATE",
+        update: (session) => {
+          if (!quote.hypothesisId) return session;
+          if (!session.hypothesisCards[quote.hypothesisId]) return session;
 
-      const existing = state.session.attachedQuotes ?? [];
-      const isDuplicate = existing.some(
-        (entry) =>
-          entry.hypothesisId === quote.hypothesisId &&
-          entry.field === quote.field &&
-          entry.docId === quote.docId &&
-          entry.anchor === quote.anchor &&
-          entry.url === quote.url
-      );
-      if (isDuplicate) return;
+          const existing = session.attachedQuotes ?? [];
+          const isDuplicate = existing.some(
+            (entry) =>
+              entry.hypothesisId === quote.hypothesisId &&
+              entry.field === quote.field &&
+              entry.docId === quote.docId &&
+              entry.anchor === quote.anchor &&
+              entry.url === quote.url
+          );
+          if (isDuplicate) return session;
 
-      const now = new Date();
-      let id = "";
-      
-      const crypto = globalThis.crypto;
-      if (crypto && typeof crypto.randomUUID === "function") {
-        id = `AQ-${crypto.randomUUID()}`;
-      } else if (crypto && typeof crypto.getRandomValues === "function") {
-        const rnd = new Uint32Array(1);
-        crypto.getRandomValues(rnd);
-        id = `AQ-${now.getTime()}-${rnd[0].toString(16)}`;
-      } else {
-        // Should not happen in modern environments
-        throw new Error("Crypto API not available");
+          const now = new Date();
+          let id = "";
+
+          const crypto = globalThis.crypto;
+          if (crypto && typeof crypto.randomUUID === "function") {
+            id = `AQ-${crypto.randomUUID()}`;
+          } else if (crypto && typeof crypto.getRandomValues === "function") {
+            const rnd = new Uint32Array(1);
+            crypto.getRandomValues(rnd);
+            id = `AQ-${now.getTime()}-${rnd[0].toString(16)}`;
+          } else {
+            // Should not happen in modern environments
+            throw new Error("Crypto API not available");
+          }
+
+          const next: AttachedQuote = {
+            id,
+            attachedAt: now.toISOString(),
+            ...quote,
+          };
+
+          return {
+            ...session,
+            attachedQuotes: [...existing, next],
+            updatedAt: now.toISOString(),
+          };
+        },
+      });
+    },
+    []
+  );
+
+  // -------------------------------------------------------------------------
+  // Operator Actions
+  // -------------------------------------------------------------------------
+
+  const appendOperatorApplication = useCallback(
+    (
+      operator: keyof Session["operatorApplications"],
+      result: LevelSplitResult | ExclusionTestResult | ObjectTransposeResult | ScaleCheckResult
+    ): void => {
+      const operatorKey = operator;
+      if (
+        operatorKey !== "levelSplit" &&
+        operatorKey !== "exclusionTest" &&
+        operatorKey !== "objectTranspose" &&
+        operatorKey !== "scaleCheck"
+      ) {
+        return;
       }
 
-      const next: AttachedQuote = {
-        id,
-        attachedAt: now.toISOString(),
-        ...quote,
-      };
-
-      const updatedSession: Session = {
-        ...state.session,
-        attachedQuotes: [...existing, next],
-        updatedAt: now.toISOString(),
-      };
-
-      dispatch({ type: "UPDATE_SESSION", session: updatedSession });
+      dispatch({
+        type: "APPLY_SESSION_UPDATE",
+        update: (session) => {
+          const apps = session.operatorApplications;
+          return {
+            ...session,
+            operatorApplications: {
+              ...apps,
+              [operatorKey]: [...apps[operatorKey], result as never],
+            },
+            updatedAt: new Date().toISOString(),
+          };
+        },
+      });
     },
-    [state.session]
+    []
   );
 
   // -------------------------------------------------------------------------
@@ -744,39 +805,41 @@ export function SessionProvider({
   // -------------------------------------------------------------------------
 
   const advancePhase = useCallback((): void => {
-    if (!state.session) return;
+    dispatch({
+      type: "APPLY_SESSION_UPDATE",
+      update: (session) => {
+        const nextPhase = getNextPhase(session.phase);
+        if (!nextPhase) return session;
 
-    const nextPhase = getNextPhase(state.session.phase);
-    if (!nextPhase) return;
+        // Verify it's a valid transition
+        if (!isValidTransition(session.phase, nextPhase)) return session;
 
-    // Verify it's a valid transition
-    if (!isValidTransition(state.session.phase, nextPhase)) return;
-
-    const updatedSession: Session = {
-      ...state.session,
-      phase: nextPhase,
-      updatedAt: new Date().toISOString(),
-    };
-
-    dispatch({ type: "UPDATE_SESSION", session: updatedSession });
-  }, [state.session]);
+        return {
+          ...session,
+          phase: nextPhase,
+          updatedAt: new Date().toISOString(),
+        };
+      },
+    });
+  }, []);
 
   const goToPhase = useCallback(
     (phase: SessionPhase): void => {
-      if (!state.session) return;
+      dispatch({
+        type: "APPLY_SESSION_UPDATE",
+        update: (session) => {
+          // Verify it's a valid transition
+          if (!isValidTransition(session.phase, phase)) return session;
 
-      // Verify it's a valid transition
-      if (!isValidTransition(state.session.phase, phase)) return;
-
-      const updatedSession: Session = {
-        ...state.session,
-        phase,
-        updatedAt: new Date().toISOString(),
-      };
-
-      dispatch({ type: "UPDATE_SESSION", session: updatedSession });
+          return {
+            ...session,
+            phase,
+            updatedAt: new Date().toISOString(),
+          };
+        },
+      });
     },
-    [state.session]
+    []
   );
 
   // -------------------------------------------------------------------------
@@ -822,6 +885,7 @@ export function SessionProvider({
       removeAlternativeHypothesis,
       setPrimaryHypothesis,
       attachQuote,
+      appendOperatorApplication,
 
       advancePhase,
       goToPhase,
@@ -842,6 +906,7 @@ export function SessionProvider({
       removeAlternativeHypothesis,
       setPrimaryHypothesis,
       attachQuote,
+      appendOperatorApplication,
       advancePhase,
       goToPhase,
       canAdvance,

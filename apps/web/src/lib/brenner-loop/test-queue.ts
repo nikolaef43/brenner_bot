@@ -316,7 +316,14 @@ export function generateQueueItemId(sessionId: string): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return `TQ-${sessionId}-${crypto.randomUUID()}`;
   }
-  // Fallback for environments without crypto.randomUUID (unlikely in modern Next.js but safe)
+
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const rnd = new Uint32Array(1);
+    crypto.getRandomValues(rnd);
+    return `TQ-${sessionId}-${Date.now().toString(36)}-${rnd[0].toString(36).slice(0, 6)}`;
+  }
+
+  // Last resort fallback
   const ts = Date.now().toString(36);
   const rand = Math.random().toString(36).slice(2, 8);
   return `TQ-${sessionId}-${ts}-${rand}`;
