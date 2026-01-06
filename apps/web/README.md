@@ -531,3 +531,4 @@ The prediction lock system treats pre-registration as first-class. Cryptographic
 ### Multi-Agent Critique
 
 No single perspective dominates. Four distinct agents with calibrated tones and behaviors ensure hypotheses face diverse challenges—adversarial attack, practical test design, methodological rigor, and synthesis.
+# Trigger rebuild
