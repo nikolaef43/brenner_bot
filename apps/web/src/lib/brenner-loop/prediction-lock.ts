@@ -151,25 +151,16 @@ export interface PredictionLockStats {
  * @returns Promise resolving to hex-encoded hash
  */
 export async function generateHash(input: string): Promise<string> {
-  // Use Web Crypto API (available in browsers and Node 15+)
-  if (typeof crypto !== "undefined" && crypto.subtle) {
+  const subtle = globalThis.crypto?.subtle;
+  if (subtle) {
     const encoder = new TextEncoder();
     const data = encoder.encode(input);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashBuffer = await subtle.digest("SHA-256", data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
   }
 
-  // Fallback for environments without Web Crypto (shouldn't happen in modern browsers)
-  // Use a simple hash for development/testing
-  console.warn("Web Crypto API not available, using fallback hash");
-  let hash = 0;
-  for (let i = 0; i < input.length; i++) {
-    const char = input.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  return Math.abs(hash).toString(16).padStart(8, "0");
+  throw new Error("Cryptographic capability missing: crypto.subtle is required for prediction locking.");
 }
 
 /**
@@ -193,7 +184,7 @@ function createSealString(text: string, timestamp: string): string {
 /**
  * Generate a unique prediction lock ID.
  *
- * Format: PL-{hypothesisId}-{type}-{index}-{timestamp}
+ * Format: PL-{hypothesisId}-{type}-{index}-{uuid}
  *
  * @param hypothesisId - The parent hypothesis ID
  * @param predictionType - Type of prediction
@@ -206,8 +197,24 @@ export function generatePredictionLockId(
   index: number
 ): string {
   const typeCode = predictionType === "if_true" ? "T" : predictionType === "if_false" ? "F" : "I";
-  const timestamp = Date.now().toString(36).toUpperCase();
-  return `PL-${hypothesisId}-${typeCode}${index}-${timestamp}`;
+
+  const uuid = globalThis.crypto?.randomUUID?.();
+  if (uuid) return `PL-${hypothesisId}-${typeCode}${index}-${uuid}`;
+
+  // Fallback if randomUUID is missing (unlikely)
+  const timestamp = Date.now().toString(16);
+  let random = "";
+  const crypto = globalThis.crypto;
+  if (crypto?.getRandomValues) {
+    const bytes = new Uint8Array(8);
+    crypto.getRandomValues(bytes);
+    random = Array.from(bytes)
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  } else {
+    random = Math.random().toString(16).slice(2, 18).padEnd(16, "0");
+  }
+  return `PL-${hypothesisId}-${typeCode}${index}-${timestamp}-${random}`;
 }
 
 // ============================================================================
@@ -247,7 +254,13 @@ export async function lockPrediction(
 
   // Create cryptographic seal
   const sealString = createSealString(normalizedText, lockTimestamp);
-  const lockHash = await generateHash(sealString);
+  let lockHash: string;
+  try {
+    lockHash = await generateHash(sealString);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to compute prediction lock hash";
+    return { success: false, error: `Unable to lock prediction: ${message}` };
+  }
 
   const lockedPrediction: LockedPrediction = {
     id: generatePredictionLockId(hypothesisId, predictionType, originalIndex),
@@ -289,7 +302,13 @@ export async function verifyPrediction(
   }
 
   const sealString = createSealString(prediction.originalText, prediction.lockTimestamp);
-  const computedHash = await generateHash(sealString);
+  let computedHash: string;
+  try {
+    computedHash = await generateHash(sealString);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to verify prediction integrity";
+    return { valid: false, prediction, error: message };
+  }
 
   const valid = computedHash === prediction.lockHash;
 

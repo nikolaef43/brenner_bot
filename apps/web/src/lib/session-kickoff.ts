@@ -106,6 +106,43 @@ export const AGENT_ROLES: Record<string, RoleConfig> = {
     operators: ["ΔE Exception-Quarantine", "† Theory-Kill", "⊞ Scale-Check"],
     description: "Attack the framing, check scale constraints, quarantine anomalies",
   },
+
+  // Tribunal Roles
+  "Devil's Advocate": {
+    role: "devils_advocate",
+    displayName: "Devil's Advocate",
+    model: "Gemini 3",
+    operators: ["† Theory-Kill", "◊ Paradox-Hunt"],
+    description: "Finds holes, steelmans alternatives, challenges assumptions",
+  },
+  "Experiment Designer": {
+    role: "experiment_designer",
+    displayName: "Experiment Designer",
+    model: "Claude Opus 4.5",
+    operators: ["✂ Exclusion-Test", "🎭 Potency-Check"],
+    description: "Proposes concrete, feasible study protocols",
+  },
+  Statistician: {
+    role: "statistician",
+    displayName: "Statistician",
+    model: "Claude Opus 4.5",
+    operators: ["⊞ Scale-Check", "P-Value-Check"],
+    description: "Provides quantitative rigor and statistical evaluation",
+  },
+  "Brenner Channeler": {
+    role: "brenner_channeler",
+    displayName: "Brenner Channeler",
+    model: "GPT-5.2",
+    operators: ["⊘ Level-Split", "⟂ Object-Transpose"],
+    description: "Channels Sydney Brenner's voice and thinking style",
+  },
+  Synthesis: {
+    role: "synthesis",
+    displayName: "Synthesis",
+    model: "GPT-5.2",
+    operators: ["∑ Synthesis"],
+    description: "Integrates agent outputs into coherent assessment",
+  },
 };
 
 /** Default role for unknown agents */
@@ -269,6 +306,7 @@ function getRolePromptSection(role: RoleConfig): string {
 
   switch (role.role) {
     case "hypothesis_generator":
+    case "brenner_channeler":
       promptSection = `## Your Role: ${role.displayName}
 
 You generate candidate hypotheses by hunting for paradoxes, importing cross-domain patterns, and rigorously separating levels of explanation.
@@ -293,6 +331,8 @@ You generate candidate hypotheses by hunting for paradoxes, importing cross-doma
       break;
 
     case "test_designer":
+    case "experiment_designer":
+    case "statistician":
       promptSection = `## Your Role: ${role.displayName}
 
 You convert hypotheses into discriminative tests—experiments designed to KILL models, not just collect data. Every test must include a potency check.
@@ -319,6 +359,7 @@ You convert hypotheses into discriminative tests—experiments designed to KILL 
       break;
 
     case "adversarial_critic":
+    case "devils_advocate":
       promptSection = `## Your Role: ${role.displayName}
 
 You attack the current framing. You find what would make everything wrong. You check scale constraints and quarantine anomalies. You are the immune system against self-deception.
@@ -330,7 +371,7 @@ You attack the current framing. You find what would make everything wrong. You c
 2. Quarantine anomalies explicitly—never sweep them under the carpet
 3. Kill theories when they "go ugly"—don't let attachment persist
 4. Propose real third alternatives, not just "both wrong"
-5. Cite transcript (§n) or evidence pack (EV-NNN) when grounding attacks
+5. Cite transcript (§n) or evidence pack (EV-NNN) when referencing attacks
 
 **Citation Conventions**:
 - Brenner transcript: \`(§205)\` for epistemic hygiene principles
@@ -342,6 +383,21 @@ You attack the current framing. You find what would make everything wrong. You c
 **Output Sections**: anomaly_register, adversarial_critique, assumption_ledger (for scale checks)
 
 **Output Format**: Use \`\`\`delta blocks with appropriate section and operation`;
+      break;
+
+    case "synthesis":
+      promptSection = `## Your Role: ${role.displayName}
+
+You integrate the outputs of other agents into a coherent research brief. You identify consensus, disagreements, and next steps.
+
+**Primary Operators**: ${role.operators.join(", ")}
+
+**You MUST**:
+1. Summarize the state of the debate
+2. Highlight key disagreements and their roots
+3. Recommend the next best action (e.g. run Test T-1)
+
+**Output Format**: Use markdown with "## Synthesis" section`;
       break;
 
     default:
@@ -479,6 +535,11 @@ const ROLE_CONFIG_BY_AGENT_ROLE: Record<AgentRole, RoleConfig> = {
   hypothesis_generator: AGENT_ROLES["Codex"],
   test_designer: AGENT_ROLES["Opus"],
   adversarial_critic: AGENT_ROLES["Gemini"],
+  devils_advocate: AGENT_ROLES["Devil's Advocate"],
+  experiment_designer: AGENT_ROLES["Experiment Designer"],
+  statistician: AGENT_ROLES["Statistician"],
+  brenner_channeler: AGENT_ROLES["Brenner Channeler"],
+  synthesis: AGENT_ROLES["Synthesis"],
 };
 
 /**
@@ -517,6 +578,11 @@ const ROLE_DELTA_SUBJECT_TAG: Record<AgentRole, string> = {
   hypothesis_generator: "gpt",
   test_designer: "opus",
   adversarial_critic: "gemini",
+  devils_advocate: "gemini",
+  experiment_designer: "opus",
+  statistician: "opus",
+  brenner_channeler: "gpt",
+  synthesis: "gpt",
 };
 
 /**
@@ -605,17 +671,25 @@ function composeKickoffBody(config: KickoffConfig, role: RoleConfig): string {
   } else {
     switch (role.role) {
       case "hypothesis_generator":
+      case "brenner_channeler":
         sections.push("- 2-4 hypotheses including a third alternative");
         sections.push("- Each with claim, mechanism, and transcript anchors");
         break;
       case "test_designer":
+      case "experiment_designer":
+      case "statistician":
         sections.push("- 2-3 discriminative tests for each hypothesis pair");
         sections.push("- Each with procedure, expected outcomes, potency check, and scores");
         break;
       case "adversarial_critic":
+      case "devils_advocate":
         sections.push("- Scale checks for any quantitative claims");
         sections.push("- Explicit anomaly quarantine for contradictions");
         sections.push("- At least one real third alternative critique");
+        break;
+      case "synthesis":
+        sections.push("- A synthesis memo: consensus, disagreements, and best next action");
+        sections.push("- A short list of discriminative tests to run next (ranked)");
         break;
     }
   }

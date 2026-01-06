@@ -55,17 +55,17 @@ describe("generateHash", () => {
 describe("generatePredictionLockId", () => {
   test("should generate ID with correct format for if_true", () => {
     const id = generatePredictionLockId("HC-123", "if_true", 0);
-    expect(id).toMatch(/^PL-HC-123-T0-[A-Z0-9]+$/);
+    expect(id).toMatch(/^PL-HC-123-T0-[a-f0-9-]+$/);
   });
 
   test("should generate ID with correct format for if_false", () => {
     const id = generatePredictionLockId("HC-123", "if_false", 1);
-    expect(id).toMatch(/^PL-HC-123-F1-[A-Z0-9]+$/);
+    expect(id).toMatch(/^PL-HC-123-F1-[a-f0-9-]+$/);
   });
 
   test("should generate ID with correct format for impossible_if_true", () => {
     const id = generatePredictionLockId("HC-123", "impossible_if_true", 2);
-    expect(id).toMatch(/^PL-HC-123-I2-[A-Z0-9]+$/);
+    expect(id).toMatch(/^PL-HC-123-I2-[a-f0-9-]+$/);
   });
 
   test("should generate unique IDs", () => {

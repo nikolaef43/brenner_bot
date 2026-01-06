@@ -708,8 +708,18 @@ export function SessionProvider({
       if (isDuplicate) return;
 
       const now = new Date();
-      const uuid = globalThis.crypto?.randomUUID?.();
-      const id = uuid ? `AQ-${uuid}` : `AQ-${now.getTime()}-${Math.random().toString(16).slice(2)}`;
+      const crypto = globalThis.crypto;
+      const uuid = crypto?.randomUUID?.();
+      let id = "";
+      if (uuid) {
+        id = `AQ-${uuid}`;
+      } else if (crypto?.getRandomValues) {
+        const rnd = new Uint32Array(1);
+        crypto.getRandomValues(rnd);
+        id = `AQ-${now.getTime()}-${rnd[0].toString(16)}`;
+      } else {
+        id = `AQ-${now.getTime()}-${Math.random().toString(16).slice(2)}`;
+      }
 
       const next: AttachedQuote = {
         id,

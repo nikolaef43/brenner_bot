@@ -585,6 +585,11 @@ export function createEmptySessionRecord(sessionId: string): SessionRecord {
  * Computes SHA256 hash of content for verification.
  */
 export async function computeContentHash(content: string): Promise<string> {
+  const crypto = globalThis.crypto;
+  if (!crypto || !crypto.subtle) {
+    throw new Error("Secure hashing unavailable: crypto.subtle is required for session replay verification.");
+  }
+
   const encoder = new TextEncoder();
   const data = encoder.encode(content);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
