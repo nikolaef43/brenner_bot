@@ -1473,6 +1473,7 @@ Commands:
                 [--subject <s>] [--ack-required] [--json]
   session nudge [--project-key <abs-path>] --thread-id <id> [--sender <AgentName>] --to <A,B>
                [--operator <s>] [--ack-required] [--dry-run] [--json]
+  session diagnose [--project-key <abs-path>] --thread-id <id> [--json]
 
     By default, sends role-specific prompts to each recipient using name heuristics:
       - Codex/GPT → Hypothesis Generator
@@ -1632,6 +1633,149 @@ type CompileSessionResult =
       };
       invalid_deltas: Array<{ message_id: number; subject: string; error: string }>;
     };
+
+/**
+ * Result of diagnosing delta parsing issues in a thread.
+ * Does not attempt to compile — only analyzes delta block parsing.
+ */
+interface DiagnoseResult {
+  threadId: string;
+  messageCount: number;
+  deltaMessageCount: number;
+  summary: {
+    healthy: number;
+    issues: number;
+  };
+  deltas: {
+    total_blocks: number;
+    valid: number;
+    invalid: number;
+  };
+  messages: Array<{
+    id: number;
+    from: string;
+    subject: string;
+    created_ts: string;
+    status: "ok" | "warning" | "error";
+    delta_blocks: number;
+    valid_blocks: number;
+    invalid_blocks: number;
+    issues: string[];
+  }>;
+  remediation_template: string;
+}
+
+/**
+ * Diagnose delta parsing issues in a thread without attempting to compile.
+ * Returns a detailed report of which messages have issues.
+ */
+async function diagnoseSessionDeltas(args: {
+  client: AgentMailClient;
+  projectKey: string;
+  threadId: string;
+}): Promise<DiagnoseResult> {
+  if (isAbsolute(args.projectKey)) {
+    await args.client.toolsCall("ensure_project", { human_key: args.projectKey });
+  }
+
+  const thread = await args.client.readThread({
+    projectKey: args.projectKey,
+    threadId: args.threadId,
+    includeBodies: true,
+  });
+
+  const messageAnalysis: DiagnoseResult["messages"] = [];
+  let totalBlocks = 0;
+  let validCount = 0;
+  let invalidCount = 0;
+  let deltaMessageCount = 0;
+  let healthyCount = 0;
+  let issueCount = 0;
+
+  for (const message of thread.messages) {
+    const subjectType = parseSubjectType(message.subject).type;
+    if (subjectType !== "delta") continue;
+
+    deltaMessageCount++;
+    const body = typeof message.body_md === "string" ? message.body_md : "";
+    const parsed = parseDeltaMessage(body);
+    const issues: string[] = [];
+
+    totalBlocks += parsed.totalBlocks;
+    validCount += parsed.validCount;
+    invalidCount += parsed.invalidCount;
+
+    // Check for inline JSON (DELTA message with no fenced blocks)
+    if (parsed.totalBlocks === 0 && body.trim().length > 0) {
+      // Check if body looks like it contains JSON
+      if (body.includes('"operation"') || body.includes('"section"')) {
+        issues.push("INLINE_JSON: Message appears to contain delta JSON without fenced ```delta block");
+      } else {
+        issues.push("NO_DELTA_BLOCKS: DELTA message contains no fenced delta blocks");
+      }
+    }
+
+    // Check for invalid blocks (JSON parse errors, etc.)
+    for (const delta of parsed.deltas) {
+      if (!delta.valid) {
+        issues.push(`INVALID_JSON: ${delta.error}`);
+      }
+    }
+
+    const status: "ok" | "warning" | "error" =
+      issues.length === 0 ? "ok" : issues.some((i) => i.startsWith("INLINE_JSON")) ? "error" : "warning";
+
+    if (status === "ok") {
+      healthyCount++;
+    } else {
+      issueCount++;
+    }
+
+    messageAnalysis.push({
+      id: message.id,
+      from: message.from ?? "unknown",
+      subject: message.subject,
+      created_ts: message.created_ts,
+      status,
+      delta_blocks: parsed.totalBlocks,
+      valid_blocks: parsed.validCount,
+      invalid_blocks: parsed.invalidCount,
+      issues,
+    });
+  }
+
+  const remediationTemplate = `\`\`\`delta
+{
+  "operation": "ADD",
+  "section": "hypothesis_slate",
+  "target_id": null,
+  "payload": {
+    "name": "[Your hypothesis name]",
+    "claim": "[One-sentence claim]",
+    "mechanism": "[How it works]",
+    "anchors": ["§n"] // or ["inference"]
+  },
+  "rationale": "[Why this is worth considering]"
+}
+\`\`\``;
+
+  return {
+    threadId: args.threadId,
+    messageCount: thread.messages.length,
+    deltaMessageCount,
+    summary: {
+      healthy: healthyCount,
+      issues: issueCount,
+    },
+    deltas: {
+      total_blocks: totalBlocks,
+      valid: validCount,
+      invalid: invalidCount,
+    },
+    messages: messageAnalysis,
+    remediation_template: remediationTemplate,
+  };
+}
 
 function computeNextCompiledVersion(messages: Array<{ subject: string }>): number {
   let maxVersion = 0;
@@ -7091,6 +7235,60 @@ ${JSON.stringify(delta, null, 2)}
     }
 
     process.exit(0);
+  }
+
+  // ----------------------------------------------------------------------------
+  // session diagnose
+  // ----------------------------------------------------------------------------
+  if (normalizedTop === "session" && sub === "diagnose") {
+    const client = new AgentMailClient(runtimeConfig.agentMail);
+    const projectKey = resolve(asStringFlag(flags, "project-key") ?? runtimeConfig.defaults.projectKey);
+    const threadId = asStringFlag(flags, "thread-id");
+    const jsonMode = asBoolFlag(flags, "json");
+
+    if (!threadId) {
+      throw new Error("Missing required --thread-id flag. Usage: brenner session diagnose --thread-id <id>");
+    }
+
+    const result = await diagnoseSessionDeltas({ client, projectKey, threadId });
+
+    if (jsonMode) {
+      stdoutLine(JSON.stringify({ ok: true, ...result }, null, 2));
+    } else {
+      stdoutLine(`\n═══════════════════════════════════════════════════════════`);
+      stdoutLine(`  SESSION DIAGNOSE: ${result.threadId}`);
+      stdoutLine(`═══════════════════════════════════════════════════════════\n`);
+
+      stdoutLine(`Messages: ${result.messageCount} total, ${result.deltaMessageCount} DELTA`);
+      stdoutLine(`Summary:  ${result.summary.healthy} healthy, ${result.summary.issues} with issues`);
+      stdoutLine(`Deltas:   ${result.deltas.valid}/${result.deltas.total_blocks} valid blocks\n`);
+
+      if (result.messages.length > 0) {
+        stdoutLine(`DELTA Message Analysis:`);
+        stdoutLine(`───────────────────────────────────────────────────────────`);
+        for (const msg of result.messages) {
+          const statusIcon = msg.status === "ok" ? "✓" : msg.status === "error" ? "✗" : "⚠";
+          const statusColor = msg.status === "ok" ? "32" : msg.status === "error" ? "31" : "33";
+          stdoutLine(`\x1b[${statusColor}m${statusIcon}\x1b[0m [${msg.id}] ${msg.from}: ${msg.subject}`);
+          stdoutLine(`  Blocks: ${msg.valid_blocks}/${msg.delta_blocks} valid`);
+          if (msg.issues.length > 0) {
+            for (const issue of msg.issues) {
+              stdoutLine(`  \x1b[31m→ ${issue}\x1b[0m`);
+            }
+          }
+        }
+        stdoutLine(`───────────────────────────────────────────────────────────`);
+      }
+
+      if (result.summary.issues > 0) {
+        stdoutLine(`\nRemediation Template (copy this format):`);
+        stdoutLine(result.remediation_template);
+      } else {
+        stdoutLine(`\n\x1b[32mAll DELTA messages are healthy!\x1b[0m`);
+      }
+    }
+
+    process.exit(result.summary.issues > 0 ? 1 : 0);
   }
 
   // ============================================================================

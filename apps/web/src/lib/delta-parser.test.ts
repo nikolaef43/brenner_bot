@@ -478,3 +478,92 @@ describe("generateNextId", () => {
     expect(generateNextId("adversarial_critique", [])).toBe("C1");
   });
 });
+
+describe("inline JSON detection (for diagnose command)", () => {
+  it("detects body with JSON but no fenced delta block", () => {
+    // This simulates a DELTA message where the agent forgot the ```delta fence
+    const inlineJsonBody = `
+Here is my hypothesis:
+
+{
+  "operation": "ADD",
+  "section": "hypothesis_slate",
+  "target_id": null,
+  "payload": {
+    "name": "Test Hypothesis",
+    "claim": "X causes Y"
+  }
+}
+`;
+
+    const result = parseDeltaMessage(inlineJsonBody);
+
+    // Parser should find NO delta blocks (because there's no fence)
+    expect(result.totalBlocks).toBe(0);
+    expect(result.validCount).toBe(0);
+    expect(result.deltas).toHaveLength(0);
+
+    // But the body still contains JSON-like content that can be detected
+    expect(inlineJsonBody).toContain('"operation"');
+    expect(inlineJsonBody).toContain('"section"');
+  });
+
+  it("detects body with partial JSON fragments", () => {
+    // Agent might output malformed JSON or partial deltas
+    const partialJsonBody = `
+I'm going to add a hypothesis with:
+- operation: ADD
+- section: hypothesis_slate
+
+The "operation" should be ADD and the "section" is hypothesis_slate.
+`;
+
+    const result = parseDeltaMessage(partialJsonBody);
+
+    expect(result.totalBlocks).toBe(0);
+    expect(result.deltas).toHaveLength(0);
+
+    // Body contains keywords but no valid JSON blocks
+    expect(partialJsonBody).toContain('"operation"');
+  });
+
+  it("correctly parses fenced delta alongside prose with JSON keywords", () => {
+    // Make sure we don't false-positive when there IS a proper fenced block
+    const bodyWithFencedDelta = `
+I mentioned "operation" and "section" in my prose.
+
+\`\`\`delta
+{
+  "operation": "ADD",
+  "section": "hypothesis_slate",
+  "target_id": null,
+  "payload": { "name": "Valid Hypothesis" }
+}
+\`\`\`
+`;
+
+    const result = parseDeltaMessage(bodyWithFencedDelta);
+
+    expect(result.totalBlocks).toBe(1);
+    expect(result.validCount).toBe(1);
+    expect(result.deltas[0]?.valid).toBe(true);
+  });
+
+  it("handles empty body gracefully", () => {
+    const emptyBody = "";
+    const result = parseDeltaMessage(emptyBody);
+
+    expect(result.totalBlocks).toBe(0);
+    expect(result.validCount).toBe(0);
+    expect(result.deltas).toHaveLength(0);
+  });
+
+  it("handles whitespace-only body", () => {
+    const whitespaceBody = "   \n\n   \t   ";
+    const result = parseDeltaMessage(whitespaceBody);
+
+    expect(result.totalBlocks).toBe(0);
+    expect(result.validCount).toBe(0);
+    expect(result.deltas).toHaveLength(0);
+  });
+});
