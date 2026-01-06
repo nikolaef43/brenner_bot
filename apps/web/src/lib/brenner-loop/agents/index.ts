@@ -97,6 +97,10 @@ export const TRIBUNAL_AGENTS: Record<TribunalAgentRole, TribunalAgentConfig> = {
  * Cache for loaded prompts
  */
 const promptCache: Map<TribunalAgentRole, string> = new Map();
+const ROLE_PROMPTS_SPEC_PATH = "specs/role_prompts_v0.1.md";
+const ROLE_PROMPT_START_PREFIX = "<!-- BRENNER_ROLE_PROMPT_START ";
+const ROLE_PROMPT_END_PREFIX = "<!-- BRENNER_ROLE_PROMPT_END ";
+let rolePromptsSpecCache: string | null | undefined = undefined;
 
 /**
  * Load a prompt file for an agent role.
@@ -120,7 +124,7 @@ export async function loadPrompt(role: TribunalAgentRole): Promise<string> {
 
   // For now, we'll return placeholder content
   // In production, this would fetch from the filesystem or API
-  const prompt = await fetchPromptContent(config.promptPath);
+  const prompt = await fetchPromptContent(config.promptPath, role);
   promptCache.set(role, prompt);
   return prompt;
 }
@@ -128,15 +132,83 @@ export async function loadPrompt(role: TribunalAgentRole): Promise<string> {
 /**
  * Fetch prompt content from the appropriate source.
  *
- * TODO: Implement actual prompt loading when Agent Mail integration is built.
- * This stub returns a placeholder - the actual prompts are in the prompts/ directory.
+ * Loads role prompt blocks from the role_prompts spec if available.
+ * Falls back to a placeholder containing promptPath when missing.
  */
-async function fetchPromptContent(promptPath: string): Promise<string> {
-  // TODO(xlk2.2): Implement actual prompt loading via:
-  // - Server: fs.readFile for the markdown files
-  // - Client: fetch from API route that serves prompt content
-  // For now, return the path as a placeholder
+async function fetchPromptContent(promptPath: string, role: TribunalAgentRole): Promise<string> {
+  const spec = await readRolePromptsSpecMarkdown();
+  if (spec) {
+    const { start, end } = rolePromptMarkers(role);
+    const extracted = extractBetweenMarkers(spec, start, end);
+    if (extracted) return extracted;
+  }
+
   return `[Prompt at: ${promptPath}]`;
+}
+
+function rolePromptMarkers(role: TribunalAgentRole): { start: string; end: string } {
+  return {
+    start: `${ROLE_PROMPT_START_PREFIX}${role} -->`,
+    end: `${ROLE_PROMPT_END_PREFIX}${role} -->`,
+  };
+}
+
+function extractBetweenMarkers(markdown: string, startMarker: string, endMarker: string): string | null {
+  const start = markdown.indexOf(startMarker);
+  if (start === -1) return null;
+  const from = start + startMarker.length;
+  const end = markdown.indexOf(endMarker, from);
+  if (end === -1) return null;
+  return markdown.slice(from, end).trim();
+}
+
+async function readRolePromptsSpecMarkdown(): Promise<string | null> {
+  if (rolePromptsSpecCache !== undefined) return rolePromptsSpecCache;
+
+  if (typeof window === "undefined") {
+    rolePromptsSpecCache = await readRolePromptsSpecFromFilesystem();
+    return rolePromptsSpecCache;
+  }
+
+  rolePromptsSpecCache = await readRolePromptsSpecFromPublic();
+  return rolePromptsSpecCache;
+}
+
+async function readRolePromptsSpecFromPublic(): Promise<string | null> {
+  if (typeof fetch !== "function") return null;
+
+  const url = `/_corpus/${ROLE_PROMPTS_SPEC_PATH}`;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    return await response.text();
+  } catch {
+    return null;
+  }
+}
+
+async function readRolePromptsSpecFromFilesystem(): Promise<string | null> {
+  const [{ access, readFile }, { resolve }] = await Promise.all([
+    import("node:fs/promises"),
+    import("node:path"),
+  ]);
+
+  const candidates = [
+    resolve(process.cwd(), ROLE_PROMPTS_SPEC_PATH),
+    resolve(process.cwd(), "public/_corpus", ROLE_PROMPTS_SPEC_PATH),
+    resolve(process.cwd(), "../..", ROLE_PROMPTS_SPEC_PATH),
+  ];
+
+  for (const path of candidates) {
+    try {
+      await access(path);
+      return await readFile(path, "utf8");
+    } catch {
+      // Keep searching
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -144,6 +216,7 @@ async function fetchPromptContent(promptPath: string): Promise<string> {
  */
 export function clearPromptCache(): void {
   promptCache.clear();
+  rolePromptsSpecCache = undefined;
 }
 
 // ============================================================================

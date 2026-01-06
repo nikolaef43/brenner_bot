@@ -71,6 +71,31 @@ describe("brenner-loop/agents index", () => {
 
     await expect(loadPrompt("nope" as never)).rejects.toThrow(/Unknown agent role/);
   });
+
+  it("loads prompt content from the role prompts spec when available", async () => {
+    const spec = [
+      "<!-- BRENNER_ROLE_PROMPT_START devils_advocate -->",
+      "You are the Devil's Advocate.",
+      "<!-- BRENNER_ROLE_PROMPT_END devils_advocate -->",
+    ].join("\n");
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      text: async () => spec,
+    });
+
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+
+    try {
+      clearPromptCache();
+      const prompt = await loadPrompt("devils_advocate");
+      expect(prompt).toBe("You are the Devil's Advocate.");
+      expect(fetchMock).toHaveBeenCalledWith("/_corpus/specs/role_prompts_v0.1.md");
+    } finally {
+      clearPromptCache();
+      vi.unstubAllGlobals();
+    }
+  });
 });
 
 describe("brenner-loop/agent-personas", () => {
