@@ -339,8 +339,8 @@ export function useIntersectionAnimation<T extends HTMLElement = HTMLDivElement>
  */
 export function useHoverState(enterDelay = 0, leaveDelay = 0) {
   const [isHovered, setIsHovered] = useState(false);
-  const enterTimeout = useRef<ReturnType<typeof setTimeout>>();
-  const leaveTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const enterTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const leaveTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const onMouseEnter = useCallback(() => {
     if (leaveTimeout.current) {

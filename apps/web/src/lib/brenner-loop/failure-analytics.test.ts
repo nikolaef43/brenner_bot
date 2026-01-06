@@ -42,23 +42,34 @@ function makeSession(overrides: Partial<Session> = {}): Session {
 
   return {
     id,
-    title: overrides.title ?? "Test Session",
+    _version: 1,
     researchQuestion: overrides.researchQuestion ?? "What causes X?",
-    primaryHypothesisId: hypothesisId,
+    primaryHypothesisId: overrides.primaryHypothesisId ?? hypothesisId,
     alternativeHypothesisIds: overrides.alternativeHypothesisIds ?? [],
     archivedHypothesisIds: overrides.archivedHypothesisIds ?? [],
     hypothesisCards: overrides.hypothesisCards ?? {
       [hypothesisId]: makeHypothesis({ id: hypothesisId }),
     },
     hypothesisEvolution: overrides.hypothesisEvolution ?? [],
-    operatorApplications: overrides.operatorApplications ?? {},
+    operatorApplications: overrides.operatorApplications ?? {
+      levelSplit: [],
+      exclusionTest: [],
+      objectTranspose: [],
+      scaleCheck: [],
+    },
     phase: overrides.phase ?? "intake",
+    predictionIds: [],
     testIds: overrides.testIds ?? [],
-    evidenceIds: overrides.evidenceIds ?? [],
+    assumptionIds: [],
+    pendingAgentRequests: [],
+    agentResponses: overrides.agentResponses ?? [],
+    evidenceLedger: [],
+    artifacts: [],
+    commits: [],
+    headCommitId: "",
     createdAt: overrides.createdAt ?? "2026-01-01T00:00:00.000Z",
     updatedAt: overrides.updatedAt ?? "2026-01-01T00:00:00.000Z",
     createdBy: overrides.createdBy ?? "test-user",
-    agentResponses: overrides.agentResponses ?? [],
     attachedQuotes: overrides.attachedQuotes ?? [],
   };
 }
@@ -172,7 +183,10 @@ describe("computeFailureAnalytics", () => {
         "H-001": makeHypothesis({ id: "H-001", confidence: 70 }),
       },
       operatorApplications: {
-        exclusionTest: [{ appliedAt: "2026-01-01", appliedBy: "user" }],
+        levelSplit: [],
+        exclusionTest: [{ appliedAt: "2026-01-01", appliedBy: "user", designedTests: [], rejectedTests: [] }],
+        objectTranspose: [],
+        scaleCheck: [],
       },
     });
 
@@ -182,7 +196,7 @@ describe("computeFailureAnalytics", () => {
       hypothesisCards: {
         "H-002": makeHypothesis({ id: "H-002", confidence: 10 }),
       },
-      operatorApplications: {},
+      // Uses default empty operatorApplications from makeSession
     });
 
     const result = computeFailureAnalytics({

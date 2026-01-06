@@ -53,6 +53,34 @@ const variantMap: Record<AnimationVariant, Variants> = {
   blurIn,
 };
 
+// Supported HTML elements for AnimateOnScroll
+type SupportedElement = "div" | "section" | "article" | "main" | "aside" | "header" | "footer" | "nav" | "span" | "p" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "ul" | "ol" | "li";
+
+// Motion component map - typed as any internally since each motion element has a unique type
+// but they all share the same runtime interface for our use case
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const motionComponents: Record<SupportedElement, any> = {
+  div: motion.div,
+  section: motion.section,
+  article: motion.article,
+  main: motion.main,
+  aside: motion.aside,
+  header: motion.header,
+  footer: motion.footer,
+  nav: motion.nav,
+  span: motion.span,
+  p: motion.p,
+  h1: motion.h1,
+  h2: motion.h2,
+  h3: motion.h3,
+  h4: motion.h4,
+  h5: motion.h5,
+  h6: motion.h6,
+  ul: motion.ul,
+  ol: motion.ol,
+  li: motion.li,
+};
+
 interface AnimateOnScrollProps extends Omit<MotionProps, "initial" | "animate" | "variants"> {
   children: React.ReactNode;
   /** Animation variant to use */
@@ -63,8 +91,8 @@ interface AnimateOnScrollProps extends Omit<MotionProps, "initial" | "animate" |
   delay?: number;
   /** Additional CSS classes */
   className?: string;
-  /** HTML element to render */
-  as?: keyof React.JSX.IntrinsicElements;
+  /** HTML element to render (limited to common layout elements) */
+  as?: SupportedElement;
   /** Disable animation */
   disabled?: boolean;
   /** Only animate once */
@@ -97,15 +125,13 @@ export function AnimateOnScroll({
   ...motionProps
 }: AnimateOnScrollProps) {
   const prefersReducedMotion = useReducedMotion();
-  const { ref, isInView } = useIntersectionAnimation<HTMLDivElement>({
+  const { ref, isInView } = useIntersectionAnimation<HTMLElement>({
     triggerOnce: once,
     rootMargin,
     disabled: disabled || prefersReducedMotion,
   });
 
   const selectedVariants = customVariants || variantMap[variant];
-  const MotionComponent =
-    (motion as Record<string, React.ComponentType<MotionProps>>)[as] ?? motion.div;
 
   // Apply delay to visible state
   const variantsWithDelay = React.useMemo(() => {
@@ -127,18 +153,24 @@ export function AnimateOnScroll({
     };
   }, [selectedVariants, delay]);
 
+  // For reduced motion or disabled, render a plain element (respecting the as prop)
   if (prefersReducedMotion || disabled) {
-    const Component = as;
+    const Element = as;
     return (
-      <Component ref={ref} className={className}>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      <Element ref={ref as any} className={className}>
         {children}
-      </Component>
+      </Element>
     );
   }
 
+  // Get the motion component for the specified element
+  const MotionElement = motionComponents[as];
+
   return (
-    <MotionComponent
-      ref={ref}
+    <MotionElement
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ref={ref as any}
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
       variants={variantsWithDelay}
@@ -146,7 +178,7 @@ export function AnimateOnScroll({
       {...motionProps}
     >
       {children}
-    </MotionComponent>
+    </MotionElement>
   );
 }
 
@@ -331,8 +363,11 @@ export function InteractiveCard({
 // INTERACTIVE BUTTON COMPONENT
 // ============================================================================
 
+// Props that conflict between HTML and Framer Motion
+type ConflictingButtonProps = "onAnimationStart" | "onDragStart" | "onDrag" | "onDragEnd";
+
 interface InteractiveButtonProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onAnimationStart"> {
+  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, ConflictingButtonProps> {
   children: React.ReactNode;
   /** Disable hover/tap effects */
   disableMotion?: boolean;
@@ -382,7 +417,10 @@ export function InteractiveButton({
 // INTERACTIVE ICON COMPONENT
 // ============================================================================
 
-interface InteractiveIconProps extends React.HTMLAttributes<HTMLSpanElement> {
+// Props that conflict between HTML and Framer Motion for span
+type ConflictingSpanProps = "onAnimationStart" | "onDragStart" | "onDrag" | "onDragEnd";
+
+interface InteractiveIconProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, ConflictingSpanProps> {
   children: React.ReactNode;
   /** Disable hover effects */
   disabled?: boolean;
