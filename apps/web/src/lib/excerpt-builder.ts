@@ -188,59 +188,77 @@ export function composeExcerpt(config: ExcerptConfig): ComposedExcerpt {
  */
 export function parseExcerpt(markdown: string): ExcerptSection[] | null {
   const sections: ExcerptSection[] = [];
+  const lines = markdown.split("\n");
+  
+  let currentAnchor: string | null = null;
+  let currentQuoteLines: string[] = [];
+  let currentTitle: string | undefined = undefined;
 
-  // Match quote blocks: > **§n**: "quote text"
-  // Robust regex: allows optional bold, optional colon, optional quotes
-  // Capture group 1: Anchor (§n)
-  // Capture group 2: Content (rest of line)
-  const quotePattern = />\s*(?:\*\*)?(§\d+)(?:\*\*)?:?\s*(.*)/g;
+  // Regex to detect start of a quote block: > **§n**: "text...
+  const quoteStartRegex = /^>\s*(?:\*\*)?(§\d+)(?:\*\*)?:?\s*(.*)$/;
+  // Regex to detect attribution: > — *Title*
+  const attrRegex = /^>\s*—\s*\*([^*]+)\*/;
+  // Regex for continuation lines: > text...
+  const quoteLineRegex = /^>\s*(.*)$/;
 
-  // Match attribution: > — *title*
-  const attrPattern = />\s*—\s*\*([^*]+)\*/g;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
 
-  let match: RegExpExecArray | null;
-  const quotes: { anchor: string; quote: string; index: number }[] = [];
-  const attrs: { title: string; index: number }[] = [];
-
-  // Find all quotes
-  while ((match = quotePattern.exec(markdown)) !== null) {
-    let text = match[2].trim();
-    // Strip surrounding quotes if present
-    if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
-      text = text.slice(1, -1);
+    // Check for start of new quote
+    const startMatch = trimmed.match(quoteStartRegex);
+    if (startMatch) {
+      // If we were building a quote, push it
+      if (currentAnchor) {
+        sections.push({
+          anchor: currentAnchor,
+          quote: cleanQuote(currentQuoteLines),
+          title: currentTitle,
+        });
+      }
+      
+      // Start new quote
+      currentAnchor = startMatch[1];
+      currentQuoteLines = [startMatch[2]]; // Content after anchor
+      currentTitle = undefined;
+      continue;
     }
 
-    quotes.push({
-      anchor: match[1],
-      quote: text,
-      index: match.index,
-    });
+    // Check for attribution
+    const attrMatch = trimmed.match(attrRegex);
+    if (attrMatch) {
+      currentTitle = attrMatch[1];
+      continue;
+    }
+
+    // Check for continuation of quote
+    if (currentAnchor && !currentTitle) {
+      const lineMatch = trimmed.match(quoteLineRegex);
+      if (lineMatch) {
+        currentQuoteLines.push(lineMatch[1]);
+      }
+    }
   }
 
-  // Find all attributions
-  while ((match = attrPattern.exec(markdown)) !== null) {
-    attrs.push({
-      title: match[1],
-      index: match.index,
-    });
-  }
-
-  // Match quotes with their attributions
-  for (const q of quotes) {
-    const nextQuote = quotes.find((other) => other.index > q.index);
-    const nextQuoteIndex = nextQuote?.index ?? Infinity;
-
-    // Find attribution between this quote and the next
-    const attr = attrs.find((a) => a.index > q.index && a.index < nextQuoteIndex);
-
+  // Push final quote
+  if (currentAnchor) {
     sections.push({
-      anchor: q.anchor,
-      quote: q.quote,
-      title: attr?.title,
+      anchor: currentAnchor,
+      quote: cleanQuote(currentQuoteLines),
+      title: currentTitle,
     });
   }
 
   return sections.length > 0 ? sections : null;
+}
+
+function cleanQuote(lines: string[]): string {
+  let text = lines.join(" ").trim();
+  // Strip surrounding quotes if present
+  if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
+    text = text.slice(1, -1);
+  }
+  return text.trim();
 }
 
 /**
