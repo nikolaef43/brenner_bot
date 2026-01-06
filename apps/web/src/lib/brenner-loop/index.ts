@@ -1135,3 +1135,27 @@ export {
   PHASE_COACHING,
   LEVEL_THRESHOLDS,
 } from "./coach-context";
+
+// ============================================================================
+// Failure Mode Analytics (bead 4lv6)
+// ============================================================================
+
+export type {
+  // Core types
+  FailureMode,
+  DomainFailureDistribution,
+  FailureModeOccurrence,
+  OperatorFailurePattern,
+  StructuralPatternFailure,
+  FailureAnalytics,
+  FailureInsight,
+} from "./failure-analytics";
+
+export {
+  // Pattern detectors
+  STRUCTURAL_PATTERNS,
+
+  // Core analytics
+  computeFailureAnalytics,
+  summarizeFailureAnalytics,
+} from "./failure-analytics";
