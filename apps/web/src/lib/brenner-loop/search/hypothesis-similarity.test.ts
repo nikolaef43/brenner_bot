@@ -576,3 +576,113 @@ describe("getSimilarityStats", () => {
     expect(Object.keys(stats.domainDistribution).length).toBe(0);
   });
 });
+
+// ============================================================================
+// Storage Integration
+// ============================================================================
+
+import { storageToIndexed, storageToIndexedBatch } from "./hypothesis-similarity";
+import type { Hypothesis } from "../../schemas/hypothesis";
+
+describe("storageToIndexed", () => {
+  const storageHypothesis: Hypothesis = {
+    id: "H-RS20251230-001",
+    statement: "Social media usage affects adolescent mental health through comparison mechanisms",
+    mechanism: "Users compare themselves to idealized portrayals, leading to negative self-evaluation",
+    origin: "proposed",
+    category: "mechanistic",
+    confidence: "high",
+    sessionId: "RS20251230",
+    state: "active",
+    isInference: false,
+    unresolvedCritiqueCount: 0,
+    createdAt: "2025-12-30T10:00:00Z",
+    updatedAt: "2025-12-30T10:00:00Z",
+    tags: ["psychology", "social-media"],
+  };
+
+  it("converts storage hypothesis to indexed format", () => {
+    const indexed = storageToIndexed(storageHypothesis);
+
+    expect(indexed.id).toBe("H-RS20251230-001");
+    expect(indexed.sessionId).toBe("RS20251230");
+    expect(indexed.statement).toBe(storageHypothesis.statement);
+    expect(indexed.mechanism).toBe(storageHypothesis.mechanism);
+    expect(indexed.domain).toEqual(["psychology", "social-media"]);
+    expect(indexed.confidence).toBe(90); // high -> 90
+    expect(indexed.version).toBe(1);
+    expect(indexed.createdAt).toBe("2025-12-30T10:00:00Z");
+  });
+
+  it("maps confidence levels correctly", () => {
+    const highConfidence = storageToIndexed({ ...storageHypothesis, confidence: "high" });
+    expect(highConfidence.confidence).toBe(90);
+
+    const mediumConfidence = storageToIndexed({ ...storageHypothesis, confidence: "medium" });
+    expect(mediumConfidence.confidence).toBe(60);
+
+    const lowConfidence = storageToIndexed({ ...storageHypothesis, confidence: "low" });
+    expect(lowConfidence.confidence).toBe(30);
+
+    const speculative = storageToIndexed({ ...storageHypothesis, confidence: "speculative" });
+    expect(speculative.confidence).toBe(10);
+  });
+
+  it("handles missing mechanism", () => {
+    const noMechanism: Hypothesis = { ...storageHypothesis, mechanism: undefined };
+    const indexed = storageToIndexed(noMechanism);
+
+    expect(indexed.mechanism).toBe("");
+  });
+
+  it("handles missing tags", () => {
+    const noTags: Hypothesis = { ...storageHypothesis, tags: undefined };
+    const indexed = storageToIndexed(noTags);
+
+    expect(indexed.domain).toEqual([]);
+  });
+});
+
+describe("storageToIndexedBatch", () => {
+  const hypotheses: Hypothesis[] = [
+    {
+      id: "H-RS20251230-001",
+      statement: "Test hypothesis 1",
+      origin: "proposed",
+      category: "mechanistic",
+      confidence: "high",
+      sessionId: "RS20251230",
+      state: "active",
+      isInference: false,
+      unresolvedCritiqueCount: 0,
+      createdAt: "2025-12-30T10:00:00Z",
+      updatedAt: "2025-12-30T10:00:00Z",
+    },
+    {
+      id: "H-RS20251230-002",
+      statement: "Test hypothesis 2",
+      origin: "proposed",
+      category: "phenomenological",
+      confidence: "medium",
+      sessionId: "RS20251230",
+      state: "proposed",
+      isInference: false,
+      unresolvedCritiqueCount: 0,
+      createdAt: "2025-12-30T11:00:00Z",
+      updatedAt: "2025-12-30T11:00:00Z",
+    },
+  ];
+
+  it("converts batch of hypotheses", () => {
+    const indexed = storageToIndexedBatch(hypotheses);
+
+    expect(indexed.length).toBe(2);
+    expect(indexed[0]?.id).toBe("H-RS20251230-001");
+    expect(indexed[1]?.id).toBe("H-RS20251230-002");
+  });
+
+  it("handles empty batch", () => {
+    const indexed = storageToIndexedBatch([]);
+    expect(indexed).toEqual([]);
+  });
+});
