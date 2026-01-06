@@ -526,7 +526,11 @@ function markdownToSimpleHTML(markdown: string): string {
   // Clean up data attributes
   html = html.replace(/ data-level="\d+"/g, "");
 
+  // Horizontal rules (must be before paragraph wrapping)
+  html = html.replace(/^---$/gm, "<hr>");
+
   // Paragraphs (lines not already wrapped)
+  // Negative lookahead excludes h1-h3, hr, ul, ol, li tags
   html = html.replace(/^(?!<[hulo])(.*?)$/gm, (_, content) => {
     if (content.trim() === "") return "";
     return `<p>${content}</p>`;
@@ -534,9 +538,6 @@ function markdownToSimpleHTML(markdown: string): string {
 
   // Remove empty paragraphs
   html = html.replace(/<p><\/p>\n?/g, "");
-
-  // Horizontal rules
-  html = html.replace(/^---$/gm, "<hr>");
 
   return html;
 }
