@@ -296,10 +296,12 @@ describe("STRUCTURAL_PATTERNS", () => {
     const pattern = STRUCTURAL_PATTERNS.find((p) => p.name === "Low Initial Confidence");
     expect(pattern).toBeDefined();
 
-    const lowConfidence = makeHypothesis({ confidence: 20 });
-    const normalConfidence = makeHypothesis({ confidence: 50 });
+    const lowConfidenceV1 = makeHypothesis({ confidence: 20, version: 1 });
+    const lowConfidenceV2 = makeHypothesis({ confidence: 20, version: 2 }); // Evolved to low, not initial
+    const normalConfidence = makeHypothesis({ confidence: 50, version: 1 });
 
-    expect(pattern?.detector(lowConfidence)).toBe(true);
+    expect(pattern?.detector(lowConfidenceV1)).toBe(true);
+    expect(pattern?.detector(lowConfidenceV2)).toBe(false); // Version > 1, not initial
     expect(pattern?.detector(normalConfidence)).toBe(false);
   });
 

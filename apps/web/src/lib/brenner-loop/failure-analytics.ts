@@ -110,6 +110,10 @@ export interface OperatorFailurePattern {
 
 /**
  * Pattern failures based on hypothesis structure.
+ *
+ * Note: The `detector` function is included for runtime re-analysis but will
+ * be lost if this object is serialized to JSON. Use STRUCTURAL_PATTERNS to
+ * access detectors by pattern name if needed after deserialization.
  */
 export interface StructuralPatternFailure {
   /** Pattern name (e.g., "Missing Falsification Criteria") */
@@ -118,7 +122,7 @@ export interface StructuralPatternFailure {
   /** Pattern description */
   description: string;
 
-  /** How to detect this pattern */
+  /** How to detect this pattern (not JSON-serializable) */
   detector: (hypothesis: HypothesisCard) => boolean;
 
   /** How many hypotheses match this pattern */
@@ -238,7 +242,7 @@ export const STRUCTURAL_PATTERNS: Array<{
   {
     name: "Low Initial Confidence",
     description: "Hypothesis started with very low confidence (< 30)",
-    detector: (h) => h.confidence < 30,
+    detector: (h) => h.confidence < 30 && h.version === 1,
   },
   {
     name: "High Initial Confidence",
