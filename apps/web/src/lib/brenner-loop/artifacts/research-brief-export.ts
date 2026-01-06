@@ -502,29 +502,53 @@ function markdownToSimpleHTML(markdown: string): string {
   html = html.replace(/^## (.*?)$/gm, "<h2>$1</h2>");
   html = html.replace(/^# (.*?)$/gm, "<h1>$1</h1>");
 
-  // Bold and italic
-  html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-  html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+  // Bold and italic (order matters: bold first, then italic)
+  // Use non-greedy .+? for bold to allow nested italic markers inside
+  html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  // For italic, use lookahead/lookbehind to avoid matching ** as two single *
+  html = html.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, "<em>$1</em>");
   html = html.replace(/_([^_]+)_/g, "<em>$1</em>");
 
-  // Unordered lists
+  // Unordered lists - mark with data-lt for type tracking
   html = html.replace(/^(\s*)- (.*?)$/gm, (_, indent, content) => {
     const level = Math.floor(indent.length / 2);
-    return `<li data-level="${level}">${content}</li>`;
+    return `<li data-level="${level}" data-lt="ul">${content}</li>`;
   });
 
-  // Ordered lists
-  html = html.replace(/^\d+\. (.*?)$/gm, "<li>$1</li>");
+  // Ordered lists - mark with data-lt for type tracking
+  html = html.replace(/^\d+\. (.*?)$/gm, '<li data-lt="ol">$1</li>');
 
-  // Wrap consecutive list items in ul/ol
+  // Wrap consecutive list items, splitting on type changes
   html = html.replace(/(<li[^>]*>.*?<\/li>\n?)+/g, (match) => {
-    const isOrdered = !match.includes("data-level");
-    const tag = isOrdered ? "ol" : "ul";
-    return `<${tag}>\n${match}</${tag}>\n`;
+    const items = match.trim().split("\n").filter(Boolean);
+    let result = "";
+    let currentType: string | null = null;
+    let group: string[] = [];
+
+    for (const item of items) {
+      const typeMatch = item.match(/data-lt="(ul|ol)"/);
+      const type = typeMatch ? typeMatch[1] : "ul";
+
+      if (currentType && type !== currentType) {
+        // Flush the current group with its wrapper
+        result += `<${currentType}>\n${group.join("\n")}\n</${currentType}>\n`;
+        group = [];
+      }
+      currentType = type;
+      group.push(item);
+    }
+
+    // Flush remaining group
+    if (group.length > 0 && currentType) {
+      result += `<${currentType}>\n${group.join("\n")}\n</${currentType}>\n`;
+    }
+
+    return result;
   });
 
   // Clean up data attributes
   html = html.replace(/ data-level="\d+"/g, "");
+  html = html.replace(/ data-lt="[uo]l"/g, "");
 
   // Horizontal rules (must be before paragraph wrapping)
   html = html.replace(/^---$/gm, "<hr>");

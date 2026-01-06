@@ -232,6 +232,50 @@ describe("exportToPDF", () => {
     expect(text).toContain("@page");
     expect(text).toContain("margin:");
   });
+
+  test("handles nested bold and italic formatting", async () => {
+    const brief = createTestBrief({
+      executiveSummary: "This has **bold with *nested italic* inside** text.",
+    });
+    const result = await exportToPDF(brief);
+    const text = await result.blob.text();
+
+    expect(text).toContain("<strong>bold with <em>nested italic</em> inside</strong>");
+  });
+
+  test("handles italic containing bold", async () => {
+    const brief = createTestBrief({
+      executiveSummary: "This has *italic with **bold** inside* text.",
+    });
+    const result = await exportToPDF(brief);
+    const text = await result.blob.text();
+
+    expect(text).toContain("<em>italic with <strong>bold</strong> inside</em>");
+  });
+
+  test("handles mixed list types correctly", async () => {
+    const brief = createTestBrief({
+      recommendedNextSteps: ["First ordered", "Second ordered"],
+      // The template renders these as ordered list items
+    });
+    const result = await exportToPDF(brief);
+    const text = await result.blob.text();
+
+    // Ordered lists should be wrapped in <ol>
+    expect(text).toContain("<ol>");
+    expect(text).toContain("</ol>");
+  });
+
+  test("converts horizontal rules correctly", async () => {
+    const brief = createTestBrief({
+      executiveSummary: "Before rule\n\n---\n\nAfter rule",
+    });
+    const result = await exportToPDF(brief);
+    const text = await result.blob.text();
+
+    expect(text).toContain("<hr>");
+    expect(text).not.toContain("<p>---</p>");
+  });
 });
 
 // ============================================================================
