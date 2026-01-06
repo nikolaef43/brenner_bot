@@ -541,6 +541,7 @@ export function HypothesisQualityChecker({
       result={result}
       onProceed={onProceed}
       onFix={onFix}
+      onBypass={onProceed} // Bypass also proceeds, but recordMistakeCaught is called first
       className={className}
     />
   );

@@ -915,6 +915,45 @@ function deserializeProgress(json: string): LearningProgress {
   };
 }
 
+const VALID_LEVELS = new Set<CoachLevel>(["beginner", "intermediate", "advanced"]);
+
+function deserializeSettings(json: string): CoachSettings {
+  const data = JSON.parse(json) as Record<string, unknown>;
+
+  // Validate level is a valid CoachLevel
+  const level =
+    typeof data.level === "string" && VALID_LEVELS.has(data.level as CoachLevel)
+      ? (data.level as CoachLevel)
+      : DEFAULT_SETTINGS.level;
+
+  return {
+    enabled: typeof data.enabled === "boolean" ? data.enabled : DEFAULT_SETTINGS.enabled,
+    level,
+    showExamples:
+      typeof data.showExamples === "boolean" ? data.showExamples : DEFAULT_SETTINGS.showExamples,
+    showExplanations:
+      typeof data.showExplanations === "boolean"
+        ? data.showExplanations
+        : DEFAULT_SETTINGS.showExplanations,
+    showBrennerQuotes:
+      typeof data.showBrennerQuotes === "boolean"
+        ? data.showBrennerQuotes
+        : DEFAULT_SETTINGS.showBrennerQuotes,
+    showProgressTips:
+      typeof data.showProgressTips === "boolean"
+        ? data.showProgressTips
+        : DEFAULT_SETTINGS.showProgressTips,
+    pauseForExplanation:
+      typeof data.pauseForExplanation === "boolean"
+        ? data.pauseForExplanation
+        : DEFAULT_SETTINGS.pauseForExplanation,
+    requireConfirmation:
+      typeof data.requireConfirmation === "boolean"
+        ? data.requireConfirmation
+        : DEFAULT_SETTINGS.requireConfirmation,
+  };
+}
+
 // ============================================================================
 // Context
 // ============================================================================
@@ -959,7 +998,7 @@ export function CoachProvider({ children }: CoachProviderProps): React.ReactElem
       const progressJson = localStorage.getItem(STORAGE_KEY_PROGRESS);
 
       const settings = settingsJson
-        ? { ...DEFAULT_SETTINGS, ...JSON.parse(settingsJson) }
+        ? deserializeSettings(settingsJson)
         : DEFAULT_SETTINGS;
       const progress = progressJson
         ? deserializeProgress(progressJson)

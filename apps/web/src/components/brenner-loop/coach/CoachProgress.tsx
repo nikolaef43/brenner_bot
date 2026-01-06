@@ -22,7 +22,7 @@ import {
   TrendingUp,
   Target,
 } from "lucide-react";
-import { useCoach, type CoachLevel } from "@/lib/brenner-loop/coach-context";
+import { useCoach, LEVEL_THRESHOLDS, type CoachLevel } from "@/lib/brenner-loop/coach-context";
 
 // ============================================================================
 // Types
@@ -376,12 +376,12 @@ export function CoachProgressStats({
     },
   ];
 
-  // Calculate sessions to next level
+  // Calculate sessions to next level using imported thresholds
   const sessionsToNextLevel =
     effectiveLevel === "beginner"
-      ? 3 - progress.sessionsCompleted
+      ? LEVEL_THRESHOLDS.intermediate - progress.sessionsCompleted
       : effectiveLevel === "intermediate"
-        ? 10 - progress.sessionsCompleted
+        ? LEVEL_THRESHOLDS.advanced - progress.sessionsCompleted
         : 0;
 
   return (
