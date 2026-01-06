@@ -376,16 +376,16 @@ export function computeThreadStatus(
     }
   }
 
-  for (const [recipientKey, kickoff] of recipientKickoffTimes.entries()) {
+  for (const [recipientKey, kickoffEntry] of recipientKickoffTimes.entries()) {
     const hasReplyAfterKickoff = sortedMessages.some((m) => {
       if (!m.from) return false;
       return (
         normalizeAgentName(m.from) === recipientKey &&
-        new Date(m.created_ts).getTime() > kickoff.time
+        new Date(m.created_ts).getTime() > kickoffEntry.time
       );
     });
     if (!hasReplyAfterKickoff) {
-      awaitingFrom.push(kickoff.name);
+      awaitingFrom.push(kickoffEntry.name);
     }
   }
 
