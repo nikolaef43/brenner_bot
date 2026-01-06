@@ -64,6 +64,18 @@ const SearchIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+const DocumentIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+  </svg>
+);
+
+const CodeBracketIcon = ({ className }: { className?: string }) => (
+  <svg className={cn("size-4", className)} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
+  </svg>
+);
+
 // ============================================================================
 // Phase Configuration
 // ============================================================================
@@ -633,52 +645,74 @@ export function SessionDashboard({
         Current phase: {PHASE_CONFIG[session.phase]?.name ?? session.phase}
       </div>
       {/* Header */}
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">BrennerBot Lab</h1>
-          <p className="text-sm text-muted-foreground">
-            Session: {session.id}
-          </p>
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center justify-between sm:block">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold">BrennerBot Lab</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Session: {session.id}
+            </p>
+          </div>
+          {/* Mobile progress badge */}
+          <span className="sm:hidden text-xs font-medium px-2 py-1 rounded-full bg-primary/10 text-primary">
+            {Math.round(getSessionProgress(session.phase))}%
+          </span>
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col items-start sm:items-end gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            {/* Shortcuts button - icon only on mobile */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsKeyboardHelpOpen(true)}
               aria-keyshortcuts="?"
+              className="h-9 w-9 p-0 sm:h-auto sm:w-auto sm:px-3 sm:py-2"
+              aria-label="Keyboard shortcuts"
             >
               <span aria-hidden="true" className="font-mono">?</span>
-              <span className="ml-2">Shortcuts</span>
+              <span className="hidden sm:inline ml-2">Shortcuts</span>
             </Button>
+            {/* Search button - icon only on mobile */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsCorpusSearchOpen(true)}
-              className="gap-2"
+              className="h-9 w-9 p-0 sm:h-auto sm:w-auto sm:px-3 sm:py-2 gap-2"
+              aria-label="Search corpus"
             >
               <SearchIcon />
-              Search Corpus
+              <span className="hidden sm:inline">Search Corpus</span>
             </Button>
+            {/* Export JSON - icon only on mobile */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => handleExport("json")}
               disabled={exportOperation.isLoading}
               aria-keyshortcuts="Control+Shift+E Meta+Shift+E"
+              className="h-9 w-9 p-0 sm:h-auto sm:w-auto sm:px-3 sm:py-2"
+              aria-label="Export JSON"
+              title="Export JSON"
             >
-              Export JSON
+              <CodeBracketIcon />
+              <span className="hidden sm:inline ml-2">Export JSON</span>
             </Button>
+            {/* Export Markdown - icon only on mobile */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => handleExport("markdown")}
               disabled={exportOperation.isLoading}
               aria-keyshortcuts="Control+E Meta+E"
+              className="h-9 w-9 p-0 sm:h-auto sm:w-auto sm:px-3 sm:py-2"
+              aria-label="Export Markdown"
+              title="Export Markdown"
             >
-              Export Markdown
+              <DocumentIcon />
+              <span className="hidden sm:inline ml-2">Export Markdown</span>
             </Button>
-            <span className="text-sm text-muted-foreground">
+            {/* Desktop progress text */}
+            <span className="hidden sm:inline text-sm text-muted-foreground">
               {Math.round(getSessionProgress(session.phase))}% complete
             </span>
           </div>

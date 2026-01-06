@@ -26,6 +26,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
+import {
   Dialog,
   DialogBody,
   DialogContent,
@@ -276,6 +281,8 @@ export function AgentTribunalPanel({
   }, [threadId, objections, objectionStatuses]);
 
   const [openRole, setOpenRole] = React.useState<TribunalAgentRole | null>(null);
+  // Mobile accordion state - only one expanded at a time
+  const [mobileExpandedRole, setMobileExpandedRole] = React.useState<TribunalAgentRole | null>(null);
   const openCard = openRole ? cards.find((c) => c.role === openRole) ?? null : null;
   const openConfig = openCard ? TRIBUNAL_AGENTS[openCard.role] : null;
 
@@ -348,7 +355,91 @@ export function AgentTribunalPanel({
           </div>
         )}
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        {/* Mobile Accordion View - single agent visible at a time */}
+        <div className="space-y-2 md:hidden">
+          {cards.map((card) => {
+            const agent = TRIBUNAL_AGENTS[card.role];
+            const badge = badgeForStatus(card.status);
+            const showExpand = card.status === "complete" && Boolean(card.content);
+            const isExpanded = mobileExpandedRole === card.role;
+
+            return (
+              <Collapsible
+                key={card.role}
+                open={isExpanded}
+                onOpenChange={(open) => setMobileExpandedRole(open ? card.role : null)}
+              >
+                <CollapsibleTrigger className="w-full rounded-xl border border-border bg-card p-3 shadow-sm hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={cn(
+                          "flex size-8 items-center justify-center rounded-lg border",
+                          card.status === "complete" ? "border-success/20 bg-success/10" : "border-border bg-muted/30"
+                        )}
+                        aria-hidden="true"
+                      >
+                        <span className="text-base leading-none">{agent.icon}</span>
+                      </div>
+                      <div className="text-left">
+                        <div className="text-sm font-semibold text-foreground">{agent.displayName}</div>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className={cn("shrink-0 text-xs", badge.className)}>
+                      {badge.label}
+                    </Badge>
+                  </div>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent>
+                  <div className="mt-1 rounded-xl border border-border bg-card p-4 shadow-sm">
+                    <p className="text-xs text-muted-foreground mb-3">{agent.description}</p>
+
+                    <div className="text-sm text-muted-foreground">
+                      {card.status === "complete" ? (
+                        <p className="text-foreground/90">{card.preview || "Response received."}</p>
+                      ) : card.status === "analyzing" ? (
+                        <p>Awaiting response…</p>
+                      ) : card.status === "error" ? (
+                        <p className="text-destructive">Failed to get a response.</p>
+                      ) : (
+                        <p>Not dispatched yet.</p>
+                      )}
+                    </div>
+
+                    {(card.agentName || card.receivedAt) && (
+                      <div className="mt-3 text-xs text-muted-foreground">
+                        {card.agentName && (
+                          <span className="font-mono text-foreground/80">{card.agentName}</span>
+                        )}
+                        {card.agentName && card.receivedAt && <span className="mx-2">·</span>}
+                        {card.receivedAt && (
+                          <span className="font-mono">{new Date(card.receivedAt).toLocaleString()}</span>
+                        )}
+                      </div>
+                    )}
+
+                    {showExpand && (
+                      <div className="mt-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setOpenRole(card.role)}
+                          className="w-full"
+                        >
+                          Expand Full Response
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            );
+          })}
+        </div>
+
+        {/* Desktop Grid View */}
+        <div className="hidden md:grid gap-4 lg:grid-cols-2">
           {cards.map((card) => {
             const agent = TRIBUNAL_AGENTS[card.role];
             const badge = badgeForStatus(card.status);

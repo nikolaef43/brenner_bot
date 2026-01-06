@@ -61,6 +61,10 @@ export type {
 export { PromptCard, PromptListItem } from "./PromptCard";
 export type { PromptCardProps, PromptListItemProps } from "./PromptCard";
 
+// Mobile desktop gate
+export { MobileDesktopGate } from "./MobileDesktopGate";
+export type { MobileDesktopGateProps } from "./MobileDesktopGate";
+
 // Re-export types from lib
 export type {
   TutorialPath,

@@ -109,6 +109,10 @@ export interface TutorialStepMeta {
   title: string;
   estimatedTime: string;
   completed: boolean;
+  /** Whether this step requires a desktop computer (terminal, CLI commands) */
+  requiresDesktop?: boolean;
+  /** Optional content to show mobile users when step requires desktop */
+  mobileAlternative?: string;
 }
 
 // ============================================================================
