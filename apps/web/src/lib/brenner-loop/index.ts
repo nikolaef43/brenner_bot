@@ -550,6 +550,57 @@ export {
 } from "./evidence";
 
 // ============================================================================
+// Calibration Tracking (bead x3xg)
+// ============================================================================
+
+export type {
+  PredictionRecord,
+  CalibrationBin,
+  CalibrationMetrics,
+  ResolutionFeedback,
+  CalibrationProgress,
+} from "./calibration";
+
+export {
+  // Constants
+  DEFAULT_BIN_BOUNDARIES,
+  CALIBRATION_ERROR_THRESHOLD,
+  MIN_PREDICTIONS_FOR_METRICS,
+  MIN_PREDICTIONS_PER_BIN,
+
+  // Record creation
+  generatePredictionId,
+  createPredictionRecord,
+  resolvePrediction,
+
+  // Calibration calculation
+  binPredictions,
+  calculateBrierScore,
+  calculateCalibrationError,
+  calculateBias,
+  calculateSharpness,
+  calculateDomainAccuracy,
+  calculateCalibrationMetrics,
+
+  // Feedback generation
+  getCalibrationAtConfidence,
+  generateResolutionFeedback,
+
+  // Progress tracking
+  trackCalibrationProgress,
+
+  // Utility functions
+  formatBrierScore,
+  formatCalibrationError,
+  getCalibrationQualityAssessment,
+  identifyCalibrationStrengths,
+
+  // Type guards
+  isPredictionOutcome,
+  isPredictionRecord,
+} from "./calibration";
+
+// ============================================================================
 // Artifact Templates (bead nu8g.1)
 // ============================================================================
 
