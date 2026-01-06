@@ -216,8 +216,37 @@ export class AnomalyStorage {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2));
 
     if (this.autoRebuildIndex) {
-      await this.rebuildIndexUnlocked();
+      await this.updateIndexForSessionUnlocked(sessionId, anomalies);
     }
+  }
+
+  private async updateIndexForSessionUnlocked(sessionId: string, anomalies: Anomaly[]): Promise<void> {
+    const indexPath = getIndexPath(this.baseDir);
+    let index: AnomalyIndex;
+
+    try {
+      const content = await fs.readFile(indexPath, "utf-8");
+      index = JSON.parse(content) as AnomalyIndex;
+    } catch {
+      await this.rebuildIndexUnlocked();
+      return;
+    }
+
+    const otherEntries = index.entries.filter((e) => e.sessionId !== sessionId);
+
+    const newEntries: AnomalyIndexEntry[] = anomalies.map((a) => ({
+      id: a.id,
+      sessionId: a.sessionId,
+      quarantineStatus: a.quarantineStatus,
+      conflictsWithHypotheses: a.conflictsWith.hypotheses,
+      conflictsWithAssumptions: a.conflictsWith.assumptions,
+      spawnedHypotheses: a.spawnedHypotheses ?? [],
+    }));
+
+    index.entries = [...otherEntries, ...newEntries];
+    index.updatedAt = new Date().toISOString();
+
+    await fs.writeFile(indexPath, JSON.stringify(index, null, 2));
   }
 
   // ============================================================================
@@ -229,14 +258,21 @@ export class AnomalyStorage {
    */
   async getAnomalyById(id: string): Promise<Anomaly | null> {
     // Extract session ID from anomaly ID (X-{sessionId}-{seq})
-    const match = id.match(/^X-(.+)-\d{3}$/);
-    if (!match) {
-      return null;
+    const match = id.match(/^X-(.+)-\d+$/);
+    if (match) {
+      const sessionId = match[1];
+      const anomalies = await this.loadSessionAnomalies(sessionId);
+      return anomalies.find((a) => a.id === id) ?? null;
     }
 
-    const sessionId = match[1];
-    const anomalies = await this.loadSessionAnomalies(sessionId);
-    return anomalies.find((a) => a.id === id) ?? null;
+    // Fallback: Check for simple format (X{n}) or scan all if needed
+    const simpleMatch = id.match(/^X\d+$/);
+    if (simpleMatch) {
+      const allAnomalies = await this.getAllAnomalies();
+      return allAnomalies.find((a) => a.id === id) ?? null;
+    }
+
+    return null;
   }
 
   /**
@@ -262,6 +298,22 @@ export class AnomalyStorage {
    */
   async deleteAnomaly(id: string): Promise<boolean> {
     return await withFileLock(this.baseDir, "anomalies", async () => {
+      // Optimization: Try to extract session ID from ID to avoid scanning all files
+      const match = id.match(/^X-(.+)-\d+$/);
+      if (match) {
+        const sessionId = match[1];
+        const anomalies = await this.loadSessionAnomalies(sessionId);
+        const newAnomalies = anomalies.filter((a) => a.id !== id);
+
+        if (newAnomalies.length === anomalies.length) {
+          return false;
+        }
+
+        await this.saveSessionAnomaliesUnlocked(sessionId, newAnomalies);
+        return true;
+      }
+
+      // Fallback
       const anomaly = await this.getAnomalyById(id);
       if (!anomaly) {
         return false;

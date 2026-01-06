@@ -5,6 +5,7 @@ import {
   type ProgramStatus,
   ResearchProgramSchema,
 } from "../schemas/research-program";
+import { withFileLock } from "./file-lock";
 
 /**
  * Research Program Storage Layer
@@ -114,44 +115,6 @@ async function ensureStorageStructure(baseDir: string): Promise<void> {
 }
 
 // ============================================================================
-// In-process Locking
-// ============================================================================
-
-const PROGRAM_STORAGE_LOCKS = new Map<string, Promise<void>>();
-
-async function withProgramStorageLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
-  const prev = PROGRAM_STORAGE_LOCKS.get(key) ?? Promise.resolve();
-  const safePrev = prev.catch(() => {});
-
-  let result: T | undefined;
-  let didThrow = false;
-  let error: unknown;
-
-  const next = safePrev.then(async () => {
-    try {
-      result = await fn();
-    } catch (err) {
-      didThrow = true;
-      error = err;
-    }
-  });
-
-  PROGRAM_STORAGE_LOCKS.set(key, next);
-
-  await next;
-
-  if (PROGRAM_STORAGE_LOCKS.get(key) === next) {
-    PROGRAM_STORAGE_LOCKS.delete(key);
-  }
-
-  if (didThrow) {
-    throw error;
-  }
-
-  return result as T;
-}
-
-// ============================================================================
 // Storage Class
 // ============================================================================
 
@@ -166,10 +129,6 @@ export class ProgramStorage {
   constructor(config: ProgramStorageConfig = {}) {
     this.baseDir = config.baseDir ?? process.cwd();
     this.autoRebuildIndex = config.autoRebuildIndex ?? true;
-  }
-
-  private lockKey(): string {
-    return `program-storage:${this.baseDir}`;
   }
 
   // ============================================================================
@@ -219,7 +178,7 @@ export class ProgramStorage {
    * Save all programs.
    */
   async savePrograms(programs: ResearchProgram[]): Promise<void> {
-    await withProgramStorageLock(this.lockKey(), async () => {
+    await withFileLock(this.baseDir, "programs", async () => {
       await this.saveProgramsUnlocked(programs);
     });
   }
@@ -270,7 +229,7 @@ export class ProgramStorage {
    * Create or update a program.
    */
   async saveProgram(program: ResearchProgram): Promise<void> {
-    await withProgramStorageLock(this.lockKey(), async () => {
+    await withFileLock(this.baseDir, "programs", async () => {
       const programs = await this.loadPrograms();
       const existingIndex = programs.findIndex((p) => p.id === program.id);
 
@@ -288,7 +247,7 @@ export class ProgramStorage {
    * Delete a program by ID.
    */
   async deleteProgram(id: string): Promise<boolean> {
-    return await withProgramStorageLock(this.lockKey(), async () => {
+    return await withFileLock(this.baseDir, "programs", async () => {
       const programs = await this.loadPrograms();
       const newPrograms = programs.filter((p) => p.id !== id);
 
@@ -309,7 +268,7 @@ export class ProgramStorage {
    * Rebuild the program index.
    */
   async rebuildIndex(): Promise<ProgramIndex> {
-    return await withProgramStorageLock(this.lockKey(), async () => {
+    return await withFileLock(this.baseDir, "programs", async () => {
       return await this.rebuildIndexUnlocked();
     });
   }

@@ -218,8 +218,38 @@ export class AssumptionStorage {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2));
 
     if (this.autoRebuildIndex) {
-      await this.rebuildIndexUnlocked();
+      await this.updateIndexForSessionUnlocked(sessionId, assumptions);
     }
+  }
+
+  private async updateIndexForSessionUnlocked(sessionId: string, assumptions: Assumption[]): Promise<void> {
+    const indexPath = getIndexPath(this.baseDir);
+    let index: AssumptionIndex;
+
+    try {
+      const content = await fs.readFile(indexPath, "utf-8");
+      index = JSON.parse(content) as AssumptionIndex;
+    } catch {
+      await this.rebuildIndexUnlocked();
+      return;
+    }
+
+    const otherEntries = index.entries.filter((e) => e.sessionId !== sessionId);
+
+    const newEntries: AssumptionIndexEntry[] = assumptions.map((a) => ({
+      id: a.id,
+      sessionId: a.sessionId,
+      type: a.type,
+      status: a.status,
+      affectedHypotheses: a.load.affectedHypotheses,
+      affectedTests: a.load.affectedTests,
+      hasCalculation: Boolean(a.calculation),
+    }));
+
+    index.entries = [...otherEntries, ...newEntries];
+    index.updatedAt = new Date().toISOString();
+
+    await fs.writeFile(indexPath, JSON.stringify(index, null, 2));
   }
 
   // ============================================================================
@@ -235,7 +265,7 @@ export class AssumptionStorage {
    */
   async getAssumptionById(id: string): Promise<Assumption | null> {
     // Try complex format first: A-{sessionId}-{seq}
-    const complexMatch = id.match(/^A-(.+)-\d{3}$/);
+    const complexMatch = id.match(/^A-(.+)-\d+$/);
     if (complexMatch) {
       const sessionId = complexMatch[1];
       const assumptions = await this.loadSessionAssumptions(sessionId);
@@ -277,6 +307,22 @@ export class AssumptionStorage {
    */
   async deleteAssumption(id: string): Promise<boolean> {
     return await withFileLock(this.baseDir, "assumptions", async () => {
+      // Optimization: Try to extract session ID from ID to avoid scanning all files
+      const match = id.match(/^A-(.+)-\d+$/);
+      if (match) {
+        const sessionId = match[1];
+        const assumptions = await this.loadSessionAssumptions(sessionId);
+        const newAssumptions = assumptions.filter((a) => a.id !== id);
+
+        if (newAssumptions.length === assumptions.length) {
+          return false;
+        }
+
+        await this.saveSessionAssumptionsUnlocked(sessionId, newAssumptions);
+        return true;
+      }
+
+      // Fallback
       const assumption = await this.getAssumptionById(id);
       if (!assumption) {
         return false;

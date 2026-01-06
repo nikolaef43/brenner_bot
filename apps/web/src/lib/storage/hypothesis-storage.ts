@@ -222,8 +222,44 @@ export class HypothesisStorage {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2));
 
     if (this.autoRebuildIndex) {
-      await this.rebuildIndexUnlocked();
+      await this.updateIndexForSessionUnlocked(sessionId, hypotheses);
     }
+  }
+
+  private async updateIndexForSessionUnlocked(sessionId: string, hypotheses: Hypothesis[]): Promise<void> {
+    const indexPath = getIndexPath(this.baseDir);
+    let index: HypothesisIndex;
+
+    try {
+      const content = await fs.readFile(indexPath, "utf-8");
+      index = JSON.parse(content) as HypothesisIndex;
+    } catch {
+      // If index is missing or corrupt, fall back to full rebuild
+      await this.rebuildIndexUnlocked();
+      return;
+    }
+
+    // Filter out existing entries for this session
+    const otherEntries = index.entries.filter((e) => e.sessionId !== sessionId);
+
+    // Create new entries
+    const newEntries: HypothesisIndexEntry[] = hypotheses.map((h) => ({
+      id: h.id,
+      sessionId: h.sessionId,
+      state: h.state,
+      category: h.category,
+      confidence: h.confidence,
+      hasMechanism: !!h.mechanism,
+      unresolvedCritiqueCount: h.unresolvedCritiqueCount,
+      parentId: h.parentId,
+      spawnedFromAnomaly: h.spawnedFromAnomaly,
+    }));
+
+    // Update index
+    index.entries = [...otherEntries, ...newEntries];
+    index.updatedAt = new Date().toISOString();
+
+    await fs.writeFile(indexPath, JSON.stringify(index, null, 2));
   }
 
   // ============================================================================
@@ -232,22 +268,32 @@ export class HypothesisStorage {
 
   /**
    * Get a specific hypothesis by ID.
+   *
+   * @param id - The hypothesis ID (either H-{session}-{seq} or H{n})
+   * @param sessionId - Optional session ID to narrow the search (required for simple H{n} IDs unless you want to scan all sessions)
    */
-  async getHypothesisById(id: string): Promise<Hypothesis | null> {
-    // Extract session ID from hypothesis ID format: H-{sessionId}-{seq}
-    const match = id.match(/^H-(.+)-\d{3}$/);
-    if (!match) {
-      const simpleMatch = id.match(/^H\d+$/);
-      if (simpleMatch) {
-        const allHypotheses = await this.getAllHypotheses();
-        return allHypotheses.find((h) => h.id === id) ?? null;
-      }
-      return null;
+  async getHypothesisById(id: string, sessionId?: string): Promise<Hypothesis | null> {
+    // If we have a sessionId, look there directly (fast path)
+    if (sessionId) {
+      const hypotheses = await this.loadSessionHypotheses(sessionId);
+      return hypotheses.find((h) => h.id === id) ?? null;
     }
 
-    const sessionId = match[1];
-    const hypotheses = await this.loadSessionHypotheses(sessionId);
-    return hypotheses.find((h) => h.id === id) ?? null;
+    // Try to extract session ID from hypothesis ID format: H-{sessionId}-{seq}
+    const match = id.match(/^H-(.+)-\d+$/);
+    if (match) {
+      const extractedSessionId = match[1];
+      const hypotheses = await this.loadSessionHypotheses(extractedSessionId);
+      return hypotheses.find((h) => h.id === id) ?? null;
+    }
+
+    // Fallback: simple ID (H1) or unknown session
+    // Scan all sessions (slow path)
+    const allHypotheses = await this.getAllHypotheses();
+    
+    // Find first match (might be ambiguous if H1 exists in multiple sessions)
+    // To resolve ambiguity, caller should provide sessionId
+    return allHypotheses.find((h) => h.id === id) ?? null;
   }
 
   /**
@@ -273,6 +319,22 @@ export class HypothesisStorage {
    */
   async deleteHypothesis(id: string): Promise<boolean> {
     return await withFileLock(this.baseDir, "hypotheses", async () => {
+      // Optimization: Try to extract session ID from ID to avoid scanning all files
+      const match = id.match(/^H-(.+)-\d+$/);
+      if (match) {
+        const sessionId = match[1];
+        const hypotheses = await this.loadSessionHypotheses(sessionId);
+        const newHypotheses = hypotheses.filter((h) => h.id !== id);
+
+        if (newHypotheses.length === hypotheses.length) {
+          return false;
+        }
+
+        await this.saveSessionHypothesesUnlocked(sessionId, newHypotheses);
+        return true;
+      }
+
+      // Fallback: Scan all files via getHypothesisById
       const hypothesis = await this.getHypothesisById(id);
       if (!hypothesis) {
         return false;

@@ -220,8 +220,39 @@ export class CritiqueStorage {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2));
 
     if (this.autoRebuildIndex) {
-      await this.rebuildIndexUnlocked();
+      await this.updateIndexForSessionUnlocked(sessionId, critiques);
     }
+  }
+
+  private async updateIndexForSessionUnlocked(sessionId: string, critiques: Critique[]): Promise<void> {
+    const indexPath = getIndexPath(this.baseDir);
+    let index: CritiqueIndex;
+
+    try {
+      const content = await fs.readFile(indexPath, "utf-8");
+      index = JSON.parse(content) as CritiqueIndex;
+    } catch {
+      await this.rebuildIndexUnlocked();
+      return;
+    }
+
+    const otherEntries = index.entries.filter((e) => e.sessionId !== sessionId);
+
+    const newEntries: CritiqueIndexEntry[] = critiques.map((c) => ({
+      id: c.id,
+      sessionId: c.sessionId,
+      targetType: c.targetType,
+      targetId: c.targetId,
+      status: c.status,
+      severity: c.severity,
+      hasProposedAlternative: !!c.proposedAlternative,
+      raisedBy: c.raisedBy,
+    }));
+
+    index.entries = [...otherEntries, ...newEntries];
+    index.updatedAt = new Date().toISOString();
+
+    await fs.writeFile(indexPath, JSON.stringify(index, null, 2));
   }
 
   // ============================================================================
@@ -233,14 +264,21 @@ export class CritiqueStorage {
    */
   async getCritiqueById(id: string): Promise<Critique | null> {
     // Extract session ID from critique ID (C-{sessionId}-{seq})
-    const match = id.match(/^C-(.+)-\d{3}$/);
-    if (!match) {
-      return null;
+    const match = id.match(/^C-(.+)-\d+$/);
+    if (match) {
+      const sessionId = match[1];
+      const critiques = await this.loadSessionCritiques(sessionId);
+      return critiques.find((c) => c.id === id) ?? null;
     }
 
-    const sessionId = match[1];
-    const critiques = await this.loadSessionCritiques(sessionId);
-    return critiques.find((c) => c.id === id) ?? null;
+    // Fallback: simple ID or unknown session
+    const simpleMatch = id.match(/^C\d+$/);
+    if (simpleMatch) {
+      const allCritiques = await this.getAllCritiques();
+      return allCritiques.find((c) => c.id === id) ?? null;
+    }
+
+    return null;
   }
 
   /**
@@ -266,6 +304,22 @@ export class CritiqueStorage {
    */
   async deleteCritique(id: string): Promise<boolean> {
     return await withFileLock(this.baseDir, "critiques", async () => {
+      // Optimization: Try to extract session ID from ID
+      const match = id.match(/^C-(.+)-\d+$/);
+      if (match) {
+        const sessionId = match[1];
+        const critiques = await this.loadSessionCritiques(sessionId);
+        const newCritiques = critiques.filter((c) => c.id !== id);
+
+        if (newCritiques.length === critiques.length) {
+          return false;
+        }
+
+        await this.saveSessionCritiquesUnlocked(sessionId, newCritiques);
+        return true;
+      }
+
+      // Fallback
       const critique = await this.getCritiqueById(id);
       if (!critique) {
         return false;

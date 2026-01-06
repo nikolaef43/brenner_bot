@@ -272,8 +272,39 @@ export class InterventionStorage {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2));
 
     if (this.autoRebuildIndex) {
-      await this.rebuildIndexUnlocked();
+      await this.updateIndexForSessionUnlocked(sessionId, interventions);
     }
+  }
+
+  private async updateIndexForSessionUnlocked(sessionId: string, interventions: OperatorIntervention[]): Promise<void> {
+    const indexPath = getIndexPath(this.baseDir);
+    let index: InterventionIndex;
+
+    try {
+      const content = await fs.readFile(indexPath, "utf-8");
+      index = JSON.parse(content) as InterventionIndex;
+    } catch {
+      await this.rebuildIndexUnlocked();
+      return;
+    }
+
+    const otherEntries = index.entries.filter((e) => e.sessionId !== sessionId);
+
+    const newEntries: InterventionIndexEntry[] = interventions.map((i) => ({
+      id: i.id,
+      sessionId: i.session_id,
+      type: i.type,
+      severity: i.severity,
+      operatorId: i.operator_id,
+      timestamp: i.timestamp,
+      reversible: i.reversible,
+      reversed: Boolean(i.reversed_at),
+    }));
+
+    index.entries = [...otherEntries, ...newEntries];
+    index.updatedAt = new Date().toISOString();
+
+    await fs.writeFile(indexPath, JSON.stringify(index, null, 2));
   }
 
   // ============================================================================
@@ -282,15 +313,25 @@ export class InterventionStorage {
 
   /**
    * Get a specific intervention by ID.
-   * ID format: INT-{sessionId}-{seq}
+   * ID format: INT-{sessionId}-{seq} or INT{n}
    */
   async getInterventionById(id: string): Promise<OperatorIntervention | null> {
-    const match = id.match(/^INT-(.+)-\d{3}$/);
-    if (!match?.[1]) return null;
+    // Extract session ID from intervention ID (INT-{sessionId}-{seq})
+    const match = id.match(/^INT-(.+)-\d+$/);
+    if (match) {
+      const sessionId = match[1];
+      const interventions = await this.loadSessionInterventions(sessionId);
+      return interventions.find((i) => i.id === id) ?? null;
+    }
 
-    const sessionId = match[1];
-    const interventions = await this.loadSessionInterventions(sessionId);
-    return interventions.find((i) => i.id === id) ?? null;
+    // Fallback: simple ID or unknown session
+    const simpleMatch = id.match(/^INT\d+$/);
+    if (simpleMatch) {
+      const allInterventions = await this.getAllInterventions();
+      return allInterventions.find((i) => i.id === id) ?? null;
+    }
+
+    return null;
   }
 
   /**
@@ -316,6 +357,22 @@ export class InterventionStorage {
    */
   async deleteIntervention(id: string): Promise<boolean> {
     return await withInterventionStorageLock(this.lockKey(), async () => {
+      // Optimization: Try to extract session ID from ID
+      const match = id.match(/^INT-(.+)-\d+$/);
+      if (match) {
+        const sessionId = match[1];
+        const interventions = await this.loadSessionInterventions(sessionId);
+        const newInterventions = interventions.filter((i) => i.id !== id);
+
+        if (newInterventions.length === interventions.length) {
+          return false;
+        }
+
+        await this.saveSessionInterventionsUnlocked(sessionId, newInterventions);
+        return true;
+      }
+
+      // Fallback
       const intervention = await this.getInterventionById(id);
       if (!intervention) {
         return false;

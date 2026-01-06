@@ -221,8 +221,50 @@ export class TestStorage {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2));
 
     if (this.autoRebuildIndex) {
-      await this.rebuildIndexUnlocked();
+      await this.updateIndexForSessionUnlocked(sessionId, tests);
     }
+  }
+
+  private async updateIndexForSessionUnlocked(sessionId: string, tests: TestRecord[]): Promise<void> {
+    const indexPath = getIndexPath(this.baseDir);
+    let index: TestIndex;
+
+    try {
+      const content = await fs.readFile(indexPath, "utf-8");
+      index = JSON.parse(content) as TestIndex;
+    } catch {
+      await this.rebuildIndexUnlocked();
+      return;
+    }
+
+    const otherEntries = index.entries.filter((e) => e.sessionId !== sessionId);
+
+    const newEntries: TestIndexEntry[] = tests.map((t) => {
+      const total =
+        t.evidencePerWeekScore.likelihoodRatio +
+        t.evidencePerWeekScore.cost +
+        t.evidencePerWeekScore.speed +
+        t.evidencePerWeekScore.ambiguity;
+
+      return {
+        id: t.id,
+        sessionId: t.designedInSession,
+        name: t.name,
+        status: t.status,
+        discriminates: t.discriminates,
+        addressesPredictions: t.addressesPredictions ?? [],
+        isExecuted: !!t.execution,
+        hasPotencyCheck: (t.potencyCheck?.positiveControl ?? "").trim().length >= 10,
+        evidencePerWeekTotal: total,
+        designedBy: t.designedBy,
+        priority: t.priority,
+      };
+    });
+
+    index.entries = [...otherEntries, ...newEntries];
+    index.updatedAt = new Date().toISOString();
+
+    await fs.writeFile(indexPath, JSON.stringify(index, null, 2));
   }
 
   // ============================================================================
@@ -234,14 +276,21 @@ export class TestStorage {
    */
   async getTestById(id: string): Promise<TestRecord | null> {
     // Extract session ID from test ID (T-{sessionId}-{seq})
-    const match = id.match(/^T-(.+)-\d{3}$/);
-    if (!match) {
-      return null;
+    const match = id.match(/^T-(.+)-\d+$/);
+    if (match) {
+      const sessionId = match[1];
+      const tests = await this.loadSessionTests(sessionId);
+      return tests.find((t) => t.id === id) ?? null;
     }
 
-    const sessionId = match[1];
-    const tests = await this.loadSessionTests(sessionId);
-    return tests.find((t) => t.id === id) ?? null;
+    // Fallback: simple ID or unknown session
+    const simpleMatch = id.match(/^T\d+$/);
+    if (simpleMatch) {
+      const allTests = await this.getAllTests();
+      return allTests.find((t) => t.id === id) ?? null;
+    }
+
+    return null;
   }
 
   /**
@@ -267,6 +316,22 @@ export class TestStorage {
    */
   async deleteTest(id: string): Promise<boolean> {
     return await withFileLock(this.baseDir, "tests", async () => {
+      // Optimization: Try to extract session ID from ID
+      const match = id.match(/^T-(.+)-\d+$/);
+      if (match) {
+        const sessionId = match[1];
+        const tests = await this.loadSessionTests(sessionId);
+        const newTests = tests.filter((t) => t.id !== id);
+
+        if (newTests.length === tests.length) {
+          return false;
+        }
+
+        await this.saveSessionTestsUnlocked(sessionId, newTests);
+        return true;
+      }
+
+      // Fallback
       const test = await this.getTestById(id);
       if (!test) {
         return false;
