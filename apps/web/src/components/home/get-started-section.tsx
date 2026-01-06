@@ -191,9 +191,14 @@ export function GetStartedSection() {
           </div>
           <p className="mt-3 text-xs text-zinc-500">
             Or{" "}
-            <Link href="https://github.com/Dicklesworthstone/brenner_bot" className="text-primary hover:underline">
+            <a
+              href="https://github.com/Dicklesworthstone/brenner_bot"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
               install from source
-            </Link>
+            </a>
           </p>
         </div>
 
@@ -229,13 +234,25 @@ export function GetStartedSection() {
                 </ol>
 
                 {/* CTA */}
-                <Link
-                  href={path.ctaHref}
-                  className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline group-hover:gap-3 transition-all"
-                >
-                  {path.cta}
-                  <ArrowRightIcon />
-                </Link>
+                {path.ctaHref.startsWith("http") ? (
+                  <a
+                    href={path.ctaHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline group-hover:gap-3 transition-all"
+                  >
+                    {path.cta}
+                    <ArrowRightIcon />
+                  </a>
+                ) : (
+                  <Link
+                    href={path.ctaHref}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline group-hover:gap-3 transition-all"
+                  >
+                    {path.cta}
+                    <ArrowRightIcon />
+                  </Link>
+                )}
               </div>
             </div>
           ))}
@@ -296,9 +313,14 @@ export function GetStartedSection() {
               Read the Docs
             </Link>
             <span className="text-border">|</span>
-            <Link href="https://github.com/Dicklesworthstone/brenner_bot" className="text-muted-foreground hover:text-foreground transition-colors">
+            <a
+              href="https://github.com/Dicklesworthstone/brenner_bot"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
               View Source
-            </Link>
+            </a>
           </div>
         </div>
 
