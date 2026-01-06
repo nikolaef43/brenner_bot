@@ -1753,11 +1753,13 @@ async function diagnoseSessionDeltas(args: {
     "name": "[Your hypothesis name]",
     "claim": "[One-sentence claim]",
     "mechanism": "[How it works]",
-    "anchors": ["§n"] // or ["inference"]
+    "anchors": ["§n"]
   },
   "rationale": "[Why this is worth considering]"
 }
-\`\`\``;
+\`\`\`
+
+Note: "anchors" should reference transcript sections (§1, §2, etc.) or use ["inference"] for derived hypotheses.`;
 
   return {
     threadId: args.threadId,
