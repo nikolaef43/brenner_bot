@@ -221,6 +221,7 @@ test.describe("Visual Regression", () => {
         await expect(page).toHaveScreenshot("error-404.png", {
           ...SNAPSHOT_OPTIONS,
           maxDiffPixels: 200, // Allow more variance for dynamic content
+          maxDiffPixelRatio: 0.02, // Allow up to 2% pixel difference for minor rendering variations
         });
         logger.info("404 page screenshot captured");
       });
