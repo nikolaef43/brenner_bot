@@ -116,8 +116,9 @@ describe("generateSearchId", () => {
     const id1 = generateSearchId();
     const id2 = generateSearchId();
 
-    expect(id1).toMatch(/^LS-[a-z0-9]+-[a-z0-9]+$/);
-    expect(id2).toMatch(/^LS-[a-z0-9]+-[a-z0-9]+$/);
+    // Accepts UUID format (primary) or timestamp fallback
+    expect(id1).toMatch(/^LS-([0-9a-f-]{36}|[a-z0-9]+-[a-z0-9]+)$/);
+    expect(id2).toMatch(/^LS-([0-9a-f-]{36}|[a-z0-9]+-[a-z0-9]+)$/);
     expect(id1).not.toBe(id2);
   });
 });

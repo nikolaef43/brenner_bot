@@ -251,9 +251,9 @@ export interface SuggestedSearches {
 // ============================================================================
 
 /**
- * Pattern for valid literature search IDs
+ * Pattern for valid literature search IDs (supports UUID and timestamp formats)
  */
-export const LITERATURE_SEARCH_ID_PATTERN = /^LS-[a-z0-9]+-[a-z0-9]+$/;
+export const LITERATURE_SEARCH_ID_PATTERN = /^LS-([0-9a-f-]{36}|[a-z0-9]+-[a-z0-9]+)$/;
 
 /**
  * Pattern for valid DOIs
@@ -282,6 +282,9 @@ export const RELEVANCE_THRESHOLDS = {
  * Generate a unique ID for a literature search
  */
 export function generateSearchId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `LS-${crypto.randomUUID()}`;
+  }
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).slice(2, 6);
   return `LS-${timestamp}-${random}`;

@@ -293,3 +293,41 @@ export type {
 } from "./synthesis";
 
 export { synthesizeResponses } from "./synthesis";
+
+// ============================================================================
+// Agent Debate Mode (bead xlk2.7)
+// ============================================================================
+
+export type {
+  DebateFormat,
+  DebateStatus,
+  RoundAnalysis,
+  DebateRound,
+  DebateConclusion,
+  UserInjection,
+  AgentDebate,
+  CreateDebateOptions,
+  DebateFormatConfig,
+} from "./debate";
+
+export {
+  DEBATE_FORMAT_CONFIGS,
+  DEBATE_SUBJECT_PREFIX,
+  generateDebateId,
+  generateDebateThreadId,
+  createDebate,
+  generateDefaultTopic,
+  getNextSpeaker,
+  buildDebateOpeningPrompt,
+  buildDebateFollowUpPrompt,
+  addRound,
+  addUserInjection,
+  analyzeRound,
+  generateConclusion,
+  concludeDebate,
+  shouldConclude,
+  getDebateStatus,
+  isDebateFormat,
+  isDebateStatus,
+  isAgentDebate,
+} from "./debate";

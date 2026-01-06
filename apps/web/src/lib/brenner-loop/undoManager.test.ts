@@ -167,7 +167,8 @@ describe("UndoStack creation", () => {
 describe("Command creation", () => {
   it("generates command IDs with a stable prefix", () => {
     const id = generateCommandId();
-    expect(id).toMatch(/^CMD-\d+-[a-z0-9]{6}$/);
+    // Accepts UUID format (primary) or timestamp fallback
+    expect(id).toMatch(/^CMD-([0-9a-f-]{36}|\d+-[a-z0-9]{6})$/);
   });
 
   it("creates a confidence command", () => {
