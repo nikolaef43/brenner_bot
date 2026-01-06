@@ -497,3 +497,49 @@ export function getSimilarityStats(hypotheses: IndexedHypothesis[]): {
     domainDistribution,
   };
 }
+
+// ============================================================================
+// Storage Integration
+// ============================================================================
+
+import type { Hypothesis } from "../../schemas/hypothesis";
+
+/**
+ * Confidence level to numeric mapping for IndexedHypothesis.
+ */
+const CONFIDENCE_MAP: Record<string, number> = {
+  high: 90,
+  medium: 60,
+  low: 30,
+  speculative: 10,
+};
+
+/**
+ * Convert a storage Hypothesis to IndexedHypothesis for similarity search.
+ *
+ * The storage schema uses:
+ * - tags[] as domains
+ * - confidence enum ("high"|"medium"|"low"|"speculative") -> numeric
+ * - version is not tracked, defaults to 1
+ */
+export function storageToIndexed(hypothesis: Hypothesis): IndexedHypothesis {
+  return {
+    id: hypothesis.id,
+    sessionId: hypothesis.sessionId,
+    statement: hypothesis.statement,
+    mechanism: hypothesis.mechanism ?? "",
+    domain: hypothesis.tags ?? [],
+    confidence: CONFIDENCE_MAP[hypothesis.confidence] ?? 50,
+    version: 1, // Storage doesn't track versions
+    createdAt: hypothesis.createdAt,
+  };
+}
+
+/**
+ * Convert multiple storage hypotheses to IndexedHypothesis format.
+ */
+export function storageToIndexedBatch(
+  hypotheses: Hypothesis[]
+): IndexedHypothesis[] {
+  return hypotheses.map(storageToIndexed);
+}
