@@ -1,6 +1,6 @@
 import type { OperatorType } from "./operators/framework";
 import { calculateFalsifiabilityScore, calculateSpecificityScore } from "./hypothesis";
-import type { HypothesisCard, Session } from "./types";
+import type { HypothesisCard, IdentifiedConfound, Session } from "./types";
 
 // Threshold constants for hypothesis outcome classification
 const FALSIFIED_CONFIDENCE_THRESHOLD = 20;
@@ -58,6 +58,7 @@ export interface PersonalAnalytics {
   trendsOver90Days: TrendData;
 
   insights: string[];
+  failureAnalytics: FailureAnalytics;
   achievements: Achievement[];
 }
 
@@ -72,6 +73,44 @@ const OPERATOR_KEYS: readonly OperatorType[] = [
   "object_transpose",
   "scale_check",
 ];
+
+export type HypothesisOutcome = "falsified" | "robust" | "abandoned" | "in_progress";
+
+export interface FailureModeDistribution {
+  total: number;
+  falsified: number;
+  robust: number;
+  abandoned: number;
+  inProgress: number;
+  /** Convenience derived metric: (falsified + abandoned) / total */
+  failureRate: number;
+}
+
+export interface CommonFailures {
+  sessionsWithOperator: number;
+  failuresWithOperator: number;
+  failureRateWithOperator: number;
+  sessionsWithoutOperator: number;
+  failuresWithoutOperator: number;
+  failureRateWithoutOperator: number;
+  failureRateDelta: number;
+}
+
+export interface PatternFailures {
+  id: string;
+  name: string;
+  description: string;
+  total: number;
+  failures: number;
+  failureRate: number;
+}
+
+export interface FailureAnalytics {
+  byDomain: Record<string, FailureModeDistribution>;
+  byOperator: Record<OperatorType, CommonFailures>;
+  byHypothesisStructure: PatternFailures[];
+  insights: string[];
+}
 
 function createEmptyOperatorDistribution(): Record<OperatorType, number> {
   return {
@@ -101,6 +140,23 @@ function clampScore(value: number): number {
 function mean(values: number[]): number {
   if (values.length === 0) return 0;
   return values.reduce((sum, v) => sum + v, 0) / values.length;
+}
+
+function normalizeKey(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function safeRate(numerator: number, denominator: number): number {
+  if (denominator <= 0) return 0;
+  return numerator / denominator;
+}
+
+function extractAutoConfoundTemplateId(confoundId: string): string | null {
+  const match = confoundId.match(/^auto-(.+?)-\d+$/i);
+  if (!match) return null;
+  const templateId = match[1]?.trim();
+  if (!templateId) return null;
+  return templateId;
 }
 
 function getSessionScores(session: Session): SessionScores | null {
@@ -134,6 +190,239 @@ function classifyHypothesisOutcome(card: HypothesisCard): "falsified" | "robust"
   if (confidence < FALSIFIED_CONFIDENCE_THRESHOLD) return "falsified";
   if (confidence > ROBUST_CONFIDENCE_THRESHOLD) return "robust";
   return "in_progress";
+}
+
+function classifyPrimaryOutcome(session: Session, card: HypothesisCard): HypothesisOutcome {
+  if (session.archivedHypothesisIds?.includes(card.id)) return "abandoned";
+  const outcome = classifyHypothesisOutcome(card);
+  if (outcome === "robust" && session.phase !== "complete") return "in_progress";
+  return outcome;
+}
+
+function getPrimaryDomains(session: Session, card: HypothesisCard): string[] {
+  const fromCard = Array.isArray(card.domain) ? card.domain.map(normalizeKey).filter(Boolean) : [];
+  if (fromCard.length > 0) return fromCard;
+
+  const fromSession = typeof session.domain === "string" ? normalizeKey(session.domain) : "";
+  return fromSession ? [fromSession] : ["unknown"];
+}
+
+function hasUnaddressedConfound(params: {
+  confounds: IdentifiedConfound[];
+  templateId: string;
+  domain?: string;
+}): boolean {
+  const wanted = normalizeKey(params.templateId);
+  for (const confound of params.confounds) {
+    if (!confound || confound.addressed === true) continue;
+
+    const normalizedDomain = typeof confound.domain === "string" ? normalizeKey(confound.domain) : "";
+    if (params.domain && normalizedDomain && normalizeKey(params.domain) !== normalizedDomain) continue;
+
+    const extracted = extractAutoConfoundTemplateId(confound.id);
+    if (extracted && normalizeKey(extracted) === wanted) return true;
+
+    const normalizedName = typeof confound.name === "string" ? normalizeKey(confound.name) : "";
+    if (normalizedName.includes(wanted.replace(/_/g, " "))) return true;
+  }
+
+  return false;
+}
+
+export function computeFailureAnalytics(params: { sessions: Session[] }): FailureAnalytics {
+  const sessions = params.sessions;
+
+  const byDomain: Record<string, FailureModeDistribution> = Object.create(null);
+
+  const byOperator: Record<OperatorType, CommonFailures> = Object.create(null) as Record<OperatorType, CommonFailures>;
+  for (const op of OPERATOR_KEYS) {
+    byOperator[op] = {
+      sessionsWithOperator: 0,
+      failuresWithOperator: 0,
+      failureRateWithOperator: 0,
+      sessionsWithoutOperator: 0,
+      failuresWithoutOperator: 0,
+      failureRateWithoutOperator: 0,
+      failureRateDelta: 0,
+    };
+  }
+
+  const patternDefs: Array<{
+    id: string;
+    name: string;
+    description: string;
+    match: (session: Session, card: HypothesisCard) => boolean;
+  }> = [
+    {
+      id: "no_competitors",
+      name: "No Competitors",
+      description: "Add at least one third alternative to avoid being ruled in by default.",
+      match: (session) => (session.alternativeHypothesisIds?.length ?? 0) === 0,
+    },
+    {
+      id: "thin_falsification_set",
+      name: "Thin Falsification Set",
+      description: "Add 2–3 concrete 'impossible if true' conditions to sharpen the likelihood ratio.",
+      match: (_session, card) => (card.impossibleIfTrue?.length ?? 0) < 2,
+    },
+    {
+      id: "missing_predictions_if_false",
+      name: "Missing If-False Predictions",
+      description: "Write at least one prediction you'd expect if the hypothesis is wrong.",
+      match: (_session, card) => (card.predictionsIfFalse?.length ?? 0) === 0,
+    },
+    {
+      id: "no_confounds_listed",
+      name: "No Confounds Listed",
+      description: "List likely confounds and mark them addressed/unaddressed as evidence accumulates.",
+      match: (_session, card) => (card.confounds?.length ?? 0) === 0,
+    },
+    {
+      id: "high_likelihood_confound_unaddressed",
+      name: "High-Likelihood Confound Unaddressed",
+      description: "Address confounds with likelihood ≥ 50% or your tests will mostly move the confound, not the hypothesis.",
+      match: (_session, card) => (card.confounds ?? []).some((c) => c.addressed !== true && (c.likelihood ?? 0) >= 0.5),
+    },
+  ];
+
+  const patternCounts = new Map<string, { total: number; failures: number }>();
+  for (const def of patternDefs) patternCounts.set(def.id, { total: 0, failures: 0 });
+
+  const selectionBiasCases: Array<{ failed: boolean; reachedExclusion: boolean }> = [];
+
+  for (const session of sessions) {
+    const primary = session.hypothesisCards?.[session.primaryHypothesisId];
+    if (!primary) continue;
+
+    const outcome = classifyPrimaryOutcome(session, primary);
+    const failed = outcome === "falsified" || outcome === "abandoned";
+    const domains = getPrimaryDomains(session, primary);
+
+    for (const domain of domains) {
+      const current = byDomain[domain] ?? {
+        total: 0,
+        falsified: 0,
+        robust: 0,
+        abandoned: 0,
+        inProgress: 0,
+        failureRate: 0,
+      };
+
+      current.total += 1;
+      if (outcome === "falsified") current.falsified += 1;
+      else if (outcome === "robust") current.robust += 1;
+      else if (outcome === "abandoned") current.abandoned += 1;
+      else current.inProgress += 1;
+
+      byDomain[domain] = current;
+    }
+
+    for (const op of OPERATOR_KEYS) {
+      const used = (() => {
+        const apps = session.operatorApplications;
+        if (!apps) return false;
+        if (op === "level_split") return Array.isArray(apps.levelSplit) && apps.levelSplit.length > 0;
+        if (op === "exclusion_test") return Array.isArray(apps.exclusionTest) && apps.exclusionTest.length > 0;
+        if (op === "object_transpose") return Array.isArray(apps.objectTranspose) && apps.objectTranspose.length > 0;
+        if (op === "scale_check") return Array.isArray(apps.scaleCheck) && apps.scaleCheck.length > 0;
+        return false;
+      })();
+
+      const stats = byOperator[op];
+      if (used) {
+        stats.sessionsWithOperator += 1;
+        if (failed) stats.failuresWithOperator += 1;
+      } else {
+        stats.sessionsWithoutOperator += 1;
+        if (failed) stats.failuresWithoutOperator += 1;
+      }
+    }
+
+    for (const def of patternDefs) {
+      if (!def.match(session, primary)) continue;
+      const current = patternCounts.get(def.id);
+      if (!current) continue;
+      current.total += 1;
+      if (failed) current.failures += 1;
+    }
+
+    if (domains.includes("psychology")) {
+      const confounds = primary.confounds ?? [];
+      const selectionBiasUnaddressed = hasUnaddressedConfound({
+        confounds,
+        templateId: "selection_bias",
+        domain: "psychology",
+      });
+
+      if (selectionBiasUnaddressed) {
+        const reachedExclusion =
+          (session.operatorApplications?.exclusionTest?.length ?? 0) > 0 || session.phase === "exclusion_test";
+        selectionBiasCases.push({ failed, reachedExclusion });
+      }
+    }
+  }
+
+  for (const [domain, dist] of Object.entries(byDomain)) {
+    const failures = dist.falsified + dist.abandoned;
+    dist.failureRate = safeRate(failures, dist.total);
+    byDomain[domain] = dist;
+  }
+
+  for (const op of OPERATOR_KEYS) {
+    const stats = byOperator[op];
+    stats.failureRateWithOperator = safeRate(stats.failuresWithOperator, stats.sessionsWithOperator);
+    stats.failureRateWithoutOperator = safeRate(stats.failuresWithoutOperator, stats.sessionsWithoutOperator);
+    stats.failureRateDelta = stats.failureRateWithOperator - stats.failureRateWithoutOperator;
+    byOperator[op] = stats;
+  }
+
+  const byHypothesisStructure: PatternFailures[] = patternDefs
+    .map((def) => {
+      const stats = patternCounts.get(def.id) ?? { total: 0, failures: 0 };
+      return {
+        id: def.id,
+        name: def.name,
+        description: def.description,
+        total: stats.total,
+        failures: stats.failures,
+        failureRate: safeRate(stats.failures, stats.total),
+      };
+    })
+    .filter((p) => p.total > 0)
+    .sort((a, b) => b.failureRate - a.failureRate || b.total - a.total);
+
+  const insights: string[] = [];
+
+  // Surface top structural risks (only when there is enough signal).
+  for (const pattern of byHypothesisStructure) {
+    if (pattern.total < 3) continue;
+    if (pattern.failureRate < 0.7) continue;
+    insights.push(
+      `${Math.round(pattern.failureRate * 100)}% of sessions with "${pattern.name}" ended in failure (${pattern.failures}/${pattern.total}). ${pattern.description}`
+    );
+    if (insights.length >= 2) break;
+  }
+
+  if (selectionBiasCases.length >= 3) {
+    const total = selectionBiasCases.length;
+    const failures = selectionBiasCases.filter((c) => c.failed).length;
+    insights.push(
+      `Psychology hypotheses with unaddressed selection bias failed ${Math.round(safeRate(failures, total) * 100)}% of the time (${failures}/${total}).`
+    );
+
+    const atExclusion = selectionBiasCases.filter((c) => c.reachedExclusion);
+    if (atExclusion.length >= 3) {
+      const totalExclusion = atExclusion.length;
+      const failuresExclusion = atExclusion.filter((c) => c.failed).length;
+      insights.push(
+        `After reaching Exclusion Test, psychology + unaddressed selection bias failed ${Math.round(
+          safeRate(failuresExclusion, totalExclusion) * 100
+        )}% of the time (${failuresExclusion}/${totalExclusion}).`
+      );
+    }
+  }
+
+  return { byDomain, byOperator, byHypothesisStructure, insights };
 }
 
 /**
@@ -464,6 +753,11 @@ export function computePersonalAnalytics(params: {
     hypothesesWithCompetitors,
   });
 
+  const failureAnalytics = computeFailureAnalytics({ sessions });
+  if (sessionsTotal > 0 && failureAnalytics.insights.length > 0) {
+    insights.push(...failureAnalytics.insights);
+  }
+
   // Compute hypothesis outcomes
   const hypothesisOutcomes = countHypothesisOutcomes(sessions);
   const revisionsAfterEvidence = countRevisionsAfterEvidence(sessions);
@@ -510,7 +804,7 @@ export function computePersonalAnalytics(params: {
     trendsOver90Days,
 
     insights,
+    failureAnalytics,
     achievements,
   };
 }
-
