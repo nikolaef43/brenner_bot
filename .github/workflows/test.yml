@@ -328,16 +328,20 @@ jobs:
           $ErrorActionPreference = "Stop"
           New-Item -ItemType Directory -Force -Path dist | Out-Null
 
-          # Retry logic for flaky bun cross-compilation target downloads
+          # Build natively on Windows without --target flag
+          # This avoids CDN download issues for specific Bun variants
+          # Retry logic with exponential backoff for transient failures
           $maxAttempts = 3
           $attempt = 0
           $success = $false
+          $delaySeconds = 5
 
           while (-not $success -and $attempt -lt $maxAttempts) {
             $attempt++
             Write-Host "Build attempt $attempt of $maxAttempts..."
             try {
-              bun build --compile --minify --target=bun-windows-x64-baseline --outfile dist/brenner-win-x64.exe ./brenner.ts
+              # Use native build (no --target) to avoid downloading specific variants
+              bun build --compile --minify --outfile dist/brenner-win-x64.exe ./brenner.ts
               if ($LASTEXITCODE -eq 0 -and (Test-Path "dist/brenner-win-x64.exe")) {
                 $success = $true
               } else {
@@ -346,8 +350,9 @@ jobs:
             } catch {
               Write-Host "Attempt $attempt failed: $_"
               if ($attempt -lt $maxAttempts) {
-                Write-Host "Retrying in 5 seconds..."
-                Start-Sleep -Seconds 5
+                Write-Host "Retrying in $delaySeconds seconds..."
+                Start-Sleep -Seconds $delaySeconds
+                $delaySeconds = $delaySeconds * 2  # Exponential backoff
               }
             }
           }
