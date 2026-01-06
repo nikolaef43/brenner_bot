@@ -507,6 +507,168 @@ The orchestrator/compiler MUST:
 
 ---
 
+## Common Failure Modes
+
+This section documents **high-frequency errors** observed in real pilot sessions. Each failure mode includes symptoms, why it happens, and how to fix it.
+
+### Failure Mode 1: Inline JSON (Missing `delta` Fence)
+
+**Severity**: 🔴 Critical — Compilation silently drops the delta
+
+**What it looks like**:
+
+```
+Here's my hypothesis:
+
+{ "operation": "ADD", "section": "hypothesis_slate", ... }
+```
+
+**Why it breaks**: The delta parser only extracts code blocks with the `delta` language tag. Inline JSON is treated as prose and ignored entirely.
+
+**How to fix**: Wrap ALL delta JSON in fenced code blocks with the `delta` tag:
+
+~~~markdown
+```delta
+{ "operation": "ADD", "section": "hypothesis_slate", ... }
+```
+~~~
+
+**Prevention**: Use the remediation template below. If you accidentally posted inline JSON, resend the entire message with proper fencing.
+
+---
+
+### Failure Mode 2: Wrong Section Name
+
+**Severity**: 🟠 High — Delta is rejected
+
+**What it looks like**:
+
+```delta
+{
+  "operation": "ADD",
+  "section": "hypotheses",  // ❌ Wrong! Should be "hypothesis_slate"
+  ...
+}
+```
+
+**Valid section names**:
+- `hypothesis_slate` (not "hypotheses" or "hypothesis")
+- `predictions_table` (not "predictions")
+- `discriminative_tests` (not "tests")
+- `assumption_ledger` (not "assumptions")
+- `anomaly_register` (not "anomalies")
+- `adversarial_critique` (not "critiques")
+- `research_thread` (EDIT only)
+
+**How to fix**: Use exact section names from the table above.
+
+---
+
+### Failure Mode 3: Missing target_id on EDIT/KILL
+
+**Severity**: 🟠 High — Delta is rejected
+
+**What it looks like**:
+
+```delta
+{
+  "operation": "EDIT",
+  "section": "hypothesis_slate",
+  "target_id": null,  // ❌ Must specify item ID for EDIT/KILL
+  "payload": { "claim": "Updated claim" }
+}
+```
+
+**Why it breaks**: EDIT and KILL operations require a specific target. The compiler doesn't know which item to modify.
+
+**How to fix**: Always specify `target_id` for EDIT and KILL:
+
+```delta
+{
+  "operation": "EDIT",
+  "section": "hypothesis_slate",
+  "target_id": "H2",  // ✅ Specify the item ID
+  "payload": { "claim": "Updated claim" }
+}
+```
+
+---
+
+### Failure Mode 4: Invalid JSON Syntax
+
+**Severity**: 🟠 High — Entire block is rejected
+
+**Common causes**:
+- Trailing commas: `{ "key": "value", }` ❌
+- Single quotes: `{ 'key': 'value' }` ❌ (JSON requires double quotes)
+- Unquoted keys: `{ key: "value" }` ❌
+- Comments in JSON: `{ "key": "value" // comment }` ❌
+
+**How to fix**: Validate JSON before submitting. Use an IDE with JSON validation or paste into a JSON validator.
+
+---
+
+### Failure Mode 5: Empty Payload on ADD
+
+**Severity**: 🟡 Medium — Delta may be rejected or produce incomplete item
+
+**What it looks like**:
+
+```delta
+{
+  "operation": "ADD",
+  "section": "hypothesis_slate",
+  "target_id": null,
+  "payload": {}  // ❌ Empty payload
+}
+```
+
+**Required payload fields by section**:
+- `hypothesis_slate`: `name`, `claim`, `mechanism`, `anchors`
+- `discriminative_tests`: `name`, `procedure`, `discriminates`, `expected_outcomes`
+- `predictions_table`: `condition`, `predictions`
+- `assumption_ledger`: `name`, `statement`, `load`, `test`, `status`
+- `anomaly_register`: `name`, `observation`, `conflicts_with`, `status`
+- `adversarial_critique`: `name`, `attack`, `evidence`, `current_status`
+
+---
+
+## Remediation Template
+
+When you've made a formatting mistake, use this template to resend your contribution correctly:
+
+~~~markdown
+# Corrected Delta Contribution
+
+[I'm resending this contribution with proper delta formatting.]
+
+## Deltas
+
+```delta
+{
+  "operation": "ADD",
+  "section": "hypothesis_slate",
+  "target_id": null,
+  "payload": {
+    "name": "[Your hypothesis name]",
+    "claim": "[One-sentence claim]",
+    "mechanism": "[How it works]",
+    "anchors": ["§n"] // or ["inference"]
+  },
+  "rationale": "[Why this is worth considering]"
+}
+```
+~~~
+
+**Key checklist before sending**:
+- [ ] JSON is inside triple-backtick fence with `delta` language tag
+- [ ] Section name matches exactly (e.g., `hypothesis_slate` not `hypotheses`)
+- [ ] ADD has `target_id: null`; EDIT/KILL has specific target ID
+- [ ] All required payload fields are present
+- [ ] JSON is valid (no trailing commas, double quotes only, no comments)
+
+---
+
 ## Alternatives Considered
 
 ### Option A: Strict Markdown Sections
@@ -557,5 +719,6 @@ section: hypothesis_slate
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 0.1.2 | 2026-01-05 | Added "Common Failure Modes" section and remediation template (brenner_bot-1fvd) |
 | 0.1.1 | 2026-01-01 | Added cross-session references support: `references` field in all payload schemas, reference relation types, validation rules |
 | 0.1 | 2025-12-30 | Initial draft |

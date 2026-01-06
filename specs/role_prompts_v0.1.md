@@ -493,6 +493,35 @@ All agents have access to these operators. Invoke by symbol in rationales:
 }
 ```
 
+### ⚠️ Critical: Recovery from Inline JSON
+
+**If you accidentally posted inline JSON (without the fenced code block), you MUST resend the entire contribution with proper formatting.**
+
+The compiler silently drops inline JSON. Your contribution was NOT recorded.
+
+**Recovery steps**:
+1. Do NOT assume your delta was accepted
+2. Resend the ENTIRE delta wrapped in a fenced code block with the `delta` tag
+3. Include a note: "Resending with corrected formatting"
+
+Example recovery message:
+
+```markdown
+# Corrected Contribution
+
+[Resending with proper delta formatting — previous inline JSON was not parsed.]
+
+```delta
+{
+  "operation": "ADD",
+  "section": "hypothesis_slate",
+  ...
+}
+```
+```
+
+See `delta_output_format_v0.1.md` § Common Failure Modes for the full remediation template.
+
 ---
 
 ## Usage in Agent Mail
@@ -537,4 +566,5 @@ architecture could use microcode (epigenetic memory) as an intermediate layer.
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 0.1.1 | 2026-01-05 | Added "Recovery from Inline JSON" rule (brenner_bot-1fvd) |
 | 0.1 | 2025-12-30 | Initial draft: Codex/Opus/Gemini role prompts |

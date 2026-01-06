@@ -192,7 +192,7 @@ Paragraph immediately after quote
   });
 
   describe("regex robustness", () => {
-    it("fails to parse nested formatting (bold containing italic)", () => {
+    it("parses nested formatting (bold containing italic)", () => {
       const input = `# Test
 ## 1. Nested
 > This is **bold *italic* text**.
@@ -202,7 +202,7 @@ Paragraph immediately after quote
 
       // Ideally, we want the text to be clean: "This is bold italic text."
       // And highlights to contain: "bold *italic* text" (inner content)
-      
+
       expect(quote?.text).not.toContain("**");
       expect(quote?.text).toBe("This is bold italic text.");
       expect(quote?.highlights).toContain("bold *italic* text");
