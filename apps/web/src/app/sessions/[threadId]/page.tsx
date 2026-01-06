@@ -17,6 +17,7 @@ import {
 } from "@/lib/artifact-merge";
 import { computeThreadStatusFromThread, parseSubjectType } from "@/lib/threadStatus";
 import { parseDeltaMessage, type ValidDelta } from "@/lib/delta-parser";
+import { isDemoSession, getDemoSession, type DemoMessage, type DemoThreadSummary } from "@/lib/fixtures/demo-sessions";
 import type { Metadata } from "next";
 import { LocalSessionHub } from "./LocalSessionHub";
 import { AgentTribunalPanel } from "@/components/brenner-loop/agents/AgentTribunalPanel";
@@ -109,6 +110,225 @@ function LockedState({ reason }: { reason: string }) {
         </Link>
       </div>
     </div>
+  );
+}
+
+function DemoSessionNotFound({ threadId }: { threadId: string }) {
+  return (
+    <div className="max-w-2xl mx-auto space-y-6 animate-fade-in-up">
+      <div className="rounded-2xl border border-border bg-card p-8">
+        <div className="flex items-start gap-4">
+          <div className="flex items-center justify-center size-12 rounded-xl bg-muted border border-border text-muted-foreground">
+            <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Demo Session Not Found</h1>
+            <p className="text-sm text-muted-foreground">
+              The demo session <span className="font-mono text-foreground">{threadId}</span> doesn&apos;t exist.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="text-center">
+        <Link href="/sessions" className="text-primary hover:underline">
+          View Available Demo Sessions
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function DemoSessionDetail({
+  threadId,
+  messages,
+  summary,
+}: {
+  threadId: string;
+  messages: DemoMessage[];
+  summary: DemoThreadSummary;
+}) {
+  // Convert demo messages to AgentMailMessage-compatible format
+  const messagesSorted = [...messages].sort(
+    (a, b) => new Date(a.created_ts).getTime() - new Date(b.created_ts).getTime()
+  );
+
+  // Compute basic stats
+  const deltaCount = messagesSorted.filter((m) => /DELTA\[/i.test(m.subject)).length;
+  const critiqueCount = messagesSorted.filter((m) => /CRITIQUE/i.test(m.subject)).length;
+  const compiledMessage = messagesSorted.find((m) => /COMPILED:/i.test(m.subject));
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-10">
+      {/* Demo Banner */}
+      <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 p-5 animate-fade-in-up">
+        <div className="flex items-start gap-4">
+          <div className="flex items-center justify-center size-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 shrink-0">
+            <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.75v4.5m0 0H9A5.25 5.25 0 003.75 13.5v0A5.25 5.25 0 009 18.75h6a5.25 5.25 0 005.25-5.25v0A5.25 5.25 0 0015 8.25h-.75m-4.5 0h4.5m0 0v-4.5" />
+            </svg>
+          </div>
+          <div className="space-y-2">
+            <h2 className="font-semibold text-amber-900 dark:text-amber-100">
+              Demo Session
+            </h2>
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              This is example data demonstrating a Brenner Loop research session.
+              Actions like Compile and Critique are disabled in demo mode.
+            </p>
+            <div className="flex flex-wrap gap-3 pt-1">
+              <Link
+                href="/sessions"
+                className="text-sm font-medium text-amber-600 dark:text-amber-400 hover:underline"
+              >
+                ← All Demo Sessions
+              </Link>
+              <Link
+                href="/tutorial/quick-start"
+                className="text-sm font-medium text-amber-600 dark:text-amber-400 hover:underline"
+              >
+                Set Up Locally →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Header */}
+      <header className="space-y-3 animate-fade-in-up stagger-1">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight">Session</h1>
+            <div className="text-sm text-muted-foreground font-mono">{threadId}</div>
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            {/* No RefreshControls in demo mode */}
+            <Link href={`/sessions/${threadId}/evidence`} className="text-sm text-primary hover:underline">
+              Evidence Pack
+            </Link>
+            <Link href={`/sessions/${threadId}/test-queue`} className="text-sm text-primary hover:underline">
+              Test Queue
+            </Link>
+            <Link href="/sessions/new" className="text-sm text-primary hover:underline">
+              New Session
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Status Section */}
+      <section className="rounded-xl border border-border bg-card p-5 space-y-4 animate-fade-in-up stagger-2">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="text-sm text-muted-foreground">Phase</div>
+            <div className="font-semibold text-foreground">{summary.phase.replace(/_/g, " ")}</div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-foreground border border-border">
+              {summary.messageCount} messages
+            </span>
+            {summary.hasArtifact && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success/15 text-success border border-success/20">
+                compiled
+              </span>
+            )}
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+              demo
+            </span>
+          </div>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-3">
+          <div className="rounded-lg border border-border bg-muted/30 p-3">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deltas</div>
+            <div className="mt-1 text-lg font-bold text-foreground">{deltaCount}</div>
+          </div>
+          <div className="rounded-lg border border-border bg-muted/30 p-3">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Critiques</div>
+            <div className="mt-1 text-lg font-bold text-foreground">{critiqueCount}</div>
+          </div>
+          <div className="rounded-lg border border-border bg-muted/30 p-3">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Participants</div>
+            <div className="mt-1 text-sm font-mono text-foreground">{summary.participants.slice(0, 3).join(", ")}</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Demo Actions Placeholder - instead of SessionActions */}
+      <section className="rounded-xl border border-dashed border-border bg-muted/20 p-5 animate-fade-in-up stagger-3">
+        <div className="flex items-center gap-3">
+          <svg className="size-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <div className="font-medium text-foreground">Session Actions Disabled</div>
+            <div className="text-sm text-muted-foreground">
+              Compile, Critique, and other actions require{" "}
+              <Link href="/tutorial/quick-start" className="text-primary hover:underline">
+                local setup with Lab Mode
+              </Link>
+              .
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Compiled Artifact */}
+      {compiledMessage && (
+        <section className="space-y-3 animate-fade-in-up stagger-4">
+          <h2 className="text-lg font-semibold tracking-tight">Compiled Artifact</h2>
+          <div className="rounded-xl border border-border bg-card p-5">
+            <MarkdownBody body={compiledMessage.body_md} />
+          </div>
+        </section>
+      )}
+
+      {/* Timeline */}
+      <section className="space-y-4 animate-fade-in-up stagger-5">
+        <h2 className="text-lg font-semibold tracking-tight">Thread Timeline</h2>
+        <div className="space-y-3">
+          {messagesSorted.map((m) => (
+            <DemoMessageCard key={m.id} message={m} />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function DemoMessageCard({ message }: { message: DemoMessage }) {
+  const parsed = parseSubjectType(message.subject);
+
+  return (
+    <details className="group rounded-xl border border-border bg-card p-4 transition-all">
+      <summary className="cursor-pointer list-none space-y-2 touch-manipulation rounded-lg -m-1 p-1 transition-colors active:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${typeBadgeClasses(parsed.type)}`}>
+              {typeLabel(parsed.type)}
+            </span>
+            <span className="text-sm font-medium text-foreground">{message.subject}</span>
+          </div>
+          <span className="text-xs text-muted-foreground font-mono">{formatTs(message.created_ts)}</span>
+        </div>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <span>
+            <span className="font-medium text-foreground/80">From:</span>{" "}
+            <span className="font-mono">{message.from}</span>
+          </span>
+          <span>
+            <span className="font-medium text-foreground/80">At:</span>{" "}
+            <span className="font-mono">{formatTs(message.created_ts)}</span>
+          </span>
+        </div>
+      </summary>
+
+      <div className="pt-4 mt-4 border-t border-border">
+        <MarkdownBody body={message.body_md} />
+      </div>
+    </details>
   );
 }
 
@@ -314,6 +534,21 @@ export default async function SessionDetailPage({
 
   if (threadId.startsWith(LOCAL_SESSION_PREFIX)) {
     return <LocalSessionHub sessionId={threadId} />;
+  }
+
+  // Handle demo sessions - they work even without lab mode
+  if (isDemoSession(threadId)) {
+    const demoSession = getDemoSession(threadId);
+    if (!demoSession) {
+      return <DemoSessionNotFound threadId={threadId} />;
+    }
+    return (
+      <DemoSessionDetail
+        threadId={threadId}
+        messages={demoSession.messages}
+        summary={demoSession.summary}
+      />
+    );
   }
 
   if (!isLabModeEnabled()) {
