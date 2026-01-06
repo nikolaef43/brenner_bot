@@ -49,9 +49,9 @@ describe("QualityAssuranceSection", () => {
   it("renders the comparison table", () => {
     render(<QualityAssuranceSection />);
 
-    expect(screen.getByText("Without Guardrails vs. With Brenner Lab")).toBeInTheDocument();
+    expect(screen.getByText("Without Guardrails vs. With BrennerBot")).toBeInTheDocument();
     expect(screen.getByText("Without Guardrails")).toBeInTheDocument();
-    expect(screen.getByText("With Brenner Lab")).toBeInTheDocument();
+    expect(screen.getByText("With BrennerBot")).toBeInTheDocument();
     expect(screen.getByText("Predictions locked before execution")).toBeInTheDocument();
   });
 

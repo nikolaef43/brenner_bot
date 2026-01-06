@@ -305,6 +305,56 @@ Some prose explanation here.
     });
   });
 
+  it("accepts research_thread EDIT with target_id RT", () => {
+    const body = `
+\`\`\`delta
+{
+  "operation": "EDIT",
+  "section": "research_thread",
+  "target_id": "RT",
+  "payload": {
+    "statement": "Why do gradients dominate lineage cues?",
+    "context": "Testing RT updates with explicit target"
+  }
+}
+\`\`\`
+`;
+
+    const result = parseDeltaMessage(body);
+
+    expect(result.validCount).toBe(1);
+    expect(result.invalidCount).toBe(0);
+    expect(result.deltas[0]).toMatchObject({
+      valid: true,
+      operation: "EDIT",
+      section: "research_thread",
+      target_id: "RT",
+    });
+  });
+
+  it("rejects research_thread EDIT with non-RT target_id", () => {
+    const body = `
+\`\`\`delta
+{
+  "operation": "EDIT",
+  "section": "research_thread",
+  "target_id": "H1",
+  "payload": {
+    "statement": "Bad target id",
+    "context": "Should fail"
+  }
+}
+\`\`\`
+`;
+
+    const result = parseDeltaMessage(body);
+
+    expect(result.invalidCount).toBe(1);
+    if (!result.deltas[0]?.valid) {
+      expect(result.deltas[0].error).toContain("research_thread target_id must be \"RT\"");
+    }
+  });
+
   it("handles multiple delta blocks", () => {
     const body = `
 \`\`\`delta

@@ -95,9 +95,9 @@ async function shouldSkipTest(
 // ============================================================================
 
 /**
- * The Brenner Lab agent roster for multi-agent orchestration.
+ * The BrennerBot agent roster for multi-agent orchestration.
  */
-const BRENNER_LAB_AGENTS: SeededAgent[] = [
+const BRENNERBOT_AGENTS: SeededAgent[] = [
   { name: "HypothesisAgent", role: "hypothesis_generator", program: "claude-code", model: "opus-4.5" },
   { name: "TestDesigner", role: "test_designer", program: "codex-cli", model: "gpt-5" },
   { name: "AdversarialCritic", role: "adversarial_critic", program: "gemini-cli", model: "gemini-3" },
@@ -112,7 +112,7 @@ function createHandoffSession(threadId: string): SessionConfig {
   return {
     threadId,
     operator: "Orchestrator",
-    agents: BRENNER_LAB_AGENTS,
+    agents: BRENNERBOT_AGENTS,
     messages: [
       // Step 1: Orchestrator kicks off the session
       {
@@ -243,7 +243,7 @@ function createConcurrentSession(threadId: string): SessionConfig {
   return {
     threadId,
     operator: "Orchestrator",
-    agents: BRENNER_LAB_AGENTS,
+    agents: BRENNERBOT_AGENTS,
     messages: [
       // Orchestrator sends kickoff to all agents
       {
@@ -337,7 +337,7 @@ function createAgentToAgentSession(threadId: string): SessionConfig {
   return {
     threadId,
     operator: "Orchestrator",
-    agents: BRENNER_LAB_AGENTS,
+    agents: BRENNERBOT_AGENTS,
     messages: [
       // Orchestrator sets up the session
       {
@@ -414,7 +414,7 @@ function createMultiRoundSession(threadId: string): SessionConfig {
   return {
     threadId,
     operator: "Orchestrator",
-    agents: BRENNER_LAB_AGENTS,
+    agents: BRENNERBOT_AGENTS,
     messages: [
       // Round 1: Initial kickoff
       {

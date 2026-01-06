@@ -286,6 +286,24 @@ function validateDelta(raw: unknown, rawJson: string): ParsedDelta {
     };
   }
 
+  // Validate research_thread target_id (optional but if present must be RT)
+  if (section === "research_thread") {
+    if (target_id !== null && target_id !== undefined && typeof target_id !== "string") {
+      return {
+        valid: false,
+        error: "research_thread target_id must be a string (\"RT\") or null",
+        raw: rawJson,
+      };
+    }
+    if (typeof target_id === "string" && target_id !== "RT") {
+      return {
+        valid: false,
+        error: `research_thread target_id must be \"RT\" (got \"${target_id}\")`,
+        raw: rawJson,
+      };
+    }
+  }
+
   return {
     valid: true,
     operation,

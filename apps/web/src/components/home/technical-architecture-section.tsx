@@ -64,7 +64,7 @@ const archFeatures = [
   {
     title: "CLI-First Design",
     tagline: "Your Terminal, Your Subscriptions, Your Control",
-    description: "Brenner Lab doesn't call AI APIs from code. CLI tools run in your terminal under your existing subscriptions. You see everything, control everything.",
+    description: "BrennerBot doesn't call AI APIs from code. CLI tools run in your terminal under your existing subscriptions. You see everything, control everything.",
     icon: <TerminalIcon />,
     iconBg: "bg-violet-500/15",
     iconColor: "text-violet-700 dark:text-violet-300",

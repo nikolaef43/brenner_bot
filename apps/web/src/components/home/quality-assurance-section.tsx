@@ -279,7 +279,7 @@ export function QualityAssuranceSection() {
 
         {/* Comparison Table */}
         <div className="rounded-2xl border border-border/70 bg-background/80 p-5 sm:p-6">
-          <h4 className="text-lg font-semibold text-foreground mb-4 text-center">Without Guardrails vs. With Brenner Lab</h4>
+          <h4 className="text-lg font-semibold text-foreground mb-4 text-center">Without Guardrails vs. With BrennerBot</h4>
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="rounded-xl bg-rose-500/5 border border-rose-500/20 p-4 space-y-3">
               <p className="text-xs uppercase tracking-wide text-rose-600 dark:text-rose-400 font-medium">Without Guardrails</p>
@@ -303,7 +303,7 @@ export function QualityAssuranceSection() {
               </ul>
             </div>
             <div className="rounded-xl bg-emerald-500/5 border border-emerald-500/20 p-4 space-y-3">
-              <p className="text-xs uppercase tracking-wide text-emerald-600 dark:text-emerald-400 font-medium">With Brenner Lab</p>
+              <p className="text-xs uppercase tracking-wide text-emerald-600 dark:text-emerald-400 font-medium">With BrennerBot</p>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="mt-1 size-1.5 rounded-full bg-emerald-500/60" />

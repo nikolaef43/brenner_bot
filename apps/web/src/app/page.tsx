@@ -423,13 +423,13 @@ export default function Home() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                   <span className="relative inline-flex rounded-full size-2 bg-primary"></span>
                 </span>
-                Brenner Lab Mode
+                BrennerBot Lab Mode
               </div>
 
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">Research Orchestration</p>
                 <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold tracking-tight animate-fade-in-up stagger-1">
-                  <span className="text-gradient-primary">Brenner Lab</span>: Three AI Minds. One Rigorous Method. Zero
+                  <span className="text-gradient-primary">BrennerBot</span>: Three AI Minds. One Rigorous Method. Zero
                   Blind Spots.
                 </h1>
               </div>
@@ -1074,7 +1074,7 @@ brenner session compile --thread-id RS-20260105`}</code>
                 </div>
               </div>
               <div className="p-4 sm:p-5 bg-primary/5">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">With Brenner Lab</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">With BrennerBot</p>
                 <div className="mt-3 space-y-3 text-sm text-foreground">
                   {hygieneComparisonRows.map((row) => (
                     <div key={row.with} className="flex items-start gap-2">

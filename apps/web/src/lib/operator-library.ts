@@ -10,7 +10,10 @@ import { parseQuoteBank, type Quote } from "./quotebank-parser";
  * Client components should fetch operator data via a server action/route.
  */
 
-export type OperatorDefinition = {
+export type OperatorCardKind = "core" | "derived";
+
+export type OperatorCard = {
+  kind: OperatorCardKind;
   symbol: string;
   title: string;
   canonicalTag: string;
@@ -19,24 +22,13 @@ export type OperatorDefinition = {
   whenToUseTriggers: string[];
   failureModes: string[];
   transcriptAnchors: string;
-};
-
-export type OperatorCardKind = "core" | "derived";
-
-export type OperatorCard = {
-  kind: OperatorCardKind;
-  symbol: string;
-  title: string;
-  canonicalTag: string | null;
-  quoteBankAnchors: string[];
-  definition: string;
-  whenToUseTriggers: string[];
-  failureModes: string[];
-  transcriptAnchors: string;
   promptModule: string | null;
 };
 
-export type OperatorWithQuotes = OperatorDefinition & {
+// Backwards compatibility alias (formerly the core-only type)
+export type OperatorDefinition = OperatorCard;
+
+export type OperatorWithQuotes = OperatorCard & {
   quotes: Quote[];
   supportingQuotes: Quote[];
 };
@@ -156,88 +148,6 @@ function parsePromptModule(block: string): string | null {
   return match ? match[1].trim() : null;
 }
 
-export function parseOperatorLibrary(markdown: string): OperatorDefinition[] {
-  const coreStart = markdown.indexOf("## Core Operators");
-  if (coreStart === -1) {
-    throw new Error("Operator library: missing '## Core Operators' section");
-  }
-
-  const derivedStart = markdown.indexOf("## Derived Operators", coreStart);
-  const coreSection = markdown.slice(coreStart, derivedStart === -1 ? markdown.length : derivedStart);
-
-  const operatorHeaderRegex = /^###\s+(.+)$/gm;
-  const headerMatches = [...coreSection.matchAll(operatorHeaderRegex)];
-
-  const operators: OperatorDefinition[] = [];
-
-  for (let i = 0; i < headerMatches.length; i++) {
-    const match = headerMatches[i];
-    const headerLine = match[1]?.trim();
-    if (!headerLine) continue;
-
-    const startIndex = (match.index ?? 0) + match[0].length;
-    const endIndex = headerMatches[i + 1]?.index ?? coreSection.length;
-    const block = coreSection.slice(startIndex, endIndex);
-
-    const [symbol, ...titleParts] = headerLine.split(/\s+/);
-    const title = titleParts.join(" ").trim();
-
-    const definitionMatch = block.match(
-      /\*\*Definition\*\*:\s*([\s\S]*?)\n\n\*\*When-to-Use Triggers\*\*:/m
-    );
-    const triggersMatch = block.match(
-      /\*\*When-to-Use Triggers\*\*:\s*\n([\s\S]*?)\n\n\*\*Failure Modes\*\*:/m
-    );
-    const failureModesMatch = block.match(
-      /\*\*Failure Modes\*\*:\s*\n([\s\S]*?)\n\n\*\*(?:Prompt module \(copy\/paste\)\*\*|Canonical tag\*\*):/m
-    );
-    const canonicalTagMatch = block.match(/\*\*Canonical tag\*\*:\s*`([^`]+)`/m);
-    const quoteBankAnchorsMatch = block.match(/\*\*Quote-bank anchors\*\*:\s*([^\n]+)/m);
-    const transcriptAnchorsMatch = block.match(/\*\*Transcript Anchors\*\*:\s*([^\n]+)/m);
-
-    if (!symbol || !title) {
-      throw new Error(`Operator library: failed to parse header line: ${headerLine}`);
-    }
-    if (!definitionMatch) {
-      throw new Error(`Operator library: missing Definition block for ${headerLine}`);
-    }
-    if (!triggersMatch) {
-      throw new Error(`Operator library: missing When-to-Use Triggers block for ${headerLine}`);
-    }
-    if (!failureModesMatch) {
-      throw new Error(`Operator library: missing Failure Modes block for ${headerLine}`);
-    }
-    if (!canonicalTagMatch) {
-      throw new Error(`Operator library: missing Canonical tag for ${headerLine}`);
-    }
-    if (!quoteBankAnchorsMatch) {
-      throw new Error(`Operator library: missing Quote-bank anchors for ${headerLine}`);
-    }
-    if (!transcriptAnchorsMatch) {
-      throw new Error(`Operator library: missing Transcript Anchors for ${headerLine}`);
-    }
-
-    const canonicalTag = canonicalTagMatch[1].trim();
-    const quoteBankAnchors = quoteBankAnchorsMatch[1]
-      .split(",")
-      .map((a) => a.trim())
-      .filter(Boolean);
-
-    operators.push({
-      symbol,
-      title,
-      canonicalTag,
-      quoteBankAnchors,
-      definition: definitionMatch[1].trim().replace(/\s+/g, " "),
-      whenToUseTriggers: parseBullets(triggersMatch[1]),
-      failureModes: parseBullets(failureModesMatch[1]),
-      transcriptAnchors: transcriptAnchorsMatch[1].trim(),
-    });
-  }
-
-  return operators;
-}
-
 const DERIVED_CANONICAL_TAG_BY_SYMBOL: Record<string, string> = {
   "⚡": "quickie",
   "👁": "hal",
@@ -247,7 +157,6 @@ const DERIVED_CANONICAL_TAG_BY_SYMBOL: Record<string, string> = {
 function parseOperatorCardsFromSection(args: {
   kind: OperatorCardKind;
   sectionMarkdown: string;
-  requireCanonicalTag: boolean;
   requireQuoteBankAnchors: boolean;
 }): OperatorCard[] {
   const operatorHeaderRegex = /^###\s+(.+)$/gm;
@@ -302,7 +211,7 @@ function parseOperatorCardsFromSection(args: {
       ? canonicalTagMatch[1].trim()
       : DERIVED_CANONICAL_TAG_BY_SYMBOL[symbol] ?? null;
 
-    if (args.requireCanonicalTag && !canonicalTag) {
+    if (!canonicalTag) {
       throw new Error(`Operator library: missing Canonical tag for ${headerLine}`);
     }
 
@@ -356,7 +265,6 @@ export function parseOperatorCards(markdown: string): OperatorCard[] {
     ...parseOperatorCardsFromSection({
       kind: "core",
       sectionMarkdown: coreSection,
-      requireCanonicalTag: true,
       requireQuoteBankAnchors: true,
     }),
   );
@@ -366,13 +274,23 @@ export function parseOperatorCards(markdown: string): OperatorCard[] {
       ...parseOperatorCardsFromSection({
         kind: "derived",
         sectionMarkdown: derivedSection,
-        requireCanonicalTag: false,
         requireQuoteBankAnchors: false,
       }),
     );
   }
 
   return cards;
+}
+
+/**
+ * Legacy compatibility wrapper.
+ * Returns only core operators to match old behavior, but uses new parser.
+ * @deprecated Use parseOperatorCards instead.
+ */
+export function parseOperatorLibrary(markdown: string): OperatorDefinition[] {
+  // Ensure we still validate '## Core Operators' existence which parseOperatorCards does.
+  const cards = parseOperatorCards(markdown);
+  return cards.filter(c => c.kind === "core");
 }
 
 export function resolveOperatorCard(cards: OperatorCard[], query: string): OperatorCard | null {
@@ -413,7 +331,7 @@ export async function getOperatorPalette(): Promise<OperatorWithQuotes[]> {
     readQuoteBankMarkdown(),
   ]);
 
-  const operators = parseOperatorLibrary(operatorMd);
+  const operators = parseOperatorCards(operatorMd);
   const quoteBank = parseQuoteBank(quoteBankMd);
 
   const palette = operators.map((operator) => {

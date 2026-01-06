@@ -61,6 +61,7 @@ import {
   type Session,
   type SessionPhase,
   type HypothesisCard as HypothesisCardModel,
+  type EvidenceEntry as SessionEvidenceEntry,
   type LevelIdentification,
   type LevelSplitResult as SessionLevelSplitResult,
   type ExclusionTestResult as SessionExclusionTestResult,
@@ -684,11 +685,65 @@ function PhaseContent({ phase, className }: PhaseContentProps) {
 
   const appliedBy = React.useMemo(() => getAppliedBy(session), [session]);
 
-  // Extract validated evidence entries from the session's evidence ledger
+  // Normalize evidence ledger entries for visualization
   const evidenceEntries = React.useMemo<FullEvidenceEntry[]>(() => {
     const ledger = session?.evidenceLedger ?? [];
-    return (ledger as unknown[]).filter(isEvidenceEntry);
-  }, [session?.evidenceLedger]);
+    if (ledger.length === 0) return [];
+
+    const clampConfidence = (value: number) => Math.min(100, Math.max(0, value));
+    const coerceDate = (value: string | Date | undefined) => {
+      if (value instanceof Date) return value;
+      const parsed = new Date(value ?? "");
+      return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+    };
+
+    const initialConfidence = primaryHypothesis?.confidence ?? 50;
+    let runningConfidence = initialConfidence;
+
+    const sorted = [...ledger].sort(
+      (a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime()
+    );
+
+    return sorted.map((entry) => {
+      if (isEvidenceEntry(entry)) {
+        runningConfidence = entry.confidenceAfter;
+        return entry;
+      }
+
+      const simplified = entry as SessionEvidenceEntry;
+      const delta = typeof simplified.confidenceDelta === "number" ? simplified.confidenceDelta : 0;
+      const confidenceBefore = runningConfidence;
+      const confidenceAfter = clampConfidence(confidenceBefore + delta);
+      runningConfidence = confidenceAfter;
+
+      const testId = typeof simplified.testId === "string" && simplified.testId.trim().length > 0
+        ? simplified.testId
+        : "unknown";
+
+      return {
+        id: simplified.id,
+        sessionId: session?.id ?? "unknown",
+        hypothesisVersion: simplified.matchedHypothesisId ?? primaryHypothesis?.id ?? "unknown",
+        test: {
+          id: testId,
+          description: `Test ${testId}`,
+          type: "observation",
+          discriminativePower: 3,
+        },
+        predictionIfTrue: "",
+        predictionIfFalse: "",
+        result: simplified.result ?? "inconclusive",
+        observation: simplified.observation ?? "",
+        source: simplified.rawDataRef ?? undefined,
+        confidenceBefore,
+        confidenceAfter,
+        interpretation: simplified.notes ?? "",
+        recordedAt: coerceDate(simplified.recordedAt),
+        recordedBy: simplified.recordedBy ?? undefined,
+        notes: simplified.notes ?? undefined,
+      };
+    });
+  }, [session?.evidenceLedger, session?.id, primaryHypothesis?.confidence, primaryHypothesis?.id]);
 
   const handleIntakeComplete = React.useCallback(
     (hypothesis: {
