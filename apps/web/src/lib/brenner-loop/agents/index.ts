@@ -103,6 +103,19 @@ const ROLE_PROMPT_END_PREFIX = "<!-- BRENNER_ROLE_PROMPT_END ";
 let rolePromptsSpecCache: string | null | undefined = undefined;
 
 /**
+ * Mapping from internal role names to spec marker names.
+ * The spec file uses different naming conventions than the internal API.
+ * Roles without matching prompts in the spec will fall back to placeholders.
+ */
+const ROLE_TO_SPEC_KEY: Record<TribunalAgentRole, string> = {
+  devils_advocate: "adversarial_critic",
+  experiment_designer: "test_designer",
+  statistician: "statistician",
+  brenner_channeler: "brenner_channeler",
+  synthesis: "synthesis",
+};
+
+/**
  * Load a prompt file for an agent role.
  * In a browser environment, this fetches from the public directory.
  * In a Node environment, this reads from the filesystem.
@@ -147,9 +160,10 @@ async function fetchPromptContent(promptPath: string, role: TribunalAgentRole): 
 }
 
 function rolePromptMarkers(role: TribunalAgentRole): { start: string; end: string } {
+  const specKey = ROLE_TO_SPEC_KEY[role];
   return {
-    start: `${ROLE_PROMPT_START_PREFIX}${role} -->`,
-    end: `${ROLE_PROMPT_END_PREFIX}${role} -->`,
+    start: `${ROLE_PROMPT_START_PREFIX}${specKey} -->`,
+    end: `${ROLE_PROMPT_END_PREFIX}${specKey} -->`,
   };
 }
 

@@ -73,10 +73,11 @@ describe("brenner-loop/agents index", () => {
   });
 
   it("loads prompt content from the role prompts spec when available", async () => {
+    // Note: internal role 'devils_advocate' maps to spec marker 'adversarial_critic'
     const spec = [
-      "<!-- BRENNER_ROLE_PROMPT_START devils_advocate -->",
-      "You are the Devil's Advocate.",
-      "<!-- BRENNER_ROLE_PROMPT_END devils_advocate -->",
+      "<!-- BRENNER_ROLE_PROMPT_START adversarial_critic -->",
+      "You are the Adversarial Critic.",
+      "<!-- BRENNER_ROLE_PROMPT_END adversarial_critic -->",
     ].join("\n");
 
     const fetchMock = vi.fn().mockResolvedValue({
@@ -89,7 +90,7 @@ describe("brenner-loop/agents index", () => {
     try {
       clearPromptCache();
       const prompt = await loadPrompt("devils_advocate");
-      expect(prompt).toBe("You are the Devil's Advocate.");
+      expect(prompt).toBe("You are the Adversarial Critic.");
       expect(fetchMock).toHaveBeenCalledWith("/_corpus/specs/role_prompts_v0.1.md");
     } finally {
       clearPromptCache();
