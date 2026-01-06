@@ -61,61 +61,70 @@ interface IndexedChunk {
 
 let indexCache: IndexedChunk[] | null = null;
 let indexTimestamp: number | null = null;
+let indexPromise: Promise<IndexedChunk[]> | null = null;
 
 /**
  * Build or retrieve the search index.
  */
 async function getIndex(): Promise<IndexedChunk[]> {
-  if (indexCache) {
-    return indexCache;
-  }
+  if (indexCache) return indexCache;
+  if (indexPromise) return indexPromise;
 
-  const chunks: IndexedChunk[] = [];
-
-  for (const doc of CORPUS_DOCS) {
+  indexPromise = (async () => {
     try {
-      const { content } = await readCorpusDoc(doc.id);
+      const chunks: IndexedChunk[] = [];
 
-      if (doc.id === "transcript") {
-        // Parse transcript into sections
-        const { sections } = parseTranscript(content);
-        for (const section of sections) {
-          const domId = makeTranscriptSectionDomId(section.sectionNumber);
-          chunks.push({
-            id: `${doc.id}:${section.anchor}`,
-            docId: doc.id,
-            docTitle: doc.title,
-            category: doc.category,
-            model: doc.model,
-            title: section.title,
-            content: section.plainText,
-            contentLower: section.plainText.toLowerCase(),
-            titleLower: section.title.toLowerCase(),
-            anchor: section.anchor,
-            url: `/corpus/transcript#${domId}`,
-            wordCount: section.wordCount,
-          });
+      for (const doc of CORPUS_DOCS) {
+        try {
+          const { content } = await readCorpusDoc(doc.id);
+
+          if (doc.id === "transcript") {
+            // Parse transcript into sections
+            const { sections } = parseTranscript(content);
+            for (const section of sections) {
+              const domId = makeTranscriptSectionDomId(section.sectionNumber);
+              chunks.push({
+                id: `${doc.id}:${section.anchor}`,
+                docId: doc.id,
+                docTitle: doc.title,
+                category: doc.category,
+                model: doc.model,
+                title: section.title,
+                content: section.plainText,
+                contentLower: section.plainText.toLowerCase(),
+                titleLower: section.title.toLowerCase(),
+                anchor: section.anchor,
+                url: `/corpus/transcript#${domId}`,
+                wordCount: section.wordCount,
+              });
+            }
+          } else if (doc.id === "quote-bank") {
+            // Parse quote bank into individual quotes
+            const quoteChunks = parseQuoteBankChunks(content, doc);
+            chunks.push(...quoteChunks);
+          } else if (doc.category === "distillation") {
+            const distillationChunks = parseDistillationChunks(content, doc);
+            chunks.push(...distillationChunks);
+          } else {
+            // General document - parse into sections by headers
+            const docChunks = parseDocumentSections(content, doc);
+            chunks.push(...docChunks);
+          }
+        } catch (err) {
+          console.warn(`Failed to index ${doc.id}:`, err);
         }
-      } else if (doc.id === "quote-bank") {
-        // Parse quote bank into individual quotes
-        const quoteChunks = parseQuoteBankChunks(content, doc);
-        chunks.push(...quoteChunks);
-      } else if (doc.category === "distillation") {
-        const distillationChunks = parseDistillationChunks(content, doc);
-        chunks.push(...distillationChunks);
-      } else {
-        // General document - parse into sections by headers
-        const docChunks = parseDocumentSections(content, doc);
-        chunks.push(...docChunks);
       }
-    } catch (err) {
-      console.warn(`Failed to index ${doc.id}:`, err);
-    }
-  }
 
-  indexCache = chunks;
-  indexTimestamp = Date.now();
-  return chunks;
+      indexCache = chunks;
+      indexTimestamp = Date.now();
+      return chunks;
+    } finally {
+      // Clear promise so future calls (e.g. after cache clear) can retry or re-init
+      indexPromise = null;
+    }
+  })();
+
+  return indexPromise;
 }
 
 /**
