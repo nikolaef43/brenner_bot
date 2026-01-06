@@ -36,8 +36,8 @@ function Resolve-LatestReleaseTag([string]$Owner, [string]$Repo) {
   $latestUrl = "https://api.github.com/repos/$Owner/$Repo/releases/latest"
   try {
     $resp = Invoke-RestMethod -Uri $latestUrl -Headers @{
-      Accept     = "application/vnd.github+json"
-      User-Agent = "brenner-install.ps1"
+      Accept       = "application/vnd.github+json"
+      'User-Agent' = "brenner-install.ps1"
     }
     if (-not $resp.tag_name) { throw "No tag_name in response" }
     return $resp.tag_name
@@ -194,8 +194,8 @@ function Install-Cass([string]$VersionTag, [string]$Dest) {
   $apiUrl = "https://api.github.com/repos/$owner/$repo/releases/tags/$VersionTag"
 
   $release = Invoke-RestMethod -Uri $apiUrl -Headers @{
-    Accept     = "application/vnd.github+json"
-    User-Agent = "brenner-install.ps1"
+    Accept       = "application/vnd.github+json"
+    'User-Agent' = "brenner-install.ps1"
   }
   $asset = $release.assets | Where-Object { $_.name -like "*windows-msvc.zip" } | Select-Object -First 1
   if (-not $asset) {
@@ -243,8 +243,8 @@ function Install-Cm([string]$VersionTag, [string]$Dest) {
   $apiUrl = "https://api.github.com/repos/$owner/$repo/releases/tags/$VersionTag"
 
   $release = Invoke-RestMethod -Uri $apiUrl -Headers @{
-    Accept     = "application/vnd.github+json"
-    User-Agent = "brenner-install.ps1"
+    Accept       = "application/vnd.github+json"
+    'User-Agent' = "brenner-install.ps1"
   }
   $asset = $release.assets | Where-Object { $_.name -like "*windows-x64.exe" } | Select-Object -First 1
   if (-not $asset) {
