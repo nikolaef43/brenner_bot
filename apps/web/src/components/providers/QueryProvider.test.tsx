@@ -24,9 +24,9 @@ function QueryClientInspector() {
   return (
     <div>
       <span data-testid="has-client">true</span>
-      <span data-testid="stale-time">{defaultOptions.queries?.staleTime}</span>
-      <span data-testid="gc-time">{defaultOptions.queries?.gcTime}</span>
-      <span data-testid="retry">{defaultOptions.queries?.retry}</span>
+      <span data-testid="stale-time">{String(defaultOptions.queries?.staleTime)}</span>
+      <span data-testid="gc-time">{String(defaultOptions.queries?.gcTime)}</span>
+      <span data-testid="retry">{String(defaultOptions.queries?.retry)}</span>
       <span data-testid="refetch-on-focus">{String(defaultOptions.queries?.refetchOnWindowFocus)}</span>
       <span data-testid="refetch-on-reconnect">{String(defaultOptions.queries?.refetchOnReconnect)}</span>
       <span data-testid="refetch-on-mount">{String(defaultOptions.queries?.refetchOnMount)}</span>

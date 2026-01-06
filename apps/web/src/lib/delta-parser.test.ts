@@ -399,7 +399,8 @@ const x = 1;
     const delta = result.deltas[0];
     expect(delta.valid).toBe(true);
     if (delta.valid) {
-      expect(delta.payload.context).toContain("``` code ```");
+      const payload = delta.payload as { context?: string };
+      expect(payload.context).toContain("``` code ```");
     }
   });
 });

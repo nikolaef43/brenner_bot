@@ -242,6 +242,7 @@ describe("Command creation", () => {
       observation: "Observed X",
       result: "supports",
       potencyCheckPassed: true,
+      recordedBy: "user",
     });
 
     expect(isConfidenceCommand(confidence)).toBe(true);

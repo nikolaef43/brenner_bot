@@ -425,7 +425,7 @@ describe("AgentMailClient.call (non-SSE)", () => {
     const result = await client.call("tools/list");
     expect(result).toEqual({ ok: true });
     expect(capturedUrl).toBe("http://example.com/mcp/");
-    expect(capturedHeaders?.get("authorization")).toBe("Bearer secret");
+    expect((capturedHeaders as Headers | null)?.get("authorization")).toBe("Bearer secret");
   });
 
   it("throws a descriptive error when HTTP response is not JSON", async () => {

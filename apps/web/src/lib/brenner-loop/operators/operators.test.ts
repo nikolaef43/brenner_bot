@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createHypothesisCard, generateHypothesisCardId } from "../hypothesis";
 import type { HypothesisCard } from "../hypothesis";
-import type { OperatorStepConfig } from "./framework";
+import type { OperatorSession, OperatorStepConfig } from "./framework";
 import {
   OPERATOR_METADATA,
   canGoBack,
@@ -34,6 +34,7 @@ import {
   generateSubHypothesis,
   generateXLevels,
   generateYLevels,
+  type LevelSplitResult,
 } from "./level-split";
 import {
   CATEGORY_DEFAULT_POWER,
@@ -283,7 +284,7 @@ describe("operators/level-split", () => {
       value: sub.id,
     });
 
-    const result = buildLevelSplitResult(session);
+    const result = buildLevelSplitResult(session as OperatorSession<LevelSplitResult>);
     expect(result.xLevels).toHaveLength(2);
     expect(result.yLevels).toHaveLength(2);
     expect(result.selectedCombinations.length).toBeGreaterThan(0);
@@ -610,7 +611,7 @@ describe("operators/object-transpose", () => {
     const ratings = alternatives.slice(0, 2).map((alt, idx) => ({
       alternativeId: alt.id,
       plausibility: idx === 0 ? 4 : 2,
-      evidenceDiscrimination: idx === 0 ? "poor" : "good",
+      evidenceDiscrimination: (idx === 0 ? "poor" : "good") as "poor" | "moderate" | "good",
       notes: "",
     }));
 
@@ -707,7 +708,7 @@ describe("operators/object-transpose", () => {
     const allRatings = alternatives.map((alt, idx) => ({
       alternativeId: alt.id,
       plausibility: 3,
-      evidenceDiscrimination: idx % 2 === 0 ? "good" : "poor",
+      evidenceDiscrimination: (idx % 2 === 0 ? "good" : "poor") as "poor" | "moderate" | "good",
       notes: "",
     }));
 

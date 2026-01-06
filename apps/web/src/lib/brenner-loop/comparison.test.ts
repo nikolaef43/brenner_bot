@@ -5,6 +5,7 @@ import {
   buildComparisonResults,
   buildEvidenceSummary,
   buildPredictionConflictMatrix,
+  type ComparisonField,
 } from "./comparison";
 
 function makeHypothesis(overrides: Partial<HypothesisCard>): HypothesisCard {
@@ -112,7 +113,7 @@ describe("comparison", () => {
       "mechanism",
       "confidence",
       "assumptions",
-      "not_real" as unknown as Parameters<typeof buildComparisonResults>[2][number],
+      "not_real" as ComparisonField,
     ]);
 
     const statement = results.find((result) => result.field === "statement");

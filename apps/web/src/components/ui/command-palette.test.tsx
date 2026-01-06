@@ -347,7 +347,8 @@ describe("CommandPalette", () => {
 
       // Import useRouter to check navigation
       const mockPush = vi.fn();
-      vi.mocked(await import("next/navigation")).useRouter = () => ({
+      const navModule = await import("next/navigation");
+      (navModule as unknown as { useRouter: () => unknown }).useRouter = () => ({
         push: mockPush,
         back: vi.fn(),
         forward: vi.fn(),

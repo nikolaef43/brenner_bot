@@ -409,7 +409,7 @@ describe("EDIT operations", () => {
       operation: "EDIT",
       section: "research_thread",
       target_id: null,
-      payload: "not-an-object",
+      payload: "not-an-object" as unknown as ValidDelta["payload"],
       rationale: "test",
       raw: JSON.stringify({
         operation: "EDIT",

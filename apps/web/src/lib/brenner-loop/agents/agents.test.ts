@@ -36,6 +36,7 @@ import {
   getDispatchStatus,
   getFallbackContent,
   pollForResponses,
+  type AgentTask,
 } from "./dispatch";
 
 function makeHypothesis(overrides: Partial<HypothesisCard> = {}): HypothesisCard {
@@ -127,23 +128,40 @@ describe("brenner-loop/agents dispatch", () => {
       levelSplit: [
         {
           appliedAt: "2026-01-01T00:00:00Z",
+          appliedBy: "user",
           conflationDetected: true,
           conflationDescription: "Multiple levels mixed",
-          levels: [{ name: "Individual", description: "Person-level", levelType: "population" }],
+          levels: [{ name: "Individual", description: "Person-level", levelType: "interpreter", hypothesisIds: ["H1"] }],
         },
       ],
       exclusionTest: [
         {
+          appliedAt: "2026-01-01T00:00:00Z",
+          appliedBy: "user",
           designedTests: [
-            { name: "Block mechanism", procedure: "Do X", couldExclude: ["H1"] },
+            { name: "Block mechanism", procedure: "Do X", couldExclude: ["H1"], discriminativePower: 3 },
           ],
+          rejectedTests: [],
         },
       ],
       objectTranspose: [
-        { originalSystem: "A", selectedSystem: "B", selectionRationale: "clearer" },
+        {
+          appliedAt: "2026-01-01T00:00:00Z",
+          appliedBy: "user",
+          originalSystem: "A",
+          alternativeSystems: [{ name: "B", pros: ["clearer"], cons: [] }],
+          selectedSystem: "B",
+          selectionRationale: "clearer",
+        },
       ],
       scaleCheck: [
-        { plausible: false, calculations: [{ name: "Scale", result: "0", units: "u", implication: "bad" }], ruledOutByScale: ["H1"] },
+        {
+          appliedAt: "2026-01-01T00:00:00Z",
+          appliedBy: "user",
+          plausible: false,
+          calculations: [{ name: "Scale", quantities: "10^6 cells", result: "0", units: "u", implication: "bad" }],
+          ruledOutByScale: ["H1"],
+        },
       ],
     });
     expect(operatorsMd).toContain("## Level Split Results");
@@ -219,7 +237,7 @@ describe("brenner-loop/agents dispatch", () => {
         roles: ["devils_advocate"],
       }),
       threadId: "TRIBUNAL-S-3-abc",
-      tasks: [{ role: "devils_advocate", status: "dispatched", messageId: 100, dispatchedAt: "2026-01-01T00:00:00Z" }],
+      tasks: [{ role: "devils_advocate", status: "dispatched", messageId: 100, dispatchedAt: "2026-01-01T00:00:00Z" }] as AgentTask[],
     };
 
     const client = {

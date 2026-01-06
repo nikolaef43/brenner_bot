@@ -171,8 +171,9 @@ describe("Guard Functions", () => {
       const session = createTestSession({
         pendingAgentRequests: [
           {
-            id: "req-1",
+            threadId: "thread-1",
             agentName: "Skeptic",
+            role: "adversarial_critic",
             status: "pending",
             requestedAt: "2026-01-01T00:00:00Z",
           },
@@ -190,8 +191,9 @@ describe("Guard Functions", () => {
       const session = createTestSession({
         pendingAgentRequests: [
           {
-            id: "req-1",
+            threadId: "thread-1",
             agentName: "Skeptic",
+            role: "adversarial_critic",
             status: "completed",
             requestedAt: "2026-01-01T00:00:00Z",
           },
@@ -208,8 +210,12 @@ describe("Guard Functions", () => {
           {
             id: "resp-1",
             agentName: "Skeptic",
-            response: "Test response",
+            role: "adversarial_critic",
+            threadId: "thread-1",
+            messageId: 100,
             receivedAt: "2026-01-01T00:00:00Z",
+            acknowledged: false,
+            summary: "Test response",
           },
         ],
       });
@@ -228,9 +234,12 @@ describe("Guard Functions", () => {
         evidenceLedger: [
           {
             id: "ev-1",
-            type: "observation",
-            content: "Test evidence",
-            addedAt: "2026-01-01T00:00:00Z",
+            testId: "T-1",
+            recordedAt: "2026-01-01T00:00:00Z",
+            observation: "Test evidence",
+            result: "supports",
+            potencyCheckPassed: true,
+            recordedBy: "user",
           },
         ],
       });
@@ -409,8 +418,12 @@ describe("transition", () => {
           {
             id: "resp-1",
             agentName: "Skeptic",
-            response: "Test response",
+            role: "adversarial_critic",
+            threadId: "thread-1",
+            messageId: 100,
             receivedAt: "2026-01-01T00:00:00Z",
+            acknowledged: false,
+            summary: "Test response",
           },
         ],
       });
