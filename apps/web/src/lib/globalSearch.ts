@@ -571,14 +571,18 @@ function extractHighlights(text: string, terms: string[]): string[] {
   const lowerText = text.toLowerCase();
 
   for (const term of terms) {
-    const index = lowerText.indexOf(term);
-    if (index !== -1) {
+    let pos = 0;
+    while (true) {
+      const index = lowerText.indexOf(term, pos);
+      if (index === -1) break;
+      
       // Get original case from text
       highlights.push(text.slice(index, index + term.length));
+      pos = index + term.length;
     }
   }
 
-  return highlights;
+  return [...new Set(highlights)]; // Dedup
 }
 
 // ============================================================================
