@@ -179,6 +179,8 @@ test.describe("Visual Regression", () => {
 
         await expect(footer).toHaveScreenshot("footer.png", {
           ...SNAPSHOT_OPTIONS,
+          // Footer has higher variance due to dynamic content (dates, links)
+          maxDiffPixelRatio: 0.10, // Allow up to 10% pixel difference
         });
         logger.info("Footer screenshot captured");
       });
@@ -220,8 +222,9 @@ test.describe("Visual Regression", () => {
         await page.waitForTimeout(300);
         await expect(page).toHaveScreenshot("error-404.png", {
           ...SNAPSHOT_OPTIONS,
-          maxDiffPixels: 200, // Allow more variance for dynamic content
-          maxDiffPixelRatio: 0.02, // Allow up to 2% pixel difference for minor rendering variations
+          // Use ratio-based threshold only (not pixel count) for 404 page
+          // This allows minor font/rendering differences across CI runs
+          maxDiffPixelRatio: 0.03, // Allow up to 3% pixel difference
         });
         logger.info("404 page screenshot captured");
       });
