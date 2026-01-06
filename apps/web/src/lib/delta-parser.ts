@@ -230,14 +230,8 @@ function validateDelta(raw: unknown, rawJson: string): ParsedDelta {
   }
 
   // Validate target_id based on operation
-  if (operation === "ADD" && target_id !== null && target_id !== undefined) {
-    return {
-      valid: false,
-      error: "ADD operation must have target_id as null",
-      raw: rawJson,
-    };
-  }
-
+  // Note: We intentionally allow target_id in ADD (and ignore it) to be lenient with agents.
+  
   // KILL always requires target_id
   if (operation === "KILL" && typeof target_id !== "string") {
     return {
@@ -308,7 +302,8 @@ function validateDelta(raw: unknown, rawJson: string): ParsedDelta {
     valid: true,
     operation,
     section,
-    target_id: typeof target_id === "string" ? target_id : null,
+    // Force null target_id for ADD (ignore agent hallucinations), otherwise preserve string or null
+    target_id: operation === "ADD" ? null : (typeof target_id === "string" ? target_id : null),
     payload: (payload ?? {}) as DeltaPayload,
     rationale: typeof rationale === "string" ? rationale : "",
     raw: rawJson,

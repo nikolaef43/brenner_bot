@@ -177,19 +177,20 @@ function parseOperatorCardsFromSection(args: {
     const title = titleParts.join(" ").trim();
 
     const definitionMatch = block.match(
-      /\*\*Definition\*\*:\s*([\s\S]*?)\n\n\*\*When-to-Use Triggers\*\*:/m
+      /\*\*Definition\*\*:\s*([\s\S]*?)(?=\n\s*\*\*When-to-Use Triggers\*\*:)/i
     );
     const triggersMatch = block.match(
-      /\*\*When-to-Use Triggers\*\*:\s*\n([\s\S]*?)\n\n\*\*Failure Modes\*\*:/m
+      /\*\*When-to-Use Triggers\*\*:\s*([\s\S]*?)(?=\n\s*\*\*Failure Modes\*\*:)/i
     );
     const failureModesMatch = block.match(
-      /\*\*Failure Modes\*\*:\s*\n([\s\S]*?)\n\n\*\*(?:Prompt module \(copy\/paste\)\*\*|Canonical tag\*\*):/m
+      /\*\*Failure Modes\*\*:\s*([\s\S]*?)(?=\n\s*\*\*(?:Prompt module \(copy\/paste\)|Canonical tag)\*\*:)/i
     );
     const promptModule = parsePromptModule(block);
 
-    const canonicalTagMatch = block.match(/\*\*Canonical tag\*\*:\s*`([^`]+)`/m);
-    const quoteBankAnchorsMatch = block.match(/\*\*Quote-bank anchors\*\*:\s*([^\n]+)/m);
-    const transcriptAnchorsMatch = block.match(/\*\*Transcript Anchors\*\*:\s*([^\n]+)/m);
+    // Allow optional backticks for canonical tag
+    const canonicalTagMatch = block.match(/\*\*Canonical tag\*\*:\s*`?([^`\n]+)`?/i);
+    const quoteBankAnchorsMatch = block.match(/\*\*Quote-bank anchors\*\*:\s*([^\n]+)/i);
+    const transcriptAnchorsMatch = block.match(/\*\*Transcript Anchors\*\*:\s*([^\n]+)/i);
 
     if (!symbol || !title) {
       throw new Error(`Operator library: failed to parse header line: ${headerLine}`);

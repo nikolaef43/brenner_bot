@@ -1647,8 +1647,8 @@ export function lintArtifact(artifact: Artifact): LintReport {
     if (!Array.isArray(anchors)) return [];
     const refs: number[] = [];
     for (const anchor of anchors) {
-      // Match §42, §42-45 (range), or multiple like §42, §57
-      const matches = anchor.matchAll(/§(\d+)(?:-(\d+))?/g);
+      // Match §42, § 42, §42-45 (range), or multiple like §42, §57
+      const matches = anchor.matchAll(/§\s*(\d+)(?:-(\d+))?/g);
       for (const match of matches) {
         const start = Number.parseInt(match[1], 10);
         const end = match[2] ? Number.parseInt(match[2], 10) : start;
