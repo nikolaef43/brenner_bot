@@ -55,3 +55,6 @@ export type { FalsificationCeremonyProps, FalsificationCeremonyResult } from "./
 
 export { DomainSelector, CompactDomainSelector } from "./DomainSelector";
 export type { DomainSelectorProps, CompactDomainSelectorProps } from "./DomainSelector";
+
+export { HypothesisTemplateSelector, CompactTemplatePicker } from "./HypothesisTemplateSelector";
+export type { HypothesisTemplateSelectorProps, CompactTemplatePickerProps } from "./HypothesisTemplateSelector";

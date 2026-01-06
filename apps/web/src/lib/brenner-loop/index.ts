@@ -923,3 +923,29 @@ export {
   isPaperResult,
   isLiteratureSearch,
 } from "./literature";
+
+// ============================================================================
+// Hypothesis Templates (bead 838e)
+// ============================================================================
+
+export type {
+  HypothesisTemplate,
+  HypothesisTemplateContent,
+  TemplateCategory,
+} from "./hypothesis-templates";
+
+export {
+  // Template registry
+  HYPOTHESIS_TEMPLATES,
+  TEMPLATE_BY_ID,
+  TEMPLATE_CATEGORIES,
+
+  // Helper functions
+  getTemplate,
+  getTemplatesByDomain,
+  getFeaturedTemplates,
+  getTemplatesByTag,
+  getTemplatesByDifficulty,
+  searchTemplates,
+  templateToPartialCard,
+} from "./hypothesis-templates";
