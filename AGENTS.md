@@ -119,7 +119,7 @@ brenner_bot/
 │       ├── src/components/        # UI components
 │       ├── src/lib/               # Shared libraries
 │       └── package.json
-└── .beads/                        # Issue tracking (bd)
+└── .beads/                        # Issue tracking (br)
 ```
 
 ---
@@ -371,7 +371,9 @@ If route protection is needed (for admin areas, sessions, etc.):
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
    git pull --rebase
-   bd sync
+   br sync --flush-only
+   git add .beads/
+   git commit -m "Update beads"
    git push
    git status  # MUST show "up to date with origin"
    ```
@@ -388,41 +390,43 @@ If route protection is needed (for admin areas, sessions, etc.):
 
 ---
 
-## Issue Tracking with bd (beads)
+## Issue Tracking with br (beads_rust)
 
-All issue tracking goes through **bd**. No other TODO systems.
+All issue tracking goes through **br**. No other TODO systems.
+
+**Note:** `br` is non-invasive—it never executes git commands directly. You must run git commands manually after `br sync --flush-only`.
 
 Key invariants:
 
 - `.beads/` is authoritative state and **must always be committed** with code changes.
-- Do not edit `.beads/*.jsonl` directly; only via `bd`.
+- Do not edit `.beads/*.jsonl` directly; only via `br`.
 
 ### Basics
 
 Check ready work:
 
 ```bash
-bd ready --json
+br ready --json
 ```
 
 Create issues:
 
 ```bash
-bd create "Issue title" -t bug|feature|task -p 0-4 --json
-bd create "Issue title" -p 1 --deps discovered-from:bd-123 --json
+br create "Issue title" -t bug|feature|task -p 0-4 --json
+br create "Issue title" -p 1 --deps discovered-from:br-123 --json
 ```
 
 Update:
 
 ```bash
-bd update bd-42 --status in_progress --json
-bd update bd-42 --priority 1 --json
+br update br-42 --status in_progress --json
+br update br-42 --priority 1 --json
 ```
 
 Complete:
 
 ```bash
-bd close bd-42 --reason "Completed" --json
+br close br-42 --reason "Completed" --json
 ```
 
 Types:
@@ -439,17 +443,17 @@ Priorities:
 
 Agent workflow:
 
-1. `bd ready` to find unblocked work.
-2. Claim: `bd update <id> --status in_progress`.
+1. `br ready` to find unblocked work.
+2. Claim: `br update <id> --status in_progress`.
 3. Implement + test.
 4. If you discover new work, create a new bead with `discovered-from:<parent-id>`.
 5. Close when done.
-6. Commit `.beads/` in the same commit as code changes.
+6. Run `br sync --flush-only`, then `git add .beads/ && git commit` in the same commit as code changes.
 
-Auto-sync:
+Sync:
 
-- bd exports to `.beads/issues.jsonl` after changes (debounced).
-- It imports from JSONL when newer (e.g. after `git pull`).
+- Run `br sync --flush-only` to export to `.beads/issues.jsonl`.
+- Then run `git add .beads/ && git commit -m "Update beads"` to commit changes.
 
 Never:
 
